@@ -2,22 +2,35 @@
 .text
 .globl _start
 _start:
-    movb    $'L',  %al
-    call    _putc
-    movb    $'o',  %al
-    call    _putc
-    movb    $'k',  %al
-    call    _putc
-    movb    $'i',  %al
-    call    _putc
-    movb    $'O',  %al
-    call    _putc
-    movb    $'S',  %al
-    call    _putc
+    # Start by nuking the DS and ES registers.  These don't necessarily point
+    # to the same region as the CS register or something, so without doing this
+    # we would need to prefix all our memory accesses with %cs:.
+    xor     %ax, %ax
+    mov     %ax, %ds
+    mov     %ax, %es
 
-_forever:
-    jmp     _forever
+    # Print our banner.
+    lea     _loki_os_banner, %si
+    call    _puts
+
+    mov     $0xAA, %dl
+    call    _put8
+    call    _putCRLF
+    mov     $0xBBCC, %dx
+    call    _put16
+    call    _putCRLF
+    mov     $0x12345678, %edx
+    call    _put32
+    call    _putCRLF
+
+0:
+    hlt
+    jmp     0b
 
 .data
-    .ascii  "Loki OS!\n"
-    .align  4096
+.globl _loki_os_banner
+_loki_os_banner:
+    .ascii  "Loki OS\r\n"
+    .asciz  "Copyright (c) 2017 by Terry Greeniaus.  All rights reserved.\r\n"
+_crlf:
+    .asciz  "\r\n"
