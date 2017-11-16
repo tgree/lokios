@@ -1,3 +1,5 @@
+ASFLAGS = -march=i386 --32
+
 lokios: lokios.raw
 	cp lokios.raw lokios
 
@@ -6,9 +8,6 @@ lokios.raw: lokios.elf
 
 lokios.elf: lokios.o
 	ld -melf_i386 -T lokios.ld -o lokios.elf lokios.o
-
-lokios.o: lokios.S
-	as -march=i386 --32 -o lokios.o lokios.S
 
 .PHONY: clean
 clean:
