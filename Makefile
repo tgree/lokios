@@ -10,5 +10,6 @@ lokios.elf: lokios.o
 lokios.o: lokios.S
 	as -march=i386 --32 -o lokios.o lokios.S
 
+.PHONY: clean
 clean:
-	rm -f lokios.elf lokios.o lokios.raw lokios
+	rm -f lokios.elf lokios.raw lokios *.o
