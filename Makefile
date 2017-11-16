@@ -1,4 +1,4 @@
-OBJS = console.o entry.o
+OBJS = lokios.o console.o entry.o
 ASFLAGS = -march=i386 --32
 
 lokios: lokios.raw
