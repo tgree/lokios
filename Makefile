@@ -1,3 +1,4 @@
+OBJS = lokios.o
 ASFLAGS = -march=i386 --32
 
 lokios: lokios.raw
@@ -6,8 +7,8 @@ lokios: lokios.raw
 lokios.raw: lokios.elf
 	objcopy -O binary -S lokios.elf lokios.raw
 
-lokios.elf: lokios.o
-	ld -melf_i386 -T lokios.ld -o lokios.elf lokios.o
+lokios.elf: $(OBJS)
+	ld -melf_i386 -T lokios.ld -o lokios.elf $(OBJS)
 
 .PHONY: clean
 clean:
