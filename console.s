@@ -115,6 +115,7 @@ _putCRLF:
     jmp     _puts
 
 
+# --------------------- Data Segment ---------------------
 .data
 _hextab:
     .ascii  "0123456789ABCDEF"
