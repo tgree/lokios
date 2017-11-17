@@ -7,7 +7,7 @@ lokios: lokios.raw
 lokios.raw: lokios.elf
 	objcopy -O binary -S lokios.elf lokios.raw
 
-lokios.elf: $(OBJS)
+lokios.elf: $(OBJS) lokios.ld
 	ld -melf_i386 -T lokios.ld -o lokios.elf $(OBJS)
 
 .PHONY: clean
