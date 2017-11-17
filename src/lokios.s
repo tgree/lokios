@@ -2,6 +2,18 @@
 .text
 
 
+.globl _lokios_start_mbr
+_lokios_start_mbr:
+    lea     _mbr_text, %si
+    call    _puts
+    jmp     .L_lokios_start
+
+.globl _lokios_start_pxe
+_lokios_start_pxe:
+    lea     _pxe_text, %si
+    call    _puts
+    jmp     .L_lokios_start
+
 # Entry point for LokiOS.  Upon entry, system state is as follows:
 #
 #   1. We are running in real mode.
@@ -9,8 +21,7 @@
 #   3. SS is in some BIOS buffer.
 #   4. The register state has been saved on the stack.
 #   5. We were invoked via a call and can ret back to BIOS if we want to bail.
-.globl _lokios_start
-_lokios_start:
+.L_lokios_start:
     # Print our banner.
     lea     _loki_os_banner, %si
     call    _puts
@@ -90,6 +101,10 @@ _dump_reg16:
 _loki_os_banner:
     .ascii  "Loki OS\r\n"
     .asciz  "Copyright (c) 2017 by Terry Greeniaus.  All rights reserved.\r\n"
+_mbr_text:
+    .asciz  "MBR"
+_pxe_text:
+    .asciz  "PXE"
 _cr0_text:
     .asciz  "CR0: "
 _gs_text:

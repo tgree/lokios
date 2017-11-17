@@ -59,7 +59,23 @@ _start:
     mov     %ax, %ds
     ljmp    $0, $.L_start_clear_cs
 .L_start_clear_cs:
-    call    _lokios_start
+
+    # Check if we can see a 'PXENV+' signature at ES:BX.
+    lea     .L_pxenv_str, %si
+    mov     %bx, %di
+    mov     $6, %cx
+    cld
+    repe cmpsb
+    je      .L_pxe_start
+    jmp     .L_mbr_start
+
+
+.L_mbr_start:
+    call    _lokios_start_mbr
+    jmp     .L_done
+.L_pxe_start:
+    call    _lokios_start_pxe
+.L_done:
 
 .if 0
     # Return to BIOS.
@@ -78,3 +94,6 @@ _start:
     hlt
     jmp     .L_forever
 .endif
+
+.L_pxenv_str:
+    .ascii "PXENV+"
