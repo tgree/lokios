@@ -54,10 +54,12 @@ _start:
     pushw   %fs
     pushw   %gs
 
-    # Clear DS manually then clear CS by doing a far call to the target.
+    # Clear DS manually and CS via far jmp.
     xor     %ax, %ax
     mov     %ax, %ds
-    lcall   $0, $_lokios_start
+    ljmp    $0, $.L_start_clear_cs
+.L_start_clear_cs:
+    call    _lokios_start
 
 .if 0
     # Return to BIOS.
@@ -72,7 +74,7 @@ _start:
     lret
 .else
     # Loop forever.
-_forever:
+.L_forever:
     hlt
-    jmp     _forever
+    jmp     .L_forever
 .endif

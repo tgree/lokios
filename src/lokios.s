@@ -8,8 +8,7 @@
 #   2. CS = ES = DS = 0.
 #   3. SS is in some BIOS buffer.
 #   4. The register state has been saved on the stack.
-#   5. We were invoked via a far call and can lret back to BIOS if we want to
-#      bail out.
+#   5. We were invoked via a call and can ret back to BIOS if we want to bail.
 .globl _lokios_start
 _lokios_start:
     # Print our banner.
@@ -61,7 +60,7 @@ _lokios_start:
     mov     %ss, %dx
     call    _dump_reg16
 
-    lret
+    ret
 
 
 # Print a label and a 32-bit value:
