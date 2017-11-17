@@ -1,6 +1,7 @@
 .code16
 .text
 
+.equiv DUMP_REGS, 0
 
 .globl _lokios_start_mbr
 _lokios_start_mbr:
@@ -26,6 +27,7 @@ _lokios_start_pxe:
     lea     _loki_os_banner, %si
     call    _puts
 
+.if DUMP_REGS
     # Print the contents of some interesting registers.
     lea     _cr0_text, %si
     mov     %cr0, %edx
@@ -70,10 +72,12 @@ _lokios_start_pxe:
     lea     _ss_text, %si
     mov     %ss, %dx
     call    _dump_reg16
+.endif
 
     ret
 
 
+.if DUMP_REGS
 # Print a label and a 32-bit value:
 #   %si  - label
 #   %edx - value
@@ -93,6 +97,7 @@ _dump_reg16:
     pop     %dx
     call    _put16
     jmp     _putCRLF
+.endif
 
 
 # --------------------- Data Segment ---------------------
@@ -105,6 +110,8 @@ _mbr_text:
     .asciz  "MBR"
 _pxe_text:
     .asciz  "PXE"
+
+.if DUMP_REGS
 _cr0_text:
     .asciz  "CR0: "
 _gs_text:
@@ -119,3 +126,4 @@ _cs_text:
     .asciz  "CS:  "
 _ss_text:
     .asciz  "SS:  "
+.endif

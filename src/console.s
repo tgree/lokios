@@ -31,6 +31,7 @@ _puts:
     ret
 
 
+.if 0
 # Write a uint32_t to the console.
 #   %edx - contains the value to write
 .globl _put32
@@ -106,6 +107,7 @@ _put8:
     movb    %al, .L_put8_val+1
 
     jmp     _puts
+.endif
 
 
 # Write a CRLF to the console.
