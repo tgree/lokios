@@ -2,6 +2,7 @@
 .text
 
 .equiv DUMP_REGS, 0
+.equiv PRINT_TEST, 1
 
 .globl _lokios_start_mbr
 _lokios_start_mbr:
@@ -28,6 +29,15 @@ _lokios_start_pxe:
     # Print our banner.
     lea     _loki_os_banner, %si
     call    _puts
+
+.if PRINT_TEST
+    mov     $0x789ABCDE, %edx
+    call    _put32
+    call    _putCRLF
+    mov     $0x11CC, %dx
+    call    _put16
+    call    _putCRLF
+.endif
 
 .if DUMP_REGS
     # Print the contents of some interesting registers.
