@@ -6,13 +6,11 @@
 .globl _lokios_start_mbr
 _lokios_start_mbr:
     lea     _mbr_text, %si
-    call    _puts
     jmp     .L_lokios_start
 
 .globl _lokios_start_pxe
 _lokios_start_pxe:
     lea     _pxe_text, %si
-    call    _puts
     jmp     .L_lokios_start
 
 # Entry point for LokiOS.  Upon entry, system state is as follows:
@@ -22,7 +20,11 @@ _lokios_start_pxe:
 #   3. SS is in some BIOS buffer.
 #   4. The register state has been saved on the stack.
 #   5. We were invoked via a call and can ret back to BIOS if we want to bail.
+#   6. %si contains a pointer to an initial banner to print.
 .L_lokios_start:
+    # Print the initial banner.
+    call    _puts
+
     # Print our banner.
     lea     _loki_os_banner, %si
     call    _puts
