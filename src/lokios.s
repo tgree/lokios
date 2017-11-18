@@ -35,6 +35,11 @@ _lokios_start_pxe:
     lea     _loki_os_banner, %si
     call    _puts
 
+    # Print the build time.
+    lea     _BUILD_TIME, %si
+    call    _puts
+    call    _putCRLF
+
 .if PRINT_TEST
     mov     $0x789ABCDE, %edx
     call    _put32
