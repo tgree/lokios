@@ -21,9 +21,7 @@ _puts:
     cmp     $0, %al
     je      0f
 
-    push    %si
     call    _putc
-    pop     %si
     inc     %si
     jmp     _puts
 
