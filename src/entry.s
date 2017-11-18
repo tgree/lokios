@@ -1,6 +1,8 @@
 .code16
 .text
 
+.equiv END_WITH_HALT, 1
+
 
 # Starting point.  These are the first instructions executed after BIOS.
 # --------
@@ -77,7 +79,12 @@ _start:
     call    _lokios_start_pxe
 .L_done:
 
-.if 0
+.if END_WITH_HALT
+    # Loop forever.
+.L_forever:
+    hlt
+    jmp     .L_forever
+.else
     # Return to BIOS.
     pop     %gs
     pop     %fs
@@ -88,11 +95,6 @@ _start:
     popfw
     xor     %ax, %ax
     lret
-.else
-    # Loop forever.
-.L_forever:
-    hlt
-    jmp     .L_forever
 .endif
 
 .L_pxenv_str:
