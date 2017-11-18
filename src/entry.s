@@ -47,6 +47,9 @@
 # BIOS.
 .globl _start
 _start:
+    # Don't allow interrupts.
+    cli
+
     # Save everything.
     pushfw
     pushaw
