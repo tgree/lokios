@@ -4,24 +4,29 @@
 .equiv DUMP_REGS, 0
 .equiv PRINT_TEST, 0
 
+# Entry point for an MBR boot.  On entry:
+#   CS:IP - set to 0:7C00h.
+#   DS    - 0
+#   DL    - contains the drive number for use with INT 13h.
 .globl _lokios_start_mbr
 _lokios_start_mbr:
     lea     _mbr_text, %si
     jmp     .L_lokios_start
 
+# Entry point for a PXE boot.  On entry:
+#   CS:IP     - set to 0:7C00h.
+#   ES:BX     - contains the address of the PXENV+ structure.
+#   DS        - 0
+#   SS:[SP+4] - contains the segment:offset address of the !PXE structure.
+#   SS:SP     - we've already saved the entry register state on the stack, but
+#               there should be a bit less than 1.5K of free space left
 .globl _lokios_start_pxe
 _lokios_start_pxe:
     lea     _pxe_text, %si
     jmp     .L_lokios_start
 
-# Entry point for LokiOS.  Upon entry, system state is as follows:
-#
-#   1. We are running in real mode.
-#   2. CS = ES = DS = 0.
-#   3. SS is in some BIOS buffer.
-#   4. The register state has been saved on the stack.
-#   5. We were invoked via a call and can ret back to BIOS if we want to bail.
-#   6. %si contains a pointer to an initial banner to print.
+# Entry point for LokiOS.
+#   %si - contains a pointer to an initial banner to print.
 .L_lokios_start:
     # Print the initial banner.
     call    _puts

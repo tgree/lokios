@@ -47,7 +47,7 @@
 # BIOS.
 .globl _start
 _start:
-    # Don't allow interrupts.
+    # Disable interrupts.
     cli
 
     # Save everything.
@@ -65,7 +65,8 @@ _start:
     ljmp    $0, $.L_start_clear_cs
 .L_start_clear_cs:
 
-    # Check if we can see a 'PXENV+' signature at ES:BX.
+    # Check if we can see a 'PXENV+' signature at ES:BX and dispatch to the
+    # correct entry point.
     lea     .L_pxenv_str, %si
     mov     %bx, %di
     mov     $6, %cx
@@ -73,8 +74,6 @@ _start:
     repe cmpsb
     je      .L_pxe_start
     jmp     .L_mbr_start
-
-
 .L_mbr_start:
     call    _lokios_start_mbr
     jmp     .L_done
@@ -101,4 +100,4 @@ _start:
 .endif
 
 .L_pxenv_str:
-    .ascii "PXENV+"
+    .ascii  "PXENV+"
