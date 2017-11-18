@@ -29,83 +29,29 @@ _puts:
     ret
 
 
-.if 0
-# Write a uint32_t to the console.
-#   %edx - contains the value to write
-.globl _put32
+# Write a hex value to the console
+#   _put32: %edx - contains the value to write
+#   _put16: %dx  - contains the value to write
+.global _put32
+.global _put16
 _put32:
-    lea     .L_put32_val, %si
-    lea     .L_hextab, %bx
-    jmp     .L_put_8_digits
-
-# Write a uint16_t to the console.
-#   %dx - contains the value to write
-.globl _put16
+    mov     $8, %cx
+    jmp     .L_put_loop
 _put16:
-    lea     .L_put16_val, %si
-    lea     .L_hextab, %bx
-    jmp     .L_put_4_digits
-
-# Write a uint8_t to the console.
-#   %dl - contains the value to write
-.globl _put8
-_put8:
-    lea     .L_put8_val, %si
-    lea     .L_hextab, %bx
-    jmp     .L_put_2_digits
-
-.L_put_8_digits:
-    mov     %edx, %edi
-    shr     $28, %edi
-    and     $0x0F, %di
-    movb    (%bx,%di), %al
-    movb    %al, .L_put32_val+0
-
-    mov     %edx, %edi
-    shr     $24, %edi
-    and     $0x0F, %di
-    movb    (%bx,%di), %al
-    movb    %al, .L_put32_val+1
-
-    mov     %edx, %edi
-    shr     $20, %edi
-    and     $0x0F, %di
-    movb    (%bx,%di), %al
-    movb    %al, .L_put32_val+2
-
-    mov     %edx, %edi
-    shr     $16, %edi
-    and     $0x0F, %di
-    movb    (%bx,%di), %al
-    movb    %al, .L_put32_val+3
-
-.L_put_4_digits:
-    mov     %dx, %di
-    shr     $12, %di
-    and     $0x0F, %di
-    movb    (%bx,%di), %al
-    movb    %al, .L_put16_val+0
-
-    mov     %dx, %di
-    shr     $8, %di
-    and     $0x0F, %di
-    movb    (%bx,%di), %al
-    movb    %al, .L_put16_val+1
-
-.L_put_2_digits:
-    mov     %dx, %di
-    shr     $4, %di
-    and     $0x0F, %di
-    movb    (%bx,%di), %al
-    movb    %al, .L_put8_val+0
-
-    mov     %dx, %di
-    and     $0x0F, %di
-    movb    (%bx,%di), %al
-    movb    %al, .L_put8_val+1
-
-    jmp     _puts
-.endif
+    mov     $4, %cx
+    rol     $16, %edx
+.L_put_loop:
+    rol     $4, %edx
+    mov     %dl, %al
+    and     $0x0F, %al
+    add     $0x30, %al
+    cmp     $0x3A, %al
+    jl      .L_conv_complete
+    add     $0x07, %al
+.L_conv_complete:
+    call    _putc
+    loop    .L_put_loop
+    ret
 
 
 # Write a CRLF to the console.
@@ -117,13 +63,5 @@ _putCRLF:
 
 # --------------------- Data Segment ---------------------
 .data
-.L_hextab:
-    .ascii  "0123456789ABCDEF"
-.L_put32_val:
-    .ascii  "0000"
-.L_put16_val:
-    .ascii  "00"
-.L_put8_val:
-    .asciz  "00"
 .L_putCRLF_string:
     .asciz  "\r\n"
