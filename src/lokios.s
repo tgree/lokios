@@ -116,12 +116,12 @@ _dump_reg16:
 .data
 .globl _loki_os_banner
 _loki_os_banner:
-    .ascii  "Loki OS\r\n"
-    .asciz  "Copyright (c) 2017 by Terry Greeniaus.  All rights reserved.\r\n"
+    .ascii  "Loki\r\n"
+    .asciz  "Copyright (c) 2017 by Terry Greeniaus.\r\n"
 _mbr_text:
-    .asciz  "MBR"
+    .asciz  "MBR "
 _pxe_text:
-    .asciz  "PXE"
+    .asciz  "PXE "
 
 .if DUMP_REGS
 _cr0_text:
