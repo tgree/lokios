@@ -2,7 +2,7 @@
 .text
 
 .equiv DUMP_REGS, 0
-.equiv PRINT_TEST, 1
+.equiv PRINT_TEST, 0
 
 .globl _lokios_start_mbr
 _lokios_start_mbr:
