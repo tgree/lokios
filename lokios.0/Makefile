@@ -1,5 +1,5 @@
-OBJS = lokios.o console.o entry.o
-ASFLAGS = -march=i386 --32
+OBJS := lokios.o console.o entry.o
+ASFLAGS := -march=i386 --32
 NOW := $(shell date +"%c")
 
 lokios.0: lokios.elf
