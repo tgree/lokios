@@ -1,5 +1,5 @@
 LOKIOS_0_OBJ := \
-	lokios.0/lokios.o \
+	lokios.0/dispatcher.o \
 	lokios.0/console.o \
 	lokios.0/entry.o
 CLEAN += \
