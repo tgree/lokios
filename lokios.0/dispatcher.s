@@ -98,13 +98,13 @@ _dispatch_pxe:
     jmpw    *0x7E12
 
 
-# Entry point for LokiOS.
+# Print hello world banners.
 #   %si - contains a pointer to an initial banner to print.
 .L_dispatch_print_banners:
     # Print the initial banner.
     call    _puts
 
-    # Print our banner.
+    # Print the loki copyright banner.
     lea     _loki_os_banner, %si
     call    _puts
 
