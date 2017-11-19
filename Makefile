@@ -1,7 +1,8 @@
 MODULES := lokios.0
 CLEAN   := bin/*
-ASFLAGS := -march=i386 --32
 NOW     := $(shell date +"%c")
+
+I386_16_ASFLAGS := -march=i386 --32
 
 .PHONY: all
 all: bin/lokios.0
