@@ -18,24 +18,62 @@ _dispatch_mbr:
     lea     _mbr_text, %si
     call    .L_dispatch_print_banners
 
-    # Now we need to load the first sector lokios.1 at 0x7e00.
-    mov     $2, %ah         # opcode
-    mov     $1, %al         # total sector count
-    mov     $0, %ch         # cylinder[7:0]
-    mov     $2, %cl         # cylinder[9:8] | sector (1-based)
-    popw    %dx             # drive number in DL
-    mov     $0, %dh         # head in DH
+    # Restore DL.
+    popw    %dx
+
+    # Load sector 2 from disk to 0:0x7E00.
+    mov     $0, %ch         # cylinder 0
+    mov     $2, %cl         # sector 2
+    mov     $0, %dh         # head 0
     mov     $0x7E00, %bx    # ES:BX = 0:0x7E00
-    int     $0x13
+    call    .L_read_sector
     jc      .L_mbr_read_failed
-    cmp     $0, %ah
-    jne     .L_mbr_read_failed
-.L_mbr_read_succeeded:
+
+    # First sector read succeeded.  Read all the remaining sectors.  We assume
+    # fewer than 256 sectors.
+.L_read_remaining_loop:
+    movb    0x7E04, %al
+    cmpb    %cl, %al
+    je      .L_load_succeeded
+    call    .L_next_sector
+    call    .L_read_sector
+    jc      .L_mbr_read_failed
+    jmp     .L_read_remaining_loop
+
+.L_load_succeeded:
+    # Read succeeded.  Jump to second-stage loader.
     lea     _puts, %ax
     jmp     0x7E10
 
+
+# Read a sector from disk.  On entry:
+#   CH    - cylinder[7:0]
+#   CL    - cylinder[9:8] | sector (1-based)
+#   DH    - head
+#   DL    - driver number
+#   ES:BX - destination address
+.L_read_sector:
+    mov     $2, %ah         # opcode
+    mov     $1, %al         # total sector count
+    int     $0x13
+    jc      .L_handy_ret
+    cmp     $0, %ah
+    je      .L_handy_ret
+    stc
+.L_handy_ret:
+    ret
+
+
+# Increment values to point to the next sector.
+# TODO: In the future this should take geometry into account.
+.L_next_sector:
+    inc     %cl
+    add     $512, %bx
+    ret
+
+
+# Print an error string and bail back to BIOS.
 .L_mbr_read_failed:
-    # Print an error string and bail back to BIOS.
     lea     _mbr_failed_text, %si
     call    _puts
     ret

@@ -16,7 +16,7 @@ SECTIONS
     }
 
     /* Build the header at the start of the first sector. */
-    _num_sectors = ((. - 0x7e00) / 512);
+    _last_sector = ((. - 0x7e00) / 512) + 1;
     . = 0x7e00;
     .lokios_1_hdr :
     {
@@ -26,8 +26,8 @@ SECTIONS
         BYTE(0x72)
         BYTE(0x79)
 
-        /* Number of sectors in length. */
-        SHORT(_num_sectors)
+        /* Last sector number of file. */
+        SHORT(_last_sector)
 
         /* Unused */
         SHORT(0)
