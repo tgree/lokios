@@ -7,8 +7,7 @@
 .globl _putc
 _putc:
     movb    $0x0E, %ah
-    movb    $0x00, %bh
-    movb    $0x07, %bl
+    movw    $0x0007, %bx
     int     $0x10
     ret
 
