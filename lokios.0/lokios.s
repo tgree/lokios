@@ -34,7 +34,6 @@ _lokios_start_pxe:
     # Print the build time.
     lea     _BUILD_TIME, %si
     call    _puts
-    call    _putCRLF
 
     # Bail and go back to BIOS.
     ret
