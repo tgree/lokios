@@ -1,76 +1,75 @@
 .code16
 .text
 
-.equiv END_WITH_HALT, 1
+.equiv END_WITH_HALT, 0
 
 
-# Starting point.  These are the first instructions executed after BIOS.
-# --------
-# The PXE spec says that this is the state upon entry here:
-# - CS:IP must contain the value 0:7C00h.
-# - ES:BX must contain the address of the PXENV+ structure.
-# - SS:[SP+4] must contain the segment:offset address of the !PXE structure.
-# - SS:SP is to contain the address of the beginning of the unused portion of
-#   the PXEservices stack.  There must be at least 1.5KB of free stack space
-#   for the NBP.
-# --------
-# On entry from ipxe, the actual register state is as follows:
+# Starting point.  These are the first instructions executed after BIOS and we
+# are in the wild wild west.  Since we want to be able to handle either an MBR
+# or a PXE boot, we need to work with the lowest common denominator until we
+# get more information about the state of the system.  With PXE we at least get
+# a stack, but with MBR we don't even get that.  The state is something like
+# this:
 #
-#   CR0 - 0x00000012
-#   CS  - 0x0000
-#   SS  - 0x9CB4
-#   DS  - 0x9CB4
-#   ES  - 0x9C28
-#   FS  - 0x9CB4
-#   GS  - 0x9CB4
-#   
-# We are in real-addressing mode and memory addresses are generated using
-# simple math on the segment registers rather than going through a descriptor
-# table:
+#   MBR:
+#       CR0       - 0x60000010 (via bochs)
+#       CS:IP     - 0:0x7C00 or possibly 0x7C0:0
+#       DL        - contains the drive number in an MBR boot
 #
-#   linear address = ((segment register << 4) + offset)
+#   PXE:
+#       CR0       - 0x00000012 (via ipxe)
+#       CS:IP     - supposed to be 0:0x7C00
+#       ES:BX     - contains the PXENV+ struct
+#       SS:[SP+4] - contains the segment:offset address of the !PXE struct
+#       SS:SP     - contains 1.5K of stack
 #
-# The segment register is typically selected implicitly based on the
-# instruction being executed; code fetches always use CS, stack fetches use
-# SS and data fetches use DS unless you explicitly specify one of ES, FS or GS.
-#
-# Here, we are going to force CS to be 0 via a far jmp (just in case it
-# actually wasn't 0 out of BIOS - apparently some BIOSes foolishly far jmp to
-# 0x7c0:0 instead of 0:0x7c00) and we are also going to force DS to 0 so that
-# data addresses are consistent with code addresses.  We are going to leave ES
-# alone since we may wish to access ES:BX for PXENV+ at some point.
-#
-# We aren't going to touch the stack for now, which is living up in some BIOS
-# memory area, but eventually we should move it down into our memory.
-# Apparently some BIOSes also require you to be on this stack when you call
-# into PXE routines and we'll surely need to be on it if we ever return back to
-# BIOS.
+# Apparently there is no guarantee via MBR that there is any sort of usable
+# stack.  So, we are going to preserve DL, ES:BX, SS:SP and then switch to our
+# own stack.
+# 
+# osdev.org says that 0x07E00-0x7FFFF is guaranteed free for use.
+# The PXE spec says that the max safe size of an image laoded at 0x7C00 is 32K,
+# implying that only 0x07E00-0x0x0FC00 is guaranteed free for use.  Since PXE
+# is the lowest common denominator here, we are going to relocate our stack to
+# 0xFC00.
 .globl _start
 _start:
     # Disable interrupts.
     cli
 
-    # Save everything.
-    pushfw
-    pushaw
-    pushw   %ss
-    pushw   %ds
-    pushw   %es
-    pushw   %fs
-    pushw   %gs
-
-    # Clear DS manually and CS via far jmp.
-    xor     %ax, %ax
-    mov     %ax, %ds
+    # Clear CS
     ljmp    $0, $.L_start_clear_cs
 .L_start_clear_cs:
+
+    # Save SS:SP in EAX.
+    movw    %ss, %ax
+    shl     $16, %eax
+    movw    %sp, %ax
+
+    # Load 0:FC00 into SS:SP.
+    xor     %sp, %sp
+    mov     %sp, %ss
+    mov     $0xFC00, %sp
+
+    # Save all args - EAX is the only arg we lose and that's the return
+    # register to PXE BIOS so we are probably fine stomping it.
+    pushl   %eax    # SS:SP
+    pushfw
+    pushaw
+    pushw   %ds
+
+    # Clear DS.
+    xor     %ax, %ax
+    mov     %ax, %ds
+
+    # Clear direction so string operations move forward in memory.
+    cld
 
     # Check if we can see a 'PXENV+' signature at ES:BX and dispatch to the
     # correct entry point.
     lea     .L_pxenv_str, %si
     mov     %bx, %di
     mov     $6, %cx
-    cld
     repe cmpsb
     je      .L_pxe_start
     jmp     .L_mbr_start
@@ -88,16 +87,14 @@ _start:
     jmp     .L_forever
 .else
     # Return to BIOS.
-    pop     %gs
-    pop     %fs
-    pop     %es
     pop     %ds
-    pop     %ss
     popaw
     popfw
-    xor     %ax, %ax
+    lss     %ss:0xFBFC, %sp
+    xor     %ax, %ax    # Return 0 to PXE BIOS.
     lret
 .endif
 
+.data
 .L_pxenv_str:
     .ascii  "PXENV+"
