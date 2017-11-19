@@ -13,7 +13,7 @@ SECTIONS
     {
         *(.data)
         . = ALIGN(512);
-    }
+    } = 0xCC
 
     /* Build the header at the start of the first sector. */
     _last_sector = ((. - 0x7e00) / 512) + 1;
