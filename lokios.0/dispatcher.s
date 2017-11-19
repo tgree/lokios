@@ -10,10 +10,6 @@ _dispatch_mbr:
     # Save off DL.
     pushw   %dx
 
-    # Zero ES because we need it to point to the same place as DS.
-    xor     %dx, %dx
-    mov     %dx, %es
-
     # Print the banners.
     lea     _mbr_text, %si
     call    .L_dispatch_print_banners

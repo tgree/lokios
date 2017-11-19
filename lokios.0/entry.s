@@ -53,6 +53,8 @@ _start:
 
     # Save all args - EAX is the only arg we lose and that's the return
     # register to PXE BIOS so we are probably fine stomping it.
+    push    %bx
+    push    %es
     pushl   %eax    # SS:SP
     pushfw
     pushaw
@@ -66,11 +68,13 @@ _start:
     cld
 
     # Check if we can see a 'PXENV+' signature at ES:BX and dispatch to the
-    # correct entry point.
+    # correct entry point.  We also set ES = 0 on the way out so that it maps
+    # to the same segment as DS.
     lea     .L_pxenv_str, %si
     mov     %bx, %di
     mov     $6, %cx
     repe cmpsb
+    mov     %ax, %es
     je      .L_pxe_start
 .L_mbr_start:
     call    _dispatch_mbr
@@ -89,7 +93,8 @@ _start:
     pop     %ds
     popaw
     popfw
-    lss     %ss:0xFBFC, %sp
+    lss     %ss:0xFBF8, %sp
+    lss     %es:0xFBFC, %bx
     xor     %ax, %ax    # Return 0 to PXE BIOS.
     lret
 .endif
