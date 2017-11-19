@@ -3,9 +3,9 @@ LOKIOS_0_OBJ := \
 	lokios.0/console.o \
 	lokios.0/entry.o
 CLEAN += \
-	$(LOKIOS_0_OBJ)      \
-	lokios.0/lokios.elf  \
-	lokios.0/timestamp.s \
+	$(LOKIOS_0_OBJ)       \
+	lokios.0/lokios.0.elf \
+	lokios.0/timestamp.s  \
 	lokios.0/timestamp.o
 
 $(LOKIOS_0_OBJ): ASFLAGS := $(I386_16_ASFLAGS)
