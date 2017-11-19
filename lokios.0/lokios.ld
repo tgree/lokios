@@ -8,9 +8,6 @@ SECTIONS
         lokios.0/entry.o(.text)
         *(.text)
     }
-
-    /* Move other stuff to 0x8000. */
-    /*. = 0x8000; */
     .data : { *(.data) }
     .bss  : { *(.bss) }
 
