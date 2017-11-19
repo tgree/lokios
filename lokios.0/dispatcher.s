@@ -40,6 +40,8 @@ _dispatch_mbr:
     # Read succeeded.  Jump to second-stage loader.  If it returns, then we
     # will just bail back to BIOS.
     lea     _puts, %ax
+    lea     _put16, %bx
+    lea     _put32, %cx
     jmpw    *0x7E10
 
 
@@ -90,6 +92,9 @@ _dispatch_pxe:
     # will just bail straight back to BIOS.
     lea     _pxe_text, %si
     call    .L_dispatch_print_banners
+    lea     _puts, %ax
+    lea     _put16, %bx
+    lea     _put32, %cx
     jmpw    *0x7E12
 
 
