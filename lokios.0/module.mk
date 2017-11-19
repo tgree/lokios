@@ -8,7 +8,7 @@ CLEAN += \
 	lokios.0/timestamp.s \
 	lokios.0/timestamp.o
 
-lokios.0/lokios.0.elf: $(LOKIOS_0_OBJ) lokios.0/lokios.ld
+lokios.0/lokios.0.elf: $(LOKIOS_0_OBJ) lokios.0/lokios.ld lokios.0/module.mk
 	@echo '.data' > lokios.0/timestamp.s
 	@echo '.globl _BUILD_TIME' >> lokios.0/timestamp.s
 	@echo '_BUILD_TIME: .asciz "$(NOW)"' >> lokios.0/timestamp.s
