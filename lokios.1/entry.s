@@ -9,6 +9,10 @@ _puts_ptr:  .word   0
 _put16_ptr: .word   0
 _put32_ptr: .word   0
 
+_puts:      jmpw    *_puts_ptr
+_put16:     jmpw    *_put16_ptr
+_put32:     jmpw    *_put32_ptr
+
 # Called from lokios.0.  On entry:
 #   AX         - address of the lokios.0 _puts function
 #   BX         - address of the lokios.0 _put16 function
@@ -26,7 +30,7 @@ _put32_ptr: .word   0
     mov     %cx, _put32_ptr
 
     lea     .L_lokios_1_banner, %si
-    callw   *_puts_ptr
+    call    _puts
     ret
 
 
