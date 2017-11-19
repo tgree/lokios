@@ -36,6 +36,7 @@ _lokios_start_pxe:
     call    _puts
     call    _putCRLF
 
+    # Bail and go back to BIOS.
     ret
 
 
