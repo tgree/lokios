@@ -5,7 +5,7 @@ SECTIONS
     . = 0x7c00;
     .text :
     {
-        entry.o(.text)
+        lokios.0/entry.o(.text)
         *(.text)
     }
 
