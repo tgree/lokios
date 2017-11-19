@@ -17,12 +17,11 @@ _putc:
 #   %si - contains the address of the string to write
 .globl _puts
 _puts:
-    movb    (%si), %al
+    lodsb
     cmp     $0, %al
     je      0f
 
     call    _putc
-    inc     %si
     jmp     _puts
 
 0:
