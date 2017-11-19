@@ -41,9 +41,10 @@ _dispatch_mbr:
     jmp     .L_read_remaining_loop
 
 .L_load_succeeded:
-    # Read succeeded.  Jump to second-stage loader.
+    # Read succeeded.  Jump to second-stage loader.  If it returns, then we
+    # will just bail back to BIOS.
     lea     _puts, %ax
-    jmp     0x7E10
+    jmpw    *0x7E10
 
 
 # Read a sector from disk.  On entry:
@@ -88,12 +89,12 @@ _dispatch_mbr:
 #               there should be a bit less than 1.5K of free space left
 .globl _dispatch_pxe
 _dispatch_pxe:
-    # Print the banners.
+    # Print the banners and jump straight into the second stage which has
+    # already been loaded as part of the PXE image fetch.  If this returns it
+    # will just bail straight back to BIOS.
     lea     _pxe_text, %si
     call    .L_dispatch_print_banners
-
-    # Bail back to BIOS.
-    ret
+    jmpw    *0x7E12
 
 
 # Entry point for LokiOS.
