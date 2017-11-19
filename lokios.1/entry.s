@@ -10,6 +10,10 @@ _puts_ptr:  .word   0
 _put16_ptr: .word   0
 _put32_ptr: .word   0
 
+.globl _putc
+.globl _puts
+.globl _put16
+.globl _put32
 _putc:      jmpw    *_putc_ptr
 _puts:      jmpw    *_puts_ptr
 _put16:     jmpw    *_put16_ptr
@@ -31,6 +35,14 @@ _put32:     jmpw    *_put32_ptr
 
     lea     .L_lokios_1_banner, %si
     call    _puts
+    lea     _heap_start+2, %di
+    call    _E820_get_list
+    mov     %si, _heap_start
+    jc      .L_exit_to_bios
+    lea     _heap_start+2, %si
+    call    _E820_print_list
+
+.L_exit_to_bios:
     ret
 
 
