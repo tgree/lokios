@@ -14,6 +14,8 @@ SECTIONS
         *(.data)
         . = ALIGN(512);
     } = 0xCC
+    _heap_start = .;
+    _heap_end = 0xFC00;
 
     /* Build the header at the start of the first sector. */
     _last_sector = ((. - 0x7e00) / 512) + 1;
