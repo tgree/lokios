@@ -5,10 +5,15 @@
 #   CS:IP - set to 0:7C00h.
 #   DS    - 0
 #   DL    - contains the drive number for use with INT 13h.
-.globl _lokios_start_mbr
-_lokios_start_mbr:
+.globl _dispatch_mbr
+_dispatch_mbr:
+    # Print the banners.
     lea     _mbr_text, %si
-    jmp     .L_lokios_start
+    call    .L_dispatch_print_banners
+
+    # Bail back to BIOS.
+    ret
+
 
 # Entry point for a PXE boot.  On entry:
 #   CS:IP     - set to 0:7C00h.
@@ -17,13 +22,19 @@ _lokios_start_mbr:
 #   SS:[SP+4] - contains the segment:offset address of the !PXE structure.
 #   SS:SP     - we've already saved the entry register state on the stack, but
 #               there should be a bit less than 1.5K of free space left
-.globl _lokios_start_pxe
-_lokios_start_pxe:
+.globl _dispatch_pxe
+_dispatch_pxe:
+    # Print the banners.
     lea     _pxe_text, %si
+    call    .L_dispatch_print_banners
+
+    # Bail back to BIOS.
+    ret
+
 
 # Entry point for LokiOS.
 #   %si - contains a pointer to an initial banner to print.
-.L_lokios_start:
+.L_dispatch_print_banners:
     # Print the initial banner.
     call    _puts
 
@@ -35,7 +46,6 @@ _lokios_start_pxe:
     lea     _BUILD_TIME, %si
     call    _puts
 
-    # Bail and go back to BIOS.
     ret
 
 

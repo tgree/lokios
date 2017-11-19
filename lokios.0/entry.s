@@ -73,10 +73,10 @@ _start:
     repe cmpsb
     je      .L_pxe_start
 .L_mbr_start:
-    call    _lokios_start_mbr
+    call    _dispatch_mbr
     jmp     .L_done
 .L_pxe_start:
-    call    _lokios_start_pxe
+    call    _dispatch_pxe
 .L_done:
 
 .if END_WITH_HALT
