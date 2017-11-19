@@ -2,5 +2,6 @@
 *.elf
 *.raw
 *.o
-lokios.0
+bin/lokios.0
+lokios.0/lokios.0
 timestamp.s
