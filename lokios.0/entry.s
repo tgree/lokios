@@ -72,7 +72,6 @@ _start:
     mov     $6, %cx
     repe cmpsb
     je      .L_pxe_start
-    jmp     .L_mbr_start
 .L_mbr_start:
     call    _lokios_start_mbr
     jmp     .L_done

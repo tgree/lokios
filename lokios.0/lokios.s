@@ -23,7 +23,6 @@ _lokios_start_mbr:
 .globl _lokios_start_pxe
 _lokios_start_pxe:
     lea     _pxe_text, %si
-    jmp     .L_lokios_start
 
 # Entry point for LokiOS.
 #   %si - contains a pointer to an initial banner to print.

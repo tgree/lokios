@@ -9,22 +9,23 @@ _putc:
     movb    $0x0E, %ah
     movw    $0x0007, %bx
     int     $0x10
+.L_handy_ret:
     ret
 
 
+# Write a CRLF to the console.
+.globl _putCRLF
+_putCRLF:
+    lea     .L_putCRLF_string, %si
 # Write a null-terminated string to the console.
 #   %si - contains the address of the string to write
 .globl _puts
 _puts:
     lodsb
     cmp     $0, %al
-    je      0f
-
+    je      .L_handy_ret
     call    _putc
     jmp     _puts
-
-0:
-    ret
 
 
 # Write a hex value to the console
@@ -50,13 +51,6 @@ _put16:
     call    _putc
     loop    .L_put_loop
     ret
-
-
-# Write a CRLF to the console.
-.globl _putCRLF
-_putCRLF:
-    lea     .L_putCRLF_string, %si
-    jmp     _puts
 
 
 # --------------------- Data Segment ---------------------
