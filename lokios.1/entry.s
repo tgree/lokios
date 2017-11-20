@@ -39,11 +39,8 @@ _put32:     jmpw    *_put32_ptr
     call    _puts
 
     # Parse the memory map with E820.
-    lea     _heap_start+2, %di
     call    _E820_get_list
     jc      .L_E820_get_list_failed
-    mov     %si, _heap_start
-    lea     _heap_start+2, %si
     call    _E820_print_list
 
     # Enable the A20 gate so we can use all of RAM.

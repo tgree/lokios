@@ -2,14 +2,14 @@
 .text
 
 
-# Decode INT 15h E820 memory map and store it at _heap_start.
-# On entry:
-#   ES:DI - address in which to store the list
+# Decode INT 15h E820 memory map.
 # On exit:
-#   ES:DI - points to just past the end of the list
-#   CF    - set if we failed, cleared if we succeeded
+#   CF        - set if we failed, cleared if we succeeded
+#   _e820_end - pointer past the last valid entry in the E820 array
+#   _e820_map - array of 24-byte E820 entries
 .globl _E820_get_list
 _E820_get_list:
+    lea     _e820_map, %di
     xor     %ebx, %ebx
     mov     $0x534D4150, %edx
     mov     $0x0000E820, %eax
@@ -22,12 +22,12 @@ _E820_get_list:
     cmp     $0, %ebx
     je      .L_E820_error_exit
     cmp     $24, %cl
-    jg      .L_E820_error_exit
+    ja      .L_E820_error_exit
 
 .L_E820_loop:
     add     $24, %di
-    cmp     $(_heap_end - 24), %di
-    jg      .L_E820_error_exit
+    cmp     $_e820_last_max_entry, %di
+    ja      .L_E820_error_exit
     mov     $0x0000E820, %eax
     mov     $0x00000024, %ecx
     int     $0x15
@@ -38,8 +38,7 @@ _E820_get_list:
 .L_E820_done_ebx_zero:
     add     $24, %di
 .L_E820_done_carry_set:
-    movw    $0x4E4F, 16(%di)
-    movw    $0x4E4F, 18(%di)
+    movw    %di, _e820_end
     clc
     ret
 
@@ -49,17 +48,14 @@ _E820_get_list:
 
 
 # Dump the contents of the E820 list after it has been decoded.
-# On entry:
-#   SI - start of table
 .globl _E820_print_list
 _E820_print_list:
-    push    %si
     lea     .L_e820_dump_banner, %si
     call    _puts
-    pop     %si
+    lea     _e820_map, %si
 .L_E820_dump_loop:
-    cmpw    $0x4E4F, 16(%si)
-    je      .L_E820_dump_done
+    cmp     _e820_end, %si
+    jae     .L_E820_dump_done
     mov     4(%si), %edx
     call    _put32
     mov     0(%si), %edx
@@ -87,3 +83,8 @@ _E820_print_list:
 .data
 .L_e820_dump_banner:
     .asciz  "E820 memory map:\r\n"
+
+.section .e820_map
+_e820_end:
+    .word   0
+_e820_map:

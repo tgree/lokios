@@ -12,10 +12,17 @@ SECTIONS
     .data :
     {
         *(.data)
-        . = ALIGN(512);
     } = 0xCC
-    _heap_start = .;
-    _heap_end = 0xFC00;
+
+    /* Provide 4096 bytes to hold the E820 map.  This should be more than
+     * enough (I hope). */
+    .e820_map :
+    {
+        lokios.1/e820.o(.e820_map)
+        . += 4096;
+        . = ALIGN(512);
+    } = 0xDD
+    _e820_last_max_entry = . - 24;
 
     /* Build the header at the start of the first sector. */
     _last_sector = ((. - 0x7e00) / 512) + 1;
