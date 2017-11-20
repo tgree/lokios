@@ -6,7 +6,6 @@ SECTIONS
     . = 0x7e10;
     .text :
     {
-        lokios.1/entry.o(.text)
         *(.text)
     }
     .data :
