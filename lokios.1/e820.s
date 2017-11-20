@@ -83,8 +83,3 @@ _E820_print_list:
 .data
 .L_e820_dump_banner:
     .asciz  "E820 memory map:\r\n"
-
-.section .e820_map
-_e820_end:
-    .word   0
-_e820_map:

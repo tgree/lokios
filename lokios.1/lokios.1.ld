@@ -18,7 +18,9 @@ SECTIONS
      * than enough (I hope). */
     .e820_map :
     {
-        lokios.1/e820.o(.e820_map)
+        _e820_end = .;
+        SHORT(0xFFFF);
+        _e820_map = .;
         . += 4096;
         . = ALIGN(4096);
     } = 0xDD
