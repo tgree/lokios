@@ -14,15 +14,29 @@ SECTIONS
         *(.data)
     } = 0xCC
 
-    /* Provide 4096 bytes to hold the E820 map.  This should be more than
-     * enough (I hope). */
+    /* Provide at least 4096 bytes to hold the E820 map.  This should be more
+     * than enough (I hope). */
     .e820_map :
     {
         lokios.1/e820.o(.e820_map)
         . += 4096;
-        . = ALIGN(512);
+        . = ALIGN(4096);
     } = 0xDD
     _e820_last_max_entry = . - 24;
+
+    /* Provide a page table that identity-maps the first 2M of memory via a
+     * huge page. */
+    .page_table :
+    {
+        _page_table = .;
+        ASSERT(_page_table == ALIGN(4096), "page table misaligned");
+        QUAD((_page_table + 4096) | 3);
+        . = ALIGN(4096);
+        QUAD((_page_table + 8192) | 3);
+        . = ALIGN(4096);
+        QUAD(0x0000000000000083);
+        . = ALIGN(4096);
+    }
 
     /* Build the header at the start of the first sector. */
     _last_sector = ((. - 0x7e00) / 512) + 1;
