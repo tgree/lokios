@@ -71,7 +71,7 @@ _start:
     # correct entry point.  We also set ES = 0 on the way out so that it maps
     # to the same segment as DS.
     lea     .L_pxenv_str, %si
-    mov     %bx, %di
+    mov     _stack_top-2, %di
     mov     $6, %cx
     repe cmpsb
     mov     %ax, %es
