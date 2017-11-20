@@ -7,6 +7,7 @@
 #   ES:DI - address in which to store the list
 # On exit:
 #   ES:DI - points to just past the end of the list
+#   CF    - set if we failed, cleared if we succeeded
 .globl _E820_get_list
 _E820_get_list:
     xor     %ebx, %ebx
@@ -15,18 +16,18 @@ _E820_get_list:
     mov     $0x00000024, %ecx
     int     $0x15
 
-    jc      .L_E820_unsupported
+    jc      .L_E820_error_exit
     cmp     $0x534D4150, %eax
-    jne     .L_E820_unsupported
+    jne     .L_E820_error_exit
     cmp     $0, %ebx
-    je      .L_E820_unsupported
+    je      .L_E820_error_exit
     cmp     $24, %cl
-    jg      .L_E820_unsupported
+    jg      .L_E820_error_exit
 
 .L_E820_loop:
     add     $24, %di
     cmp     $(_heap_end - 24), %di
-    jg      .L_E820_out_of_memory
+    jg      .L_E820_error_exit
     mov     $0x0000E820, %eax
     mov     $0x00000024, %ecx
     int     $0x15
@@ -42,13 +43,7 @@ _E820_get_list:
     clc
     ret
 
-.L_E820_unsupported:
-    lea     .L_e820_unsupported_text, %si
-    jmp     .L_E820_error_exit
-.L_E820_out_of_memory:
-    lea     .L_e820_oom_text, %si
 .L_E820_error_exit:
-    call    _puts
     stc
     ret
 
@@ -90,9 +85,5 @@ _E820_print_list:
 
 
 .data
-.L_e820_unsupported_text:
-    .asciz  "INT15h E820 call not supported\r\n"
-.L_e820_oom_text:
-    .asciz  "INT15h E820 used all available heap\r\n"
 .L_e820_dump_banner:
     .asciz  "E820 memory map:\r\n"

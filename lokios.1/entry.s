@@ -41,11 +41,20 @@ _put32:     jmpw    *_put32_ptr
     # Parse the memory map with E820.
     lea     _heap_start+2, %di
     call    _E820_get_list
+    jc      .L_E820_get_list_failed
     mov     %si, _heap_start
-    jc      .L_exit_to_bios
     lea     _heap_start+2, %si
     call    _E820_print_list
 
+    # Success.
+    lea     .L_lokios_os_ready, %si
+    call    _puts
+    jmp     .L_exit_to_bios
+
+.L_E820_get_list_failed:
+    lea     .L_E820_failure_text, %si
+    call    _puts
+    jmp     .L_exit_to_bios
 .L_exit_to_bios:
     ret
 
@@ -53,3 +62,7 @@ _put32:     jmpw    *_put32_ptr
 .data
 .L_lokios_1_banner:
     .asciz  "lokios.1 entered\r\n"
+.L_E820_failure_text:
+    .asciz  "E820 memory probe failed.\r\n"
+.L_lokios_os_ready:
+    .asciz  "Ready to enter long mode.\r\n"
