@@ -41,21 +41,21 @@ _start:
     ljmp    $0, $.L_start_clear_cs
 .L_start_clear_cs:
 
-    # Save SS:SP in EAX.
-    movw    %ss, %ax
-    shl     $16, %eax
-    movw    %sp, %ax
+    # Save SS:SP.
+    movw    %sp, %cs:.L_saved_ss_sp
+    movw    %ss, %sp
+    movw    %sp, %cs:.L_saved_ss_sp+2
 
     # Load 0:FC00 into SS:SP.
-    xor     %sp, %sp
-    mov     %sp, %ss
-    mov     $0xFC00, %sp
+    lss     %cs:.L_loader_ss_sp, %sp
 
-    # Save all args - EAX is the only arg we lose and that's the return
-    # register to PXE BIOS so we are probably fine stomping it.
+    # Save all args.
     push    %bx
     push    %es
-    pushl   %eax    # SS:SP
+    mov     %cs:.L_saved_ss_sp+2, %bx
+    push    %bx
+    mov     %cs:.L_saved_ss_sp, %bx
+    push    %bx
     pushfw
     pushaw
     pushw   %ds
@@ -92,13 +92,19 @@ _start:
     # Return to BIOS.
     pop     %ds
     popaw
-    popfw
-    lss     %ss:0xFBF8, %sp
-    lss     %es:0xFBFC, %bx
     xor     %ax, %ax    # Return 0 to PXE BIOS.
+    popfw
+    les     %ss:0xFBFC, %bx
+    lss     %ss:0xFBF8, %sp
     lret
 .endif
 
 .data
 .L_pxenv_str:
     .ascii  "PXENV+"
+.L_saved_ss_sp:
+    .word   0       # SP
+    .word   0       # SS
+.L_loader_ss_sp:
+    .word   0xFC00  # SP
+    .word   0       # SS
