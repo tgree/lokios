@@ -94,8 +94,8 @@ _start:
     popaw
     xor     %ax, %ax    # Return 0 to PXE BIOS.
     popfw
-    les     %ss:0xFBFC, %bx
-    lss     %ss:0xFBF8, %sp
+    les     %ss:_stack_top-4, %bx
+    lss     %ss:_stack_top-8, %sp
     lret
 .endif
 
@@ -106,5 +106,5 @@ _start:
     .word   0       # SP
     .word   0       # SS
 .L_loader_ss_sp:
-    .word   0xFC00  # SP
-    .word   0       # SS
+    .word   _stack_top  # SP
+    .word   0           # SS
