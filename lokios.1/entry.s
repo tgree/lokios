@@ -30,11 +30,15 @@ _put32:     jmpw    *_put32_ptr
 #   0xFBFC     - contains original ES:BX (PXENV+ addr)
 .L_mbr_entry:
 .L_pxe_entry:
+    # Save the function pointers.
     mov     %eax, _putc_ptr
     mov     %ebx, _put16_ptr
 
+    # Print the second-stage banner.
     lea     .L_lokios_1_banner, %si
     call    _puts
+
+    # Parse the memory map with E820.
     lea     _heap_start+2, %di
     call    _E820_get_list
     mov     %si, _heap_start
