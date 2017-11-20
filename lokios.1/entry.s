@@ -46,6 +46,10 @@ _put32:     jmpw    *_put32_ptr
     lea     _heap_start+2, %si
     call    _E820_print_list
 
+    # Enable the A20 gate so we can use all of RAM.
+    call    _A20_enable
+    jc      .L_A20_enable_failed
+
     # Success.
     lea     .L_lokios_os_ready, %si
     call    _puts
@@ -53,6 +57,10 @@ _put32:     jmpw    *_put32_ptr
 
 .L_E820_get_list_failed:
     lea     .L_E820_failure_text, %si
+    call    _puts
+    jmp     .L_exit_to_bios
+.L_A20_enable_failed:
+    lea     .L_A20_failure_text, %si
     call    _puts
     jmp     .L_exit_to_bios
 .L_exit_to_bios:
@@ -64,5 +72,7 @@ _put32:     jmpw    *_put32_ptr
     .asciz  "lokios.1 entered\r\n"
 .L_E820_failure_text:
     .asciz  "E820 memory probe failed.\r\n"
+.L_A20_failure_text:
+    .asciz  "A20 gate enable failed.\r\n"
 .L_lokios_os_ready:
     .asciz  "Ready to enter long mode.\r\n"
