@@ -3,6 +3,7 @@ CLEAN   := bin/* lokios.mbr
 NOW     := $(shell date +"%c")
 
 I386_16_ASFLAGS := -march=i386 --32
+CFLAGS := -O1
 
 .PHONY: all
 all: bin/lokios.0 bin/lokios.1 lokios.mbr

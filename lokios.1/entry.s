@@ -47,10 +47,8 @@ _put32:     jmpw    *_put32_ptr
     call    _A20_enable
     jc      .L_A20_enable_failed
 
-    # Success.
-    lea     .L_lokios_os_ready, %si
-    call    _puts
-    jmp     .L_exit_to_bios
+    # Enter long mode - point of no return so we jmp there.
+    jmp     _enter_long_mode
 
 .L_E820_get_list_failed:
     lea     .L_E820_failure_text, %si
@@ -71,5 +69,3 @@ _put32:     jmpw    *_put32_ptr
     .asciz  "E820 memory probe failed.\r\n"
 .L_A20_failure_text:
     .asciz  "A20 gate enable failed.\r\n"
-.L_lokios_os_ready:
-    .asciz  "Ready to enter long mode.\r\n"

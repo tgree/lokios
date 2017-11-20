@@ -2,7 +2,9 @@ LOKIOS_1_OBJ := \
 	lokios.1/entry.o    \
 	lokios.1/e820.o     \
 	lokios.1/a20_gate.o
-LOKIOS_1_OBJ_64 :=
+LOKIOS_1_OBJ_64 := \
+	lokios.1/long_mode.o \
+	lokios.1/start_c.o
 CLEAN += \
 	$(LOKIOS_1_OBJ)             \
 	$(LOKIOS_1_OBJ_64)          \
