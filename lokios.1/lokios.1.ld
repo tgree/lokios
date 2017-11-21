@@ -81,6 +81,9 @@ SECTIONS
         . = ALIGN(4096);
     }
 
+    /* Make sure we didn't crash into the stack. */
+    ASSERT(. <= 0xF000, "image crashed into the low stack address")
+
     /* Build the header at the start of the first sector. */
     _last_sector = ((. - 0x7e00) / 512) + 1;
     . = 0x7e00;
