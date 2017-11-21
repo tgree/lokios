@@ -59,6 +59,8 @@ _start:
     pushfw
     pushaw
     pushw   %ds
+    pushw   %fs
+    pushw   %gs
 
     # Clear DS.
     xor     %ax, %ax
@@ -90,6 +92,8 @@ _start:
     jmp     .L_forever
 .else
     # Return to BIOS.
+    pop     %gs
+    pop     %fs
     pop     %ds
     popaw
     xor     %ax, %ax    # Return 0 to PXE BIOS.
