@@ -28,13 +28,12 @@ _A20_enable:
 # We are going to set .L_A20_sig, change it and then look at it again one
 # MB higher.  If the values 
 .L_A20_check:
-    movw    $0xFFFF, %ax
-    mov     %ax, %es
+    mov     $0x00100000, %eax
     movw    $0x1357, .L_A20_sig
-    cmpw    $0x1357, %es:.L_A20_sig+0x10
+    cmpw    $0x1357, %fs:.L_A20_sig(%eax)
     jne     .L_A20_check_enabled
     movw    $0x2468, .L_A20_sig
-    cmpw    $0x2468, %es:.L_A20_sig+0x10
+    cmpw    $0x2468, %fs:.L_A20_sig(%eax)
     jne     .L_A20_check_enabled
 .L_A20_check_disabled:
     stc
