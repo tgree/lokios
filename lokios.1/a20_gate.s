@@ -18,7 +18,7 @@ _A20_enable:
     # Try enabling it through BIOS.  The carry bit propagates up.
     movw    $0x2401, %ax
     int     $0x15
-    jc      .L_A20_bios_failed
+    call    .L_A20_check
     ret
 
 .L_A20_bios_failed:
