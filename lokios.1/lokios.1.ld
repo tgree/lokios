@@ -13,6 +13,20 @@ SECTIONS
         *(.data)
     } = 0xCC
 
+    /* Provide a global descriptor table to use for the swtich to 16-bit
+     * unreal mode. */
+    . = ALIGN(64);
+    .gdt_unreal_16 :
+    {
+        _gdt_unreal_16 = .;
+        QUAD(0x0000000000000000);
+        QUAD(0x00CF92000000FFFF);
+
+        _gdt_unreal_16_desc = .;
+        SHORT(_gdt_unreal_16_desc - _gdt_unreal_16 - 1);
+        LONG(_gdt_unreal_16);
+    }
+
     /* Provide a global descriptor table to use for the switch to 64-bit
      * mode. */
     . = ALIGN(64);

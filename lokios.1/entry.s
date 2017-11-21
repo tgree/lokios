@@ -43,6 +43,10 @@ _put32:     jmpw    *_put32_ptr
     jc      .L_E820_get_list_failed
     call    _E820_print_list
 
+    # Enter unreal mode.  This will allow FS- and GS-based offsets to addresses
+    # within the first 32-bits of memory.
+    call    _enter_unreal_mode
+
     # Enable the A20 gate so we can use all of RAM.
     call    _A20_enable
     jc      .L_A20_enable_failed
