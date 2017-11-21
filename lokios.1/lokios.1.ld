@@ -66,7 +66,7 @@ SECTIONS
     } = 0xDD
     _e820_last_max_entry = . - 24;
 
-    /* Provide a page table that identity-maps the first 2M of memory via a
+    /* Provide a page table that identity-maps the first 4M of memory via a
      * huge page. */
     .page_table :
     {
@@ -77,6 +77,7 @@ SECTIONS
         QUAD((_page_table + 8192) | 3);
         . = ALIGN(4096);
         QUAD(0x0000000000000083);
+        QUAD(0x0000000000200083);
         . = ALIGN(4096);
     }
 
