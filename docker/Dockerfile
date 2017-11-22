@@ -7,6 +7,7 @@ RUN apt-get -y update && apt-get install -y \
     g++                                     \
     gdb                                     \
     git                                     \
+    libc6-dev-i386                          \
     make                                    \
     man                                     \
     manpages                                \
