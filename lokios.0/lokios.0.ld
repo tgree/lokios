@@ -11,8 +11,6 @@ SECTIONS
     .bootsector_data :
     {
         lokios.0/bootsector/*(.data)
-        _last_sector = .;
-        SHORT(__last_sector);
     }
 
     /* We'll switch to a 3K stack from 0xF000 - 0xFC00. */
@@ -112,6 +110,6 @@ SECTIONS
     /* Make sure we didn't crash into the stack. */
     ASSERT(. <= 0xF000, "image crashed into the low stack address")
 
-    /* Build the header at the start of the first sector. */
-    __last_sector = (. - 0x7c00) / 512;
+    /* Compute the number of sectors the MBR loader needs to read. */
+    _extra_sectors = (. - 0x7e00) / 512;
 }

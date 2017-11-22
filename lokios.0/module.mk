@@ -1,5 +1,5 @@
 LOKIOS_0_OBJ := \
-	lokios.0/bootsector/dispatcher.o \
+	lokios.0/bootsector/disk.o       \
 	lokios.0/bootsector/console.o    \
 	lokios.0/bootsector/entry.o      \
 	lokios.0/common_entry.o          \

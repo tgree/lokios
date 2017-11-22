@@ -86,7 +86,20 @@ _start:
     lea     .L_mbr_text, %si
     call    _print_banners
 
-    call    _dispatch_mbr
+    # Read the remaining sectors from the disk.
+    mov     _mbr_drive_number, %dl
+    mov     $1, %eax
+    xor     %ebx, %ebx
+    mov     $_extra_sectors, %cx
+    mov     $0x7E00, %si
+    call    _disk_read
+    jc      .L_mbr_read_failed
+    call    _mbr_entry
+    jmp     .L_done
+
+.L_mbr_read_failed:
+    lea     .L_mbr_failed_text, %si
+    call    _puts
     jmp     .L_done
 
 .L_pxe_start:
@@ -138,6 +151,9 @@ _print_banners:
     .asciz  "Copyright (c) 2017 by Terry Greeniaus.\r\n"
 .L_mbr_text:
     .asciz  "MBR "
+.L_mbr_failed_text:
+    .asciz  "MBR boot failed\r\n"
+
 
 .L_loader_ss_sp:
     .word   _stack_top  # SP
