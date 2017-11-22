@@ -42,20 +42,22 @@ _start:
 .L_start_clear_cs:
 
     # Save SS:SP.
-    movw    %sp, %cs:.L_saved_ss_sp
+    movw    %sp, %cs:_saved_ss_sp
     movw    %ss, %sp
-    movw    %sp, %cs:.L_saved_ss_sp+2
+    movw    %sp, %cs:_saved_ss_sp+2
+
+    # Save ES:BX
+    mov     %bx, %cs:_saved_es_bx
+    mov     %es, %bx
+    mov     %es, %cs:_saved_es_bx+2
+
+    # Save the drive number.
+    mov     %dl, %cs:_mbr_drive_number
 
     # Load 0:FC00 into SS:SP.
     lss     %cs:.L_loader_ss_sp, %sp
 
-    # Save all args.
-    push    %bx
-    push    %es
-    mov     %cs:.L_saved_ss_sp+2, %bx
-    push    %bx
-    mov     %cs:.L_saved_ss_sp, %bx
-    push    %bx
+    # Save all other args.
     pushfw
     pushaw
     pushw   %ds
@@ -73,7 +75,7 @@ _start:
     # correct entry point.  We also set ES = 0 on the way out so that it maps
     # to the same segment as DS.
     lea     .L_pxenv_str, %si
-    mov     _stack_top-2, %di
+    mov     _saved_es_bx, %di
     mov     $6, %cx
     repe cmpsb
     mov     %ax, %es
@@ -98,17 +100,28 @@ _start:
     popaw
     xor     %ax, %ax    # Return 0 to PXE BIOS.
     popfw
-    les     %ss:_stack_top-4, %bx
-    lss     %ss:_stack_top-8, %sp
+    les     %cs:_saved_es_bx, %bx
+    lss     %cs:_saved_ss_sp, %sp
     lret
 .endif
 
 .data
 .L_pxenv_str:
     .ascii  "PXENV+"
-.L_saved_ss_sp:
-    .word   0       # SP
-    .word   0       # SS
 .L_loader_ss_sp:
     .word   _stack_top  # SP
     .word   0           # SS
+
+.globl _saved_es_bx
+_saved_es_bx:
+    .word   0       # BX
+    .word   0       # ES
+
+.globl _saved_ss_sp
+_saved_ss_sp:
+    .word   0       # SP
+    .word   0       # SS
+
+.globl _mbr_drive_number
+_mbr_drive_number:
+    .byte   0

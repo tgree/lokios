@@ -1,21 +1,15 @@
 .code16
 .text
 
-# Entry point for an MBR boot.  On entry:
-#   CS:IP - set to 0:7C00h.
-#   DS    - 0
-#   DL    - contains the drive number for use with INT 13h.
+# Dispatcher to load the rest of the bootloader from disk.
 .globl _dispatch_mbr
 _dispatch_mbr:
-    # Save off DL.
-    pushw   %dx
-
     # Print the banners.
     lea     _mbr_text, %si
     call    _dispatch_print_banners
 
     # Restore DL.
-    popw    %dx
+    mov     _mbr_drive_number, %dl
 
     # Load sector 2 from disk to 0:0x7E00.
     mov     $0, %ch         # cylinder 0
