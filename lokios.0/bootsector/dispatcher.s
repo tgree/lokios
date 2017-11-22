@@ -28,7 +28,7 @@ _dispatch_mbr:
     # First sector read succeeded.  Read all the remaining sectors.  We assume
     # fewer than 256 sectors.
 .L_read_remaining_loop:
-    movb    0x7E04, %al
+    movb    _last_sector, %al
     cmpb    %cl, %al
     je      .L_load_succeeded
     call    .L_next_sector
@@ -39,8 +39,7 @@ _dispatch_mbr:
 .L_load_succeeded:
     # Read succeeded.  Jump to second-stage loader.  If it returns, then we
     # will just bail back to BIOS.
-    mov     $0x7E10, %si
-    jmp     .L_start_bootloader_1
+    jmp     _mbr_entry
 
 
 # Read a sector from disk.  On entry:
@@ -90,19 +89,7 @@ _dispatch_pxe:
     # will just bail straight back to BIOS.
     lea     _pxe_text, %si
     call    .L_dispatch_print_banners
-    mov     $0x7E12, %si
-    jmp     .L_start_bootloader_1
-
-
-# Jump to bootloader.1.  We pass pointers to some of our console functions
-.L_start_bootloader_1:
-    lea     _puts, %ax
-    shl     $16, %eax
-    lea     _putc, %ax
-    lea     _put32, %bx
-    shl     $16, %ebx
-    lea     _put16, %bx
-    jmpw    *(%si)
+    jmp     _pxe_entry
 
 
 # Print hello world banners.

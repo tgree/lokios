@@ -2,29 +2,17 @@
 .text
 
 
-# Dispatch table at address 0x7E10
-            .word   .L_mbr_entry
-            .word   .L_pxe_entry
-_putc_ptr:  .word   0
-_puts_ptr:  .word   0
-_put16_ptr: .word   0
-_put32_ptr: .word   0
-
 # Called from lokios.0.  On entry:
-#   EAX        - _puts | _putc
-#   EBX        - _put32 | _put16
 #   ES, DS, CS - all 0
 #   SS:SP      - on a valid stack with base 0:0xFC00
 #
 # We also stored some values on the base of the stack:
 #   0xFBF8     - contains original SS:SP (to get at !PXE struct)
 #   0xFBFC     - contains original ES:BX (PXENV+ addr)
-.L_mbr_entry:
-.L_pxe_entry:
-    # Save the function pointers.
-    mov     %eax, _putc_ptr
-    mov     %ebx, _put16_ptr
-
+.globl _mbr_entry
+.globl _pxe_entry
+_mbr_entry:
+_pxe_entry:
     # Print the second-stage banner.
     lea     .L_lokios_1_banner, %si
     call    _puts

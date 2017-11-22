@@ -11,6 +11,8 @@ SECTIONS
     .bootsector_data :
     {
         lokios.0/bootsector/*(.data)
+        _last_sector = .;
+        SHORT(__last_sector);
     }
 
     /* We'll switch to a 3K stack from 0xF000 - 0xFC00. */
@@ -25,10 +27,11 @@ SECTIONS
         BYTE(0xAA)
     }
 
-    /* lokios.0 will load us into memory at 0x7e00, so link ourselves at that
-     * base address.  Our entry point is 0x7e10 and there will be a header
-     * prepended later in this file.*/
-    . = 0x7e10;
+    /* That's the end of the boot sector.  If we PXE-booted the rest of the
+     * code is already in memory.  If we MBR-booted then the bootsector has
+     * gone and loaded the rest of the code into memory.  In either case, they
+     * will then branch into code at or above 0x7E00. */
+    . = 0x7e00;
     .text :
     {
         lokios.0/entry.o(.text)
@@ -111,22 +114,5 @@ SECTIONS
     ASSERT(. <= 0xF000, "image crashed into the low stack address")
 
     /* Build the header at the start of the first sector. */
-    _last_sector = ((. - 0x7e00) / 512) + 1;
-    . = 0x7e00;
-    .lokios_1_hdr :
-    {
-        /* 'Tery' */
-        BYTE(0x54)
-        BYTE(0x65)
-        BYTE(0x72)
-        BYTE(0x79)
-
-        /* Last sector number of file. */
-        SHORT(_last_sector)
-
-        /* Unused */
-        SHORT(0)
-        LONG(0)
-        LONG(0)
-    }
+    __last_sector = (. - 0x7c00) / 512;
 }
