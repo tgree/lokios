@@ -1,8 +1,6 @@
 .code16
 .text
 
-.equiv END_WITH_HALT, 0
-
 
 # Starting point.  These are the first instructions executed after BIOS and we
 # are in the wild wild west.  Since we want to be able to handle either an MBR
@@ -110,12 +108,6 @@ _start:
     jmp     .L_back_to_bios
 
 .L_back_to_bios:
-.if END_WITH_HALT
-    # Loop forever.
-.L_forever:
-    hlt
-    jmp     .L_forever
-.else
     # Return to BIOS.
     pop     %gs
     pop     %fs
@@ -126,7 +118,6 @@ _start:
     les     %cs:_saved_es_bx, %bx
     lss     %cs:_saved_ss_sp, %sp
     lret
-.endif
 
 
 # Print the copyright bannder.
