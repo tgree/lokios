@@ -3,7 +3,7 @@ CLEAN   := bin/* lokios.mbr
 NOW     := $(shell date +"%c")
 
 I386_16_ASFLAGS := -march=pentium --32
-CFLAGS := -O1
+I386_32_CFLAGS := -O1 -m32 -march=pentium
 
 .PHONY: all
 all: bin/lokios.0 bin/lokios.1 lokios.mbr
