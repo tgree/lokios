@@ -8,8 +8,7 @@ LOKIOS_0_OBJ := \
 	lokios.0/e820.o                  \
 	lokios.0/a20_gate.o              \
 	lokios.0/unreal_mode.o           \
-	lokios.0/long_mode.o             \
-	lokios.0/start_c.o
+	lokios.0/long_mode.o
 CLEAN += \
 	$(LOKIOS_0_OBJ)       		 \
 	lokios.0/lokios.0.elf 		 \

@@ -113,4 +113,7 @@ SECTIONS
 
     /* Compute the number of sectors the MBR loader needs to read. */
     _extra_sectors = (. - 0x7e00) / 512;
+
+    /* This is where we are going to load the kernel. */
+    _kernel_base = 0x00200000;
 }
