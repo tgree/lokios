@@ -39,5 +39,5 @@ _enter_long_mode:
 
 .code32
 _into_long_mode:
-    movl    $_kernel_base, %eax
+    movl    $_kernel_entry, %eax
     jmp     *%eax

@@ -18,8 +18,8 @@ bin/lokios.0: lokios.0/lokios.0.elf
 bin/lokios.1: lokios.1/lokios.1.elf
 	objcopy -O binary -S lokios.1/lokios.1.elf bin/lokios.1
 
-lokios.mbr: bin/lokios.0
-	cat bin/lokios.0 > lokios.mbr
+lokios.mbr: bin/lokios.0 bin/lokios.1
+	cat bin/lokios.0 bin/lokios.1 > lokios.mbr
 
 .PHONY: clean
 clean:

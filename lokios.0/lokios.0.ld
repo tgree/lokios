@@ -78,9 +78,11 @@ SECTIONS
     }
 
     /* Provide at least 4096 bytes to hold the E820 map.  This should be more
-     * than enough (I hope). */
+     * than enough (I hope).  Before we've loaded the E820 map, this region of
+     * memory can also be used for a disk IO bounce buffer. */
     .e820_map :
     {
+        _pre_e820_bounce_buffer = .;
         _e820_end = .;
         SHORT(0xFFFF);
         _e820_map = .;
@@ -116,4 +118,5 @@ SECTIONS
 
     /* This is where we are going to load the kernel. */
     _kernel_base = 0x00200000;
+    _kernel_entry = _kernel_base + 0x10;
 }

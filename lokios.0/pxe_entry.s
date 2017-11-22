@@ -14,7 +14,7 @@ _pxe_entry:
 
     # TODO: PXE fetch lokios.1 (the kernel) to address 2M.
     # For now, we simply write a HLT instruction there.
-    mov     $_kernel_base, %eax
+    mov     $_kernel_entry, %eax
     movb    $0xF4, %fs:(%eax)
 
     # Jump to the common entry point.

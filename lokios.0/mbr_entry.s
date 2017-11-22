@@ -2,6 +2,8 @@
 .text
 
 
+.equiv _first_kernel_sector, _extra_sectors+1
+
 # Entry point from the bootsector.
 .globl _mbr_entry
 _mbr_entry:
@@ -12,10 +14,19 @@ _mbr_entry:
     # Entry unreal mode.
     call    _enter_unreal_mode
 
-    # TODO: Use BIOS to lokios.1 (the kernel) to address 2M.
-    # For now, we simply write a HLT instruction there.
-    mov     $_kernel_base, %eax
-    movb    $0xF4, %fs:(%eax)
+    # Fetch the first sector of the kernel into the bounce buffer.
+    mov     _mbr_drive_number, %dl
+    mov     $_first_kernel_sector, %eax
+    mov     $0, %ebx
+    mov     $1, %cx
+    lea     _pre_e820_bounce_buffer, %si
+    call    _disk_read
+
+    # Copy the bounce buffer sector into high memory.
+    lea     _pre_e820_bounce_buffer, %eax
+    mov     $_kernel_base, %edx
+    mov     $512/4, %ecx
+    call    _unreal_memcpy
 
     # Jump to the common entry point.
     jmp     _common_entry
