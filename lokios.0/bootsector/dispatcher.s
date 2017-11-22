@@ -12,7 +12,7 @@ _dispatch_mbr:
 
     # Print the banners.
     lea     _mbr_text, %si
-    call    .L_dispatch_print_banners
+    call    _dispatch_print_banners
 
     # Restore DL.
     popw    %dx
@@ -22,8 +22,8 @@ _dispatch_mbr:
     mov     $2, %cl         # sector 2
     mov     $0, %dh         # head 0
     mov     $0x7E00, %bx    # ES:BX = 0:0x7E00
-    call    .L_read_sector
-    jc      .L_mbr_read_failed
+    call    _mbr_read_sector
+    jc      _mbr_read_failed
 
     # First sector read succeeded.  Read all the remaining sectors.  We assume
     # fewer than 256 sectors.
@@ -31,9 +31,9 @@ _dispatch_mbr:
     movb    _last_sector, %al
     cmpb    %cl, %al
     je      .L_load_succeeded
-    call    .L_next_sector
-    call    .L_read_sector
-    jc      .L_mbr_read_failed
+    call    _mbr_next_sector
+    call    _mbr_read_sector
+    jc      _mbr_read_failed
     jmp     .L_read_remaining_loop
 
 .L_load_succeeded:
@@ -48,7 +48,7 @@ _dispatch_mbr:
 #   DH    - head
 #   DL    - driver number
 #   ES:BX - destination address
-.L_read_sector:
+_mbr_read_sector:
     mov     $2, %ah         # opcode
     mov     $1, %al         # total sector count
     int     $0x13
@@ -62,14 +62,14 @@ _dispatch_mbr:
 
 # Increment values to point to the next sector.
 # TODO: In the future this should take geometry into account.
-.L_next_sector:
+_mbr_next_sector:
     inc     %cl
     add     $512, %bx
     ret
 
 
 # Print an error string and bail back to BIOS.
-.L_mbr_read_failed:
+_mbr_read_failed:
     lea     _mbr_failed_text, %si
     call    _puts
     ret
@@ -94,7 +94,7 @@ _dispatch_pxe:
 
 # Print hello world banners.
 #   %si - contains a pointer to an initial banner to print.
-.L_dispatch_print_banners:
+_dispatch_print_banners:
     # Print the initial banner.
     call    _puts
 
