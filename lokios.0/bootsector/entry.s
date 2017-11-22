@@ -71,22 +71,29 @@ _start:
     # Clear direction so string operations move forward in memory.
     cld
 
+    # Print the copyirhgt banner first.
+    call    _print_banners
+
     # Check if we can see a 'PXENV+' signature at ES:BX and dispatch to the
     # correct entry point.  We also set ES = 0 on the way out so that it maps
     # to the same segment as DS.
+    xor     %ax, %ax
     lea     .L_pxenv_str, %si
     mov     _saved_es_bx, %di
     mov     $6, %cx
     repe cmpsb
     mov     %ax, %es
-    je      .L_pxe_start
+    jne     .L_mbr_start
 
+    # PXE detected.  Just jump into the PXE entry point since the image was
+    # already loaded for us as part of the PXE download.
+.L_pxe_start:
+    call    _pxe_entry
+    jmp     .L_back_to_bios
+
+    # MBR detected.  Read the remaining sectors from the disk since BIOS has
+    # only loaded the first sector of the image.
 .L_mbr_start:
-    # Start by printing the banner before we try to read anything off disk.
-    lea     .L_mbr_text, %si
-    call    _print_banners
-
-    # Read the remaining sectors from the disk.
     mov     _mbr_drive_number, %dl
     mov     $1, %eax
     xor     %ebx, %ebx
@@ -95,17 +102,14 @@ _start:
     call    _disk_read
     jc      .L_mbr_read_failed
     call    _mbr_entry
-    jmp     .L_done
+    jmp     .L_back_to_bios
 
 .L_mbr_read_failed:
-    lea     .L_mbr_failed_text, %si
+    lea     .L_mbr_read_failed_text, %si
     call    _puts
-    jmp     .L_done
+    jmp     .L_back_to_bios
 
-.L_pxe_start:
-    call    _pxe_entry
-
-.L_done:
+.L_back_to_bios:
 .if END_WITH_HALT
     # Loop forever.
 .L_forever:
@@ -125,13 +129,9 @@ _start:
 .endif
 
 
-# Print hello world banners.
-#   %si - contains a pointer to an initial banner to print.
+# Print the copyright bannder.
 .globl _print_banners
 _print_banners:
-    # Print the initial banner.
-    call    _puts
-
     # Print the loki copyright banner.
     lea     .L_loki_os_banner, %si
     call    _puts
@@ -149,10 +149,8 @@ _print_banners:
 .L_loki_os_banner:
     .ascii  "Loki\r\n"
     .asciz  "Copyright (c) 2017 by Terry Greeniaus.\r\n"
-.L_mbr_text:
-    .asciz  "MBR "
-.L_mbr_failed_text:
-    .asciz  "MBR boot failed\r\n"
+.L_mbr_read_failed_text:
+    .asciz  "MBR read failed\r\n"
 
 
 .L_loader_ss_sp:

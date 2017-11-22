@@ -5,6 +5,5 @@
 # Entry point from the bootsector.
 .globl _mbr_entry
 _mbr_entry:
-    # No banners to print, already done by bootsector code prior to attempting
-    # to load the rest of the image.
+    # For now we just have a common sequence to run.
     jmp     _common_entry
