@@ -43,3 +43,24 @@ _enter_unreal_mode:
 
     # FS and GS are now in unreal mode.
     ret
+
+
+# Do a memcpy.
+#   %eax - 32-bit source address
+#   %edx - 32-bit destination address
+#   %ecx - number of 32-bit words to copy
+.globl _unreal_memcpy
+_unreal_memcpy:
+    cmp     %ecx, 0
+    je      .L_unreal_memcpy_done
+
+.L_unreal_memcpy_loop:
+    movl    %fs:(%eax), %edi
+    movl    %edi, %fs:(%edx)
+    add     $4, %eax
+    add     $4, %edx
+    dec     %ecx
+    jne     .L_unreal_memcpy_loop
+
+.L_unreal_memcpy_done:
+    ret
