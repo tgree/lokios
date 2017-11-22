@@ -10,15 +10,6 @@ _puts_ptr:  .word   0
 _put16_ptr: .word   0
 _put32_ptr: .word   0
 
-.globl _putc
-.globl _puts
-.globl _put16
-.globl _put32
-_putc:      jmpw    *_putc_ptr
-_puts:      jmpw    *_puts_ptr
-_put16:     jmpw    *_put16_ptr
-_put32:     jmpw    *_put32_ptr
-
 # Called from lokios.0.  On entry:
 #   EAX        - _puts | _putc
 #   EBX        - _put32 | _put16
