@@ -17,7 +17,7 @@ SECTIONS
     _stack_bottom = 0xF000;
     _stack_top    = 0xFC00;
 
-    /* Include a valid MBR signature so we can test booting off disk. */
+    /* Include a valid MBR signature for booting off disk. */
     . = 0x7dfe;
     .mbr_sig :
     {
