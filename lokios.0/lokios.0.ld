@@ -13,10 +13,6 @@ SECTIONS
         lokios.0/bootsector/*(.data)
     }
 
-    /* We'll switch to a 3K stack from 0xF000 - 0xFC00. */
-    _stack_bottom = 0xF000;
-    _stack_top    = 0xFC00;
-
     /* Include a valid MBR signature for booting off disk. */
     . = 0x7dfe;
     .mbr_sig :
@@ -107,8 +103,12 @@ SECTIONS
         . = ALIGN(4096);
     }
 
+    /* We'll switch to a 3K stack from 0xF000 - 0xFC00. */
+    _stack_bottom = 0xF000;
+    _stack_top    = 0xFC00;
+
     /* Make sure we didn't crash into the stack. */
-    ASSERT(. <= 0xF000, "image crashed into the low stack address")
+    ASSERT(. <= _stack_bottom, "image crashed into the low stack address")
 
     /* Compute the number of sectors the MBR loader needs to read. */
     _extra_sectors = (. - 0x7e00) / 512;
