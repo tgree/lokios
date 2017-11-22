@@ -12,6 +12,7 @@ SECTIONS
     {
         lokios.0/bootsector/*(.data)
     }
+    ASSERT(. <= 0x7DB4, "boot sector crashed into disk ID")
 
     /* Include a valid MBR signature for booting off disk. */
     . = 0x7dfe;
