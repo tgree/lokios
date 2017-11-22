@@ -75,25 +75,9 @@ _mbr_read_failed:
     ret
 
 
-# Entry point for a PXE boot.  On entry:
-#   CS:IP     - set to 0:7C00h.
-#   ES:BX     - contains the address of the PXENV+ structure.
-#   DS        - 0
-#   SS:[SP+4] - contains the segment:offset address of the !PXE structure.
-#   SS:SP     - we've already saved the entry register state on the stack, but
-#               there should be a bit less than 1.5K of free space left
-.globl _dispatch_pxe
-_dispatch_pxe:
-    # Print the banners and jump straight into the second stage which has
-    # already been loaded as part of the PXE image fetch.  If this returns it
-    # will just bail straight back to BIOS.
-    lea     _pxe_text, %si
-    call    .L_dispatch_print_banners
-    jmp     _pxe_entry
-
-
 # Print hello world banners.
 #   %si - contains a pointer to an initial banner to print.
+.globl _dispatch_print_banners
 _dispatch_print_banners:
     # Print the initial banner.
     call    _puts
@@ -117,7 +101,5 @@ _loki_os_banner:
     .asciz  "Copyright (c) 2017 by Terry Greeniaus.\r\n"
 _mbr_text:
     .asciz  "MBR "
-_pxe_text:
-    .asciz  "PXE "
 _mbr_failed_text:
     .asciz  "MBR boot failed\r\n"

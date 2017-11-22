@@ -82,7 +82,7 @@ _start:
     call    _dispatch_mbr
     jmp     .L_done
 .L_pxe_start:
-    call    _dispatch_pxe
+    call    _pxe_entry
 .L_done:
 
 .if END_WITH_HALT

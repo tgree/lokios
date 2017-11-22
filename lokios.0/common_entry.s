@@ -2,17 +2,15 @@
 .text
 
 
-# Called from lokios.0.  On entry:
+# Called from one of the PXE or MBR entry points.  On entry:
 #   ES, DS, CS - all 0
 #   SS:SP      - on a valid stack with base 0:0xFC00
 #
 # We also stored some values on the base of the stack:
 #   0xFBF8     - contains original SS:SP (to get at !PXE struct)
 #   0xFBFC     - contains original ES:BX (PXENV+ addr)
-.globl _mbr_entry
-.globl _pxe_entry
-_mbr_entry:
-_pxe_entry:
+.globl _common_entry
+_common_entry:
     # Print the second-stage banner.
     lea     .L_lokios_1_banner, %si
     call    _puts

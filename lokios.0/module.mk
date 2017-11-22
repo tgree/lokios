@@ -2,7 +2,9 @@ LOKIOS_0_OBJ := \
 	lokios.0/bootsector/dispatcher.o \
 	lokios.0/bootsector/console.o    \
 	lokios.0/bootsector/entry.o      \
-	lokios.0/entry.o                 \
+	lokios.0/common_entry.o          \
+	lokios.0/pxe_entry.o             \
+	lokios.0/mbr_entry.o             \
 	lokios.0/e820.o                  \
 	lokios.0/a20_gate.o              \
 	lokios.0/unreal_mode.o           \

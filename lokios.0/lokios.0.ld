@@ -34,7 +34,6 @@ SECTIONS
     . = 0x7e00;
     .text :
     {
-        lokios.0/entry.o(.text)
         *(.text)
     }
     .data :
