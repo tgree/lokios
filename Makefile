@@ -1,9 +1,11 @@
-MODULES := lokios.0
+MODULES := lokios.0 lokios.1
 CLEAN   := bin/* lokios.mbr
 NOW     := $(shell date +"%c")
 
 I386_16_ASFLAGS := -march=pentium --32
 I386_32_CFLAGS := -O1 -m32 -march=pentium
+
+X86_64_ASFLAGS := -march=core2 --64
 
 .PHONY: all
 all: bin/lokios.0 lokios.mbr
@@ -12,6 +14,9 @@ include $(patsubst %, %/module.mk, $(MODULES))
 
 bin/lokios.0: lokios.0/lokios.0.elf
 	objcopy -O binary -S lokios.0/lokios.0.elf bin/lokios.0
+
+bin/lokios.1: lokios.1/lokios.1.elf
+	objcopy -O binary -S lokios.1/lokios.1.elf bin/lokios.1
 
 lokios.mbr: bin/lokios.0
 	cat bin/lokios.0 > lokios.mbr

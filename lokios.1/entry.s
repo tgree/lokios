@@ -1,0 +1,2 @@
+_entry:
+    hlt
