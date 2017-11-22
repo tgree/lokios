@@ -7,7 +7,7 @@
 _pxe_entry:
     # Print the banners.
     lea     _pxe_text, %si
-    call    _dispatch_print_banners
+    call    _print_banners
     jmp     _common_entry
 
 

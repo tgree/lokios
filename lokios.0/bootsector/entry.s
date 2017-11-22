@@ -80,13 +80,19 @@ _start:
     repe cmpsb
     mov     %ax, %es
     je      .L_pxe_start
+
 .L_mbr_start:
+    # Start by printing the banner before we try to read anything off disk.
+    lea     .L_mbr_text, %si
+    call    _print_banners
+
     call    _dispatch_mbr
     jmp     .L_done
+
 .L_pxe_start:
     call    _pxe_entry
-.L_done:
 
+.L_done:
 .if END_WITH_HALT
     # Loop forever.
 .L_forever:
@@ -105,9 +111,34 @@ _start:
     lret
 .endif
 
+
+# Print hello world banners.
+#   %si - contains a pointer to an initial banner to print.
+.globl _print_banners
+_print_banners:
+    # Print the initial banner.
+    call    _puts
+
+    # Print the loki copyright banner.
+    lea     .L_loki_os_banner, %si
+    call    _puts
+
+    # Print the build time.
+    lea     _BUILD_TIME, %si
+    call    _puts
+
+    ret
+
+
 .data
 .L_pxenv_str:
     .ascii  "PXENV+"
+.L_loki_os_banner:
+    .ascii  "Loki\r\n"
+    .asciz  "Copyright (c) 2017 by Terry Greeniaus.\r\n"
+.L_mbr_text:
+    .asciz  "MBR "
+
 .L_loader_ss_sp:
     .word   _stack_top  # SP
     .word   0           # SS

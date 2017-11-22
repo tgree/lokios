@@ -4,10 +4,6 @@
 # Dispatcher to load the rest of the bootloader from disk.
 .globl _dispatch_mbr
 _dispatch_mbr:
-    # Print the banners.
-    lea     _mbr_text, %si
-    call    _dispatch_print_banners
-
     # Restore DL.
     mov     _mbr_drive_number, %dl
 
@@ -69,31 +65,7 @@ _mbr_read_failed:
     ret
 
 
-# Print hello world banners.
-#   %si - contains a pointer to an initial banner to print.
-.globl _dispatch_print_banners
-_dispatch_print_banners:
-    # Print the initial banner.
-    call    _puts
-
-    # Print the loki copyright banner.
-    lea     _loki_os_banner, %si
-    call    _puts
-
-    # Print the build time.
-    lea     _BUILD_TIME, %si
-    call    _puts
-
-    ret
-
-
 # --------------------- Data Segment ---------------------
 .data
-.globl _loki_os_banner
-_loki_os_banner:
-    .ascii  "Loki\r\n"
-    .asciz  "Copyright (c) 2017 by Terry Greeniaus.\r\n"
-_mbr_text:
-    .asciz  "MBR "
 _mbr_failed_text:
     .asciz  "MBR boot failed\r\n"
