@@ -2,7 +2,7 @@ MODULES := lokios.0 lokios.1
 CLEAN   := bin/* lokios.mbr
 NOW     := $(shell date +"%c")
 
-I386_16_ASFLAGS := -march=i386 --32
+I386_16_ASFLAGS := -march=pentium --32
 CFLAGS := -O1
 
 .PHONY: all
