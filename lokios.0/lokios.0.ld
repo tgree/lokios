@@ -5,7 +5,7 @@ SECTIONS
     . = 0x7c00;
     .text :
     {
-        lokios.0/entry.o(.text)
+        lokios.0/bootsector/entry.o(.text)
         *(.text)
     }
     .data : { *(.data) }
