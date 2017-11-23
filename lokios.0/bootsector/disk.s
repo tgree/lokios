@@ -7,16 +7,17 @@
 # here anyways.
 # On entry:
 #   DL  - drive number
-#   EAX - first sector low-order 32-bits
-#   EBX - first sector high-order 32-bits
+#   EBX - first sector low-order 32-bits
 #   CX  - sector count
 #   SI  - destination address
 # On exit:
 #   CF - set on failure, cleared on success
+# Stomped:
+#   EA[XHL], SI
 .globl _disk_read
 _disk_read:
-    mov     %eax, .L_DAP_first_sector_low
-    mov     %ebx, .L_DAP_first_sector_high
+    mov     %ebx, .L_DAP_first_sector_low
+    movl    $0, .L_DAP_first_sector_high
     mov     %cx, .L_DAP_num_sectors
     mov     %si, .L_DAP_destination_ptr
     mov     $.L_DAP, %si

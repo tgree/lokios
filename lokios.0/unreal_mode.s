@@ -46,19 +46,23 @@ _enter_unreal_mode:
 
 
 # Do a memcpy.
-#   %eax - 32-bit source address
-#   %edx - 32-bit destination address
-#   %ecx - number of 32-bit words to copy
+#   ESI - 32-bit source address
+#   EDI - 32-bit destination address
+#   ECX - number of 32-bit words to copy
+# On exit:
+#   ESI, EDI - incremented to the end of their respective buffers
+# Stomped:
+#   E[XHL], ECX
 .globl _unreal_memcpy
 _unreal_memcpy:
     cmp     %ecx, 0
     je      .L_unreal_memcpy_done
 
 .L_unreal_memcpy_loop:
-    movl    %fs:(%eax), %edi
-    movl    %edi, %fs:(%edx)
-    add     $4, %eax
-    add     $4, %edx
+    movl    %fs:(%esi), %eax
+    movl    %eax, %fs:(%edi)
+    add     $4, %esi
+    add     $4, %edi
     dec     %ecx
     jne     .L_unreal_memcpy_loop
 

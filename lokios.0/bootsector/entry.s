@@ -93,8 +93,7 @@ _start:
     # only loaded the first sector of the image.
 .L_mbr_start:
     mov     _mbr_drive_number, %dl
-    mov     $1, %eax
-    xor     %ebx, %ebx
+    mov     $1, %ebx
     mov     $_extra_sectors, %cx
     mov     $0x7E00, %si
     call    _disk_read

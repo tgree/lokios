@@ -14,20 +14,59 @@ _mbr_entry:
     # Entry unreal mode.
     call    _enter_unreal_mode
 
-    # Fetch the first sector of the kernel into the bounce buffer.
+    # We are going to read the kernel into a bounce buffer and then copy it
+    # into high memory.  If the kernel is larger than the size of the bounce
+    # buffer, then we may need multiple operations to do the whole image.
+    
+    # Set up our "globals".  These registers are preserved across all the
+    # function calls we make.
+    mov     $_first_kernel_sector, %ebx
+    mov     $_kernel_base, %edi
     mov     _mbr_drive_number, %dl
-    mov     $_first_kernel_sector, %eax
-    mov     $0, %ebx
+
+    # Fetch the first sector of the kernel into the bounce buffer.
     mov     $1, %cx
     lea     _pre_e820_bounce_buffer, %si
     call    _disk_read
 
-    # Copy the bounce buffer sector into high memory.
-    lea     _pre_e820_bounce_buffer, %eax
-    mov     $_kernel_base, %edx
-    mov     $512/4, %ecx
+    # Get the total number of sectors.  This is stored as a 32-bit value at the
+    # beginning of the first kernel sector.
+    movl    _pre_e820_bounce_buffer, %esi
+    push    %esi
+
+    # Loop over all the sectors.  We do up to 4K at a time.
+.L_read_loop:
+    # See if we are done.
+    pop     %esi
+    test    %esi, %esi
+    je      .L_read_loop_done
+
+    # Figure out how many sectors to read and push the number of remaining
+    # sectors for the next iteration.
+    mov     %esi, %ecx
+    cmp     $8, %esi
+    jb      .L_below_8_to_go
+    mov     $8, %ecx
+.L_below_8_to_go:
+    sub     %ecx, %esi
+    push    %esi
+
+    # Read them into the bounce buffer.
+    lea     _pre_e820_bounce_buffer, %si
+    call    _disk_read
+
+    # Increment the sector number.
+    add     %ecx, %ebx
+
+    # Copy the bounce buffer into high memory.  This also advances EDI for us.
+    lea     _pre_e820_bounce_buffer, %esi
+    shl     $7, %ecx
     call    _unreal_memcpy
 
+    # Loop.
+    jmp     .L_read_loop
+
+.L_read_loop_done:
     # Jump to the common entry point.
     jmp     _common_entry
 
