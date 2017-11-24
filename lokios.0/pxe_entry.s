@@ -58,7 +58,7 @@ _use_pxenv_struct:
     movl    %eax, _pxe_api_far_ptr
     lea     .L_use_pxenv_struct_text, %si
     call    _puts
-    jmp     _pxe_load_kernel
+    jmp     _pxe_entry_found
 
     # The !PXE struct should be used.  It's address is in GS:BX.
 _use_notpxe_struct:
@@ -66,25 +66,15 @@ _use_notpxe_struct:
     movl    %eax, _pxe_api_far_ptr
     lea     .L_use_notpxe_struct_text, %si
     call    _puts
-    jmp     _pxe_load_kernel
+    jmp     _pxe_entry_found
 
-    # Okay, we have an entry point and should try to load the kernel.
-_pxe_load_kernel:
+    # Okay, we have found an entry point.  Check it for validity, and if it is
+    # good then jump to the code that will load the kernel.
+_pxe_entry_found:
     movl    _pxe_api_far_ptr, %eax
     test    %eax, %eax
     je      _pxe_api_null_ptr
-
-    # Okay, tell everyone how we're doing.
-    lea     .L_pxe_loading_beginning_text, %si
-    call    _puts
-
-    # TODO: PXE fetch lokios.1 (the kernel) to address 2M.
-    # For now, we simply write a HLT instruction there.
-    mov     $_kernel_entry, %eax
-    movb    $0xF4, %fs:(%eax)
-
-    # Jump to the common entry point.
-    jmp     _common_entry
+    jmp     _pxe_start_load
 
     # The PXENV+ struct was bad.  We are just going to bail out back to BIOS at
     # this point.
@@ -121,6 +111,82 @@ _notpxe_checksum_mismatch:
 _pxe_api_null_ptr:
     lea     .L_pxe_api_null_ptr_text, %si
     call    _puts
+    ret
+
+
+# Ready to start loading the kernel via PXE.
+# On entry:
+#   nothing.  
+_pxe_start_load:
+    # Okay, tell everyone how we're doing.
+    lea     .L_pxe_loading_beginning_text, %si
+    call    _puts
+
+    # Start by getting the cached DHCP response we got from the server.  This
+    # is going to tell us the server's IP address.
+    lea     _pxe_get_cached_info_cmd, %di
+    mov     $0x0071, %bx
+    call    _call_pxe
+    test    %ax, %ax
+    jne     _pxe_get_cached_info_failed
+    movw    _pxe_get_cached_info_cmd, %bx
+    test    %bx, %bx
+    jne     _pxe_get_cached_info_failed
+
+    # Okay, the result was filled in!
+    lea     .L_pxe_server_ip_text, %si
+    call    _puts
+    lgs     _pxe_get_cached_info_cmd + 6, %si
+    movl    %gs:20(%si), %edx
+    call    _put8
+    mov     $'.', %al
+    call    _putc
+    ror     $8, %edx
+    call    _put8
+    mov     $'.', %al
+    call    _putc
+    ror     $8, %edx
+    call    _put8
+    mov     $'.', %al
+    call    _putc
+    ror     $8, %edx
+    call    _put8
+    ror     $8, %edx
+    call    _putCRLF
+
+    # TODO: PXE fetch lokios.1 (the kernel) to address 2M.
+    # For now, we simply write a HLT instruction there.
+    mov     $_kernel_entry, %eax
+    movb    $0xF4, %fs:(%eax)
+
+    # Jump to the common entry point.
+    jmp     _common_entry
+
+_pxe_get_cached_info_failed:
+    mov     %ax, %dx
+    call    _put16
+    mov     $' ', %al
+    call    _putc
+    movw    _pxe_get_cached_info_cmd, %dx
+    call    _put16
+    mov     $' ', %al
+    call    _putc
+    lea     .L_pxe_get_cached_info_failed_text, %si
+    call    _puts
+    ret
+
+
+# On entry:
+#   ES:DI - address of the command buffer
+#   BX    - opcode
+_call_pxe:
+    push    %ds
+    push    %di
+    push    %bx
+
+    lcall   *_pxe_api_far_ptr
+
+    add     $6, %sp
     ret
 
 
@@ -175,5 +241,15 @@ _dump_mem:
     .asciz  "Chosen PXE API has a NULL real mode API entry pointer!\r\n"
 .L_pxe_loading_beginning_text:
     .asciz  "Fetching kernel via PXE...\r\n"
+.L_pxe_get_cached_info_failed_text:
+    .asciz  "PXE Get Cached Info call failed!\r\n"
+.L_pxe_server_ip_text:
+    .asciz  "PXE server IP: "
 _pxe_api_far_ptr:
     .long   0
+_pxe_get_cached_info_cmd:
+    .short  0
+    .short  2   # PXENV_PACKET_TYPE_DHCP_ACK
+    .short  0
+    .long   0
+    .short  0
