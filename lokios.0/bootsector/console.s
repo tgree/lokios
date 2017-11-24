@@ -31,6 +31,8 @@ _puts:
 # Write a hex value to the console
 #   _put32: %edx - contains the value to write
 #   _put16: %dx  - contains the value to write
+# Stomps:
+#   EAX, EBX, ECX
 .global _put32
 .global _put16
 _put32:
