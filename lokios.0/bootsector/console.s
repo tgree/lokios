@@ -19,6 +19,8 @@ _putCRLF:
     lea     .L_putCRLF_string, %si
 # Write a null-terminated string to the console.
 #   %si - contains the address of the string to write
+# Stomps:
+#   EAX, EBX
 .globl _puts
 _puts:
     lodsb
