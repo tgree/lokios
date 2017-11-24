@@ -154,14 +154,48 @@ _pxe_start_load:
     ror     $8, %edx
     call    _putCRLF
 
-    # TODO: PXE fetch lokios.1 (the kernel) to address 2M.
-    # For now, we simply write a HLT instruction there.
-    mov     $_kernel_entry, %eax
-    movb    $0xF4, %fs:(%eax)
+    # Do a TFTP OPEN command for our target file.
+    lea     _pxe_open_cmd, %di
+    mov     $0x0020, %bx
+    movl    %edx, _pxe_open_cmd_server_ip
+    call    _call_pxe
+    test    %ax, %ax
+    jne     _pxe_open_failed
+    movw    _pxe_open_cmd, %bx
+    test    %bx, %bx
+    jne     _pxe_open_failed
+
+    # Do a TFTP READ to get the first 512-byte packet.
+    lea     _pxe_read_cmd, %di
+    mov     $0x0022, %bx
+    call    _call_pxe
+    test    %ax, %ax
+    jne     _pxe_read_failed
+    movw    _pxe_read_cmd, %bx
+    test    %bx, %bx
+    jne     _pxe_read_failed
+
+    # Copy the packet up into place.  Sadly, calling into PXE breaks unreal
+    # mode.  It probably switches into protected mode since it has a protected
+    # mode entry point as well, and switching would cause the CPU to then
+    # update the FS limit values if PXE changed FS for some reason.
+    call    _enter_unreal_mode
+    lea     _pre_e820_bounce_buffer, %esi
+    mov     $_kernel_base, %edi
+    mov     $512/4, %ecx
+    call    _unreal_memcpy
+
+    # Up next: loop until we get the full file, do a TFTP_CLOSE.
+    # The best strategy would be to do something like what MBR does where it
+    # reads 4K worth of sectors and then unreal_memcpys them at once.  That
+    # would minimize the number of protected-mode changes - although maybe we
+    # don't even care since the PXE API is already switching modes on us so
+    # what's another switch really gonna do?
 
     # Jump to the common entry point.
     jmp     _common_entry
 
+    # Our attempt to read the cached DHCP failed.  Life sucks.
 _pxe_get_cached_info_failed:
     mov     %ax, %dx
     call    _put16
@@ -175,6 +209,33 @@ _pxe_get_cached_info_failed:
     call    _puts
     ret
 
+    # Our TFTP open attempt failed.  Life sucks.
+_pxe_open_failed:
+    mov     %ax, %dx
+    call    _put16
+    mov     $' ', %al
+    call    _putc
+    movw    _pxe_open_cmd, %dx
+    call    _put16
+    mov     $' ', %al
+    call    _putc
+    lea     .L_pxe_open_failed_text, %si
+    call    _puts
+    ret
+
+    # Our TFTP read attempt failed.  Life still sucks.
+_pxe_read_failed:
+    mov     %ax, %dx
+    call    _put16
+    mov     $' ', %al
+    call    _putc
+    movw    _pxe_read_cmd, %dx
+    call    _put16
+    mov     $' ', %al
+    call    _putc
+    lea     .L_pxe_read_failed_text, %si
+    call    _puts
+    ret
 
 # On entry:
 #   ES:DI - address of the command buffer
@@ -243,6 +304,10 @@ _dump_mem:
     .asciz  "Fetching kernel via PXE...\r\n"
 .L_pxe_get_cached_info_failed_text:
     .asciz  "PXE Get Cached Info call failed!\r\n"
+.L_pxe_open_failed_text:
+    .asciz  "PXE Open call failed!\r\n"
+.L_pxe_read_failed_text:
+    .asciz  "PXE Read call failed!\r\n"
 .L_pxe_server_ip_text:
     .asciz  "PXE server IP: "
 _pxe_api_far_ptr:
@@ -252,4 +317,22 @@ _pxe_get_cached_info_cmd:
     .short  2   # PXENV_PACKET_TYPE_DHCP_ACK
     .short  0
     .long   0
+    .short  0
+
+_pxe_open_cmd:
+    .short  0
+_pxe_open_cmd_server_ip:
+    .long   0   # Server IP Address
+    .long   0   # Gateway IP Address
+_pxe_open_cmd_filename:
+    .asciz  "lokios.1"
+    .zero   (128 + _pxe_open_cmd_filename - .)
+    .short  (69 << 8) | (0x69 >> 8)  # UDP Port, big-endian!
+    .short  512 # Packet size
+
+_pxe_read_cmd:
+    .short  0
+    .short  0
+    .short  0
+    .short  _pre_e820_bounce_buffer
     .short  0
