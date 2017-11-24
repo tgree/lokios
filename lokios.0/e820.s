@@ -56,6 +56,11 @@ _E820_print_list:
 .L_E820_dump_loop:
     cmp     _e820_end, %si
     jae     .L_E820_dump_done
+.if 0
+    mov     16(%si), %edx
+    cmp     $1, %edx
+    jne     .L_skip_unusable
+.endif
     mov     4(%si), %edx
     call    _put32
     mov     0(%si), %edx
@@ -74,6 +79,7 @@ _E820_print_list:
     call    _putc
     mov     $'\n', %al
     call    _putc
+.L_skip_unusable:
     add     $24, %si
     jmp     .L_E820_dump_loop
 .L_E820_dump_done:
