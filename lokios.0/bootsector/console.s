@@ -33,16 +33,22 @@ _puts:
 # Write a hex value to the console
 #   _put32: %edx - contains the value to write
 #   _put16: %dx  - contains the value to write
+#   _put8:  %dl  - contains the value to write
 # Stomps:
 #   EAX, EBX, ECX
 .global _put32
 .global _put16
+.global _put8
 _put32:
     mov     $8, %cx
     jmp     .L_put_loop
 _put16:
     mov     $4, %cx
     rol     $16, %edx
+    jmp     .L_put_loop
+_put8:
+    mov     $2, %cx
+    rol     $24, %edx
 .L_put_loop:
     rol     $4, %edx
     mov     %dl, %al
