@@ -127,11 +127,8 @@ _pxe_start_load:
     lea     _pxe_get_cached_info_cmd, %di
     mov     $0x0071, %bx
     call    _call_pxe
-    test    %ax, %ax
-    jne     _pxe_get_cached_info_failed
-    movw    _pxe_get_cached_info_cmd, %bx
-    test    %bx, %bx
-    jne     _pxe_get_cached_info_failed
+    lea     .L_pxe_get_cached_info_failed_text, %si
+    jc      _pxe_cmd_error
 
     # Okay, the result was filled in!
     lea     .L_pxe_server_ip_text, %si
@@ -159,21 +156,15 @@ _pxe_start_load:
     mov     $0x0020, %bx
     movl    %edx, _pxe_open_cmd_server_ip
     call    _call_pxe
-    test    %ax, %ax
-    jne     _pxe_open_failed
-    movw    _pxe_open_cmd, %bx
-    test    %bx, %bx
-    jne     _pxe_open_failed
+    lea     .L_pxe_open_failed_text, %si
+    jc      _pxe_cmd_error
 
     # Do a TFTP READ to get the first 512-byte packet.
     lea     _pxe_read_cmd, %di
     mov     $0x0022, %bx
     call    _call_pxe
-    test    %ax, %ax
-    jne     _pxe_read_failed
-    movw    _pxe_read_cmd, %bx
-    test    %bx, %bx
-    jne     _pxe_read_failed
+    lea     .L_pxe_read_failed_text, %si
+    jc      _pxe_cmd_error
 
     # Copy the packet up into place.  Sadly, calling into PXE breaks unreal
     # mode.  It probably switches into protected mode since it has a protected
@@ -195,51 +186,33 @@ _pxe_start_load:
     # Jump to the common entry point.
     jmp     _common_entry
 
-    # Our attempt to read the cached DHCP failed.  Life sucks.
-_pxe_get_cached_info_failed:
+    # Some PXE call failed.
+    # On entry:
+    #   DI  - address of command param block
+    #   SI  - error string
+    #   AX  - immediate return value
+_pxe_cmd_error:
     mov     %ax, %dx
     call    _put16
     mov     $' ', %al
     call    _putc
-    movw    _pxe_get_cached_info_cmd, %dx
+    movw    (%di), %dx
     call    _put16
     mov     $' ', %al
     call    _putc
-    lea     .L_pxe_get_cached_info_failed_text, %si
-    call    _puts
-    ret
-
-    # Our TFTP open attempt failed.  Life sucks.
-_pxe_open_failed:
-    mov     %ax, %dx
-    call    _put16
-    mov     $' ', %al
-    call    _putc
-    movw    _pxe_open_cmd, %dx
-    call    _put16
-    mov     $' ', %al
-    call    _putc
-    lea     .L_pxe_open_failed_text, %si
-    call    _puts
-    ret
-
-    # Our TFTP read attempt failed.  Life still sucks.
-_pxe_read_failed:
-    mov     %ax, %dx
-    call    _put16
-    mov     $' ', %al
-    call    _putc
-    movw    _pxe_read_cmd, %dx
-    call    _put16
-    mov     $' ', %al
-    call    _putc
-    lea     .L_pxe_read_failed_text, %si
     call    _puts
     ret
 
 # On entry:
 #   ES:DI - address of the command buffer
+#   SI    - error message to print in case of failure
 #   BX    - opcode
+# On exit:
+#   AX    - contains the immediate return code
+#   BX    - contains the status field from the command buffer
+#   CF    - set in case of error
+# Stomps:
+#   EAX, EBX
 _call_pxe:
     push    %ds
     push    %di
@@ -248,6 +221,18 @@ _call_pxe:
     lcall   *_pxe_api_far_ptr
 
     add     $6, %sp
+
+    # Error checking and set/clear the CF bit.
+    test    %ax, %ax
+    jne     .L_call_pxe_failed
+    movw    (%di), %bx
+    test    %bx, %bx
+    jne     .L_call_pxe_failed
+    clc
+    jmp     .L_call_pxe_done
+.L_call_pxe_failed:
+    stc
+.L_call_pxe_done:
     ret
 
 
