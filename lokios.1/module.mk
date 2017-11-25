@@ -1,11 +1,13 @@
 CRTBEGIN_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
 CRTEND_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
 LOKIOS_1_OBJ := \
-	lokios.1/entry.o   \
-	lokios.1/init.o	   \
-	lokios.1/crti.o    \
-	lokios.1/main.o    \
-	lokios.1/console.o \
+	lokios.1/entry.o   	\
+	lokios.1/init.o	   	\
+	lokios.1/crti.o    	\
+	lokios.1/main.o    	\
+	lokios.1/abort.o   	\
+	lokios.1/console.o 	\
+	lokios.1/cxxabi.o       \
 	lokios.1/crtn.o
 LOKIOS_1_LINK_OBJ := \
 	$(CRTBEGIN_OBJ) \
