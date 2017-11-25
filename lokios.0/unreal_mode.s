@@ -2,6 +2,9 @@
 .text
 
 
+# Switch in to unreal mode.
+# Stomps:
+#   EAX, EBX
 .global _enter_unreal_mode
 _enter_unreal_mode:
     # Load the GDT.
