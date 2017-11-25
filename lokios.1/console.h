@@ -1,17 +1,22 @@
 #ifndef __KERNEL_CONSOLE_H
 #define __KERNEL_CONSOLE_H
 
+#include "char_stream.h"
 #include <stdint.h>
 
-struct console
+struct console : public char_stream
 {
     uint16_t*   base;
     uint16_t    x;
     uint16_t    y;
 
     void    scroll();
-    void    putc(char c);
-    void    puts(const char* s);
+
+    // Move to the start of the next line, scrolling if necessary.
+    void    putnewline();
+
+    // Put a character or a string.
+    virtual void    putc(char c);
 
     console(uint16_t* base);
 };

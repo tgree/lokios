@@ -5,5 +5,6 @@
 int
 main()
 {
-    vga.puts("Loki is kickawesome");
+    vga.printf("Loki is kickawesome\n");
+    vga.printf("Hello %d '%4d' %05d '%-5d'",123,45,67,89);
 }

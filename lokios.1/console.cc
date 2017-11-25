@@ -25,23 +25,25 @@ console::scroll()
 }
 
 void
-console::putc(char c)
+console::putnewline()
 {
-    base[y*80 + x] = 0x1F00 | (uint16_t)c;
-    if (++x == 80)
+    x = 0;
+    if (++y == 25)
     {
-        x = 0;
-        if (++y == 25)
-        {
-            --y;
-            scroll();
-        }
+        --y;
+        scroll();
     }
 }
 
 void
-console::puts(const char* s)
+console::putc(char c)
 {
-    while (*s)
-        putc(*s++);
+    if (c == '\n')
+        putnewline();
+    else
+    {
+        base[y*80 + x] = 0x1F00 | (uint16_t)c;
+        if (++x == 80)
+            putnewline();
+    }
 }
