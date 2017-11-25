@@ -97,9 +97,9 @@ SECTIONS
     {
         _page_table = .;
         ASSERT(_page_table == ALIGN(4096), "page table misaligned");
-        QUAD((_page_table + 4096) | 3);
+        QUAD((_page_table + 0x00001000) | 3);
         . = ALIGN(4096);
-        QUAD((_page_table + 8192) | 3);
+        QUAD((_page_table + 0x00002000) | 3);
         . = ALIGN(4096);
         QUAD(0x0000000000000083);
         QUAD(0x0000000000200083);
