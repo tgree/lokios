@@ -3,7 +3,10 @@ LOKIOS_1_OBJ := \
 	lokios.1/main.o
 CLEAN += \
 	$(LOKIOS_1_OBJ)	      \
+	$(LOKIOS_1_OBJ:.o=.d) \
 	lokios.1/lokios.1.elf
+
+-include $(LOKIOS_1_OBJ:.o=.d)
 
 $(LOKIOS_1_OBJ): ASFLAGS := $(X86_64_ASFLAGS)
 $(LOKIOS_1_OBJ): CXXFLAGS := $(X86_64_CXXFLAGS)

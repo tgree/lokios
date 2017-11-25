@@ -25,3 +25,6 @@ lokios.mbr: bin/lokios.0 bin/lokios.1
 .PHONY: clean
 clean:
 	rm -f $(CLEAN)
+
+%.o: %.cc
+	$(CXX) -MMD -MP -MF $*.d -c $(CXXFLAGS) $*.cc -o $*.o
