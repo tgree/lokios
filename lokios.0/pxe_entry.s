@@ -132,7 +132,6 @@ _pxe_start_load:
     lea     _pxe_get_cached_info_cmd, %di
     mov     $0x0071, %bx
     call    _call_pxe
-    lea     .L_pxe_get_cached_info_failed_text, %si
     jc      _pxe_cmd_error
 
     # The result was filled in; notify of the IP address we will get the file
@@ -149,17 +148,16 @@ _pxe_start_load:
     mov     $0x0020, %bx
     movl    %edx, _pxe_open_cmd_server_ip
     call    _call_pxe
-    lea     .L_pxe_open_failed_text, %si
     jc      _pxe_cmd_error
 
     # Do a TFTP READ to get the first 512-byte packet.
     lea     _pxe_read_cmd, %di
     mov     $0x0022, %bx
     call    _call_pxe
-    lea     .L_pxe_read_failed_text, %si
     jc      _pxe_cmd_error
 
     # Ensure that this really was the first packet.
+    mov     $0xFFFF, %bx
     mov     _pxe_read_cmd + 2, %ax
     cmp     $1, %ax
     jne     _pxe_cmd_error
@@ -200,7 +198,6 @@ _pxe_start_load:
     lea     _pxe_read_cmd, %di
     mov     $0x0022, %bx
     call    _call_pxe
-    lea     .L_pxe_read_failed_text, %si
     jc      _pxe_cmd_error
 
     # Ensure we got a full sector.
@@ -225,10 +222,17 @@ _pxe_start_load:
     # Some PXE call failed.
     # On entry:
     #   DI  - address of command param block
-    #   SI  - error string
     #   AX  - immediate return value
+    #   BX  - the opcode
 _pxe_cmd_error:
-    mov     %ax, %dx
+    push    %ax
+    mov     %bx, %dx
+    call    _put16
+    mov     $':', %al
+    call    _putc
+    mov     $' ', %al
+    call    _putc
+    pop     %dx
     call    _put16
     mov     $' ', %al
     call    _putc
@@ -236,16 +240,16 @@ _pxe_cmd_error:
     call    _put16
     mov     $' ', %al
     call    _putc
+    lea     .L_pxe_cmd_error_text, %si
     call    _puts
     ret
 
 # On entry:
 #   ES:DI - address of the command buffer
-#   SI    - error message to print in case of failure
 #   BX    - opcode
 # On exit:
 #   AX    - contains the immediate return code
-#   BX    - contains the status field from the command buffer
+#   BX    - the opcode that was used
 #   CF    - set in case of error
 # Stomps:
 #   EAX, EBX
@@ -256,18 +260,23 @@ _call_pxe:
 
     lcall   *_pxe_api_far_ptr
 
-    add     $6, %sp
-
     # Error checking and set/clear the CF bit.
     test    %ax, %ax
     jne     .L_call_pxe_failed
     movw    (%di), %bx
     test    %bx, %bx
     jne     .L_call_pxe_failed
+
+    pop     %bx
+    add     $4, %sp
     clc
     jmp     .L_call_pxe_done
+
 .L_call_pxe_failed:
+    pop     %bx
+    add     $4, %sp
     stc
+
 .L_call_pxe_done:
     ret
 
@@ -315,6 +324,8 @@ _dump_mem:
     .asciz  " <- PXENV+ struct has invalid checksum\r\n"
 .L_notpxe_checksum_mismatch_text:
     .asciz  " <- !PXE struct has invalid checksum\r\n"
+.L_pxe_cmd_error_text:
+    .asciz  " PXE Command Error\r\n"
 .L_read_truncated_text:
     .asciz  "PXE stream EOF before full image downloaded\r\n"
 .L_use_pxenv_struct_text:
@@ -325,12 +336,6 @@ _dump_mem:
     .asciz  "Chosen PXE API has a NULL real mode API entry pointer!\r\n"
 .L_pxe_loading_beginning_text:
     .asciz  "Fetching kernel via PXE...\r\n"
-.L_pxe_get_cached_info_failed_text:
-    .asciz  "PXE Get Cached Info call failed!\r\n"
-.L_pxe_open_failed_text:
-    .asciz  "PXE Open call failed!\r\n"
-.L_pxe_read_failed_text:
-    .asciz  "PXE Read call failed!\r\n"
 .L_pxe_server_ip_text:
     .asciz  "PXE server IP: "
 _pxe_api_far_ptr:
