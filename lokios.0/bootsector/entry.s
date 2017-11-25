@@ -122,6 +122,11 @@ _start:
 # Print the copyright bannder.
 .globl _print_banners
 _print_banners:
+.if 0
+    # Hide the cursor.
+    call    _hide_cursor
+.endif
+
     # Print the loki copyright banner.
     lea     .L_loki_os_banner, %si
     call    _puts

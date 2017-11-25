@@ -2,6 +2,15 @@
 .text
 
 
+# Hide the cursor.
+.globl _hide_cursor
+_hide_cursor:
+    movb    $0x01, %ah
+    movw    $0x2706, %cx
+    int     $0x10
+    ret
+
+
 # Write a chracter to the console.
 #   %al - contains the character to write
 .globl _putc
