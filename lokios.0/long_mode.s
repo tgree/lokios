@@ -45,5 +45,7 @@ _into_long_mode:
     or      $(1<<16), %eax
     mov     %eax, %cr0
 
+    # Jump into the kernel after switching to the new stack.
+    movl    $_kernel_stack, %esp
     movl    $_kernel_entry, %eax
     jmp     *%eax

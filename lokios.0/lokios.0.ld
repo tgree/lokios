@@ -119,7 +119,7 @@ SECTIONS
         QUAD(0x000000000000C081);
         QUAD(0x000000000000D081);
         QUAD(0x000000000000E081);
-        QUAD(0x000000000000F083);   /* Stack */
+        QUAD(0x000000000000F081);
         QUAD(0x0000000000010081);
         QUAD(0x0000000000011081);
         QUAD(0x0000000000012081);
@@ -599,23 +599,23 @@ SECTIONS
         QUAD(0x00000000001EC081);
         QUAD(0x00000000001ED081);
         QUAD(0x00000000001EE081);
-        QUAD(0x00000000001EF081);
-        QUAD(0x00000000001F0081);
-        QUAD(0x00000000001F1081);
-        QUAD(0x00000000001F2081);
-        QUAD(0x00000000001F3081);
-        QUAD(0x00000000001F4081);
-        QUAD(0x00000000001F5081);
-        QUAD(0x00000000001F6081);
-        QUAD(0x00000000001F7081);
-        QUAD(0x00000000001F8081);
-        QUAD(0x00000000001F9081);
-        QUAD(0x00000000001FA081);
-        QUAD(0x00000000001FB081);
-        QUAD(0x00000000001FC081);
-        QUAD(0x00000000001FD081);
-        QUAD(0x00000000001FE081);
-        QUAD(0x00000000001FF081);
+        QUAD(0x00000000001EF081);   /* Guard page */
+        QUAD(0x00000000001F0083);   /* Kernel stack */
+        QUAD(0x00000000001F1083);   /* Kernel stack */
+        QUAD(0x00000000001F2083);   /* Kernel stack */
+        QUAD(0x00000000001F3083);   /* Kernel stack */
+        QUAD(0x00000000001F4083);   /* Kernel stack */
+        QUAD(0x00000000001F5083);   /* Kernel stack */
+        QUAD(0x00000000001F6083);   /* Kernel stack */
+        QUAD(0x00000000001F7083);   /* Kernel stack */
+        QUAD(0x00000000001F8083);   /* Kernel stack */
+        QUAD(0x00000000001F9083);   /* Kernel stack */
+        QUAD(0x00000000001FA083);   /* Kernel stack */
+        QUAD(0x00000000001FB083);   /* Kernel stack */
+        QUAD(0x00000000001FC083);   /* Kernel stack */
+        QUAD(0x00000000001FD083);   /* Kernel stack */
+        QUAD(0x00000000001FE083);   /* Kernel stack */
+        QUAD(0x00000000001FF081);   /* Guard page */
         . = ALIGN(4096);
     }
 
@@ -632,4 +632,5 @@ SECTIONS
     /* This is where we are going to load the kernel. */
     _kernel_base = 0x00200000;
     _kernel_entry = _kernel_base + 0x10;
+    _kernel_stack = 0x001FF000 - 64;
 }
