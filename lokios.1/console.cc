@@ -1,51 +1,47 @@
 #include "console.h"
 #include "kernel_args.h"
 
-static uint16_t* console_base;
-static uint16_t console_x;
-static uint16_t console_y;
+console vga((uint16_t*)kargs->vga_base);
 
-void
-console_init()
+console::console(uint16_t* base):
+    base(base),
+    x(0),
+    y(0)
 {
-    console_base = (uint16_t*)kargs->vga_base;
-    console_x    = 0;
-    console_y    = 0;
-
-    uint64_t* addr = (uint64_t*)console_base;
+    uint64_t* addr = (uint64_t*)base;
     for (unsigned int i=0; i<500; ++i)
-        addr[i] = 0x1F201F201F201F20;
+        *addr++ = 0x1F201F201F201F20;
 }
 
 void
-console_scroll()
+console::scroll()
 {
-    uint64_t* src = (uint64_t*)&console_base[80];
-    uint64_t* dst = (uint64_t*)console_base;
+    uint64_t* src = (uint64_t*)&base[80];
+    uint64_t* dst = (uint64_t*)base;
     for (unsigned int i=0; i<420; ++i)
-        *dst++ = *src;
+        *dst++ = *src++;
     for (unsigned int i=420; i<500; ++i)
         *dst++ = 0x1F201F201F201F20;
 }
 
 void
-console_putc(char c)
+console::putc(char c)
 {
-    console_base[console_y*80 + console_x] = 0x1F00 | (uint16_t)c;
-    if (++console_x == 80)
+    base[y*80 + x] = 0x1F00 | (uint16_t)c;
+    if (++x == 80)
     {
-        console_x = 0;
-        if (++console_y == 25)
+        x = 0;
+        if (++y == 25)
         {
-            --console_y;
-            console_scroll();
+            --y;
+            scroll();
         }
     }
 }
 
 void
-console_puts(const char* s)
+console::puts(const char* s)
 {
     while (*s)
-        console_putc(*s++);
+        putc(*s++);
 }

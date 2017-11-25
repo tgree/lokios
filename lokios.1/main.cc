@@ -5,6 +5,5 @@
 int
 main()
 {
-    console_init();
-    console_puts("Loki is kickawesome");
+    vga.puts("Loki is kickawesome");
 }
