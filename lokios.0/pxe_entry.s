@@ -186,7 +186,6 @@ _pxe_start_load:
     lea     _pre_e820_bounce_buffer, %esi
     mov     $512/4, %ecx
     call    _unreal_memcpy
-    incl    _pxe_sector_number
 
     # We copied a sector.  See if we are done.
     mov     _pxe_remaining_sectors, %esi
