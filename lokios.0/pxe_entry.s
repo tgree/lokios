@@ -159,25 +159,68 @@ _pxe_start_load:
     lea     .L_pxe_read_failed_text, %si
     jc      _pxe_cmd_error
 
-    # Copy the packet up into place.  Sadly, calling into PXE breaks unreal
+    # Ensure that this really was the first packet.
+    mov     _pxe_read_cmd + 2, %ax
+    cmp     $1, %ax
+    jne     _pxe_cmd_error
+
+    # Ensure we got a full sector.
+    movw    _pxe_read_cmd + 4, %ax
+    cmp     $512, %ax
+    jne     .L_read_truncated
+
+    # Get the remaining number of sectors to bounce-copy.
+    movl    _pre_e820_bounce_buffer, %esi
+    movl    %esi, _pxe_remaining_sectors
+
+.L_read_loop:
+    # Bounce the packet up into place.  Sadly, calling into PXE breaks unreal
     # mode.  It probably switches into protected mode since it has a protected
     # mode entry point as well, and switching would cause the CPU to then
     # update the FS limit values if PXE changed FS for some reason.
     call    _enter_unreal_mode
+    mov     _pxe_sector_number, %esi    # Sector number
+    mov     %esi, %edi                  # Make a copy
+    shl     $9, %edi                    # Now it's an offset
+    add     $_kernel_base, %edi         # Now it's an address
+    inc     %esi                        # Advance the sector number
+    mov     %esi, _pxe_sector_number
     lea     _pre_e820_bounce_buffer, %esi
-    mov     $_kernel_base, %edi
     mov     $512/4, %ecx
     call    _unreal_memcpy
+    incl    _pxe_sector_number
 
-    # Up next: loop until we get the full file, do a TFTP_CLOSE.
-    # The best strategy would be to do something like what MBR does where it
-    # reads 4K worth of sectors and then unreal_memcpys them at once.  That
-    # would minimize the number of protected-mode changes - although maybe we
-    # don't even care since the PXE API is already switching modes on us so
-    # what's another switch really gonna do?
+    # We copied a sector.  See if we are done.
+    mov     _pxe_remaining_sectors, %esi
+    dec     %esi
+    je      .L_read_loop_done
+    mov     %esi, _pxe_remaining_sectors
 
+    # Read one sector into the bounce buffer.
+    lea     _pxe_read_cmd, %di
+    mov     $0x0022, %bx
+    call    _call_pxe
+    lea     .L_pxe_read_failed_text, %si
+    jc      _pxe_cmd_error
+
+    # Ensure we got a full sector.
+    movw    _pxe_read_cmd + 4, %dx
+    cmp     $512, %dx
+    jne     .L_read_truncated
+
+    # And loop until we are done.
+    jmp     .L_read_loop
+
+.L_read_loop_done:
     # Jump to the common entry point.
     jmp     _common_entry
+
+.L_read_truncated:
+    # We thought we had more sectors to go, but the PXE server didn't.  Print
+    # an error and return to BIOS.
+    lea     .L_read_truncated_text, %si
+    call    _puts
+    ret
 
     # Some PXE call failed.
     # On entry:
@@ -272,6 +315,8 @@ _dump_mem:
     .asciz  " <- PXENV+ struct has invalid checksum\r\n"
 .L_notpxe_checksum_mismatch_text:
     .asciz  " <- !PXE struct has invalid checksum\r\n"
+.L_read_truncated_text:
+    .asciz  "PXE stream EOF before full image downloaded\r\n"
 .L_use_pxenv_struct_text:
     .asciz  "Using PXENV+ struct\r\n"
 .L_use_notpxe_struct_text:
@@ -314,3 +359,8 @@ _pxe_read_cmd:
     .short  0
     .short  _pre_e820_bounce_buffer
     .short  0
+
+_pxe_sector_number:
+    .long   0
+_pxe_remaining_sectors:
+    .long   0
