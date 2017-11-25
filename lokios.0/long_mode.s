@@ -37,15 +37,27 @@ _enter_long_mode:
     lgdt    _gdt_64_desc
     ljmp    $8, $_into_long_mode
 
-.code32
+.code64
 _into_long_mode:
+    # Set up the kernel parameters in a write-protected page just past the
+    # top of the stack.
+    xor     %rdi, %rdi
+    movl    $_kernel_params, %edi
+    xor     %rax, %rax
+    mov     $_e820_end, %eax
+    mov     %rax, 0(%rdi)
+    mov     $0x000B8000, %eax
+    mov     %rax, 8(%rdi)
+
     # Enable write protection.  It seems we have to do this after the long jump
     # above or things break.
-    mov     %cr0, %eax
-    or      $(1<<16), %eax
-    mov     %eax, %cr0
+    mov     %cr0, %rax
+    or      $(1<<16), %rax
+    mov     %rax, %cr0
 
     # Jump into the kernel after switching to the new stack.
+    xor     %rsp, %rsp
     movl    $_kernel_stack, %esp
+    xor     %rax, %rax
     movl    $_kernel_entry, %eax
-    jmp     *%eax
+    jmp     *%rax

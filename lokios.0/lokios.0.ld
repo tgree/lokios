@@ -632,5 +632,6 @@ SECTIONS
     /* This is where we are going to load the kernel. */
     _kernel_base = 0x00200000;
     _kernel_entry = _kernel_base + 0x10;
-    _kernel_stack = 0x001FF000 - 64;
+    _kernel_stack = 0x001FF000;
+    _kernel_params = _kernel_stack;
 }
