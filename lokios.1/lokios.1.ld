@@ -1,5 +1,6 @@
 SECTIONS
 {
+    /* This value should match the _kernel_base value in lokios.0.ld. */
     . = 0x00200000;
     .image_header :
     {
