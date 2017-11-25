@@ -14,6 +14,11 @@ SECTIONS
         *(.text)
     }
 
+    .rodata :
+    {
+        *(.rodata)
+    }
+
     .eh_frame :
     {
         *(.eh_frame)
