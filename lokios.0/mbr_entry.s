@@ -27,6 +27,7 @@ _mbr_entry:
     mov     $1, %cx
     lea     _pre_e820_bounce_buffer, %si
     call    _disk_read
+    jc      .L_disk_read_failed
 
     # Get the total number of sectors.  This is stored as a 32-bit value at the
     # beginning of the first kernel sector.
@@ -53,6 +54,7 @@ _mbr_entry:
     # Read them into the bounce buffer.
     lea     _pre_e820_bounce_buffer, %si
     call    _disk_read
+    jc      .L_disk_read_failed_pop
 
     # Increment the sector number.
     add     %ecx, %ebx
@@ -69,6 +71,11 @@ _mbr_entry:
     # Jump to the common entry point.
     jmp     _common_entry
 
+.L_disk_read_failed_pop:
+    pop     %esi
+.L_disk_read_failed:
+    lea     .L_disk_read_failed_text, %si
+    call    _puts
 .L_mbr_entry_return_to_bios:
     ret
 
@@ -76,3 +83,5 @@ _mbr_entry:
 .data
 .L_mbr_bootloader_started_text:
     .asciz  "MBR bootloader started\r\n"
+.L_disk_read_failed_text:
+    .asciz  "Disk read failed\r\n"
