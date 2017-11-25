@@ -1,6 +1,7 @@
 LOKIOS_1_OBJ := \
 	lokios.1/entry.o \
-	lokios.1/main.o
+	lokios.1/main.o  \
+	lokios.1/console.o
 CLEAN += \
 	$(LOKIOS_1_OBJ)	      \
 	$(LOKIOS_1_OBJ:.o=.d) \
