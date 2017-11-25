@@ -39,5 +39,11 @@ _enter_long_mode:
 
 .code32
 _into_long_mode:
+    # Enable write protection.  It seems we have to do this after the long jump
+    # above or things break.
+    mov     %cr0, %eax
+    or      $(1<<16), %eax
+    mov     %eax, %cr0
+
     movl    $_kernel_entry, %eax
     jmp     *%eax
