@@ -6,7 +6,7 @@ I386_16_ASFLAGS := -march=core2 --32
 I386_32_CFLAGS := -O1 -m32 -march=pentium
 
 X86_64_ASFLAGS := -march=core2 --64
-X86_64_CXXFLAGS := -O1 -march=core2 -m64
+X86_64_CXXFLAGS := -O1 -march=core2 -m64 -std=gnu++14
 
 .PHONY: all
 all: bin/lokios.0 lokios.mbr
