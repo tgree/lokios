@@ -209,6 +209,17 @@ _pxe_start_load:
     jmp     .L_read_loop
 
 .L_read_loop_done:
+    # Execute the sequence that we want to use to try and shut down PXE.
+    mov     _pxe_shutdown_num_ops, %cx
+    lea     _pxe_shutdown_ops_cmd, %di
+    lea     _pxe_shutdown_ops, %si
+.L_shutdown_op_loop:
+    mov     (%si), %bx
+    add     $2, %si
+    call    _call_pxe
+    jc      _pxe_cmd_error
+    loop    .L_shutdown_op_loop
+
     # Jump to the common entry point.
     jmp     _common_entry
 
@@ -364,6 +375,24 @@ _pxe_read_cmd:
     .short  0
     .short  _pre_e820_bounce_buffer
     .short  0
+
+# It's really not clear what we have to do to shut this thing down.  That
+# Stop UNDI command is particularly troublesome with iPXE on the Macbook Air
+# because it ends up causing the system to reset shortly after we get into our
+# kernel.  Hopefully we shut down enough things here that this doesn't matter.
+_pxe_shutdown_ops_cmd:
+    .short  0
+    .zero   10
+_pxe_shutdown_ops:
+    .short  0x0021  # TFTP Close
+    .short  0x0007  # UNDI Close
+    .short  0x0005  # UNDI Shutdown
+    .short  0x0076  # Stop Base
+    .short  0x0070  # Unload Stack
+    .short  0x0002  # UNDI Cleanup
+#   .short  0x0015  # Stop UNDI
+_pxe_shutdown_num_ops:
+    .short  (_pxe_shutdown_num_ops - _pxe_shutdown_ops) / 2
 
 _pxe_sector_number:
     .long   0
