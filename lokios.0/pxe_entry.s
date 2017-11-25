@@ -15,12 +15,11 @@
 # us how to find the !PXE structure.
 .globl _pxe_entry
 _pxe_entry:
-    # Note that we have successfully started the PXE bootloader.
+    # Note that we have successfully started the PXE bootloader and enable both
+    # the A20 gate and unreal mode.
     lea     .L_pxe_bootloader_started_text, %si
-    call    _puts
-
-    # Entry unreal mode.
-    call    _enter_unreal_mode
+    call    _common_init
+    jc      .L_pxe_entry_return_to_bios
 
     # If we are here, we've already found that there is a PXENV+ signature at
     # ES:BX.  Load into GS:BX (we want to keep ES = DS) and let's checksum the
@@ -88,6 +87,7 @@ _pxenv_checksum_mismatch:
     call    _put32
     lea     .L_pxenv_checksum_mismatch_text, %si
     call    _puts
+.L_pxe_entry_return_to_bios:
     ret
 
     # The PXENV+ struct is before 2.1.  This means !PXE isn't supported by this

@@ -7,12 +7,11 @@
 # Entry point from the bootsector.
 .globl _mbr_entry
 _mbr_entry:
-    # Note that we have successfully started the MBR bootloader.
+    # Note that we have successfully started the MBR bootloader and enable both
+    # the A20 gate and unreal mode.
     lea     .L_mbr_bootloader_started_text, %si
-    call    _puts
-
-    # Entry unreal mode.
-    call    _enter_unreal_mode
+    call    _common_init
+    jc      .L_mbr_entry_return_to_bios
 
     # We are going to read the kernel into a bounce buffer and then copy it
     # into high memory.  If the kernel is larger than the size of the bounce
@@ -69,6 +68,9 @@ _mbr_entry:
 .L_read_loop_done:
     # Jump to the common entry point.
     jmp     _common_entry
+
+.L_mbr_entry_return_to_bios:
+    ret
 
 
 .data
