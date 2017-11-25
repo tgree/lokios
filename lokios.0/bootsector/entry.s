@@ -69,7 +69,7 @@ _start:
     # Clear direction so string operations move forward in memory.
     cld
 
-    # Print the copyirhgt banner first.
+    # Print the copyright banner first.
     call    _print_banners
 
     # Check if we can see a 'PXENV+' signature at ES:BX and dispatch to the
