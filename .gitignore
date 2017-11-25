@@ -2,6 +2,7 @@
 *.elf
 *.raw
 *.o
+*.d
 bin/lokios.0
 bin/lokios.1
 lokios.0/lokios.0
