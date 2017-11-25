@@ -17,7 +17,6 @@
 .globl _disk_read
 _disk_read:
     mov     %ebx, .L_DAP_first_sector_low
-    movl    $0, .L_DAP_first_sector_high
     mov     %cx, .L_DAP_num_sectors
     mov     %si, .L_DAP_destination_ptr
     mov     $.L_DAP, %si
@@ -38,4 +37,4 @@ _disk_read:
 .L_DAP_first_sector_low:
     .long   0x11111111
 .L_DAP_first_sector_high:
-    .long   0x22222222
+    .long   0   # Always 0 for our purposes since we don't seek very far
