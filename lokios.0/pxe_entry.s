@@ -135,25 +135,13 @@ _pxe_start_load:
     lea     .L_pxe_get_cached_info_failed_text, %si
     jc      _pxe_cmd_error
 
-    # Okay, the result was filled in!
+    # The result was filled in; notify of the IP address we will get the file
+    # from.
     lea     .L_pxe_server_ip_text, %si
     call    _puts
     lgs     _pxe_get_cached_info_cmd + 6, %si
     movl    %gs:20(%si), %edx
-    call    _put8
-    mov     $'.', %al
-    call    _putc
-    ror     $8, %edx
-    call    _put8
-    mov     $'.', %al
-    call    _putc
-    ror     $8, %edx
-    call    _put8
-    mov     $'.', %al
-    call    _putc
-    ror     $8, %edx
-    call    _put8
-    ror     $8, %edx
+    call    _putipv4
     call    _putCRLF
 
     # Do a TFTP OPEN command for our target file.
