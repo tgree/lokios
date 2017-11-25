@@ -1,6 +1,11 @@
 .code16
 .text
 
+# Macro to provide a big-endian uint16_t value.
+.macro .beshort val:req
+.short  (\val << 8) | (\val >> 8)
+.endm
+
 
 # Entry point from the bootsector.
 # On entry:
@@ -305,15 +310,15 @@ _pxe_get_cached_info_cmd:
     .short  0
 
 _pxe_open_cmd:
-    .short  0
+    .short      0
 _pxe_open_cmd_server_ip:
-    .long   0   # Server IP Address
-    .long   0   # Gateway IP Address
+    .long       0   # Server IP Address
+    .long       0   # Gateway IP Address
 _pxe_open_cmd_filename:
-    .asciz  "lokios.1"
-    .zero   (128 + _pxe_open_cmd_filename - .)
-    .short  (69 << 8) | (0x69 >> 8)  # UDP Port, big-endian!
-    .short  512 # Packet size
+    .asciz      "lokios.1"
+    .zero       (128 + _pxe_open_cmd_filename - .)
+    .beshort    69  # UDP Port
+    .short      512 # Packet size
 
 _pxe_read_cmd:
     .short  0
