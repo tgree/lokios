@@ -63,6 +63,29 @@ _put8:
     ret
 
 
+# Write an IPv4 address to the console.  For simplicity, we use hex.  If we run
+# out of bootsector space, this can be moved out of the bootsector since only
+# the PXE code prints these.
+# On entry:
+#   EDX - the IPv4 address
+# Stomps:
+#   EAX, EBX, ECX
+.global _putipv4
+_putipv4:
+    mov     $3, %cx
+.L_putipv4_loop:
+    push    %cx
+    call    _put8
+    mov     $'.', %al
+    call    _putc
+    ror     $8, %edx
+    pop     %cx
+    loop    .L_putipv4_loop
+    call    _put8
+    ror     $8, %edx
+    ret
+
+
 # --------------------- Data Segment ---------------------
 .data
 .L_putCRLF_string:
