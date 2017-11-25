@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "e820.h"
 
 struct kernel_args
 {
