@@ -18,7 +18,8 @@ LOKIOS_1_LINK_OBJ := \
 CLEAN += \
 	$(LOKIOS_1_OBJ)	      \
 	$(LOKIOS_1_OBJ:.o=.d) \
-	lokios.1/lokios.1.elf
+	lokios.1/lokios.1.elf \
+	lokios.1/lokios.1.map
 
 -include $(LOKIOS_1_OBJ:.o=.d)
 
@@ -28,6 +29,7 @@ lokios.1/main.o: CXXFLAGS := $(X86_64_CXXFLAGS) -Wno-main
 
 lokios.1/lokios.1.elf: $(LOKIOS_1_OBJ) lokios.1/lokios.1.ld lokios.1/module.mk
 	ld -melf_x86_64                       \
+	   -Map=lokios.1/lokios.1.map         \
 	   -T lokios.1/lokios.1.ld            \
 	   -o lokios.1/lokios.1.elf           \
 	   $(LOKIOS_1_LINK_OBJ)               \
