@@ -61,6 +61,7 @@ SECTIONS
     .eh_frame :
     {
         *(.eh_frame)
+        QUAD(0);
     }
     
     .data :
