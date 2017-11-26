@@ -6,4 +6,6 @@
 void
 aborts(const char* s);
 
+#define ASSERT(exp) static_assert(exp, #exp)
+
 #endif /* __KERNEL_ASSERT_H */
