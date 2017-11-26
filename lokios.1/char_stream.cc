@@ -116,6 +116,9 @@ void
 char_stream::print_string(const char* s, unsigned int flags,
     unsigned int width, unsigned int precision)
 {
+    // HACK.
+    while (*s)
+        _putc(*s++);
 }
 
 void
