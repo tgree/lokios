@@ -68,11 +68,11 @@ char_stream::print_decimal(long long v, unsigned int flags, unsigned int width,
     if (flags & PRINTF_FLAG_LEFT_ADJUSTED)
     {
         for (size_t i=0; i<zeroes; ++i)
-            putc('0');
+            _putc('0');
         while (ptr != end)
-            putc(*ptr++);
+            _putc(*ptr++);
         for (size_t i=0; i<padcs; ++i)
-            putc(' ');
+            _putc(' ');
     }
     else
     {
@@ -80,11 +80,11 @@ char_stream::print_decimal(long long v, unsigned int flags, unsigned int width,
         if (flags & PRINTF_FLAG_ZERO_PADDED)
             padc = '0';
         for (size_t i=0; i<padcs; ++i)
-            putc(padc);
+            _putc(padc);
         for (size_t i=0; i<zeroes; ++i)
-            putc('0');
+            _putc('0');
         while (ptr != end)
-            putc(*ptr++);
+            _putc(*ptr++);
     }
 }
 
@@ -127,7 +127,7 @@ char_stream::vprintf(const char* fmt, va_list ap)
         // Handle simple chars first.
         if (c != '%')
         {
-            putc(c);
+            _putc(c);
             continue;
         }
 
@@ -317,7 +317,7 @@ char_stream::vprintf(const char* fmt, va_list ap)
                 // We don't support wide chars.
                 if (length_modifier != PRINTF_LM_none)
                     abort();
-                putc(*fmt++);
+                _putc(*fmt++);
             break;
 
             case 's':
@@ -352,7 +352,7 @@ char_stream::vprintf(const char* fmt, va_list ap)
             break;
 
             case '%':
-                putc('%');
+                _putc('%');
                 ++fmt;
             break;
 

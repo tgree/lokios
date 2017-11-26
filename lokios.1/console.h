@@ -16,7 +16,7 @@ struct console : public char_stream
     void    putnewline();
 
     // Put a character or a string.
-    virtual void    putc(char c);
+    virtual void    _putc(char c);
 
     console(uint16_t* base);
 };

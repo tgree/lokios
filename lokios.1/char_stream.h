@@ -19,7 +19,7 @@ class char_stream
                          unsigned int width, unsigned int precision);
 
 public:
-    virtual void putc(char c) = 0;
+    virtual void _putc(char c) = 0;
 
             void vprintf(const char* fmt, va_list ap);
     inline  void printf(const char* fmt, ...)

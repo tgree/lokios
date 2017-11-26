@@ -36,7 +36,7 @@ console::putnewline()
 }
 
 void
-console::putc(char c)
+console::_putc(char c)
 {
     if (c == '\n')
         putnewline();
