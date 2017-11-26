@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 void
-aborts(const char* s);
+aborts(const char* s) noexcept __attribute__((noreturn));
 
 #define ASSERT(exp) static_assert(exp, #exp)
 
