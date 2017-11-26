@@ -18,9 +18,9 @@ console::scroll()
 {
     uint64_t* src = (uint64_t*)&base[80];
     uint64_t* dst = (uint64_t*)base;
-    for (unsigned int i=0; i<420; ++i)
+    for (unsigned int i=0; i<480; ++i)
         *dst++ = *src++;
-    for (unsigned int i=420; i<500; ++i)
+    for (unsigned int i=480; i<500; ++i)
         *dst++ = 0x1F201F201F201F20;
 }
 
