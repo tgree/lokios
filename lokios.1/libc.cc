@@ -13,12 +13,7 @@ void* malloc(size_t n)
     char* rv = FREEMEM;
     n        = ((n + 7)/8)*8;
     FREEMEM += n;
-#if 0
-    // malloc() is marked as a noexcept function, so if we make another
-    // function call g++ magically inserts some handlers here that won't link
-    // properly yet.  Soon!
     vga.printf("malloc(%zd) = %ld\n",n,(uintptr_t)rv);
-#endif
     return rv;
 }
 
