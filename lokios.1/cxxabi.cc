@@ -41,3 +41,12 @@ __stack_chk_fail()
     // have it disabled in the Makefile for now.
     aborts("Stack stomp check failed.");
 }
+
+extern "C" int
+__sprintf_chk(char* str, int flag, size_t strlen, const char* format)
+{
+    // The _FORTIFY_SOURCE macro triggers generation of a number of checked
+    // alternatives for some standard library functions.  This one is required
+    // by libsupc++.
+    aborts("__sprintf_chk");
+}
