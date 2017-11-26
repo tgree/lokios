@@ -60,6 +60,7 @@ SECTIONS
 
     .eh_frame :
     {
+        _eh_frame_begin = .;
         *(.eh_frame)
         QUAD(0);
     }

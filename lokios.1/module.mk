@@ -1,5 +1,8 @@
 CRTBEGIN_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
 CRTEND_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
+LSUPCXXX_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=libsupc++.a)
+LGCC_EH_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=libgcc_eh.a)
+
 LOKIOS_1_OBJ := \
 	lokios.1/entry.o   	\
 	lokios.1/init.o	   	\
@@ -14,6 +17,8 @@ LOKIOS_1_OBJ := \
 LOKIOS_1_LINK_OBJ := \
 	$(CRTBEGIN_OBJ) \
     	$(LOKIOS_1_OBJ) \
+	$(LSUPCXXX_OBJ) \
+	$(LGCC_EH_OBJ)  \
 	$(CRTEND_OBJ)   \
 
 CLEAN += \
