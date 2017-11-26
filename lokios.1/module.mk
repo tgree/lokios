@@ -9,6 +9,7 @@ LOKIOS_1_OBJ := \
 	lokios.1/console.o 	\
 	lokios.1/char_stream.o	\
 	lokios.1/cxxabi.o       \
+	lokios.1/libc.o         \
 	lokios.1/crtn.o
 LOKIOS_1_LINK_OBJ := \
 	$(CRTBEGIN_OBJ) \
