@@ -73,6 +73,24 @@ SECTIONS
         *(.bss)
     }
 
+    .tdata :
+    {
+        _tdata_begin = .;
+        *(.tdata .tdata.* .gnu.linkonce.td.*)
+        _tdata_end = .;
+    }
+    _tdata_size = SIZEOF(.tdata);
+
+    .tbss :
+    {
+        _tbss_begin = .;
+        *(.tbss .tbss.* .gnu.linkonce.tb.*)
+        *(.tcommon)
+        _tbss_end = .;
+    }
+    _tbss_size = ALIGN(SIZEOF(.tbss), ALIGNOF(.tdata));
+    ASSERT(_tdata_size + _tbss_size < 0x0800, "TLS size overflow!")
+
     .filler :
     {
         BYTE(0xBB)
