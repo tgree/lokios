@@ -2,9 +2,12 @@
 #define __KERNEL_CHAR_STREAM_H
 
 #include <stdarg.h>
+#include <stddef.h>
 
 class char_stream
 {
+    void    print_field(const char* ptr, size_t digits, unsigned int flags,
+                        unsigned int width, unsigned int precision);
     void    print_decimal(long long v, unsigned int flags, unsigned int width,
                           unsigned int precision);
     void    print_udecimal(unsigned long long v, unsigned int flags,

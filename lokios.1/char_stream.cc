@@ -1,4 +1,5 @@
 #include "char_stream.h"
+#include "kassert.h"
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -35,32 +36,9 @@ char_stream::~char_stream()
 }
 
 void
-char_stream::print_decimal(long long v, unsigned int flags, unsigned int width,
-    unsigned int precision)
+char_stream::print_field(const char* ptr, size_t digits, unsigned int flags,
+    unsigned int width, unsigned int precision)
 {
-    char buf[20];
-    char* end = buf + sizeof(buf);
-    char* ptr = end;
-    size_t digits = 0;
-
-    if (!v)
-    {
-        if (precision == 0)
-            return;
-        buf[19] = '0';
-        ptr     = buf + 19;
-        digits  = 1;
-    }
-    else
-    {
-        while (v)
-        {
-            *--ptr = '0' + v % 10;
-            v     /= 10;
-            ++digits;
-        }
-    }
-
     size_t zeroes = digits < precision ? precision - digits : 0;
     digits       += zeroes;
     size_t padcs  = digits < width ? width - digits : 0;
@@ -69,7 +47,7 @@ char_stream::print_decimal(long long v, unsigned int flags, unsigned int width,
     {
         for (size_t i=0; i<zeroes; ++i)
             _putc('0');
-        while (ptr != end)
+        while (digits--)
             _putc(*ptr++);
         for (size_t i=0; i<padcs; ++i)
             _putc(' ');
@@ -83,15 +61,47 @@ char_stream::print_decimal(long long v, unsigned int flags, unsigned int width,
             _putc(padc);
         for (size_t i=0; i<zeroes; ++i)
             _putc('0');
-        while (ptr != end)
+        while (digits--)
             _putc(*ptr++);
     }
+}
+
+void
+char_stream::print_decimal(long long v, unsigned int flags, unsigned int width,
+    unsigned int precision)
+{
+    kassert(v >= 0);
+    print_udecimal(v,flags,width,precision);
 }
 
 void
 char_stream::print_udecimal(unsigned long long v, unsigned int flags,
     unsigned int width, unsigned int precision)
 {
+    char buf[20];
+    char* ptr = buf + sizeof(buf);
+    size_t digits;
+
+    if (!v)
+    {
+        if (precision == 0)
+            return;
+        buf[19] = '0';
+        ptr     = buf + 19;
+        digits  = 1;
+    }
+    else
+    {
+        digits = 0;
+        while (v)
+        {
+            *--ptr = '0' + v % 10;
+            v     /= 10;
+            ++digits;
+        }
+    }
+
+    print_field(ptr,digits,flags,width,precision);
 }
 
 void
