@@ -5,7 +5,8 @@ CHAR_STREAM_TEST_OBJS := \
 	$(PARENT)/char_stream.o
 
 CLEAN += \
-	 $(CHAR_STREAM_TEST_OBJS)
+	 $(CHAR_STREAM_TEST_OBJS) 	\
+	 $(CHAR_STREAM_TEST_OBJS:.o=.d)
 
 -include $(CHAR_STREAM_TEST_OBJS:.o=.d)
 
