@@ -37,5 +37,5 @@ main()
         panic("caught ...");
     }
 
-    vga.printf("Kernel halting.\n");
+    halt();
 }
