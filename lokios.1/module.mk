@@ -1,3 +1,5 @@
+SUBMODULES := test
+
 CRTBEGIN_OBJ := $(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
 CRTEND_OBJ   := $(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
 LSUPCXXX_OBJ := $(shell $(CC) $(CFLAGS) -print-file-name=libsupc++.a)
