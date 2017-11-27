@@ -19,7 +19,6 @@ all: $(MODULES) lokios.mbr test
 	@:
 
 define include_module
-	$(info $(0) $(1) $(2))
 	$(eval SUBMODULES := )
 	$(eval MODULE := $(1))
 	$(eval PARENT := $(2))
