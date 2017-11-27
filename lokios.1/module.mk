@@ -31,8 +31,7 @@ CLEAN += \
 -include $(LOKIOS_1_OBJ:.o=.d)
 
 $(LOKIOS_1_OBJ): ASFLAGS := $(X86_64_ASFLAGS)
-$(LOKIOS_1_OBJ): CXXFLAGS := $(X86_64_CXXFLAGS)
-lokios.1/main.o: CXXFLAGS := $(X86_64_CXXFLAGS) -Wno-main
+lokios.1/main.o: CXXFLAGS := $(CXXFLAGS) -Wno-main
 
 $(MODULE)/lokios.1.elf: LDM  := $(MODULE)/lokios.1.map
 $(MODULE)/lokios.1.elf: LDLD := $(MODULE)/lokios.1.ld
