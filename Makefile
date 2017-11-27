@@ -11,7 +11,7 @@ X86_64_CXXFLAGS := -O2 -march=core2 -m64 -std=gnu++14 -Wall -Werror
 ARFLAGS := rc
 
 .PHONY: all
-all: bin/lokios.0 lokios.mbr
+all: $(MODULES) lokios.mbr
 	@:
 
 define include_module
