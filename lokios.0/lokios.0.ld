@@ -1,3 +1,4 @@
+EXTERN(_start)
 SECTIONS
 {
     /* PXE loads us into memory at 0x7c00, so link ourselves at that base
@@ -5,12 +6,12 @@ SECTIONS
     . = 0x7c00;
     .bootsector_text :
     {
-        lokios.0/bootsector/entry.o(.text)
-        lokios.0/bootsector/*(.text)
+        *bootsector.a:entry.o(.text)
+        *bootsector.a:*(*text)
     }
     .bootsector_data :
     {
-        lokios.0/bootsector/*(.data)
+        *bootsector.a:*(.data)
     }
     ASSERT(. <= 0x7DB4, "boot sector crashed into disk ID")
 
