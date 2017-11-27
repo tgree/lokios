@@ -58,9 +58,17 @@ static fmt_test_case<unsigned int> uint_tests[] = {
     {12345,     "%8u", "   12345"},
     {12345,     "%08u","00012345"},
     {12345,     "%08d","00012345"},
+#if BROKEN_TEST
+    {0x2468ABCD,"%08X","2468ABCD"},
+    {0x12EF,    "%X",  "12EF"},
+    {0x789AB,   "%08X","000789AB"},
+#endif
 };
 static fmt_test_case<int> int_tests[] = {
     {12345,  "%d", "12345"},
+#if BROKEN_TEST
+    {-12345, "%d", "-12345"},
+#endif
 };
 
 static void
