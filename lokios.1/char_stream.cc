@@ -120,6 +120,30 @@ void
 char_stream::print_hex_uc(unsigned long long v, unsigned int flags,
     unsigned int width, unsigned int precision)
 {
+    char buf[19];
+    char* ptr = buf + sizeof(buf);
+    size_t digits;
+    
+    if (!v)
+    {
+        if (precision == 0)
+            return;
+        buf[18] = '0';
+        ptr     = buf + 18;
+        digits  = 1;
+    }
+    else
+    {
+        digits = 0;
+        while (v)
+        {
+            *--ptr = "0123456789ABCDEF"[v & 0x0F];
+            v    >>= 4;
+            ++digits;
+        }
+    }
+
+    print_field(ptr,digits,flags,width,precision);
 }
 
 void
