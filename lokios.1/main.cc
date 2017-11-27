@@ -1,7 +1,7 @@
 #include "kernel_args.h"
 #include "console.h"
 #include "e820.h"
-#include "assert.h"
+#include "kassert.h"
 
 extern uint8_t _tdata_begin[];
 extern uint8_t _tdata_end[];
@@ -22,11 +22,11 @@ main()
     try
     {
         throw &vga;
-        aborts("throw failed");
+        panic("throw failed");
     }
     catch (int)
     {
-        aborts("caught int");
+        panic("caught int");
     }
     catch (console* c)
     {
@@ -34,7 +34,7 @@ main()
     }
     catch (...)
     {
-        aborts("caught ...");
+        panic("caught ...");
     }
 
     vga.printf("Kernel halting.\n");

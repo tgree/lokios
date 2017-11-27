@@ -1,8 +1,24 @@
+#include "kassert.h"
 #include "kernel_args.h"
 #include <stdlib.h>
-#include <stdint.h>
 
 void
+vgawrite(uint8_t x, uint8_t y, const char* s, uint16_t cflags) noexcept
+{
+    uint16_t* addr = &((uint16_t*)kargs->vga_base)[y*80 + x];
+    while (*s)
+        *addr++ = cflags | *s++;
+}
+
+void
+halt() noexcept
+{
+    vgawrite(74,24,"Halted");
+    for (;;)
+        asm ("hlt;");
+}
+
+extern "C" void
 abort()
 {
     // Hilite the entire screen red.
@@ -14,20 +30,15 @@ abort()
         val         |= 0x4F004F004F004F00;
         *addr++      = val;
     }
-
-    for (;;)
-        asm ("hlt;");
+    halt();
 }
 
 void
-aborts(const char* s)
+panic(const char* s) noexcept
 {
     // Draw the message in hilited red text at the top-left corner of the
     // screen.
-    uint16_t* addr = (uint16_t*)kargs->vga_base;
-    while (*s)
-        *addr++ = 0x4F00 | *s++;
-
-    for (;;)
-        asm ("hlt;");
+    vgawrite(0,0,"Kernel panic");
+    vgawrite(0,1,s);
+    halt();
 }

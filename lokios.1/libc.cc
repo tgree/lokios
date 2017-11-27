@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include "console.h"
-#include "assert.h"
+#include "kassert.h"
 
 FILE* stderr;
 static char* FREEMEM = (char*)0x00300000;
@@ -20,7 +20,7 @@ void* malloc(size_t n)
 extern "C"
 void* realloc(void* ptr, size_t size)
 {
-    aborts("REALLOC");
+    panic("REALLOC");
 }
 
 extern "C"
