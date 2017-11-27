@@ -32,11 +32,11 @@ endef
 $(call include_modules,$(MODULES),)
 
 bin/lokios.0: lokios.0/lokios.0.elf
-	@mkdir -p $(dir $@)
+	@mkdir -p $(@D)
 	objcopy -O binary -S lokios.0/lokios.0.elf bin/lokios.0
 
 bin/lokios.1: lokios.1/lokios.1.elf
-	@mkdir -p $(dir $@)
+	@mkdir -p $(@D)
 	objcopy -O binary -S lokios.1/lokios.1.elf bin/lokios.1
 
 lokios.mbr: bin/lokios.0 bin/lokios.1
