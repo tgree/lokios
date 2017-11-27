@@ -1,5 +1,7 @@
 MODULES := lokios.1 lokios.0
-CLEAN   := bin lokios.mbr
+TESTS   :=
+TESTDIR := test
+CLEAN   := bin test lokios.mbr
 NOW     := $(shell date +"%c")
 
 I386_16_ASFLAGS := -march=core2 --32
@@ -8,10 +10,12 @@ I386_32_CFLAGS := -O1 -m32 -march=pentium -Wall -Werror
 X86_64_ASFLAGS := -march=core2 --64
 CXXFLAGS := -O2 -march=core2 -m64 -std=gnu++14 -Wall -Werror
 
+TEST_CXXFLAGS := -O2 -std=gnu++14 -Wall -Werror
+
 ARFLAGS := rc
 
 .PHONY: all
-all: $(MODULES) lokios.mbr
+all: $(MODULES) lokios.mbr test
 	@:
 
 define include_module
@@ -30,6 +34,9 @@ define include_modules
 endef
 
 $(call include_modules,$(MODULES),)
+
+.PHONY: test
+test: $(TESTS)
 
 bin/lokios.0: lokios.0/lokios.0.elf
 	@mkdir -p $(@D)
