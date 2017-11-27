@@ -1,5 +1,5 @@
 MODULES := lokios.1 lokios.0
-CLEAN   := bin/* lokios.mbr
+CLEAN   := bin lokios.mbr
 NOW     := $(shell date +"%c")
 
 I386_16_ASFLAGS := -march=core2 --32
@@ -32,9 +32,11 @@ endef
 $(call include_modules,$(MODULES),)
 
 bin/lokios.0: lokios.0/lokios.0.elf
+	@mkdir -p $(dir $@)
 	objcopy -O binary -S lokios.0/lokios.0.elf bin/lokios.0
 
 bin/lokios.1: lokios.1/lokios.1.elf
+	@mkdir -p $(dir $@)
 	objcopy -O binary -S lokios.1/lokios.1.elf bin/lokios.1
 
 lokios.mbr: bin/lokios.0 bin/lokios.1
@@ -42,7 +44,7 @@ lokios.mbr: bin/lokios.0 bin/lokios.1
 
 .PHONY: clean
 clean:
-	rm -f $(CLEAN)
+	rm -rf $(CLEAN)
 
 %.o: %.cc
 	$(CXX) -MMD -MP -MF $*.d -c $(CXXFLAGS) $*.cc -o $*.o
