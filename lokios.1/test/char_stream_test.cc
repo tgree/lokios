@@ -15,8 +15,8 @@ assert_string_equal(const char* s, const char* e)
 {
     if (strcmp(s,e))
     {
-        printf("Expected: '%s'\n'",e);
-        printf("     Got: '%s'\n'",s);
+        printf("Expected: '%s'\n",e);
+        printf("     Got: '%s'\n",s);
         exit(-1);
     }
 }
