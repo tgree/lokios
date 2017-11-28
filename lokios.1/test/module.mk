@@ -10,7 +10,7 @@ CLEAN += \
 
 -include $(CHAR_STREAM_TEST_OBJS:.o=.d)
 
-$(TESTDIR)/char_stream_test: $(CHAR_STREAM_TEST_OBJS)
+$(TESTDIR)/char_stream_test: $(CHAR_STREAM_TEST_OBJS) $(MODULE)/module.mk
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) -o $@ $(CHAR_STREAM_TEST_OBJS)
 	@$@ || touch -c -m -t 197701010000 $@
