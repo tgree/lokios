@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 namespace tmock
 {
@@ -20,6 +21,7 @@ namespace tmock
             test_case_info*     next;
             void                (*fn)();
             const char*         name;
+            pid_t               pid;
         };
 
         struct test_case_registrar
