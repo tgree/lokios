@@ -8,7 +8,8 @@ I386_16_ASFLAGS := -march=core2 --32
 I386_32_CFLAGS := -O1 -m32 -march=pentium -Wall -Werror
 
 X86_64_ASFLAGS := -march=core2 --64
-CXXFLAGS := -O2 -march=core2 -m64 -std=gnu++14 -Wall -Werror
+CXXFLAGS := -O2 -march=core2 -m64 -std=gnu++14 -Wall -Werror \
+            -I$(abspath $(CURDIR))
 
 ARFLAGS := rc
 
