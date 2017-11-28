@@ -1,5 +1,6 @@
 #include "../string_stream.h"
-#include <string.h>
+#include "tmock/tmock.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -12,23 +13,11 @@ panic(const char* s) noexcept
     exit(-2);
 }
 
-static void
-assert_string_equal(const char* s, const char* e)
-{
-    if (strcmp(s,e))
-    {
-        printf("Expected: '%s'\n",e);
-        printf("     Got: '%s'\n",s);
-        exit(-1);
-    }
-}
-
-static void
-test_fixed_string_stream()
+TMOCK_TEST(test_fixed_string_stream)
 {
     fixed_string_stream<10> fs;
     fs.printf("Hello, world!");
-    assert_string_equal(fs,"Hello, wo");
+    tmock::assert_equiv(fs,"Hello, wo");
 }
 
 template<typename T, size_t N>
@@ -41,8 +30,8 @@ static void run_fmt_tests(T (&tests)[N])
 
         fs.printf(tc.fmt,tc.value);
         snprintf(expected,sizeof(expected),tc.fmt,tc.value);
-        assert_string_equal(fs,expected);
-        assert_string_equal(expected,tc.expected);
+        tmock::assert_equiv(fs,expected);
+        tmock::assert_equiv(expected,tc.expected);
     }
 }
 
@@ -69,31 +58,14 @@ static fmt_test_case<int> int_tests[] = {
 #endif
 };
 
-static void
-test_fixed_hex()
+TMOCK_TEST(test_fmt_integral_types)
 {
     run_fmt_tests(uint_tests);
     run_fmt_tests(int_tests);
 }
 
-#define TEST(f) {f,#f}
-struct test_case
-{
-    void (*func)();
-    const char* name;
-};
-static test_case tests[] =
-{
-    TEST(test_fixed_string_stream),
-    TEST(test_fixed_hex),
-};
-
 int
 main(int argc, const char* argv[])
 {
-    for (test_case& tc : tests)
-    {
-        tc.func();
-        printf("%s:%s passed\n",argv[0],tc.name);
-    }
+    return tmock::run_tests(argc,argv);
 }
