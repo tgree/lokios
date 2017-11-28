@@ -4,8 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define BROKEN_TEST 0
-
 template<typename T>
 struct fmt_test_case
 {
@@ -57,13 +55,18 @@ TMOCK_TEST(test_fmt_unsigned_int)
     run_fmt_tests(uint_tests);
 }
 
-TMOCK_TEST(test_fmt_int)
+TMOCK_TEST(test_fmt_positive_int)
 {
     static fmt_test_case<int> int_tests[] = {
         {12345,  "%d", "12345"},
-#if BROKEN_TEST
+    };
+    run_fmt_tests(int_tests);
+}
+
+TMOCK_TEST_EXPECT_FAILURE(test_fmt_negative_int)
+{
+    static fmt_test_case<int> int_tests[] = {
         {-12345, "%d", "-12345"},
-#endif
     };
     run_fmt_tests(int_tests);
 }
