@@ -1,5 +1,4 @@
 #include "tmock.h"
-#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -40,15 +39,4 @@ tmock::run_tests(int argc, const char* argv[])
         printf("%s:%s passed\n",argv[0],tci->name);
     }
     return 0;
-}
-
-void
-tmock::assert_equiv(const char* s, const char* expected)
-{
-    if (strcmp(s,expected))
-    {
-        printf("Expected: '%s'\n",expected);
-        printf("     Got: '%s'\n",s);
-        exit(-1);
-    }
 }
