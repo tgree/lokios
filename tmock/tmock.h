@@ -46,4 +46,11 @@ namespace tmock
 #define TMOCK_TEST(fn) _TMOCK_TEST(fn,0)
 #define TMOCK_TEST_EXPECT_FAILURE(fn) _TMOCK_TEST(fn,TCI_FLAG_FAILURE_EXPECTED)
 
+#define TMOCK_MAIN() \
+    int \
+    main(int argc, const char* argv[]) \
+    { \
+        return tmock::run_tests(argc,argv); \
+    }
+
 #endif /* __TMOCK_H */

@@ -70,8 +70,4 @@ TMOCK_TEST_EXPECT_FAILURE(test_fmt_negative_int)
     run_fmt_tests(int_tests);
 }
 
-int
-main(int argc, const char* argv[])
-{
-    return tmock::run_tests(argc,argv);
-}
+TMOCK_MAIN();

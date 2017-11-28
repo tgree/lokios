@@ -25,8 +25,4 @@ TMOCK_TEST(test_putc)
     tmock::assert_equiv(conbuf[0],0x1F00 | 'T');
 }
 
-int
-main(int argc, const char* argv[])
-{
-    return tmock::run_tests(argc,argv);
-}
+TMOCK_MAIN();
