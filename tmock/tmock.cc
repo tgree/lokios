@@ -95,21 +95,21 @@ run_all_tests(const char* argv0)
         else
         {
             if (tci->flags & TCI_FLAG_FAILURE_EXPECTED)
-                printf(GREEN "expectedly " RESET RED "failed" RESET "\n");
+                printf(GREEN "expectedly " RESET RED "failed with ");
             else
             {
                 printf(RED "unexpectedly failed with ");
-                if (WIFEXITED(status))
-                    printf("exit status %d",WEXITSTATUS(status));
-                else if (WIFSIGNALED(status))
-                    printf("signal %d",WTERMSIG(status));
-                else if (WIFSTOPPED(status))
-                    printf("stop signal %d",WSTOPSIG(status));
-                else
-                    printf("unknown error");
-                printf(RESET "\n");
                 rc = -1;
             }
+            if (WIFEXITED(status))
+                printf("exit status %d",WEXITSTATUS(status));
+            else if (WIFSIGNALED(status))
+                printf("signal %d",WTERMSIG(status));
+            else if (WIFSTOPPED(status))
+                printf("stop signal %d",WSTOPSIG(status));
+            else
+                printf("unknown error");
+            printf(RESET "\n");
         }
     }
 
