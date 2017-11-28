@@ -30,8 +30,7 @@ static void run_fmt_tests(T (&tests)[N])
 void
 panic(const char* s) noexcept
 {
-    printf("Unexpected panic: %s\n",s);
-    exit(-2);
+    abort();
 }
 
 TMOCK_TEST(test_fixed_string_stream)
