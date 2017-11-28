@@ -52,31 +52,13 @@ run_one_test(const char* name)
 static int
 run_all_tests(const char* argv0)
 {
-    int rc = 0;
+    // Spawn all the tests so they run in parallel.
     for (tmock::internal::test_case_info* tci = test_cases;
          tci;
          tci = tci->next)
     {
         tci->pid = fork();
-        if (tci->pid)
-        {
-            // Parent.
-            int status;
-            pid_t pid = waitpid(tci->pid,&status,0);
-            if (pid != tci->pid)
-            {
-                printf("Error waiting for child process!\n");
-                return -1;
-            }
-            if (status == 0)
-                printf("%s:%s passed\n",argv0,tci->name);
-            else
-            {
-                printf("%s:%s failed with status %d\n",argv0,tci->name,status);
-                rc = status;
-            }
-        }
-        else
+        if (tci->pid == 0)
         {
             // Child.
             execl(argv0,argv0,tci->name,NULL);
@@ -84,6 +66,29 @@ run_all_tests(const char* argv0)
             return -1;
         }
     }
+
+    // Wait on them all.
+    int rc = 0;
+    for (tmock::internal::test_case_info* tci = test_cases;
+         tci;
+         tci = tci->next)
+    {
+        int status;
+        pid_t pid = waitpid(tci->pid,&status,0);
+        if (pid != tci->pid)
+        {
+            printf("Error waiting for child process %d!\n",tci->pid);
+            return -1;
+        }
+        if (status == 0)
+            printf("%s:%s passed\n",argv0,tci->name);
+        else
+        {
+            printf("%s:%s failed with status %d\n",argv0,tci->name,status);
+            rc = status;
+        }
+    }
+
     return rc;
 }
 
