@@ -1,4 +1,5 @@
 #include "tmock.h"
+#include "tcolor.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -80,12 +81,35 @@ run_all_tests(const char* argv0)
             printf("Error waiting for child process %d!\n",tci->pid);
             return -1;
         }
+        printf("%s:%s ",argv0,tci->name);
         if (status == 0)
-            printf("%s:%s passed\n",argv0,tci->name);
+        {
+            if (!(tci->flags & TCI_FLAG_FAILURE_EXPECTED))
+                printf(GREEN "expectedly passed" RESET "\n");
+            else
+            {
+                printf(RED "unexpectedly passed" RESET "\n");
+                rc = -1;
+            }
+        }
         else
         {
-            printf("%s:%s failed with status %d\n",argv0,tci->name,status);
-            rc = status;
+            if (tci->flags & TCI_FLAG_FAILURE_EXPECTED)
+                printf(GREEN "expectedly " RESET RED "failed" RESET "\n");
+            else
+            {
+                printf(RED "unexpectedly failed with ");
+                if (WIFEXITED(status))
+                    printf("exit status %d",WEXITSTATUS(status));
+                else if (WIFSIGNALED(status))
+                    printf("signal %d",WTERMSIG(status));
+                else if (WIFSTOPPED(status))
+                    printf("stop signal %d",WSTOPSIG(status));
+                else
+                    printf("unknown error");
+                printf(RESET "\n");
+                rc = -1;
+            }
         }
     }
 

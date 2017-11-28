@@ -16,11 +16,13 @@ namespace tmock
 
     namespace internal
     {
+#define TCI_FLAG_FAILURE_EXPECTED   (1<<0)
         struct test_case_info
         {
             test_case_info*     next;
             void                (*fn)();
             const char*         name;
+            unsigned long       flags;
             pid_t               pid;
         };
 
@@ -31,12 +33,15 @@ namespace tmock
     }
 }
 
-#define TMOCK_TEST(fn) \
+#define _TMOCK_TEST(fn,flags) \
     static void fn();                                       \
     static tmock::internal::test_case_info                  \
-        fn ## _test_case_info = {NULL,fn,#fn};              \
+        fn ## _test_case_info = {NULL,fn,#fn,flags};        \
     static tmock::internal::test_case_registrar             \
         fn ## _test_case_registrar(&fn ## _test_case_info); \
     static void fn()
+
+#define TMOCK_TEST(fn) _TMOCK_TEST(fn,0)
+#define TMOCK_TEST_EXPECT_FAILURE(fn) _TMOCK_TEST(fn,TCI_FLAG_FAILURE_EXPECTED)
 
 #endif /* __TMOCK_H */
