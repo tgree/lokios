@@ -6,19 +6,13 @@
 
 #define BROKEN_TEST 0
 
-void
-panic(const char* s) noexcept
+template<typename T>
+struct fmt_test_case
 {
-    printf("Unexpected panic: %s\n",s);
-    exit(-2);
-}
-
-TMOCK_TEST(test_fixed_string_stream)
-{
-    fixed_string_stream<10> fs;
-    fs.printf("Hello, world!");
-    tmock::assert_equiv(fs,"Hello, wo");
-}
+    T               value;
+    const char*     fmt;
+    const char*     expected;
+};
 
 template<typename T, size_t N>
 static void run_fmt_tests(T (&tests)[N])
@@ -35,32 +29,42 @@ static void run_fmt_tests(T (&tests)[N])
     }
 }
 
-template<typename T>
-struct fmt_test_case
+void
+panic(const char* s) noexcept
 {
-    T               value;
-    const char*     fmt;
-    const char*     expected;
-};
-static fmt_test_case<unsigned int> uint_tests[] = {
-    {12345,     "%u",  "12345"},
-    {12345,     "%8u", "   12345"},
-    {12345,     "%08u","00012345"},
-    {12345,     "%08d","00012345"},
-    {0x2468ABCD,"%08X","2468ABCD"},
-    {0x12EF,    "%X",  "12EF"},
-    {0x789AB,   "%08X","000789AB"},
-};
-static fmt_test_case<int> int_tests[] = {
-    {12345,  "%d", "12345"},
-#if BROKEN_TEST
-    {-12345, "%d", "-12345"},
-#endif
-};
+    printf("Unexpected panic: %s\n",s);
+    exit(-2);
+}
 
-TMOCK_TEST(test_fmt_integral_types)
+TMOCK_TEST(test_fixed_string_stream)
 {
+    fixed_string_stream<10> fs;
+    fs.printf("Hello, world!");
+    tmock::assert_equiv(fs,"Hello, wo");
+}
+
+TMOCK_TEST(test_fmt_unsigned_int)
+{
+    static fmt_test_case<unsigned int> uint_tests[] = {
+        {12345,     "%u",  "12345"},
+        {12345,     "%8u", "   12345"},
+        {12345,     "%08u","00012345"},
+        {12345,     "%08d","00012345"},
+        {0x2468ABCD,"%08X","2468ABCD"},
+        {0x12EF,    "%X",  "12EF"},
+        {0x789AB,   "%08X","000789AB"},
+    };
     run_fmt_tests(uint_tests);
+}
+
+TMOCK_TEST(test_fmt_int)
+{
+    static fmt_test_case<int> int_tests[] = {
+        {12345,  "%d", "12345"},
+#if BROKEN_TEST
+        {-12345, "%d", "-12345"},
+#endif
+    };
     run_fmt_tests(int_tests);
 }
 
