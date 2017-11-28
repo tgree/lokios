@@ -14,8 +14,19 @@ static tmock::internal::test_case_info* test_cases;
 tmock::internal::test_case_registrar::test_case_registrar(
     tmock::internal::test_case_info* tci)
 {
-    tci->next = test_cases;
-    test_cases = tci;
+    tci->next = NULL;
+
+    if (!test_cases)
+    {
+        test_cases = tci;
+        return;
+    }
+
+    tmock::internal::test_case_info* pos = test_cases;
+    while (pos->next)
+        pos = pos->next;
+
+    pos->next = tci;
 }
 
 int
