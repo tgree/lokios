@@ -1,5 +1,5 @@
-TMOCK_OBJ := \
-    	$(MODULE)/tmock.o
+TMOCK_SRCS := $(wildcard $(MODULE)/*.cc)
+TMOCK_OBJ := $(patsubst %.cc,%.o,$(TMOCK_SRCS))
 
 CLEAN += \
 	$(TMOCK_OBJ)       \
