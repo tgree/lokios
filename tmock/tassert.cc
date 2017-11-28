@@ -13,3 +13,13 @@ tmock::assert_equiv(const char* s, const char* expected)
     }
 }
 
+void
+tmock::assert_equiv(uint16_t v, uint16_t expected)
+{
+    if (v != expected)
+    {
+        printf("Expected: 0x%04X\n",expected);
+        printf("     Got: 0x%04X\n",v);
+        exit(-1);
+    }
+}

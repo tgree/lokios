@@ -1,6 +1,7 @@
 #ifndef __TMOCK_H
 #define __TMOCK_H
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -11,6 +12,7 @@ namespace tmock
     // comparison with ==.  For things like const char* it will do a string
     // comparison.
     void assert_equiv(const char* s, const char* expected);
+    void assert_equiv(uint16_t v, uint16_t expected);
 
     int run_tests(int argc, const char* argv[]);
 
