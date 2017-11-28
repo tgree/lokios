@@ -1,6 +1,7 @@
 MODULES := lokios.1 lokios.0 tmock
 TESTS   :=
 TESTDIR := test
+TESTRES := $(TESTDIR)/.results
 CLEAN   := bin test lokios.mbr
 NOW     := $(shell date +"%c")
 
@@ -12,6 +13,9 @@ CXXFLAGS := -O2 -march=core2 -m64 -std=gnu++14 -Wall -Werror \
             -I$(abspath $(CURDIR))
 
 ARFLAGS := rc
+
+LTMOCK := tmock/tmock.a
+BUILD_TEST = mkdir -p $(TESTDIR) && $(CXX) $(CXXFLAGS) -o $@
 
 .PHONY: all
 all: $(MODULES) lokios.mbr test
@@ -34,7 +38,8 @@ endef
 $(call include_modules,$(MODULES),)
 
 .PHONY: test
-test: $(TESTS)
+test: $(TESTS:$(TESTDIR)/%=$(TESTRES)/%.tpass)
+	$(info All tests passed.)
 
 bin/lokios.0: lokios.0/lokios.0.elf
 	@mkdir -p $(@D)
@@ -53,3 +58,7 @@ clean:
 
 %.o: %.cc
 	$(CXX) -MMD -MP -MF $*.d -c $(CXXFLAGS) $*.cc -o $*.o
+
+$(TESTRES)/%.tpass: $(TESTDIR)/%
+	@mkdir -p $(TESTRES)
+	@$^ && touch $@

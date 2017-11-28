@@ -8,5 +8,5 @@ CLEAN += \
 
 -include $(TMOCK_OBJ:.o=.d)
 
-$(MODULE)/tmock.a: $(TMOCK_OBJ) $(MODULE)/module.mk
+$(LTMOCK): $(TMOCK_OBJ) $(MODULE)/module.mk
 	$(AR) $(ARFLAGS) $@ $(TMOCK_OBJ)

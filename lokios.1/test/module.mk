@@ -10,7 +10,5 @@ CLEAN += \
 
 -include $(CHAR_STREAM_TEST_OBJS:.o=.d)
 
-$(TESTDIR)/char_stream_test: $(CHAR_STREAM_TEST_OBJS) tmock/tmock.a $(MODULE)/module.mk
-	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) -o $@ $(CHAR_STREAM_TEST_OBJS) tmock/tmock.a
-	@$@ || touch -c -m -t 197701010000 $@
+$(TESTDIR)/char_stream_test: $(CHAR_STREAM_TEST_OBJS) $(LTMOCK) $(MODULE)/module.mk
+	$(BUILD_TEST) $(CHAR_STREAM_TEST_OBJS) $(LTMOCK)
