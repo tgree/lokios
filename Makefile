@@ -1,4 +1,4 @@
-MODULES := lokios.1 lokios.0
+MODULES := lokios.1 lokios.0 tmock
 TESTS   :=
 TESTDIR := test
 CLEAN   := bin test lokios.mbr
