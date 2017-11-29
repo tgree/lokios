@@ -1,11 +1,13 @@
-MODULES := tmock lokios.1 lokios.0
-TESTS   :=
+MODULES   := tmock lokios.1 lokios.0
+TESTS     :=
+
 TESTS_DIR := tests
-SRC_DIR := src
+SRC_DIR   := src
 BUILD_DIR := build
-TESTRES := $(TESTS_DIR)/.results
-CLEAN   := $(BUILD_DIR) bin $(TESTS_DIR) lokios.mbr
-NOW     := $(shell date +"%c")
+BIN_DIR   := bin
+TESTRES   := $(TESTS_DIR)/.results
+CLEAN     := $(BUILD_DIR) $(BIN_DIR) $(TESTS_DIR) lokios.mbr
+NOW       := $(shell date +"%c")
 
 I386_16_ASFLAGS := -march=core2 --32
 I386_32_CFLAGS := -O1 -m32 -march=pentium -Wall -Werror
@@ -47,16 +49,16 @@ $(call include_modules,$(MODULES),)
 test: $(TESTS:$(TESTS_DIR)/%=$(TESTRES)/%.tpass)
 	$(info All tests passed.)
 
-bin/lokios.0: $(BUILD_DIR)/lokios.0/lokios.0.elf
+$(BIN_DIR)/lokios.0: $(BUILD_DIR)/lokios.0/lokios.0.elf
 	@mkdir -p $(@D)
-	objcopy -O binary -S build/lokios.0/lokios.0.elf bin/lokios.0
+	objcopy -O binary -S $(BUILD_DIR)/lokios.0/lokios.0.elf $(BIN_DIR)/lokios.0
 
-bin/lokios.1: $(BUILD_DIR)/lokios.1/lokios.1.elf
+$(BIN_DIR)/lokios.1: $(BUILD_DIR)/lokios.1/lokios.1.elf
 	@mkdir -p $(@D)
-	objcopy -O binary -S build/lokios.1/lokios.1.elf bin/lokios.1
+	objcopy -O binary -S $(BUILD_DIR)/lokios.1/lokios.1.elf $(BIN_DIR)/lokios.1
 
-lokios.mbr: bin/lokios.0 bin/lokios.1
-	cat bin/lokios.0 bin/lokios.1 > lokios.mbr
+lokios.mbr: $(BIN_DIR)/lokios.0 $(BIN_DIR)/lokios.1
+	cat $(BIN_DIR)/lokios.0 $(BIN_DIR)/lokios.1 > lokios.mbr
 
 .PHONY: clean
 clean:
