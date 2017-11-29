@@ -11,6 +11,7 @@ SECTIONS
     }
     .bootsector_data :
     {
+        *timestamp.o(.data)
         *bootsector.a:*(.data)
     }
     ASSERT(. <= 0x7DB4, "boot sector crashed into disk ID")
