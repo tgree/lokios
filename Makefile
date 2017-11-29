@@ -1,13 +1,13 @@
-MODULES   := tmock lokios.1 lokios.0
-TESTS     :=
+MODULES      := tmock lokios.1 lokios.0
+TESTS        :=
 
-TESTS_DIR := tests
-SRC_DIR   := src
-BUILD_DIR := build
-BIN_DIR   := bin
-TESTRES   := $(TESTS_DIR)/.results
-CLEAN     := $(BUILD_DIR) $(BIN_DIR) $(TESTS_DIR)
-NOW       := $(shell date +"%c")
+TESTS_DIR    := tests
+SRC_DIR      := src
+BUILD_DIR    := build
+BIN_DIR      := bin
+TEST_RES_DIR := $(TESTS_DIR)/.results
+CLEAN        := $(BUILD_DIR) $(BIN_DIR) $(TESTS_DIR)
+NOW          := $(shell date +"%c")
 
 I386_16_ASFLAGS := -march=core2 --32
 I386_32_CFLAGS := -O1 -m32 -march=pentium -Wall -Werror
@@ -46,7 +46,7 @@ endef
 $(call include_modules,$(MODULES),)
 
 .PHONY: test
-test: $(TESTS:$(TESTS_DIR)/%=$(TESTRES)/%.tpass)
+test: $(TESTS:$(TESTS_DIR)/%=$(TEST_RES_DIR)/%.tpass)
 	$(info All tests passed.)
 
 $(BIN_DIR)/lokios.0: $(BUILD_DIR)/lokios.0/lokios.0.elf
@@ -72,6 +72,6 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.s
 	@mkdir -p $(dir $@)
 	$(AS) $(ASFLAGS) -o $@ $^
 
-$(TESTRES)/%.tpass: $(TESTS_DIR)/%
-	@mkdir -p $(TESTRES)
+$(TEST_RES_DIR)/%.tpass: $(TESTS_DIR)/%
+	@mkdir -p $(TEST_RES_DIR)
 	@$^ && touch $@
