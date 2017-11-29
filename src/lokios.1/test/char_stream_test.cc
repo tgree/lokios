@@ -87,4 +87,9 @@ TMOCK_TEST_EXPECT_FAILURE(test_fmt_negative_int)
     run_fmt_tests(int_tests);
 }
 
+TMOCK_TEST_EXPECT_FAILURE(test_random_hex_strings)
+{
+    test_random_string("Hello 0x%08X %p asdf\n",0xa1b2c3d4,(void*)12345);
+}
+
 TMOCK_MAIN();
