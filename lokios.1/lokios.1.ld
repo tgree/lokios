@@ -10,7 +10,7 @@ SECTIONS
 
     .text :
     {
-        lokios.1/entry.o(.text)
+        *lokios.1/entry.o(.text)
         *(.text)
     }
 
