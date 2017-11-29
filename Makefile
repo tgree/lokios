@@ -6,7 +6,7 @@ SRC_DIR   := src
 BUILD_DIR := build
 BIN_DIR   := bin
 TESTRES   := $(TESTS_DIR)/.results
-CLEAN     := $(BUILD_DIR) $(BIN_DIR) $(TESTS_DIR) lokios.mbr
+CLEAN     := $(BUILD_DIR) $(BIN_DIR) $(TESTS_DIR)
 NOW       := $(shell date +"%c")
 
 I386_16_ASFLAGS := -march=core2 --32
@@ -21,7 +21,7 @@ ARFLAGS := rc
 BUILD_TEST = mkdir -p $(TESTS_DIR) && $(CXX) $(CXXFLAGS) -o $@
 
 .PHONY: all
-all: lokios.mbr test
+all: $(BIN_DIR)/lokios.mbr test
 	@:
 
 define include_module
@@ -57,8 +57,8 @@ $(BIN_DIR)/lokios.1: $(BUILD_DIR)/lokios.1/lokios.1.elf
 	@mkdir -p $(@D)
 	objcopy -O binary -S $(BUILD_DIR)/lokios.1/lokios.1.elf $(BIN_DIR)/lokios.1
 
-lokios.mbr: $(BIN_DIR)/lokios.0 $(BIN_DIR)/lokios.1
-	cat $(BIN_DIR)/lokios.0 $(BIN_DIR)/lokios.1 > lokios.mbr
+$(BIN_DIR)/lokios.mbr: $(BIN_DIR)/lokios.0 $(BIN_DIR)/lokios.1
+	cat $(BIN_DIR)/lokios.0 $(BIN_DIR)/lokios.1 > $(BIN_DIR)/lokios.mbr
 
 .PHONY: clean
 clean:
