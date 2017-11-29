@@ -14,6 +14,7 @@ struct test_case
 };
 
 static tmock::internal::test_case_info* test_cases;
+uint64_t tmock::internal::mode_flags = 0;
 
 tmock::internal::test_case_registrar::test_case_registrar(
     tmock::internal::test_case_info* tci)
@@ -53,6 +54,11 @@ run_one_test(const char* name)
 static int
 run_all_tests(const char* argv0)
 {
+    // Convert the mode flags to a hex string.
+    char mode_flags_str[20];
+    snprintf(mode_flags_str,sizeof(mode_flags_str),"0x%lX",
+             tmock::internal::mode_flags);
+
     // Spawn all the tests so they run in parallel.
     for (tmock::internal::test_case_info* tci = test_cases;
          tci;
@@ -62,7 +68,7 @@ run_all_tests(const char* argv0)
         if (tci->pid == 0)
         {
             // Child.
-            execl(argv0,argv0,tci->name,NULL);
+            execl(argv0,argv0,tci->name,mode_flags_str,NULL);
             printf("Error invoking child: %s %s\n",argv0,tci->name);
             return -1;
         }
@@ -116,16 +122,28 @@ run_all_tests(const char* argv0)
     return rc;
 }
 
+static int
+usage(const char* argv0)
+{
+    printf("usage: %s [test_case_name [mode_flags]]\n",argv0);
+    return -1;
+}
+
 int
 tmock::run_tests(int argc, const char* argv[])
 {
-    if (argc > 2)
+    if (argc > 3)
+        return usage(argv[0]);
+
+    if (argc == 3)
     {
-        printf("usage: %s [test_case_name]",argv[0]);
-        return -1;
+        char* endptr;
+        tmock::internal::mode_flags = strtoul(argv[2],&endptr,0);
+        if (!*argv[2] || *endptr != '\0')
+            return usage(argv[0]);
     }
 
-    if (argc == 2)
+    if (argc == 2 || argc == 3)
         return run_one_test(argv[1]);
 
     return run_all_tests(argv[0]);

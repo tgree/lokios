@@ -32,6 +32,8 @@ namespace tmock
         {
             test_case_registrar(test_case_info* tci);
         };
+
+        extern uint64_t mode_flags;
     }
 }
 
