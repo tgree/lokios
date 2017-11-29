@@ -26,7 +26,6 @@ LOKIOS_1_LINK_OBJ := \
 	$(LGCC_EH_OBJ)	\
 	$(CRTEND_OBJ)	\
 
-$(LOKIOS_1_OBJ): ASFLAGS := $(X86_64_ASFLAGS)
 lokios.1/main.o: CXXFLAGS := $(CXXFLAGS) -Wno-main
 
 $(MODULE_BUILD_DIR)/lokios.1.elf: LDM  := $(MODULE_BUILD_DIR)/lokios.1.map
