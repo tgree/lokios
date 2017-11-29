@@ -31,14 +31,11 @@ void free(void* p)
 extern "C"
 size_t strlen(const char* s)
 {
-    vga.printf("strlen(\"%s\") = ",s);
     const char* e = s;
     while (*e)
         ++e;
 
-    size_t rv = (e - s);
-    vga.printf("%zd\n",rv);
-    return rv;
+    return e - s;
 }
 
 extern "C"

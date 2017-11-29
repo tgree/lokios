@@ -87,6 +87,22 @@ TMOCK_TEST_EXPECT_FAILURE(test_fmt_negative_int)
     run_fmt_tests(int_tests);
 }
 
+TMOCK_TEST(test_fmt_string)
+{
+    static fmt_test_case<const char*> string_tests[] = {
+        {"hello", "%s"    },
+        {"asdf",  "%8s"   },
+        {"asdf",  "%-8s"  },
+        {"ohayoo","%.3s"  },
+        {"ohayoo","%.20s" },
+        {"ohayoo","%8.3s" },
+        {"ohayoo","%-8.3s"},
+        {"hello", "%8.7s" },
+        {"hello", "-%8.7s"},
+    };
+    run_fmt_tests(string_tests);
+}
+
 TMOCK_TEST(test_random_hex_strings)
 {
     test_random_string("Hello 0x%08X %p asdf\n",0xa1b2c3d4,(void*)12345);

@@ -1,8 +1,10 @@
 #include "char_stream.h"
 #include "kassert.h"
+#include "kmath.h"
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 // Flag characters.
 #define PRINTF_FLAG_ALTERNATE_FORM  (1<<0)
@@ -147,9 +149,14 @@ void
 char_stream::print_string(const char* s, unsigned int flags,
     unsigned int width, unsigned int precision)
 {
-    // HACK.
-    while (*s)
-        _putc(*s++);
+    size_t digits;
+    if (flags & PRINTF_FLAG_OMIT_PRECISION)
+        digits = strlen(s);
+    else
+        digits = min<size_t>(strnlen(s,precision),precision);
+    flags &= ~PRINTF_FLAG_ZERO_PADDED;
+
+    print_field(s,digits,flags,width,0);
 }
 
 void
