@@ -45,6 +45,9 @@ endef
 
 $(call include_modules,$(MODULES),)
 
+ifeq ($(MAKECMDGOALS),test)
+    $(shell rm -rf $(TEST_RES_DIR))
+endif
 .PHONY: test
 test: $(TESTS:$(TESTS_DIR)/%=$(TEST_RES_DIR)/%.tpass)
 	$(info All tests passed.)
