@@ -64,6 +64,9 @@ TMOCK_TEST(test_fmt_unsigned_int)
         {0x2468ABCD,"%08X"},
         {0x12EF,    "%X"  },
         {0x789AB,   "%08X"},
+        {0x2468ABCD,"%08x"},
+        {0x12EF,    "%x"  },
+        {0x789AB,   "%08x"},
     };
     run_fmt_tests(uint_tests);
 }

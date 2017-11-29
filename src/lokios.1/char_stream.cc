@@ -27,6 +27,9 @@ enum length_modifier_e
     PRINTF_LM_t,
 };
 
+static const char* hex_uc_lut = "0123456789ABCDEF";
+static const char* hex_lc_lut = "0123456789abcdef";
+
 char_stream::char_stream()
 {
 }
@@ -111,14 +114,8 @@ char_stream::print_octal(unsigned long long v, unsigned int flags,
 }
 
 void
-char_stream::print_hex_lc(unsigned long long v, unsigned int flags,
-    unsigned int width, unsigned int precision)
-{
-}
-
-void
-char_stream::print_hex_uc(unsigned long long v, unsigned int flags,
-    unsigned int width, unsigned int precision)
+char_stream::print_hex(unsigned long long v, unsigned int flags,
+    unsigned int width, unsigned int precision, const char* lut)
 {
     char buf[19];
     char* ptr = buf + sizeof(buf);
@@ -137,7 +134,7 @@ char_stream::print_hex_uc(unsigned long long v, unsigned int flags,
         digits = 0;
         while (v)
         {
-            *--ptr = "0123456789ABCDEF"[v & 0x0F];
+            *--ptr = lut[v & 0x0F];
             v    >>= 4;
             ++digits;
         }
@@ -331,8 +328,12 @@ char_stream::vprintf(const char* fmt, va_list ap)
                 {
                     case 'o': print_octal(v,flags,width,precision);    break;
                     case 'u': print_udecimal(v,flags,width,precision); break;
-                    case 'x': print_hex_lc(v,flags,width,precision);   break;
-                    case 'X': print_hex_uc(v,flags,width,precision);   break;
+                    case 'x':
+                        print_hex(v,flags,width,precision,hex_lc_lut);
+                    break;
+                    case 'X':
+                        print_hex(v,flags,width,precision,hex_uc_lut);
+                    break;
                 }
                 ++fmt;
             }
@@ -371,9 +372,9 @@ char_stream::vprintf(const char* fmt, va_list ap)
             case 'p':
             {
                 void* p = va_arg(ap,void*);
-                print_hex_lc((unsigned long long)p,
-                             flags | PRINTF_FLAG_ALTERNATE_FORM,width,
-                             precision);
+                print_hex((unsigned long long)p,
+                          flags | PRINTF_FLAG_ALTERNATE_FORM,width,
+                          precision,hex_lc_lut);
                 ++fmt;
             }
             break;

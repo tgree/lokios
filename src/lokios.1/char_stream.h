@@ -14,10 +14,9 @@ class char_stream
                            unsigned int width, unsigned int precision);
     void    print_octal(unsigned long long v, unsigned int flags,
                         unsigned int width, unsigned int precision);
-    void    print_hex_lc(unsigned long long v, unsigned int flags,
-                         unsigned int width, unsigned int precision);
-    void    print_hex_uc(unsigned long long v, unsigned int flags,
-                         unsigned int width, unsigned int precision);
+    void    print_hex(unsigned long long v, unsigned int flags,
+                      unsigned int width, unsigned int precision,
+                      const char* lut);
     void    print_string(const char* s, unsigned int flags,
                          unsigned int width, unsigned int precision);
 
