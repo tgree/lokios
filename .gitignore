@@ -7,7 +7,7 @@
 *.map
 bin/lokios.0
 bin/lokios.1
-test/*
+tests/*
 lokios.0/lokios.0
 lokios.1/lokios.1
 timestamp.s

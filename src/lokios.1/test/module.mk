@@ -1,5 +1,5 @@
-TESTS += $(TESTDIR)/char_stream_test \
-	 $(TESTDIR)/console_test
+TESTS += $(TESTS_DIR)/char_stream_test \
+	 $(TESTS_DIR)/console_test
 
 CHAR_STREAM_TEST_OBJS := \
 	$(MODULE_BUILD_DIR)/char_stream_test.o \
@@ -12,8 +12,8 @@ CONSOLE_TEST_OBJS := \
 	$(PARENT_BUILD_DIR)/char_stream.o
 -include $(CONSOLE_TEST_OBJS:.o=.d)
 
-$(TESTDIR)/char_stream_test: $(CHAR_STREAM_TEST_OBJS) $(LTMOCK) $(MODULE)/module.mk
+$(TESTS_DIR)/char_stream_test: $(CHAR_STREAM_TEST_OBJS) $(LTMOCK) $(MODULE_MK)
 	$(BUILD_TEST) $(CHAR_STREAM_TEST_OBJS) $(LTMOCK)
 
-$(TESTDIR)/console_test: $(CONSOLE_TEST_OBJS) $(LTMOCK) $(MODULE)/module.mk
+$(TESTS_DIR)/console_test: $(CONSOLE_TEST_OBJS) $(LTMOCK) $(MODULE_MK)
 	$(BUILD_TEST) $(CONSOLE_TEST_OBJS) $(LTMOCK)

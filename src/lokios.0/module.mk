@@ -15,8 +15,8 @@ TIMESTAMP_O := $(MODULE_BUILD_DIR)/bootsector/timestamp.o
 $(LOKIOS_0_OBJ): ASFLAGS := $(I386_16_ASFLAGS)
 $(LOKIOS_0_OBJ): CFLAGS := $(I386_32_CFLAGS)
 
-$(MODULE_BUILD_DIR)/lokios.0.elf: LDLD := $(MODULE)/lokios.0.ld
-$(MODULE_BUILD_DIR)/lokios.0.elf: $(LOKIOS_0_OBJ) $(MODULE)/lokios.0.ld $(MODULE)/module.mk
+$(MODULE_BUILD_DIR)/lokios.0.elf: LDLD := $(MODULE_SRC_DIR)/lokios.0.ld
+$(MODULE_BUILD_DIR)/lokios.0.elf: $(LOKIOS_0_OBJ) $(MODULE_SRC_DIR)/lokios.0.ld $(MODULE_MK)
 	@echo '.data' > $(TIMESTAMP_S)
 	@echo '.globl _BUILD_TIME' >> $(TIMESTAMP_S)
 	@echo '_BUILD_TIME: .asciz "$(NOW)\\r\\n"' >> $(TIMESTAMP_S)

@@ -30,6 +30,6 @@ $(LOKIOS_1_OBJ): ASFLAGS := $(X86_64_ASFLAGS)
 lokios.1/main.o: CXXFLAGS := $(CXXFLAGS) -Wno-main
 
 $(MODULE_BUILD_DIR)/lokios.1.elf: LDM  := $(MODULE_BUILD_DIR)/lokios.1.map
-$(MODULE_BUILD_DIR)/lokios.1.elf: LDLD := $(MODULE)/lokios.1.ld
-$(MODULE_BUILD_DIR)/lokios.1.elf: $(LOKIOS_1_OBJ) $(MODULE)/lokios.1.ld $(MODULE)/module.mk
+$(MODULE_BUILD_DIR)/lokios.1.elf: LDLD := $(MODULE_SRC_DIR)/lokios.1.ld
+$(MODULE_BUILD_DIR)/lokios.1.elf: $(LOKIOS_1_OBJ) $(MODULE_SRC_DIR)/lokios.1.ld $(MODULE_MK)
 	ld -melf_x86_64 -Map=$(LDM) -T $(LDLD) -o $@ $(LOKIOS_1_LINK_OBJ)
