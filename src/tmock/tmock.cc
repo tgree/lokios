@@ -146,5 +146,6 @@ tmock::run_tests(int argc, const char* argv[])
     if (argc == 2 || argc == 3)
         return run_one_test(argv[1]);
 
+    tmock::internal::mode_flags |= TMOCK_MODE_FLAG_SILENT;
     return run_all_tests(argv[0]);
 }

@@ -33,6 +33,7 @@ namespace tmock
             test_case_registrar(test_case_info* tci);
         };
 
+#define TMOCK_MODE_FLAG_SILENT  (1<<0)  // Don't print expected vs. actual
         extern uint64_t mode_flags;
     }
 }
