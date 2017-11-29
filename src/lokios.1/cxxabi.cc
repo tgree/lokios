@@ -3,6 +3,18 @@
 #include <new>
 
 void
+operator delete(void*)
+{
+
+    // We don't support dynamic memory allocations at this time.  Apparently
+    // we get two versions of destructors created - one which is used when we
+    // need to delete the object and one which is used when it is an in-place
+    // destruction.  Despite never deleting anything the linker still needs to
+    // be satisfied.
+    panic("operator delete() invoked.");
+}
+
+void
 operator delete(void* ptr, std::size_t sz)
 {
     // We don't support dynamic memory allocations at this time.  Apparently
