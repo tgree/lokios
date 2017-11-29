@@ -372,6 +372,8 @@ char_stream::vprintf(const char* fmt, va_list ap)
             case 'p':
             {
                 void* p = va_arg(ap,void*);
+                _putc('0');
+                _putc('x');
                 print_hex((unsigned long long)p,
                           flags | PRINTF_FLAG_ALTERNATE_FORM,width,
                           precision,hex_lc_lut);
