@@ -1,9 +1,8 @@
 BOOTSECTOR_OBJ := \
-	$(MODULE)/disk.o    \
-	$(MODULE)/console.o \
-	$(MODULE)/entry.o
-CLEAN += $(BOOTSECTOR_OBJ) $(MODULE)/bootsector.a
+	$(MODULE_BUILD_DIR)/disk.o    \
+	$(MODULE_BUILD_DIR)/console.o \
+	$(MODULE_BUILD_DIR)/entry.o
 
 $(BOOTSECTOR_OBJ): ASFLAGS := $(I386_16_ASFLAGS)
-$(MODULE)/bootsector.a: $(BOOTSECTOR_OBJ) $(MODULE)/module.mk
+$(MODULE_BUILD_DIR)/bootsector.a: $(BOOTSECTOR_OBJ) $(MODULE)/module.mk
 	$(AR) $(ARFLAGS) $@ $(BOOTSECTOR_OBJ)
