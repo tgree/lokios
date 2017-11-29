@@ -26,8 +26,6 @@ LOKIOS_1_LINK_OBJ := \
 	$(LGCC_EH_OBJ)	\
 	$(CRTEND_OBJ)	\
 
-lokios.1/main.o: CXXFLAGS := $(CXXFLAGS) -Wno-main
-
 $(MODULE_BUILD_DIR)/lokios.1.elf: LDM  := $(MODULE_BUILD_DIR)/lokios.1.map
 $(MODULE_BUILD_DIR)/lokios.1.elf: LDLD := $(MODULE_SRC_DIR)/lokios.1.ld
 $(MODULE_BUILD_DIR)/lokios.1.elf: $(LOKIOS_1_OBJ) $(MODULE_SRC_DIR)/lokios.1.ld $(MODULE_MK)
