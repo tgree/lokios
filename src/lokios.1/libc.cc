@@ -42,6 +42,16 @@ size_t strlen(const char* s)
 }
 
 extern "C"
+size_t strnlen(const char* s, size_t maxlen)
+{
+    const char* e = s;
+    while (maxlen-- && *e)
+        ++e;
+
+    return e - s;
+}
+
+extern "C"
 void* memcpy(void* dest, const void* src, size_t n)
 {
     vga.printf("memcpy\n");
