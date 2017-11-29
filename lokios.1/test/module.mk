@@ -15,6 +15,7 @@ CLEAN += \
 	 $(CHAR_STREAM_TEST_OBJS:.o=.d)
 
 -include $(CHAR_STREAM_TEST_OBJS:.o=.d)
+-include $(CONSOLE_TEST_OBJS:.o=.d)
 
 $(TESTDIR)/char_stream_test: $(CHAR_STREAM_TEST_OBJS) $(LTMOCK) $(MODULE)/module.mk
 	$(BUILD_TEST) $(CHAR_STREAM_TEST_OBJS) $(LTMOCK)
