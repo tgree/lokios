@@ -88,35 +88,55 @@ run_all_tests(const char* argv0)
             return -1;
         }
         printf("%s:%s ",argv0,tci->name);
-        if (status == 0)
+        rc |= (!!status != !!(tci->flags & TCI_FLAG_FAILURE_EXPECTED));
+        switch (tci->flags | (status ? TCI_FLAG_DID_FAIL : 0))
         {
-            if (!(tci->flags & TCI_FLAG_FAILURE_EXPECTED))
-                printf(GREEN "expectedly passed" RESET "\n");
-            else
-            {
-                printf(RED "unexpectedly passed" RESET "\n");
-                rc = -1;
-            }
+            case PASS_EXPECTED_SHOULD_PASS:
+                printf(GREEN "expectedly passed (should pass)");
+            break;
+
+            case FAIL_EXPECTED_SHOULD_FAIL:
+                printf(RED "unexpectedly passed (should fail)");
+            break;
+
+            case PASS_EXPECTED_SHOULD_FAIL:
+                printf(GREEN "expectedly passed " RESET RED "(should fail)");
+            break;
+
+            case FAIL_EXPECTED_SHOULD_PASS:
+                printf(RED "unexpectedly passed " RESET GREEN "(should pass)");
+            break;
+
+            case TCI_FLAG_DID_FAIL | PASS_EXPECTED_SHOULD_PASS:
+                printf(RED "unexpectedly failed " RESET GREEN "(should pass)");
+            break;
+
+            case TCI_FLAG_DID_FAIL | FAIL_EXPECTED_SHOULD_FAIL:
+                printf(GREEN "expectedly failed (should fail)");
+            break;
+
+            case TCI_FLAG_DID_FAIL | PASS_EXPECTED_SHOULD_FAIL:
+                printf(RED "unexpectedly failed " RESET GREEN "(should fail)"
+                       RESET RED);
+            break;
+
+            case TCI_FLAG_DID_FAIL | FAIL_EXPECTED_SHOULD_PASS:
+                printf(GREEN "expectedly failed " RESET RED "(should pass)"
+                       RESET GREEN);
+            break;
         }
-        else
+        if (status)
         {
-            if (tci->flags & TCI_FLAG_FAILURE_EXPECTED)
-                printf(GREEN "expectedly " RESET RED "failed with ");
-            else
-            {
-                printf(RED "unexpectedly failed with ");
-                rc = -1;
-            }
             if (WIFEXITED(status))
-                printf("exit status %d",WEXITSTATUS(status));
+                printf(" with exit status %d",WEXITSTATUS(status));
             else if (WIFSIGNALED(status))
-                printf("signal %d",WTERMSIG(status));
+                printf(" with signal %d",WTERMSIG(status));
             else if (WIFSTOPPED(status))
-                printf("stop signal %d",WSTOPSIG(status));
+                printf(" with stop signal %d",WSTOPSIG(status));
             else
-                printf("unknown error");
-            printf(RESET "\n");
+                printf(" with unknown error");
         }
+        printf(RESET "\n");
     }
 
     return rc;
