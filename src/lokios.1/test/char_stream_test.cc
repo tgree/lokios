@@ -71,13 +71,22 @@ TMOCK_TEST(test_fmt_unsigned_int)
     run_fmt_tests(uint_tests);
 }
 
-TMOCK_TEST_EXPECT_FAILURE(test_fmt_positive_int)
+TMOCK_TEST(test_fmt_positive_int)
 {
     static fmt_test_case<int> int_tests[] = {
         {12345,"%d"},
         {2222, "%08d"},
         {4321, "%-08d"},
         {98765,"%+d"},
+        {1357, "% d"},
+        {1357, "%+ d"},
+        {11111,"%+8d"},
+        {2222, "% 8d"},
+        {3333, "%+ 8d"},
+        {44444,"%-+8d"},
+        {5555, "%- 8d"},
+        {6666, "%-+ 8d"},
+        {7777, "%+ 1d"},
     };
     run_fmt_tests(int_tests);
 }

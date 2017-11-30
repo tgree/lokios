@@ -50,6 +50,10 @@ char_stream::print_field(const char* ptr, size_t digits, unsigned int flags,
 
     if (flags & PRINTF_FLAG_LEFT_ADJUSTED)
     {
+        if (flags & PRINTF_FLAG_POSITIVE_PLUS)
+            _putc('+');
+        else if (flags & PRINTF_FLAG_POSITIVE_BLANK)
+            _putc(' ');
         for (size_t i=0; i<zeroes; ++i)
             _putc('0');
         while (digits--)
@@ -64,6 +68,10 @@ char_stream::print_field(const char* ptr, size_t digits, unsigned int flags,
             padc = '0';
         for (size_t i=0; i<padcs; ++i)
             _putc(padc);
+        if (flags & PRINTF_FLAG_POSITIVE_PLUS)
+            _putc('+');
+        else if (flags & PRINTF_FLAG_POSITIVE_BLANK)
+            _putc(' ');
         for (size_t i=0; i<zeroes; ++i)
             _putc('0');
         while (digits--)
@@ -81,6 +89,7 @@ char_stream::print_decimal(long long v, unsigned int flags, unsigned int width,
         v = -v;
         if (width)
             --width;
+        flags &= ~(PRINTF_FLAG_POSITIVE_PLUS | PRINTF_FLAG_POSITIVE_BLANK);
     }
     print_udecimal(v,flags,width,precision);
 }
@@ -110,6 +119,12 @@ char_stream::print_udecimal(unsigned long long v, unsigned int flags,
             v     /= 10;
             ++digits;
         }
+    }
+
+    if (flags & (PRINTF_FLAG_POSITIVE_PLUS | PRINTF_FLAG_POSITIVE_BLANK))
+    {
+        if (width)
+            --width;
     }
 
     print_field(ptr,digits,flags,width,precision);
