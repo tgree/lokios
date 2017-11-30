@@ -16,7 +16,7 @@ test_random_string(const char* fmt, ...)
     va_end(ap);
 
     char* buf2 = (char*)malloc(n);
-    string_stream ss(buf2,n);
+    string_stream ss(buf2,n*2);
     va_start(ap,fmt);
     ss.vprintf(fmt,ap);
     va_end(ap);
