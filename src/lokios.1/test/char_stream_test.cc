@@ -100,6 +100,7 @@ TMOCK_TEST(test_fmt_negative_int)
         {-4321, "%- 8d"},
         {-1,    "%1d"},
         {-100,  "%1d"},
+        {-123,  "%+d"},
     };
     run_fmt_tests(int_tests);
 }
