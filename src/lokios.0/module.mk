@@ -20,4 +20,5 @@ $(MODULE_BUILD_DIR)/lokios.0.elf: $(LOKIOS_0_OBJ) $(MODULE_SRC_DIR)/lokios.0.ld 
 	@echo '.globl _BUILD_TIME' >> $(TIMESTAMP_S)
 	@echo '_BUILD_TIME: .asciz "$(NOW)\\r\\n"' >> $(TIMESTAMP_S)
 	@$(AS) $(I386_16_ASFLAGS) -o $(TIMESTAMP_O) $(TIMESTAMP_S)
-	ld -melf_i386 -T $(LDLD) -o $@ $(LOKIOS_0_OBJ) $(TIMESTAMP_O)
+	@echo 'Linking $@...'
+	@ld -melf_i386 -T $(LDLD) -o $@ $(LOKIOS_0_OBJ) $(TIMESTAMP_O)

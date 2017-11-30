@@ -5,4 +5,5 @@ TMOCK_OBJ := $(patsubst $(MODULE_SRC_DIR)/%.cc,$(MODULE_BUILD_DIR)/%.o,$(TMOCK_S
 
 LTMOCK := $(MODULE_BUILD_DIR)/tmock.a
 $(LTMOCK): $(TMOCK_OBJ) $(MODULE_MK)
-	$(AR) $(ARFLAGS) $@ $(TMOCK_OBJ)
+	@echo Archiving $@...
+	@$(AR) $(ARFLAGS) $@ $(TMOCK_OBJ)
