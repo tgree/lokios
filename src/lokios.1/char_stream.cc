@@ -75,7 +75,13 @@ void
 char_stream::print_decimal(long long v, unsigned int flags, unsigned int width,
     unsigned int precision)
 {
-    kassert(v >= 0);
+    if (v < 0)
+    {
+        _putc('-');
+        v = -v;
+        if (width)
+            --width;
+    }
     print_udecimal(v,flags,width,precision);
 }
 
