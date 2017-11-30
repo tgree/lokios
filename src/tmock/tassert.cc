@@ -3,6 +3,14 @@
 #include <stdio.h>
 
 void
+tmock::abort(const char* s)
+{
+    if (!(tmock::internal::mode_flags & TMOCK_MODE_FLAG_SILENT))
+        printf("%s\n",s);
+    ::abort();
+}
+
+void
 tmock::assert_equiv(const char* s, const char* expected)
 {
     if (strcmp(s,expected))
