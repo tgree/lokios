@@ -12,10 +12,10 @@ LOKIOS_1_OBJ := \
 	$(MODULE_BUILD_DIR)/main.o		\
 	$(MODULE_BUILD_DIR)/kassert.o		\
 	$(MODULE_BUILD_DIR)/console.o		\
-	$(MODULE_BUILD_DIR)/char_stream.o		\
+	$(MODULE_BUILD_DIR)/char_stream.o	\
 	$(MODULE_BUILD_DIR)/cxxabi.o		\
 	$(MODULE_BUILD_DIR)/libc.o		\
-	$(MODULE_BUILD_DIR)/tls.o			\
+	$(MODULE_BUILD_DIR)/tls.o		\
 	$(MODULE_BUILD_DIR)/crtn.o
 -include $(LOKIOS_1_OBJ:.o=.d)
 
