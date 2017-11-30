@@ -75,6 +75,8 @@ TMOCK_TEST(test_fmt_positive_int)
 {
     static fmt_test_case<int> int_tests[] = {
         {12345,"%d"},
+        {2222, "%08d"},
+        {4321, "%-08d"},
     };
     run_fmt_tests(int_tests);
 }
