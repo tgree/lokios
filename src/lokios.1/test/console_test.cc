@@ -9,7 +9,7 @@ const kernel_args* kargs = &args;
 void
 panic(const char* s) noexcept
 {
-    abort();
+    tmock::abort(s);
 }
 
 TMOCK_TEST(test_screen_initialized)

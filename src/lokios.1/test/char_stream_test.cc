@@ -44,7 +44,7 @@ static void run_fmt_tests(T (&tests)[N])
 void
 panic(const char* s) noexcept
 {
-    abort();
+    tmock::abort(s);
 }
 
 TMOCK_TEST(test_fixed_string_stream)
