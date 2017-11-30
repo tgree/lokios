@@ -13,7 +13,10 @@ halt() noexcept __attribute__((noreturn));
 void
 panic(const char* s = "") noexcept __attribute__((noreturn));
 
-#define kassert(exp) if (!(exp)) panic(#exp)
+#define _LINESTR(l) #l
+#define LINESTR(l) _LINESTR(l)
+#define FILELINESTR __FILE__ ":" LINESTR(__LINE__)
+#define kassert(exp) if (!(exp)) panic(FILELINESTR ":" #exp)
 #define KASSERT(exp) static_assert(exp, #exp)
 
 #endif /* __KERNEL_ASSERT_H */
