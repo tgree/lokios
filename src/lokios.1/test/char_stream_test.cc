@@ -129,11 +129,12 @@ TMOCK_TEST(test_fmt_string)
     run_fmt_tests(string_tests);
 }
 
-TMOCK_TEST(test_random_hex_strings)
+TMOCK_TEST_EXPECT_FAILURE(test_random_hex_strings)
 {
     test_random_string("Hello 0x%08X %p asdf\n",0xa1b2c3d4,(void*)12345);
     test_random_string("%.0d",0);
     test_random_string("%.0d",12345);
+    test_random_string("%016lX",(uint64_t)0);
 }
 
 TMOCK_MAIN();
