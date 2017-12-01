@@ -20,6 +20,7 @@ main()
     kernel::vga.printf("_tbss_begin  = 0x%016lX\n",(uintptr_t)_tbss_begin);
     kernel::vga.printf("_tbss_end    = 0x%016lX\n",(uintptr_t)_tbss_end);
     kernel::vga.printf("_tbss_size   = 0x%016lX\n",(uintptr_t)_tbss_size);
+    kernel::parse_e820_map(kernel::kargs->e820_base);
 
     try
     {
