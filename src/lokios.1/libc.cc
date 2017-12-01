@@ -13,14 +13,14 @@ void* malloc(size_t n)
     char* rv = FREEMEM;
     n        = ((n + 7)/8)*8;
     FREEMEM += n;
-    vga.printf("malloc(%zd) = %ld\n",n,(uintptr_t)rv);
+    kernel::vga.printf("malloc(%zd) = 0x%016lX\n",n,(uintptr_t)rv);
     return rv;
 }
 
 extern "C"
 void* realloc(void* ptr, size_t size)
 {
-    panic("REALLOC");
+    kernel::panic("REALLOC");
 }
 
 extern "C"
@@ -51,7 +51,7 @@ size_t strnlen(const char* s, size_t maxlen)
 extern "C"
 void* memcpy(void* dest, const void* src, size_t n)
 {
-    vga.printf("memcpy\n");
+    kernel::vga.printf("memcpy\n");
     const char* s = (const char*)src;
     char* d = (char*)dest;
     while (n--)
@@ -62,7 +62,7 @@ void* memcpy(void* dest, const void* src, size_t n)
 extern "C"
 int memcmp(const void* _s1, const void* _s2, size_t n)
 {
-    vga.printf("memcmp\n");
+    kernel::vga.printf("memcmp\n");
     const char* s1 = (const char*)_s1;
     const char* s2 = (const char*)_s2;
     while (n)
@@ -80,7 +80,7 @@ int memcmp(const void* _s1, const void* _s2, size_t n)
 extern "C"
 int strcmp(const char* s1, const char* s2)
 {
-    vga.printf("strcmp\n");
+    kernel::vga.printf("strcmp\n");
     while (*s1 && *s2)
     {
         if (*s1 < *s2)
@@ -137,6 +137,6 @@ int dl_iterate_phdr(
     // exception frame entries for dynamically-loaded objects.  In our case it
     // it will fire if we try to throw off the top of the stack; returning -1
     // is probably the best we can do.
-    vga.printf("dl_iterate_phdr\n");
+    kernel::vga.printf("dl_iterate_phdr\n");
     return -1;
 }

@@ -4,23 +4,26 @@
 #include "char_stream.h"
 #include <stdint.h>
 
-struct console : public char_stream
+namespace kernel
 {
-    uint16_t*   base;
-    uint16_t    x;
-    uint16_t    y;
+    struct console : public char_stream
+    {
+        uint16_t*   base;
+        uint16_t    x;
+        uint16_t    y;
 
-    void    scroll();
+        void    scroll();
 
-    // Move to the start of the next line, scrolling if necessary.
-    void    putnewline();
+        // Move to the start of the next line, scrolling if necessary.
+        void    putnewline();
 
-    // Put a character or a string.
-    virtual void    _putc(char c);
+        // Put a character or a string.
+        virtual void    _putc(char c);
 
-    console(uint16_t* base);
-};
+        console(uint16_t* base);
+    };
 
-extern console vga;
+    extern console vga;
+}
 
 #endif /* __KERNEL_CONSOLE_H */

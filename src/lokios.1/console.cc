@@ -1,9 +1,9 @@
 #include "console.h"
 #include "kernel_args.h"
 
-console vga((uint16_t*)kargs->vga_base);
+kernel::console kernel::vga((uint16_t*)kernel::kargs->vga_base);
 
-console::console(uint16_t* base):
+kernel::console::console(uint16_t* base):
     base(base),
     x(0),
     y(0)
@@ -14,7 +14,7 @@ console::console(uint16_t* base):
 }
 
 void
-console::scroll()
+kernel::console::scroll()
 {
     uint64_t* src = (uint64_t*)&base[80];
     uint64_t* dst = (uint64_t*)base;
@@ -25,7 +25,7 @@ console::scroll()
 }
 
 void
-console::putnewline()
+kernel::console::putnewline()
 {
     x = 0;
     if (++y == 25)
@@ -36,7 +36,7 @@ console::putnewline()
 }
 
 void
-console::_putc(char c)
+kernel::console::_putc(char c)
 {
     if (c == '\n')
         putnewline();

@@ -32,17 +32,17 @@ enum length_modifier_e
 static const char* hex_uc_lut = "0123456789ABCDEF";
 static const char* hex_lc_lut = "0123456789abcdef";
 
-char_stream::char_stream()
+kernel::char_stream::char_stream()
 {
 }
 
-char_stream::~char_stream()
+kernel::char_stream::~char_stream()
 {
 }
 
 void
-char_stream::print_field(const char* ptr, size_t digits, unsigned int flags,
-    unsigned int width, unsigned int precision)
+kernel::char_stream::print_field(const char* ptr, size_t digits,
+    unsigned int flags, unsigned int width, unsigned int precision)
 {
     size_t zeroes = digits < precision ? precision - digits : 0;
     digits       += zeroes;
@@ -80,8 +80,8 @@ char_stream::print_field(const char* ptr, size_t digits, unsigned int flags,
 }
 
 void
-char_stream::print_decimal(long long v, unsigned int flags, unsigned int width,
-    unsigned int precision)
+kernel::char_stream::print_decimal(long long v, unsigned int flags,
+    unsigned int width, unsigned int precision)
 {
     if (v < 0)
     {
@@ -95,7 +95,7 @@ char_stream::print_decimal(long long v, unsigned int flags, unsigned int width,
 }
 
 void
-char_stream::print_udecimal(unsigned long long v, unsigned int flags,
+kernel::char_stream::print_udecimal(unsigned long long v, unsigned int flags,
     unsigned int width, unsigned int precision)
 {
     char buf[20];
@@ -131,13 +131,13 @@ char_stream::print_udecimal(unsigned long long v, unsigned int flags,
 }
 
 void
-char_stream::print_octal(unsigned long long v, unsigned int flags,
+kernel::char_stream::print_octal(unsigned long long v, unsigned int flags,
     unsigned int width, unsigned int precision)
 {
 }
 
 void
-char_stream::print_hex(unsigned long long v, unsigned int flags,
+kernel::char_stream::print_hex(unsigned long long v, unsigned int flags,
     unsigned int width, unsigned int precision, const char* lut)
 {
     char buf[19];
@@ -167,7 +167,7 @@ char_stream::print_hex(unsigned long long v, unsigned int flags,
 }
 
 void
-char_stream::print_string(const char* s, unsigned int flags,
+kernel::char_stream::print_string(const char* s, unsigned int flags,
     unsigned int width, unsigned int precision)
 {
     size_t digits;
@@ -181,7 +181,7 @@ char_stream::print_string(const char* s, unsigned int flags,
 }
 
 void
-char_stream::vprintf(const char* fmt, va_list ap)
+kernel::char_stream::vprintf(const char* fmt, va_list ap)
 {
     char c;
     while ( (c = *fmt++) != 0)

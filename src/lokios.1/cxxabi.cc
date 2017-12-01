@@ -11,7 +11,7 @@ operator delete(void*)
     // need to delete the object and one which is used when it is an in-place
     // destruction.  Despite never deleting anything the linker still needs to
     // be satisfied.
-    panic("operator delete() invoked.");
+    kernel::panic("operator delete() invoked.");
 }
 
 void
@@ -22,7 +22,7 @@ operator delete(void* ptr, std::size_t sz)
     // need to delete the object and one which is used when it is an in-place
     // destruction.  Despite never deleting anything the linker still needs to
     // be satisfied.
-    panic("operator delete() invoked.");
+    kernel::panic("operator delete() invoked.");
 }
 
 extern "C" void
@@ -30,7 +30,7 @@ __cxa_pure_virtual()
 {
     // This will be invoked when a pure virtual function is called.  It can
     // print message and then should abort.
-    panic("Pure virtual method invoked.");
+    kernel::panic("Pure virtual method invoked.");
 }
 
 extern "C" int
@@ -52,7 +52,7 @@ __stack_chk_fail()
     // the default for g++).  Unfortunately -fstack-protector also uses
     // FS-based accesses to get the randomized stack stomp magic value, so we
     // have it disabled in the Makefile for now.
-    panic("Stack stomp check failed.");
+    kernel::panic("Stack stomp check failed.");
 }
 
 extern "C" int
@@ -61,5 +61,5 @@ __sprintf_chk(char* str, int flag, size_t strlen, const char* format)
     // The _FORTIFY_SOURCE macro triggers generation of a number of checked
     // alternatives for some standard library functions.  This one is required
     // by libsupc++.
-    panic("__sprintf_chk");
+    kernel::panic("__sprintf_chk");
 }

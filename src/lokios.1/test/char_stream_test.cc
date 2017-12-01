@@ -16,7 +16,7 @@ test_random_string(const char* fmt, ...)
     va_end(ap);
 
     char* buf2 = (char*)malloc(n);
-    string_stream ss(buf2,n*2);
+    kernel::string_stream ss(buf2,n*2);
     va_start(ap,fmt);
     ss.vprintf(fmt,ap);
     va_end(ap);
@@ -42,14 +42,14 @@ static void run_fmt_tests(T (&tests)[N])
 }
 
 void
-panic(const char* s) noexcept
+kernel::panic(const char* s) noexcept
 {
     tmock::abort(s);
 }
 
 TMOCK_TEST(test_fixed_string_stream)
 {
-    fixed_string_stream<10> fs;
+    kernel::fixed_string_stream<10> fs;
     fs.printf("Hello, world!");
     tmock::assert_equiv(fs,"Hello, wo");
 }

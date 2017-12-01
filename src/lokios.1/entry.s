@@ -1,8 +1,8 @@
 # On entry:
 #   RDI - address of the kernel_args struct
 _entry:
-    # Save off kargs.
-    mov     %rdi, kargs
+    # Populate kernel::args.
+    mov     %rdi, _ZN6kernel5kargsE
 
     # Clear the TLS BSS.
     mov     $_tbss_size, %ecx
@@ -40,8 +40,3 @@ _entry:
 
     # STOP.
     hlt
-
-.data
-.globl kargs
-kargs:
-    .long   0

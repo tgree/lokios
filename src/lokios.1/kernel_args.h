@@ -3,12 +3,15 @@
 
 #include <stdint.h>
 
-struct kernel_args
+namespace kernel
 {
-    uint64_t    e820_base;
-    uint64_t    vga_base;
-};
+    struct kernel_args
+    {
+        uint64_t    e820_base;
+        uint64_t    vga_base;
+    };
 
-extern const kernel_args* kargs;
+    extern const kernel_args* kargs;
+}
 
 #endif /* __KERNEL_ARGS_H */

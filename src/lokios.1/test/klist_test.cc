@@ -3,44 +3,44 @@
 
 struct klinked_object
 {
-    klink   link;
-    int     val;
+    kernel::klink   link;
+    int             val;
 
     constexpr klinked_object(int val):val(val) {}
 };
 
 void
-panic(const char* s) noexcept
+kernel::panic(const char* s) noexcept
 {
     tmock::abort(s);
 }
 
 TMOCK_TEST(test_unused_klink_works)
 {
-    klink kl;
+    kernel::klink kl;
 }
 
 TMOCK_TEST_EXPECT_FAILURE(test_klink_inuse_assert)
 {
-    klink kl;
+    kernel::klink kl;
     kl.next = NULL;
 }
 
 TMOCK_TEST(test_empty_klist_works)
 {
-    klist<klinked_object> kl;
+    kernel::klist<klinked_object> kl;
 }
 
 TMOCK_TEST_EXPECT_FAILURE(test_klist_head_inuse_assert)
 {
-    klist<klinked_object> kl;
-    kl.head = (klink*)12345;
+    kernel::klist<klinked_object> kl;
+    kl.head = (kernel::klink*)12345;
 }
 
 TMOCK_TEST_EXPECT_FAILURE(test_klist_tail_inuse_assert)
 {
-    klist<klinked_object> kl;
-    kl.tail = (klink*)12345;
+    kernel::klist<klinked_object> kl;
+    kl.tail = (kernel::klink*)12345;
 }
 
 TMOCK_TEST(test_klist_push_back_works)
@@ -50,7 +50,7 @@ TMOCK_TEST(test_klist_push_back_works)
     klinked_object o3(3);
     klinked_object o4(4);
     klinked_object o5(5);
-    klist<klinked_object> kl;
+    kernel::klist<klinked_object> kl;
 
     kl.push_back(&o3.link);
     kl.push_back(&o1.link);
@@ -68,7 +68,7 @@ TMOCK_TEST(test_klist_rbfl_works)
     klinked_object o3(3);
     klinked_object o4(4);
     klinked_object o5(5);
-    klist<klinked_object> kl;
+    kernel::klist<klinked_object> kl;
 
     kl.push_back(&o3.link);
     kl.push_back(&o1.link);
@@ -80,32 +80,32 @@ TMOCK_TEST(test_klist_rbfl_works)
     int* vp = vals;
     for (klinked_object& o : klist_elems(kl,link))
         tmock::assert_equiv(o.val,*vp++);
-    kassert(vp == &vals[5]);
+    kernel::kassert(vp == &vals[5]);
 
     kl.pop_all();
 }
 
 TMOCK_TEST(test_klist_empty_rbfl_works)
 {
-    klist<klinked_object> kl;
+    kernel::klist<klinked_object> kl;
     size_t n = 0;
     for (klinked_object& o __attribute__((unused)) : klist_elems(kl,link))
         ++n;
-    kassert(n == 0);
+    kernel::kassert(n == 0);
 }
 
 TMOCK_TEST(test_klist_one_elem_rbfl_works)
 {
-    klist<klinked_object> kl;
+    kernel::klist<klinked_object> kl;
     klinked_object o1(12345);
     kl.push_back(&o1.link);
     size_t n = 0;
     for (klinked_object& o __attribute__((unused)) : klist_elems(kl,link))
     {
-        kassert(o.val == 12345);
+        kernel::kassert(o.val == 12345);
         ++n;
     }
-    kassert(n == 1);
+    kernel::kassert(n == 1);
     kl.pop_front();
 }
 

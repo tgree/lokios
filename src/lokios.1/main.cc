@@ -9,33 +9,35 @@ extern uint8_t _tbss_begin[];
 extern uint8_t _tbss_end[];
 extern uint8_t _tbss_size[];
 
+const kernel::kernel_args* kernel::kargs;
+
 int
 main()
 {
-    vga.printf("Loki is kickawesome\n");
-    vga.printf("_tdata_begin = %ld\n",(uintptr_t)_tdata_begin);
-    vga.printf("_tdata_end   = %ld\n",(uintptr_t)_tdata_end);
-    vga.printf("_tbss_begin  = %ld\n",(uintptr_t)_tbss_begin);
-    vga.printf("_tbss_end    = %ld\n",(uintptr_t)_tbss_end);
-    vga.printf("_tbss_size   = %ld\n",(uintptr_t)_tbss_size);
+    kernel::vga.printf("Loki is kickawesome\n");
+    kernel::vga.printf("_tdata_begin = 0x%016lX\n",(uintptr_t)_tdata_begin);
+    kernel::vga.printf("_tdata_end   = 0x%016lX\n",(uintptr_t)_tdata_end);
+    kernel::vga.printf("_tbss_begin  = 0x%016lX\n",(uintptr_t)_tbss_begin);
+    kernel::vga.printf("_tbss_end    = 0x%016lX\n",(uintptr_t)_tbss_end);
+    kernel::vga.printf("_tbss_size   = 0x%016lX\n",(uintptr_t)_tbss_size);
 
     try
     {
-        throw &vga;
-        panic("throw failed");
+        throw &kernel::vga;
+        kernel::panic("throw failed");
     }
     catch (int)
     {
-        panic("caught int");
+        kernel::panic("caught int");
     }
-    catch (console* c)
+    catch (kernel::console* c)
     {
-        vga.printf("caught console*\n");
+        kernel::vga.printf("caught console*\n");
     }
     catch (...)
     {
-        panic("caught ...");
+        kernel::panic("caught ...");
     }
 
-    halt();
+    kernel::halt();
 }
