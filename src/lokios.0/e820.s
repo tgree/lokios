@@ -86,6 +86,19 @@ _E820_print_list:
     ret
 
 
+# Convert the E820 end pointer value into an entry count.
+.globl _E820_convert_to_length
+_E820_convert_to_length:
+    movw    _e820_end, %ax
+    lea     _e820_map, %bx
+    sub     %bx, %ax
+    movb    $24, %bl
+    div     %bl
+    movw    $0, _e820_end
+    movb    %al, _e820_end
+    ret
+
+
 .data
 .L_e820_dump_banner:
     .asciz  "E820 memory map:\r\n"

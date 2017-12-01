@@ -15,7 +15,7 @@ namespace kernel
 
     struct e820_map
     {
-        uint16_t    end;
+        uint16_t    nentries;
         e820_entry  entries[];
     } __attribute__((packed));
 }
