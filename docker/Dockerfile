@@ -1,5 +1,9 @@
 # Build with: docker build --build-arg username=YOUR_NAME --build-arg name='FIRST_NAME LAST_NAME' --build-arg email=YOUR@EMAIL -t lokios-build .
-# Run with  : docker run --tmpfs /tmp:rw,size=2G,mode=1777 -ti lokios-build
+# Run with  : docker run --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --tmpfs /tmp:rw,size=2G,mode=1777 -ti lokios-build
+#
+# Note that the special privileges are only required for use with gdb if you
+# want to debug unittests.  If you are concerned about the privilege level and
+# only want to do builds then you can run without the extra privileges.
 FROM ubuntu:latest
 
 # Install the base OS packages.
