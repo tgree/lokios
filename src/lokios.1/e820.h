@@ -29,4 +29,20 @@ namespace kernel
     } __attribute__((packed));
 }
 
+inline bool operator<(const kernel::e820_entry& l,
+                      const kernel::e820_entry& r)
+{
+    if (l.type < r.type)
+        return true;
+    if (l.type > r.type)
+        return false;
+
+    if (l.base < r.base)
+        return true;
+    if (l.base > r.base)
+        return false;
+
+    return l.len < r.len;
+}
+
 #endif /* __KERNEL_E820_H */
