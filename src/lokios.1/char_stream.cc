@@ -104,7 +104,7 @@ kernel::char_stream::print_udecimal(unsigned long long v, unsigned int flags,
 
     if (!v)
     {
-        if (precision == 0)
+        if (precision == 0 && !(flags & PRINTF_FLAG_OMIT_PRECISION))
             return;
         buf[19] = '0';
         ptr     = buf + 19;
@@ -146,7 +146,7 @@ kernel::char_stream::print_hex(unsigned long long v, unsigned int flags,
     
     if (!v)
     {
-        if (precision == 0)
+        if (precision == 0 && !(flags & PRINTF_FLAG_OMIT_PRECISION))
             return;
         buf[18] = '0';
         ptr     = buf + 18;
