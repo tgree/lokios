@@ -1,6 +1,7 @@
 TESTS += $(TESTS_DIR)/char_stream_test \
 	 $(TESTS_DIR)/console_test \
-	 $(TESTS_DIR)/klist_test
+	 $(TESTS_DIR)/klist_test \
+	 $(TESTS_DIR)/sort_test
 
 CHAR_STREAM_TEST_OBJS := \
 	$(MODULE_BUILD_DIR)/char_stream_test.o \
@@ -17,6 +18,10 @@ KLIST_TEST_OBJS := \
     	$(MODULE_BUILD_DIR)/klist_test.o
 -include $(KLIST_TEST_OBJS:.o=.d)
 
+SORT_TEST_OBJS := \
+    	$(MODULE_BUILD_DIR)/sort_test.o
+-include $(SORT_TEST_OBJS:.o=.d)
+
 $(TESTS_DIR)/char_stream_test: $(CHAR_STREAM_TEST_OBJS) $(LTMOCK) $(MODULE_MK)
 	@echo Building $@...
 	@$(BUILD_TEST) $(CHAR_STREAM_TEST_OBJS) $(LTMOCK)
@@ -28,3 +33,7 @@ $(TESTS_DIR)/console_test: $(CONSOLE_TEST_OBJS) $(LTMOCK) $(MODULE_MK)
 $(TESTS_DIR)/klist_test: $(KLIST_TEST_OBJS) $(LTMOCK) $(MODULE_MK)
 	@echo Building $@...
 	@$(BUILD_TEST) $(KLIST_TEST_OBJS) $(LTMOCK)
+
+$(TESTS_DIR)/sort_test: $(SORT_TEST_OBJS) $(LTMOCK) $(MODULE_MK)
+	@echo Building $@...
+	@$(BUILD_TEST) $(SORT_TEST_OBJS) $(LTMOCK)
