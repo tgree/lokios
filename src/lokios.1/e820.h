@@ -27,6 +27,9 @@ namespace kernel
         uint16_t    nentries;
         e820_entry  entries[];
     } __attribute__((packed));
+
+    void
+    parse_e820_map(const e820_map* m);
 }
 
 inline bool operator<(const kernel::e820_entry& l,
