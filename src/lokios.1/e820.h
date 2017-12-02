@@ -2,6 +2,7 @@
 #define __KERNEL_E820_H
 
 #include "kassert.h"
+#include "region_set.h"
 #include <stddef.h>
 
 namespace kernel
@@ -45,6 +46,18 @@ namespace kernel
         {
             if (mask & (1 << e->type))
                 c.push_back(*e);
+        }
+    }
+
+    template<typename C>
+    void get_e820_regions(const e820_map* m, C& c,
+                          uint64_t mask = E820_TYPE_ALL_MASK)
+    {
+        const e820_entry* e = m->entries;
+        for (size_t i=0; i<m->nentries; ++i, ++e)
+        {
+            if (e->len && (mask & (1 << e->type)))
+                c.push_back(region{e->base,e->base + e->len - 1});
         }
     }
 

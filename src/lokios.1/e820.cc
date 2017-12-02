@@ -52,11 +52,7 @@ kernel::parse_e820_map(const e820_map* m)
     // Build a region vector, ensuring no zero-length regions.
     region _ram_regions[m->nentries];
     local_vector<region> ram_regions(_ram_regions,m->nentries);
-    for (const auto& e : ram_entries)
-    {
-        if (e.len)
-            ram_regions.push_back(region{e.base,e.base + e.len - 1});
-    }
+    get_e820_regions(m,ram_regions,E820_TYPE_RAM_MASK);
 
     // Build a vector of non-RAM stuff.
     size_t nnonram_entries = m->nentries - ram_entries.size();
