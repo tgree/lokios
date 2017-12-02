@@ -26,15 +26,36 @@ _E820_get_list:
 
 .L_E820_loop:
     add     $24, %di
+.L_E820_loop_skip:
     cmp     $_e820_last_max_entry, %di
     ja      .L_E820_error_exit
     mov     $0x0000E820, %eax
     mov     $0x00000024, %ecx
     int     $0x15
     jc      .L_E820_done_carry_set
+    cmp     $20, %cl
+    jbe     .L_E820_regular_entry
+
+.L_E820_extended_entry:
+    # Check that the valid bit is set for the entry; if it isn't skip this
+    # entry entirely.
+    mov     20(%di), %eax
+    and     $(1<<0), %eax
+    jnz     .L_E820_check_end_or_loop
+    cmp     $0, %ebx
+    je      .L_E820_done_ebx_zero
+    jmp     .L_E820_loop_skip
+
+.L_E820_regular_entry:
+    mov     $1, %eax
+    mov     %eax, 20(%di)
+    jmp     .L_E820_check_end_or_loop
+
+.L_E820_check_end_or_loop:
     cmp     $0, %ebx
     je      .L_E820_done_ebx_zero
     jmp     .L_E820_loop
+
 .L_E820_done_ebx_zero:
     add     $24, %di
 .L_E820_done_carry_set:
