@@ -18,6 +18,7 @@ LOKIOS_1_OBJ := \
 	$(MODULE_BUILD_DIR)/tls.o		\
 	$(MODULE_BUILD_DIR)/e820.o		\
 	$(MODULE_BUILD_DIR)/sbrk.o		\
+	$(MODULE_BUILD_DIR)/page.o		\
 	$(MODULE_BUILD_DIR)/crtn.o
 -include $(LOKIOS_1_OBJ:.o=.d)
 

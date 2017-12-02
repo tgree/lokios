@@ -21,6 +21,9 @@ init()
     // Initialize the console as early as we can.
     kernel::init_console();
 
+    // Parse the E820 memory map so we can set up sbrk and the free page list.
+    kernel::parse_e820_map(kernel::kargs->e820_base);
+
     // Do the __preinit array.
     size_t n = __preinit_array_end - __preinit_array_start;
     for (size_t i=0; i<n; ++i)

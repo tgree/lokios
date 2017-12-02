@@ -4,6 +4,7 @@
 #include "sort.h"
 #include "local_vector.h"
 #include "region_set.h"
+#include "page.h"
 #include <string.h>
 
 static const char* e820_type_lut[] =
@@ -85,7 +86,11 @@ kernel::parse_e820_map(const e820_map* m)
     for (const auto& e : nonram_entries)
         region_remove(ram_regions,e.base,e.base + e.len - 1);
 
-    // Dump it.
+    // Hand the RAM regions over to the page component to build the page lists
+    // and possibly remove more regions.
+    page_init(ram_regions);
+
+    // Dump the final result.
     vga->printf("Reduced RAM regions:\n");
     for (const auto& r : ram_regions)
         vga->printf("0x%016lX:0x%016lX\n",r.first,r.last);
