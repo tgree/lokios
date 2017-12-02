@@ -45,33 +45,20 @@ namespace kernel
 void
 kernel::parse_e820_map(const e820_map* m)
 {
-    // Build a vector of just RAM.
-    e820_entry _ram_entries[m->nentries];
-    e820_vector ram_entries(m,_ram_entries,m->nentries,E820_TYPE_RAM_MASK);
-
-    // Build a region vector, ensuring no zero-length regions.
+    // Build a RAM region vector.
     region _ram_regions[m->nentries];
     local_vector<region> ram_regions(_ram_regions,m->nentries);
     get_e820_regions(m,ram_regions,E820_TYPE_RAM_MASK);
 
-    // Build a vector of non-RAM stuff.
-    size_t nnonram_entries = m->nentries - ram_entries.size();
-    e820_entry _nonram_entries[nnonram_entries];
-    e820_vector nonram_entries(m,_nonram_entries,nnonram_entries,
-                               ~E820_TYPE_RAM_MASK);
-    kassert(nonram_entries.size() == nnonram_entries);
-
-    // Dump the tables.
-    vga->printf("Non-RAM entries:\n");
-    nonram_entries.print(vga);
-    vga->printf("RAM entries:\n");
-    ram_entries.print(vga);
-    vga->printf("E820 entry count: %d\n",m->nentries);
+    // Build a non-RAM region vector.
+    region _nonram_regions[m->nentries];
+    local_vector<region> nonram_regions(_nonram_regions,m->nentries);
+    get_e820_regions(m,nonram_regions,~E820_TYPE_RAM_MASK);
 
     // Remove the non-RAM regions from the RAM regions in case BIOS gave us
     // some inconsistent overlapping stuff.
-    for (const auto& e : nonram_entries)
-        region_remove(ram_regions,e.base,e.base + e.len - 1);
+    for (const auto& e : nonram_regions)
+        region_remove(ram_regions,e);
 
     // Hand the RAM regions over to the page component to build the page lists
     // and possibly remove more regions.
