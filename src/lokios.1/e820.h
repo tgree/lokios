@@ -1,7 +1,7 @@
 #ifndef __KERNEL_E820_H
 #define __KERNEL_E820_H
 
-#include <stdint.h>
+#include "kassert.h"
 
 namespace kernel
 {
@@ -21,6 +21,7 @@ namespace kernel
         e820_type   type;
         uint32_t    rsrv;
     };
+    KASSERT(sizeof(e820_entry) == 24);
 
     struct e820_map
     {
