@@ -1,8 +1,8 @@
+#include "console.h"
+#include "kassert.h"
 #include <stddef.h>
 #include <unistd.h>
 #include <stdio.h>
-#include "console.h"
-#include "kassert.h"
 
 FILE* stderr;
 static char* FREEMEM = (char*)0x00300000;
