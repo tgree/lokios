@@ -1,6 +1,7 @@
 #include "../console.h"
 #include "../kernel_args.h"
 #include "../kassert.h"
+#include "../sbrk.h"
 #include "tmock/tmock.h"
 
 static uint16_t conbuf[80*25];
@@ -13,6 +14,12 @@ kernel::panic(const char* s) noexcept
     tmock::abort(s);
 }
 
+void*
+kernel::sbrk(size_t n)
+{
+    return malloc(n);
+}
+
 TMOCK_TEST(test_screen_initialized)
 {
     for (uint16_t v : conbuf)
@@ -22,8 +29,13 @@ TMOCK_TEST(test_screen_initialized)
 TMOCK_TEST(test_putc)
 {
     tmock::assert_equiv(conbuf[0],0x1F20);
-    kernel::vga._putc('T');
+    kernel::vga->_putc('T');
     tmock::assert_equiv(conbuf[0],0x1F00 | 'T');
 }
 
-TMOCK_MAIN();
+int
+main(int argc, const char* argv[])
+{
+    kernel::init_console();
+    return tmock::run_tests(argc,argv);
+}

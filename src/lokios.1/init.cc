@@ -18,6 +18,9 @@ extern "C" void __register_frame(char*);
 void
 init()
 {
+    // Initialize the console as early as we can.
+    kernel::init_console();
+
     // Do the __preinit array.
     size_t n = __preinit_array_end - __preinit_array_start;
     for (size_t i=0; i<n; ++i)

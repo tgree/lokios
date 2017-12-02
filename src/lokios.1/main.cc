@@ -14,17 +14,17 @@ const kernel::kernel_args* kernel::kargs;
 int
 main()
 {
-    kernel::vga.printf("Loki is kickawesome\n");
-    kernel::vga.printf("_tdata_begin = 0x%016lX\n",(uintptr_t)_tdata_begin);
-    kernel::vga.printf("_tdata_end   = 0x%016lX\n",(uintptr_t)_tdata_end);
-    kernel::vga.printf("_tbss_begin  = 0x%016lX\n",(uintptr_t)_tbss_begin);
-    kernel::vga.printf("_tbss_end    = 0x%016lX\n",(uintptr_t)_tbss_end);
-    kernel::vga.printf("_tbss_size   = 0x%016lX\n",(uintptr_t)_tbss_size);
+    kernel::vga->printf("Loki is kickawesome\n");
+    kernel::vga->printf("_tdata_begin = 0x%016lX\n",(uintptr_t)_tdata_begin);
+    kernel::vga->printf("_tdata_end   = 0x%016lX\n",(uintptr_t)_tdata_end);
+    kernel::vga->printf("_tbss_begin  = 0x%016lX\n",(uintptr_t)_tbss_begin);
+    kernel::vga->printf("_tbss_end    = 0x%016lX\n",(uintptr_t)_tbss_end);
+    kernel::vga->printf("_tbss_size   = 0x%016lX\n",(uintptr_t)_tbss_size);
     kernel::parse_e820_map(kernel::kargs->e820_base);
 
     try
     {
-        throw &kernel::vga;
+        throw kernel::vga;
         kernel::panic("throw failed");
     }
     catch (int)
@@ -33,7 +33,7 @@ main()
     }
     catch (kernel::console* c)
     {
-        kernel::vga.printf("caught console*\n");
+        kernel::vga->printf("caught console*\n");
     }
     catch (...)
     {

@@ -1,7 +1,16 @@
 #include "console.h"
 #include "kernel_args.h"
+#include "sbrk.h"
+#include <new>
 
-kernel::console kernel::vga((uint16_t*)kernel::kargs->vga_base);
+kernel::console* kernel::vga;
+
+void
+kernel::init_console()
+{
+    void* p = sbrk(sizeof(kernel::console));
+    kernel::vga = new(p) console((uint16_t*)kernel::kargs->vga_base);
+}
 
 kernel::console::console(uint16_t* base):
     base(base),

@@ -23,7 +23,9 @@ namespace kernel
         console(uint16_t* base);
     };
 
-    extern console vga;
+    extern console* vga;
+
+    void init_console();
 }
 
 #endif /* __KERNEL_CONSOLE_H */
