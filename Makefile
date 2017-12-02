@@ -1,5 +1,5 @@
 MODULES      := tmock lokios.1 lokios.0
-TESTS        :=
+ALL_TESTS    :=
 
 TESTS_DIR    := tests
 SRC_DIR      := src
@@ -24,8 +24,16 @@ BUILD_TEST = mkdir -p $(TESTS_DIR) && $(CXX) $(CXXFLAGS) -o $@
 all: $(BIN_DIR)/lokios.mbr test
 	@:
 
+define define_test
+-include $$($(1).objs:.o=.d)
+$$(TESTS_DIR)/$(1): $$($(1).objs) $$(LTMOCK) $$(MODULE_MK)
+	@echo Builing $$@
+	@$$(BUILD_TEST) $$($(1).objs) $$(LTMOCK)
+endef
+
 define include_module
 	$(eval SUBMODULES := )
+	$(eval TESTS := )
 	$(eval MODULE := $(1))
 	$(eval PARENT := $(2))
 	$(eval MODULE_SRC_DIR := $(SRC_DIR)/$(MODULE))
@@ -34,6 +42,8 @@ define include_module
 	$(eval PARENT_BUILD_DIR := $(BUILD_DIR)/$(PARENT))
 	$(eval MODULE_MK := $(MODULE_SRC_DIR)/module.mk)
 	$(eval include $(MODULE_MK))
+	$(eval $(foreach T,$(TESTS),$(eval $(call define_test,$(T)))))
+	$(eval ALL_TESTS += $(TESTS))
 	ifneq ($(strip $(SUBMODULES)),)
 		$(eval $(call include_modules,$(patsubst %,$(1)/%,$(SUBMODULES)),$(1)))
 	endif
@@ -49,7 +59,7 @@ ifeq ($(MAKECMDGOALS),test)
     $(shell rm -rf $(TEST_RES_DIR))
 endif
 .PHONY: test
-test: $(TESTS:$(TESTS_DIR)/%=$(TEST_RES_DIR)/%.tpass)
+test: $(ALL_TESTS:%=$(TEST_RES_DIR)/%.tpass)
 	$(info All tests passed.)
 
 $(BIN_DIR)/lokios.0: $(BUILD_DIR)/lokios.0/lokios.0.elf

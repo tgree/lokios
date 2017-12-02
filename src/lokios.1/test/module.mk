@@ -1,48 +1,23 @@
-TESTS += $(TESTS_DIR)/char_stream_test \
-	 $(TESTS_DIR)/console_test \
-	 $(TESTS_DIR)/klist_test \
-	 $(TESTS_DIR)/sort_test \
-	 $(TESTS_DIR)/region_set_test
+TESTS := char_stream_test \
+	 console_test     \
+	 klist_test       \
+	 sort_test        \
+	 region_set_test  \
 
-CHAR_STREAM_TEST_OBJS := \
+char_stream_test.objs := \
 	$(MODULE_BUILD_DIR)/char_stream_test.o \
 	$(PARENT_BUILD_DIR)/char_stream.o
--include $(CHAR_STREAM_TEST_OBJS:.o=.d)
 
-CONSOLE_TEST_OBJS := \
+console_test.objs := \
     	$(MODULE_BUILD_DIR)/console_test.o \
 	$(PARENT_BUILD_DIR)/console.o \
 	$(PARENT_BUILD_DIR)/char_stream.o
--include $(CONSOLE_TEST_OBJS:.o=.d)
 
-KLIST_TEST_OBJS := \
+klist_test.objs := \
     	$(MODULE_BUILD_DIR)/klist_test.o
--include $(KLIST_TEST_OBJS:.o=.d)
 
-SORT_TEST_OBJS := \
+sort_test.objs := \
     	$(MODULE_BUILD_DIR)/sort_test.o
--include $(SORT_TEST_OBJS:.o=.d)
 
-REGION_SET_TEST_OBJS := \
+region_set_test.objs := \
     	$(MODULE_BUILD_DIR)/region_set_test.o
--include $(REGION_SET_TEST_OBJS:.o=.d)
-
-$(TESTS_DIR)/char_stream_test: $(CHAR_STREAM_TEST_OBJS) $(LTMOCK) $(MODULE_MK)
-	@echo Building $@...
-	@$(BUILD_TEST) $(CHAR_STREAM_TEST_OBJS) $(LTMOCK)
-
-$(TESTS_DIR)/console_test: $(CONSOLE_TEST_OBJS) $(LTMOCK) $(MODULE_MK)
-	@echo Building $@...
-	@$(BUILD_TEST) $(CONSOLE_TEST_OBJS) $(LTMOCK)
-
-$(TESTS_DIR)/klist_test: $(KLIST_TEST_OBJS) $(LTMOCK) $(MODULE_MK)
-	@echo Building $@...
-	@$(BUILD_TEST) $(KLIST_TEST_OBJS) $(LTMOCK)
-
-$(TESTS_DIR)/sort_test: $(SORT_TEST_OBJS) $(LTMOCK) $(MODULE_MK)
-	@echo Building $@...
-	@$(BUILD_TEST) $(SORT_TEST_OBJS) $(LTMOCK)
-
-$(TESTS_DIR)/region_set_test: $(REGION_SET_TEST_OBJS) $(LTMOCK) $(MODULE_MK)
-	@echo Building $@...
-	@$(BUILD_TEST) $(REGION_SET_TEST_OBJS) $(LTMOCK)
