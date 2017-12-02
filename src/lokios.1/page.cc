@@ -1,6 +1,7 @@
 #include "page.h"
 #include "sbrk.h"
 #include "console.h"
+#include <new>
 
 static kernel::meta_page* pages;
 static size_t npages;
