@@ -52,6 +52,16 @@ namespace kernel
         {
             quicksort(std::begin(c),std::end(c));
         }
+
+        // Given a sorted range, find the first entry we are smaller than.
+        // TODO: Make this a binary search.
+        template<typename T, typename RAI>
+        RAI find_insertion_point(const T& e, RAI begin, RAI end)
+        {
+            while (begin != end && *begin < e)
+                ++begin;
+            return begin;
+        }
     }
 }
 
