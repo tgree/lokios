@@ -24,6 +24,10 @@ init()
 
     _init();
 
+    // As part of __init_array, somebody needs to malloc() a big chunk of
+    // memory (for C++ exception-handling, I think).  Other part of the C++
+    // support library also call malloc() later on, so we need to have at least
+    // something rudimentary in place before calling this.
     n = __init_array_end - __init_array_start;
     for (size_t i=0; i<n; ++i)
         __init_array_start[i]();

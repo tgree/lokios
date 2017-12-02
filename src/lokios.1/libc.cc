@@ -1,20 +1,16 @@
 #include "console.h"
 #include "kassert.h"
+#include "sbrk.h"
 #include <stddef.h>
 #include <unistd.h>
 #include <stdio.h>
 
 FILE* stderr;
-static char* FREEMEM = (char*)0x00300000;
 
 extern "C"
 void* malloc(size_t n)
 {
-    char* rv = FREEMEM;
-    n        = ((n + 7)/8)*8;
-    FREEMEM += n;
-    kernel::vga.printf("malloc(%zd) = 0x%016lX\n",n,(uintptr_t)rv);
-    return rv;
+    return kernel::sbrk(n);
 }
 
 extern "C"
