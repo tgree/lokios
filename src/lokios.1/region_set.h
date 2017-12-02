@@ -81,6 +81,12 @@ namespace kernel
             }
         }
     }
+
+    template<typename C>
+    void region_remove(C& c, const region& r)
+    {
+        region_remove(c,r.first,r.last);
+    }
 }
 
 inline bool operator==(const kernel::region& l,
