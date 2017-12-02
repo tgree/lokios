@@ -11,17 +11,24 @@ SECTIONS
     .text :
     {
         *lokios.1/entry.o(.text)
+        *crtbegin.o(.text)
+        *lokios.1/init.o(.text)
         *(.text)
+        *crtend.o(.text)
     }
 
     .init :
     {
+        *lokios.1/crti.o(.init)
         KEEP (*(SORT_NONE(.init)))
+        *lokios.1/crtn.o(.init)
     }
 
     .fini :
     {
+        *lokios.1/crti.o(.fini)
         KEEP (*(SORT_NONE(.fini)))
+        *lokios.1/crtn.o(.fini)
     }
 
     .preinit_array :
