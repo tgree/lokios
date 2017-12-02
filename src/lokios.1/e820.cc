@@ -19,10 +19,6 @@ static const char* e820_type_lut[] =
 
 namespace kernel
 {
-#define E820_TYPE_RAM_MASK              (1 << E820_TYPE_RAM)
-#define E820_TYPE_ACPI_RECLAIMABLE_MASK (1 << E820_TYPE_RECLAIMABLE)
-#define E820_TYPE_ACPI_NVS_MASK         (1 << E820_TYPE_ACPI_NVS)
-#define E820_TYPE_BAD_RAM_MASK          (1 << E820_TYPE_BAD_RAM)
     struct e820_vector : public local_vector<e820_entry>
     {
         void print(char_stream* cs)
@@ -40,12 +36,7 @@ namespace kernel
                     uint64_t mask):
             local_vector(storage,capacity)
         {
-            const e820_entry* e = m->entries;
-            for (size_t i=0; i<m->nentries; ++i, ++e)
-            {
-                if (mask & (1 << e->type))
-                    push_back(*e);
-            }
+            get_e820_map(m,*this,mask);
             sort::quicksort(*this);
         }
     };
