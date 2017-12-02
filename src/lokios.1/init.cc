@@ -18,19 +18,22 @@ extern "C" void __register_frame(char*);
 void
 init()
 {
+    // Do the __preinit array.
     size_t n = __preinit_array_end - __preinit_array_start;
     for (size_t i=0; i<n; ++i)
         __preinit_array_start[i]();
 
+    // Do _init.  I'm not sure exactly what this calls - seemingly nothing.
     _init();
 
-    // As part of __init_array, somebody needs to malloc() a big chunk of
-    // memory (for C++ exception-handling, I think).  Other part of the C++
-    // support library also call malloc() later on, so we need to have at least
-    // something rudimentary in place before calling this.
+    // Do the __init array.  This calls all the global constructors and stuff
+    // in the libsupc++ library which does malloc().
     n = __init_array_end - __init_array_start;
     for (size_t i=0; i<n; ++i)
         __init_array_start[i]();
 
+    // Register exception handling support.  This seems to require __init array
+    // to have been done first - but then we can't use exceptions in global
+    // constructors?
     __register_frame(_eh_frame_begin);
 }
