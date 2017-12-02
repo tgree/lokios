@@ -36,17 +36,17 @@ namespace kernel
 inline bool operator<(const kernel::e820_entry& l,
                       const kernel::e820_entry& r)
 {
-    if (l.type < r.type)
-        return true;
-    if (l.type > r.type)
-        return false;
-
     if (l.base < r.base)
         return true;
     if (l.base > r.base)
         return false;
 
-    return l.len < r.len;
+    if (l.len < r.len)
+        return true;
+    if (l.len > r.len)
+        return false;
+
+    return l.type < r.type;
 }
 
 #endif /* __KERNEL_E820_H */
