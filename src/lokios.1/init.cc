@@ -1,6 +1,6 @@
 #include "kernel_args.h"
 #include "console.h"
-#include "e820.h"
+#include "page.h"
 #include <stddef.h>
 
 extern void (*__preinit_array_start[])();
@@ -21,8 +21,11 @@ init()
     // Initialize the console as early as we can.
     kernel::init_console();
 
-    // Parse the E820 memory map so we can set up sbrk and the free page list.
-    kernel::parse_e820_map(kernel::kargs->e820_base);
+    // Initialize the free page list with whatever the bootloader has mapped
+    // for us.
+    uintptr_t top_addr = (kernel::kargs->highest_pte_val & PAGE_PFN_MASK) +
+                         2*1024*1024;
+    kernel::page_preinit(kernel::kargs->e820_base,top_addr);
 
     // Do the __preinit array.
     size_t n = __preinit_array_end - __preinit_array_start;
