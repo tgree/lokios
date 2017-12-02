@@ -93,8 +93,8 @@ SECTIONS
     } = 0xDD
     _e820_last_max_entry = . - 24;
 
-    /* Provide a page table that identity-maps the first 4M of memory via a
-     * huge page. */
+    /* Provide a page table that identity-maps the first 64M of memory via 4K
+     * and 2M pages. */
     .page_table :
     {
         _page_table = .;
@@ -105,6 +105,36 @@ SECTIONS
         . = ALIGN(4096);
         QUAD((_page_table + 0x00003000) | 3);
         QUAD(0x0000000000200083);
+        QUAD(0x0000000000400083);
+        QUAD(0x0000000000600083);
+        QUAD(0x0000000000800083);
+        QUAD(0x0000000000A00083);
+        QUAD(0x0000000000C00083);
+        QUAD(0x0000000000E00083);
+        QUAD(0x0000000001000083);
+        QUAD(0x0000000001200083);
+        QUAD(0x0000000001400083);
+        QUAD(0x0000000001600083);
+        QUAD(0x0000000001800083);
+        QUAD(0x0000000001A00083);
+        QUAD(0x0000000001C00083);
+        QUAD(0x0000000001E00083);
+        QUAD(0x0000000002000083);
+        QUAD(0x0000000002200083);
+        QUAD(0x0000000002400083);
+        QUAD(0x0000000002600083);
+        QUAD(0x0000000002800083);
+        QUAD(0x0000000002A00083);
+        QUAD(0x0000000002C00083);
+        QUAD(0x0000000002E00083);
+        QUAD(0x0000000003000083);
+        QUAD(0x0000000003200083);
+        QUAD(0x0000000003400083);
+        QUAD(0x0000000003600083);
+        QUAD(0x0000000003800083);
+        QUAD(0x0000000003A00083);
+        QUAD(0x0000000003C00083);
+        QUAD(0x0000000003E00083);
         . = ALIGN(4096);
         QUAD(0x0000000000000081);
         QUAD(0x0000000000001081);
