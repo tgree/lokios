@@ -1,7 +1,7 @@
 #ifndef __KERNEL_SORT_H
 #define __KERNEL_SORT_H
 
-#include <iterator>
+#include "kernel_iterator.h"
 
 namespace kernel
 {
@@ -50,7 +50,7 @@ namespace kernel
         template<typename T>
         inline void quicksort(T& c)
         {
-            quicksort(std::begin(c),std::end(c));
+            quicksort(kernel::begin(c),kernel::end(c));
         }
 
         // Given a sorted range, find the first entry we are smaller than.
