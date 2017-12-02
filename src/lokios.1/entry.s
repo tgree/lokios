@@ -32,6 +32,16 @@ _entry:
     loop    .L_copy_loop
 .L_copy_loop_done:
 
+    # Enable SSE since the stupid compiler is generating %xmm register
+    # references and I can't turn it off because then stdint.h doesn't work.
+    mov     %cr0, %rax
+    and     $0xFFFB, %ax
+    or      $2, %ax
+    mov     %rax, %cr0
+    mov     %cr4, %rax
+    or      $(3 << 9), %ax
+    mov     %rax, %cr4
+
     # Call the _init stuff.
     call    init
 
