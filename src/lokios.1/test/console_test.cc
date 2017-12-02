@@ -5,7 +5,7 @@
 #include "tmock/tmock.h"
 
 static uint16_t conbuf[80*25];
-static const kernel::kernel_args args = {0,(uintptr_t)conbuf};
+static const kernel::kernel_args args = {0,(uintptr_t)conbuf,0};
 const kernel::kernel_args* kernel::kargs = &args;
 
 void
