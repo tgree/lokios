@@ -71,6 +71,14 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr)
     // allocated out of the sbrk pool.
     region_remove(usable_regions,0,(uintptr_t)get_sbrk_limit()-1);
 
+    // We are kind of relying on the fact that sbrk() can allocate a contiguous
+    // range without there being any holes in the memory map.  Basically that
+    // means that after removing the top and bottom regions above that we
+    // should have been reduced to a single range.
+    kassert(usable_regions.size() == 1);
+    kassert(usable_regions[0].first == (uintptr_t)get_sbrk_limit());
+    kassert(usable_regions[0].last == top_addr - 1);
+
     // Populate the free page list.
     populate_pages(usable_regions);
 
