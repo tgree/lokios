@@ -1,6 +1,6 @@
 #include "page.h"
 #include "sbrk.h"
-#include "local_vector.h"
+#include "vector.h"
 #include "console.h"
 #include <new>
 
@@ -64,14 +64,18 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr)
     // page list.
     kassert(sbrk_limit + 2*1024*1024 <= top_addr);
 
+    // Use sbrk to find to free two 4K pages and move them to the free list.
+    // We need these pages for our vector<> objects below. sbrk is initially
+    // page-aligned (and if it isn't page_free will catch it and kassert).
+    page_free(sbrk(4096));
+    page_free(sbrk(4096));
+
     // Parse the usable RAM regions out of the E820 map.
-    region _usable_regions[m->nentries];
-    local_vector<region> usable_regions(_usable_regions,m->nentries);
+    vector<region> usable_regions;
     get_e820_regions(m,usable_regions,E820_TYPE_RAM_MASK);
 
     // Parse the unusable regions out of the E820 map.
-    region _unusable_regions[m->nentries];
-    local_vector<region> unusable_regions(_unusable_regions,m->nentries);
+    vector<region> unusable_regions;
     get_e820_regions(m,unusable_regions,~E820_TYPE_RAM_MASK);
 
     // Remove all unusable regions in case BIOS gave us overlap.
