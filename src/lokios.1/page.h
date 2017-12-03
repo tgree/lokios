@@ -14,6 +14,11 @@ namespace kernel
 #define HPAGE_SIZE          (2*1024*1024UL)
 #define HPAGE_OFFSET_MASK   (HPAGE_SIZE-1)
 #define HPAGE_PFN_MASK      ~HPAGE_OFFSET_MASK
+
+#define GPAGE_SIZE          (1024*1024*1024UL)
+#define GPAGE_OFFSET_MASK   (GPAGE_SIZE-1)
+#define GPAGE_PFN_MASK      ~GPAGE_OFFSET_MASK
+
     struct page
     {
         klink   link;
