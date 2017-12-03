@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 FILE* stderr;
 
@@ -19,7 +20,19 @@ void* malloc(size_t n)
 extern "C"
 void* realloc(void* ptr, size_t size)
 {
-    kernel::panic("REALLOC");
+    // Check if this is a malloc- or free-equivalent.
+    if (!ptr)
+        return malloc(size);
+    if (ptr && !size)
+    {
+        free(ptr);
+        return NULL;
+    }
+
+    // If this was allocated on a page, well we have 4K of space already...
+    kernel::kassert(ptr >= kernel::sbrk(0));
+    kernel::kassert(size <= PAGE_SIZE);
+    return ptr;
 }
 
 extern "C"
@@ -110,31 +123,52 @@ int strcmp(const char* s1, const char* s2)
 extern "C"
 size_t fwrite(const void* ptr, size_t size, size_t nmemb, FILE* stream)
 {
-    return 0;
+    kernel::kassert(stream == stderr);
+    const char* p = (const char*)ptr;
+    for (size_t i=0; i<nmemb; ++i)
+        for (size_t j=0; j<size; ++j)
+            kernel::vga->_putc(*p++);
+    return nmemb;
 }
 
 extern "C"
 int fputc(int c, FILE* stream)
 {
-    return 0;
+    kernel::kassert(stream == stderr);
+    kernel::vga->_putc(c);
+    return (unsigned char)c;
 }
 
 extern "C"
 int fputs(const char* s, FILE* stream)
 {
+    kernel::kassert(stream == stderr);
+    kernel::vga->printf("%s",s);
     return 0;
 }
 
 extern "C"
 int fprintf(FILE* stream, const char* fmt, ...)
 {
+    // TODO: char_stream::printf() doesn't return the number of characters
+    // printed, so we can't return it here either.  I doubt libsupc++ relies on
+    // that value, though...
+    kernel::kassert(stream == stderr);
+    va_list ap;
+    va_start(ap,fmt);
+    kernel::vga->vprintf(fmt,ap);
+    va_end(ap);
     return 0;
 }
 
 extern "C"
 ssize_t write(int fd, const void* buf, size_t count)
 {
-    return 0;
+    kernel::kassert(fd == STDERR_FILENO);
+    const char* p = (const char*)buf;
+    while (count--)
+        kernel::vga->_putc(*p++);
+    return count;
 }
 
 extern "C"
