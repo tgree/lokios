@@ -7,6 +7,7 @@ namespace kernel
 {
     void* sbrk(size_t n);
     void* get_sbrk_limit();
+    void set_sbrk(void* pos);
     void set_sbrk_limit(void* new_lim);
 }
 

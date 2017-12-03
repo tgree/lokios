@@ -20,6 +20,12 @@ kernel::sbrk(size_t n)
 }
 
 void
+kernel::set_sbrk(void* pos)
+{
+    _brk = pos;
+}
+
+void
 kernel::set_sbrk_limit(void* new_lim)
 {
     kernel::kassert(new_lim <= _brklim);
