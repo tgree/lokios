@@ -58,9 +58,12 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr)
     // Find out how much RAM the bootloader mapped.
     vga->printf("End of mapped RAM: 0x%016lX\n",top_addr);
 
+    // Find the initial sbrk position.
+    void* initial_sbrk = sbrk(0);
+
     // Leave at least 1M of space in sbrk for early libsupc++ malloc() calls.
     // We round this up to a 2M hugepage boundary.
-    uintptr_t sbrk_limit = (uintptr_t)sbrk(0) + 1024*1024;
+    uintptr_t sbrk_limit = (uintptr_t)initial_sbrk + 1024*1024;
     sbrk_limit = (sbrk_limit + 0x001FFFFF) & ~0x001FFFFFUL;
     kassert(sbrk_limit < top_addr);
     set_sbrk_limit((void*)sbrk_limit);
@@ -75,38 +78,55 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr)
     page_free(sbrk(4096));
     page_free(sbrk(4096));
 
-    // Parse the usable RAM regions out of the E820 map.
-    vector<region> usable_regions;
-    get_e820_regions(m,usable_regions,E820_TYPE_RAM_MASK);
+    // Populate page_list with all the free pages.
+    klist<page> page_list;
+    {
+        // Parse the usable RAM regions out of the E820 map.
+        vector<region> usable_regions;
+        get_e820_regions(m,usable_regions,E820_TYPE_RAM_MASK);
 
-    // Parse the unusable regions out of the E820 map.
-    vector<region> unusable_regions;
-    get_e820_regions(m,unusable_regions,~E820_TYPE_RAM_MASK);
+        // Parse the unusable regions out of the E820 map.
+        vector<region> unusable_regions;
+        get_e820_regions(m,unusable_regions,~E820_TYPE_RAM_MASK);
 
-    // Remove all unusable regions in case BIOS gave us overlap.
-    regions_remove(usable_regions,unusable_regions);
+        // Remove all unusable regions in case BIOS gave us overlap.
+        regions_remove(usable_regions,unusable_regions);
 
-    // Remove everything above the top address.
-    region_remove(usable_regions,top_addr,0xFFFFFFFFFFFFFFFF);
+        // Remove everything above the top address.
+        region_remove(usable_regions,top_addr,0xFFFFFFFFFFFFFFFF);
 
-    // Remove everything below the sbrk limit.  This includes all of the
-    // kernel image, all of BIOS stuff in low memory and anything that gets
-    // allocated out of the sbrk pool.
-    region_remove(usable_regions,0,(uintptr_t)get_sbrk_limit()-1);
+        // Remove everything below the sbrk limit.  This includes all of the
+        // kernel image, all of BIOS stuff in low memory and anything that gets
+        // allocated out of the sbrk pool.
+        region_remove(usable_regions,0,(uintptr_t)get_sbrk_limit()-1);
 
-    // We are kind of relying on the fact that sbrk() can allocate a contiguous
-    // range without there being any holes in the memory map.  Basically that
-    // means that after removing the top and bottom regions above that we
-    // should have been reduced to a single range.
-    kassert(usable_regions.size() == 1);
-    kassert(usable_regions[0].first == (uintptr_t)get_sbrk_limit());
-    kassert(usable_regions[0].last == top_addr - 1);
+        // We are kind of relying on the fact that sbrk() can allocate a
+        // contiguous range without there being any holes in the memory map.
+        // Basically that means that after removing the top and bottom regions
+        // above that we should have been reduced to a single range.
+        kassert(usable_regions.size() == 1);
+        kassert(usable_regions[0].first == (uintptr_t)get_sbrk_limit());
+        kassert(usable_regions[0].last == top_addr - 1);
 
-    // Populate the free page list.
-    populate_pages(usable_regions,free_page_list);
+        // Populate the free page list.
+        populate_pages(usable_regions,page_list);
+    }
+
+    // The vector<> objects will now have released their two pages back to the
+    // free_page_list.  We want to recover those for the sbrk pool.
+    kassert(free_page_list.size() == 2);
+    page_alloc();
+    page_alloc();
+    kassert(sbrk(0) == (void*)((char*)initial_sbrk + 8192));
+    set_sbrk(initial_sbrk);
+
+    // Finally, move the page list onto the free page list global.
+    free_page_list.append(page_list);
 
     // Walk the page list and tell everyone about it.
     size_t free_pages = free_page_list.size();
     vga->printf("Free mapped RAM: %zuMB (%zu 4K pages)\n",
                 free_pages/256,free_pages);
+    vga->printf("  Free sbrk RAM: %luK\n",
+                ((uint64_t)get_sbrk_limit() - (uint64_t)sbrk(0))/1024);
 }
