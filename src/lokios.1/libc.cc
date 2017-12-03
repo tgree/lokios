@@ -108,13 +108,13 @@ int strcmp(const char* s1, const char* s2)
 }
 
 extern "C"
-size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
+size_t fwrite(const void* ptr, size_t size, size_t nmemb, FILE* stream)
 {
     return 0;
 }
 
 extern "C"
-int fputc(int c, FILE *stream)
+int fputc(int c, FILE* stream)
 {
     return 0;
 }
@@ -126,22 +126,22 @@ int fputs(const char* s, FILE* stream)
 }
 
 extern "C"
-int fprintf(FILE *stream, const char* fmt, ...)
+int fprintf(FILE* stream, const char* fmt, ...)
 {
     return 0;
 }
 
 extern "C"
-ssize_t write(int fd, const void *buf, size_t count)
+ssize_t write(int fd, const void* buf, size_t count)
 {
     return 0;
 }
 
 extern "C"
 int dl_iterate_phdr(
-	 int (*callback) (struct dl_phdr_info *info,
-			  size_t size, void *data),
-	 void *data)
+	 int (*callback) (struct dl_phdr_info* info,
+			  size_t size, void* data),
+	 void* data)
 {
     // This gets called by the exception-handling code to try and start finding
     // exception frame entries for dynamically-loaded objects.  In our case it
