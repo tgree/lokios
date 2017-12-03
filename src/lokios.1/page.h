@@ -16,6 +16,8 @@ namespace kernel
         char    data[];
     };
 
+    void* page_alloc();
+    void page_free(void*);
     void page_preinit(const e820_map* m, uintptr_t top_addr);
 }
 

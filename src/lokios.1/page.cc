@@ -6,6 +6,24 @@
 
 static kernel::klist<kernel::page> free_page_list;
 
+void*
+kernel::page_alloc()
+{
+    kassert(!free_page_list.empty());
+    page* p = klist_front(free_page_list,link);
+    free_page_list.pop_front();
+    p->~page();
+    return p;
+}
+
+void
+kernel::page_free(void* _p)
+{
+    kassert(((uintptr_t)_p & PAGE_OFFSET_MASK) == 0);
+    page* p = new(_p) page;
+    free_page_list.push_back(&p->link); // TODO: We need klist.push_front!
+}
+
 // Given a list of regions in some container, add them to the free page list.
 template<typename C>
 static void
@@ -25,11 +43,7 @@ populate_pages(const C& c)
         uint64_t begin_pfn = begin/PAGE_SIZE;
         uint64_t end_pfn   = end/PAGE_SIZE;
         for (size_t pfn = begin_pfn; pfn != end_pfn; ++pfn)
-        {
-            void* paddr = (void*)(pfn*PAGE_SIZE);
-            kernel::page* p = new(paddr) kernel::page;
-            free_page_list.push_back(&p->link);
-        }
+            kernel::page_free((void*)(pfn*PAGE_SIZE));
     }
 }
 
