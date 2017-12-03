@@ -22,6 +22,27 @@ namespace kernel
     {
         return N;
     }
+
+    template<typename T>
+    constexpr bool is_pow2(T v)
+    {
+        return (v != 0) && ((v & (v-1)) == 0);
+    }
+
+    constexpr unsigned int ulog2(unsigned int v)
+    {
+        return __builtin_ffs(v);
+    }
+
+    constexpr unsigned int ulog2(unsigned long v)
+    {
+        return __builtin_ffsl(v);
+    }
+
+    constexpr unsigned int ulog2(unsigned long long v)
+    {
+        return __builtin_ffsll(v);
+    }
 }
 
 #endif /* __KERNEL_MATH_H */
