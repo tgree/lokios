@@ -1,6 +1,7 @@
 #include "console.h"
 #include "kassert.h"
 #include "sbrk.h"
+#include "page.h"
 #include <stddef.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -10,6 +11,8 @@ FILE* stderr;
 extern "C"
 void* malloc(size_t n)
 {
+    if (n <= PAGE_SIZE)
+        return kernel::page_alloc();
     return kernel::sbrk(n);
 }
 
@@ -22,6 +25,8 @@ void* realloc(void* ptr, size_t size)
 extern "C"
 void free(void* p)
 {
+    kernel::kassert(p >= kernel::sbrk(0));
+    kernel::page_free(p);
 }
 
 extern "C"
