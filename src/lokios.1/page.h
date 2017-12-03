@@ -1,6 +1,7 @@
 #ifndef __KERNEL_PAGE_H
 #define __KERNEL_PAGE_H
 
+#include "types.h"
 #include "klist.h"
 #include "e820.h"
 
@@ -18,6 +19,16 @@ namespace kernel
 
     void* page_alloc();
     void page_free(void*);
+
+    struct page_raii : public non_copyable
+    {
+        void*   addr;
+
+        inline operator void*() {return addr;}
+        inline page_raii():addr(page_alloc()) {}
+        inline ~page_raii() {page_free(addr);}
+    };
+
     void page_preinit(const e820_map* m, uintptr_t top_addr);
 }
 
