@@ -4,12 +4,13 @@
 #include <new>
 
 kernel::console* kernel::vga;
+static uint64_t _vga[(sizeof(*kernel::vga) + sizeof(uint64_t) - 1)/
+                     sizeof(uint64_t)];
 
 void
 kernel::init_console()
 {
-    void* p = sbrk(sizeof(kernel::console));
-    kernel::vga = new(p) console((uint16_t*)kernel::kargs->vga_base);
+    kernel::vga = new(_vga) console((uint16_t*)kernel::kargs->vga_base);
 }
 
 kernel::console::console(uint16_t* base):
