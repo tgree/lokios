@@ -24,22 +24,7 @@ main()
 
     kernel::page_table pt;
     for (auto e : kernel::page_table_iterator((uint64_t*)mfcr3()))
-    {
-        switch (e.len)
-        {
-            case 0x00200000:
-                pt.map_2m_page(e.vaddr,e.paddr,e.page_flags,e.cache_flags);
-            break;
-
-            case 0x00001000:
-                pt.map_4k_page(e.vaddr,e.paddr,e.page_flags,e.cache_flags);
-            break;
-
-            default:
-                kernel::panic("Unsupported page size!");
-            break;
-        }
-    }
+        pt.map_page(e.vaddr,e.paddr,e.len,e.page_flags,e.cache_flags);
     pt.activate();
 
     try
