@@ -33,6 +33,7 @@ kernel::page_table::map_page(void* _vaddr, uint64_t paddr,
 {
     uintptr_t vaddr = (uintptr_t)_vaddr;
     kassert((vaddr & offset_mask) == 0);
+    kassert((vaddr >> 47) == 0x00000 || (vaddr >> 47) == 0x1FFFF);
     kassert((paddr & offset_mask) == 0);
     kassert(0 <= cache_flags && cache_flags <= 3);
 
