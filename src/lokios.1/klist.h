@@ -66,6 +66,21 @@ namespace kernel
                 pop_front();
         }
 
+        inline void append(klist& other)
+        {
+            if (other.empty())
+                return;
+
+            if (tail)
+                tail->next = other.head;
+            else
+                head = other.head;
+
+            tail       = other.tail;
+            other.head = NULL;
+            other.tail = NULL;
+        }
+
         constexpr klist():head(NULL),tail(NULL) {}
         inline ~klist() {kassert(head == NULL && tail == NULL);}
     };
