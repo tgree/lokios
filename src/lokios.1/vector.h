@@ -65,12 +65,13 @@ namespace kernel
         }
 
         template<typename ...Args>
-        void emplace_back(Args&& ...args)
+        T& emplace_back(Args&& ...args)
         {
             kassert(!full());
-            T* mem = &_elems[size()];
-            new((void*)mem) T(std::forward<Args>(args)...);
+            T* t = &_elems[size()];
+            t = new((void*)t) T(std::forward<Args>(args)...);
             ++_size;
+            return *t;
         }
 
         void insert(const iterator pos, const T& val)
