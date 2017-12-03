@@ -21,7 +21,7 @@ namespace kernel
         constexpr size_t    capacity() const {return _capacity;}
                   bool      full() const     {return size() == capacity();}
 
-        inline T& operator[](size_t index)
+        inline T& operator[](size_t index) const
         {
             kassert(index < size());
             return _elems[index];
