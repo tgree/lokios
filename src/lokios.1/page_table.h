@@ -52,6 +52,8 @@ namespace kernel
         inline void activate() const {mtcr3((uint64_t)cr3);}
 
         // Map pages.
+        void    map_1g_page(void* vaddr, uint64_t paddr, uint64_t page_flags,
+                            page_cache_flags cache_flags);
         void    map_2m_page(void* vaddr, uint64_t paddr, uint64_t page_flags,
                             page_cache_flags cache_flags);
         void    map_4k_page(void* vaddr, uint64_t paddr, uint64_t page_flags,

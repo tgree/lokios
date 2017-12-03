@@ -50,6 +50,13 @@ kernel::page_table::map_page(void* _vaddr, uint64_t paddr,
 }
 
 void
+kernel::page_table::map_1g_page(void* vaddr, uint64_t paddr,
+    uint64_t page_flags, page_cache_flags cache_flags)
+{
+    map_page(vaddr,paddr,page_flags,cache_flags,1,(1 << 7),GPAGE_OFFSET_MASK);
+}
+
+void
 kernel::page_table::map_2m_page(void* vaddr, uint64_t paddr,
     uint64_t page_flags, page_cache_flags cache_flags)
 {
