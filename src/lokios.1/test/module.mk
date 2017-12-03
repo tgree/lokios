@@ -3,6 +3,7 @@ TESTS := char_stream_test \
 	 klist_test       \
 	 sort_test        \
 	 region_set_test  \
+	 vector_test      \
 
 char_stream_test.objs := \
 	$(MODULE_BUILD_DIR)/char_stream_test.o \
@@ -21,3 +22,6 @@ sort_test.objs := \
 
 region_set_test.objs := \
     	$(MODULE_BUILD_DIR)/region_set_test.o
+
+vector_test.objs := \
+    	$(MODULE_BUILD_DIR)/vector_test.o
