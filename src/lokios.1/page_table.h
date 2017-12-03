@@ -58,6 +58,8 @@ namespace kernel
                             page_cache_flags cache_flags);
         void    map_4k_page(void* vaddr, uint64_t paddr, uint64_t page_flags,
                             page_cache_flags cache_flags);
+        void    map_page(void* vaddr, uint64_t paddr, size_t page_size,
+                         uint64_t page_flags, page_cache_flags cache_flags);
 
         // Create a blank table.
         page_table();

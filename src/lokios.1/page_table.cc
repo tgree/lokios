@@ -71,6 +71,17 @@ kernel::page_table::map_4k_page(void* vaddr, uint64_t paddr,
 }
 
 void
+kernel::page_table::map_page(void* vaddr, uint64_t paddr, size_t page_size,
+    uint64_t page_flags, page_cache_flags cache_flags)
+{
+    kassert(is_pow2(page_size));
+    kassert((page_size & (PAGE_SIZE | HPAGE_SIZE | GPAGE_SIZE)) != 0);
+    size_t level = 3 - (ulog2(page_size) - 12)/9;
+    uint64_t pte_flags = (level == 3) ? 0 : (1 << 7);
+    map_page(vaddr,paddr,page_flags,cache_flags,level,pte_flags,page_size-1);
+}
+
+void
 kernel::page_table_iterator::operator++()
 {
     while (stack[0].index != 512)
