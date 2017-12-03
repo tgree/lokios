@@ -27,7 +27,7 @@ kernel::page_free(void* _p)
 // Given a list of regions in some container, add them to the free page list.
 template<typename C>
 static void
-populate_pages(const C& c)
+populate_pages(const C& c, kernel::klist<kernel::page>& fpl)
 {
     for (const kernel::region& r : c)
     {
@@ -43,7 +43,12 @@ populate_pages(const C& c)
         uint64_t begin_pfn = begin/PAGE_SIZE;
         uint64_t end_pfn   = end/PAGE_SIZE;
         for (size_t pfn = begin_pfn; pfn != end_pfn; ++pfn)
-            kernel::page_free((void*)(pfn*PAGE_SIZE));
+        {
+            void* _p = (void*)(pfn*PAGE_SIZE);
+            kernel::kassert(((uintptr_t)_p & PAGE_OFFSET_MASK) == 0);
+            kernel::page* p = new(_p) kernel::page;
+            fpl.push_back(&p->link);
+        }
     }
 }
 
@@ -98,7 +103,7 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr)
     kassert(usable_regions[0].last == top_addr - 1);
 
     // Populate the free page list.
-    populate_pages(usable_regions);
+    populate_pages(usable_regions,free_page_list);
 
     // Walk the page list and tell everyone about it.
     size_t free_pages = free_page_list.size();
