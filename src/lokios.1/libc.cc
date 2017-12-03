@@ -65,7 +65,6 @@ size_t strnlen(const char* s, size_t maxlen)
 extern "C"
 void* memcpy(void* dest, const void* src, size_t n)
 {
-    kernel::vga->printf("memcpy\n");
     const char* s = (const char*)src;
     char* d = (char*)dest;
     while (n--)
@@ -103,7 +102,6 @@ void* memset(void* _s, int c, size_t n)
 extern "C"
 int strcmp(const char* s1, const char* s2)
 {
-    kernel::vga->printf("strcmp\n");
     while (*s1 && *s2)
     {
         if (*s1 < *s2)
@@ -181,6 +179,5 @@ int dl_iterate_phdr(
     // exception frame entries for dynamically-loaded objects.  In our case it
     // it will fire if we try to throw off the top of the stack; returning -1
     // is probably the best we can do.
-    kernel::vga->printf("dl_iterate_phdr\n");
     return -1;
 }
