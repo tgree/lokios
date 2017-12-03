@@ -79,6 +79,15 @@ int memcmp(const void* _s1, const void* _s2, size_t n)
 }
 
 extern "C"
+void* memset(void* _s, int c, size_t n)
+{
+    char* s = (char*)_s;
+    while (n--)
+        *s++ = c;
+    return _s;
+}
+
+extern "C"
 int strcmp(const char* s1, const char* s2)
 {
     kernel::vga->printf("strcmp\n");
