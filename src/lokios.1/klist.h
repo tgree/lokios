@@ -2,6 +2,7 @@
 #define __KERNEL_LIST_H
 
 #include "kassert.h"
+#include "container_of.h"
 #include <stddef.h>
 
 namespace kernel
@@ -104,8 +105,8 @@ namespace kernel
         constexpr klist_rbfl_adapter(klist<T>& kl):pos(kl.head) {}
     };
 
-#define klist_head(q,field) \
-    (q.empty() ? NULL : container_of(q.head,typeof(q)::container_type,field))
+#define klist_front(q,field) \
+    (q.empty() ? NULL : container_of(q.head,decltype(q)::container_type,field))
 
 #define klist_elems(q,field) \
     kernel::klist_rbfl_adapter<decltype(q)::container_type, \
