@@ -1,6 +1,8 @@
 #include "page_table.h"
 #include <string.h>
 
+#define PAGE_TABLE_HEIGHT   4
+
 kernel::page_table::page_table()
 {
     cr3 = (uint64_t*)page_alloc();
@@ -26,7 +28,7 @@ kernel::page_table::alloc_pte(uint64_t* entries, uint64_t vaddr, size_t level)
     {
         void* child = page_alloc();
         memset(child,0,PAGE_SIZE);
-        *pte = ((uint64_t)child | 3);
+        *pte = ((uint64_t)child | 3 | ((PAGE_TABLE_HEIGHT - level - 1) << 60));
     }
 
     return alloc_pte((uint64_t*)(*pte & 0x000000FFFFFFF000),vaddr << 9,level-1);
@@ -52,6 +54,7 @@ kernel::page_table::map_page(void* _vaddr, uint64_t paddr,
     if (page_flags & PAGE_FLAG_NOEXEC)
         entry |= (1UL << 63);
     entry |= (uint64_t)cache_flags << 3;
+    entry |= (level << 60);
     *pte = entry;
 }
 
