@@ -31,17 +31,17 @@ namespace kernel
 
     constexpr unsigned int ulog2(unsigned int v)
     {
-        return __builtin_ffs(v);
+        return __builtin_ffs(v) - 1;
     }
 
     constexpr unsigned int ulog2(unsigned long v)
     {
-        return __builtin_ffsl(v);
+        return __builtin_ffsl(v) - 1;
     }
 
     constexpr unsigned int ulog2(unsigned long long v)
     {
-        return __builtin_ffsll(v);
+        return __builtin_ffsll(v) - 1;
     }
 }
 
