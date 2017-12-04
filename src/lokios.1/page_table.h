@@ -106,6 +106,45 @@ namespace kernel
             ++(*this);
         }
     };
+
+    // This iterator iterates over all of the populated internal nodes in the
+    // page table that aren't leaf nodes (i.e. they contain pointers to a
+    // child level in the page table).  The traversal is depth-first; if you
+    // want to remove the child page from the page table that is safe because
+    // we've already iterated over it.
+    struct page_table_nonleaf_iterator
+    {
+        struct stack_frame
+        {
+            uint64_t*   entries;
+            int16_t     index;
+        };
+
+        int         level;
+        stack_frame stack[3];
+
+        inline page_table_nonleaf_iterator&         begin() {return *this;}
+        inline const page_table_nonleaf_iterator&   end()   {return *this;}
+        void                                        operator++();
+
+        inline uint64_t& operator*() const
+        {
+            return stack[level].entries[stack[level].index];
+        }
+
+        inline bool operator!=(const page_table_nonleaf_iterator&) const
+        {
+            return stack[0].index != 512;
+        }
+
+        page_table_nonleaf_iterator(uint64_t* cr3):
+            level(0)
+        {
+            stack[0].entries = cr3;
+            stack[0].index   = -1;
+            ++(*this);
+        }
+    };
 }
 
 #endif /* __KERNEL_PAGE_TABLE_H */

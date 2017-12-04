@@ -140,3 +140,40 @@ kernel::page_table_leaf_iterator::operator*() const
 
     return page_table_entry{(void*)vaddr,paddr,len,page_flags,cache_flags};
 }
+
+void
+kernel::page_table_nonleaf_iterator::operator++()
+{
+    while (stack[0].index != 512)
+    {
+        // If we exhausted this level, pop back to the parent level and visit
+        // that node.
+        int16_t index = ++stack[level].index;
+        if (index == 512)
+        {
+            --level;
+            break;
+        }
+
+        // We are working through this level.  Is this node even present?
+        uint64_t pte = stack[level].entries[index];
+        if (!(pte & 1))
+            continue;
+
+        // If we found a 1G or 2M huge page skip it.
+        if (level > 0 && level < 3 && (pte & (1<<7)))
+            continue;
+
+        // The node is populated and points at a child node.  If we are level
+        // 2 then it points at a page full of 4K entries so we don't recurse
+        // down there and we'll just visit this node.
+        if (level == 2)
+            break;
+
+        // Okay, this points to a child node that may have children of its own.
+        // Recurse.
+        ++level;
+        stack[level].entries = (uint64_t*)(pte & 0x000000FFFFFFF000);
+        stack[level].index   = -1;
+    }
+}
