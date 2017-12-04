@@ -6,6 +6,14 @@
 # be disabled.
 .global  _enter_long_mode
 _enter_long_mode:
+    # Set the PAT MSR to: 
+    #   WB WT WC UC WB WT WC UC
+    # Note that this makes the PTE PAT bit into a "don't care" bit.
+    mov     $0x277, %ecx
+    mov     $0x00010406, %edx
+    mov     $0x00010406, %eax
+    wrmsr
+
     # Load the IDT.
     lidt    _idt_64_desc
 

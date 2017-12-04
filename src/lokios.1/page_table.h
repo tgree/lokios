@@ -8,21 +8,11 @@
 namespace kernel
 {
     // The PAT, PCD and PWT bits select an entry in the page attribute table.
-    // On power-up reset, the page attribute table has the following
-    // configuration:
-    //      P P P
-    //      A C W
-    //      T D T State
-    //      - - - -----
-    //      0 0 0 WB
-    //      0 0 1 WT
-    //      0 1 0 UC-
-    //      0 1 1 UC
-    //      1 0 0 WB
-    //      1 0 1 WT
-    //      1 1 0 UC-
-    //      1 1 1 UC
-    //      -----------
+    // The lokios bootload reprograms the PAT MSR so that the PAT table is:
+    //       0  1  2  3  4  5  6  7
+    //      WB WT WC UC WB WT WC UC
+    // In particular, since this configuration is repeated in both halves of
+    // the MSR it means that the PAT bit in the page tables is "don't care".
 
     // These map directly to indices in the page attribute table register.
     enum page_cache_flags
@@ -45,7 +35,7 @@ namespace kernel
 
         void    map_page(void* vaddr, uint64_t paddr, uint64_t page_flags,
                          page_cache_flags cache_flags, size_t level,
-                         uint64_t pte_flags, uint64_t offset_mask);
+                         uint64_t offset_mask);
     public:
         // Activate the table.
         inline void activate() const {mtcr3((uint64_t)cr3);}

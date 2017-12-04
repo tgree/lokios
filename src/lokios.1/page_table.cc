@@ -35,7 +35,7 @@ kernel::page_table::alloc_pte(uint64_t* entries, uint64_t vaddr, size_t level)
 void
 kernel::page_table::map_page(void* _vaddr, uint64_t paddr,
     uint64_t page_flags, page_cache_flags cache_flags, size_t level,
-    uint64_t pte_flags, uint64_t offset_mask)
+    uint64_t offset_mask)
 {
     uintptr_t vaddr = (uintptr_t)_vaddr;
     kassert((vaddr & offset_mask) == 0);
@@ -46,7 +46,7 @@ kernel::page_table::map_page(void* _vaddr, uint64_t paddr,
     uint64_t* pte = alloc_pte(cr3,vaddr,level);
     kassert(!(*pte & 1));
 
-    uint64_t entry = (paddr | (1 << 0) | pte_flags);
+    uint64_t entry = (paddr | (1 << 0) | (1 << 7));
     if (page_flags & PAGE_FLAG_WRITEABLE)
         entry |= (1 << 1);
     if (page_flags & PAGE_FLAG_NOEXEC)
@@ -59,21 +59,21 @@ void
 kernel::page_table::map_1g_page(void* vaddr, uint64_t paddr,
     uint64_t page_flags, page_cache_flags cache_flags)
 {
-    map_page(vaddr,paddr,page_flags,cache_flags,1,(1 << 7),GPAGE_OFFSET_MASK);
+    map_page(vaddr,paddr,page_flags,cache_flags,1,GPAGE_OFFSET_MASK);
 }
 
 void
 kernel::page_table::map_2m_page(void* vaddr, uint64_t paddr,
     uint64_t page_flags, page_cache_flags cache_flags)
 {
-    map_page(vaddr,paddr,page_flags,cache_flags,2,(1 << 7),HPAGE_OFFSET_MASK);
+    map_page(vaddr,paddr,page_flags,cache_flags,2,HPAGE_OFFSET_MASK);
 }
 
 void
 kernel::page_table::map_4k_page(void* vaddr, uint64_t paddr,
     uint64_t page_flags, page_cache_flags cache_flags)
 {
-    map_page(vaddr,paddr,page_flags,cache_flags,3,0,PAGE_OFFSET_MASK);
+    map_page(vaddr,paddr,page_flags,cache_flags,3,PAGE_OFFSET_MASK);
 }
 
 void
@@ -83,8 +83,7 @@ kernel::page_table::map_page(void* vaddr, uint64_t paddr, size_t page_size,
     kassert(is_pow2(page_size));
     kassert((page_size & (PAGE_SIZE | HPAGE_SIZE | GPAGE_SIZE)) != 0);
     size_t level = 3 - (ulog2(page_size) - 12)/9;
-    uint64_t pte_flags = (level == 3) ? 0 : (1 << 7);
-    map_page(vaddr,paddr,page_flags,cache_flags,level,pte_flags,page_size-1);
+    map_page(vaddr,paddr,page_flags,cache_flags,level,page_size-1);
 }
 
 void
