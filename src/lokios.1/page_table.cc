@@ -82,7 +82,7 @@ kernel::page_table::map_page(void* vaddr, uint64_t paddr, size_t page_size,
 }
 
 void
-kernel::page_table_iterator::operator++()
+kernel::page_table_leaf_iterator::operator++()
 {
     while (stack[0].index != 512)
     {
@@ -114,8 +114,8 @@ kernel::page_table_iterator::operator++()
     }
 }
 
-kernel::page_table_iterator::page_table_entry
-kernel::page_table_iterator::operator*() const
+kernel::page_table_leaf_iterator::page_table_entry
+kernel::page_table_leaf_iterator::operator*() const
 {
     uint64_t vaddr = 0;
     if (stack[0].index >= 0x0100)

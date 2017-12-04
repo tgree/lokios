@@ -65,7 +65,10 @@ namespace kernel
         page_table();
     };
 
-    struct page_table_iterator
+    // This iterator iterates over all of the populated leaf nodes in the page
+    // table (i.e. the PTEs that directly describe a present 1G, 2M or 4K
+    // page).
+    struct page_table_leaf_iterator
     {
         struct stack_frame
         {
@@ -85,17 +88,17 @@ namespace kernel
         int         level;
         stack_frame stack[4];
 
-        inline page_table_iterator&         begin() {return *this;}
-        inline const page_table_iterator&   end()   {return *this;}
-        void                                operator++();
-        page_table_entry                    operator*() const;
+        inline page_table_leaf_iterator&        begin() {return *this;}
+        inline const page_table_leaf_iterator&  end()   {return *this;}
+        void                                    operator++();
+        page_table_entry                        operator*() const;
 
-        inline bool operator!=(const page_table_iterator&) const
+        inline bool operator!=(const page_table_leaf_iterator&) const
         {
             return stack[0].index != 512;
         }
 
-        page_table_iterator(uint64_t* cr3):
+        page_table_leaf_iterator(uint64_t* cr3):
             level(0)
         {
             stack[0].entries = cr3;
