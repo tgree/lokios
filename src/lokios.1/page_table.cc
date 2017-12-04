@@ -104,12 +104,8 @@ kernel::page_table_leaf_iterator::operator++()
         if (!(pte & 1))
             continue;
 
-        // Check if we found a 4K page.
-        if (level == 3)
-            break;
-
-        // Check if we found a huge page.
-        if (level > 0 && level < 3 && (pte & (1<<7)))
+        // Check if we found a page.
+        if (pte & (1<<7))
             break;
 
         // Recurse.
@@ -165,8 +161,8 @@ kernel::page_table_nonleaf_iterator::operator++()
         if (!(pte & 1))
             continue;
 
-        // If we found a 1G or 2M huge page skip it.
-        if (level > 0 && level < 3 && (pte & (1<<7)))
+        // If this entry maps a page, skip it.
+        if (pte & (1<<7))
             continue;
 
         // The node is populated and points at a child node.  If we are level
