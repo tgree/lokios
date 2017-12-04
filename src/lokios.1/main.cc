@@ -24,7 +24,7 @@ main()
 
     kernel::page_table pt;
     for (auto e : kernel::page_table_leaf_iterator((uint64_t*)mfcr3()))
-        pt.map_page(e.vaddr,e.paddr,e.len,e.page_flags,e.cache_flags);
+        pt.map_page(e.vaddr,e.get_paddr(),e.get_len(),e.pte);
     pt.activate();
 
     try
