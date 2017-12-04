@@ -3,9 +3,15 @@
 
 kernel::page_table::page_table()
 {
-    pages.emplace_back();
-    cr3 = (uint64_t*)pages[0].addr;
+    cr3 = (uint64_t*)page_alloc();
     memset(cr3,0,PAGE_SIZE);
+}
+
+kernel::page_table::~page_table()
+{
+    for (auto& pte : page_table_nonleaf_iterator(cr3))
+        page_free((void*)(pte & 0x000000FFFFFFF000));
+    page_free(cr3);
 }
 
 uint64_t*
@@ -18,7 +24,7 @@ kernel::page_table::alloc_pte(uint64_t* entries, uint64_t vaddr, size_t level)
 
     if (!(*pte & 1))
     {
-        void* child = pages.emplace_back().addr;
+        void* child = page_alloc();
         memset(child,0,PAGE_SIZE);
         *pte = ((uint64_t)child | 3);
     }

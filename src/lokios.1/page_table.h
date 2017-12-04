@@ -40,7 +40,6 @@ namespace kernel
     class page_table
     {
         uint64_t*           cr3;
-        vector<page_raii>   pages;
 
         uint64_t*   alloc_pte(uint64_t* entries, uint64_t vaddr, size_t level);
 
@@ -63,6 +62,7 @@ namespace kernel
 
         // Create a blank table.
         page_table();
+        ~page_table();
     };
 
     // This iterator iterates over all of the populated leaf nodes in the page
