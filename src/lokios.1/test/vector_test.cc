@@ -30,9 +30,9 @@ struct default_constructible_entry : public entry
 };
 
 void
-kernel::panic(const char* s) noexcept
+kernel::vpanic(const char* fmt, va_list ap) noexcept
 {
-    tmock::abort(s);
+    tmock::vabort(fmt,ap);
 }
 
 void*

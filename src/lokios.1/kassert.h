@@ -2,6 +2,7 @@
 #define __KERNEL_ASSERT_H
 
 #include <stdint.h>
+#include <stdarg.h>
 
 namespace kernel
 {
@@ -13,20 +14,44 @@ namespace kernel
     halt() noexcept __attribute__((noreturn));
 
     void
-    panic(const char* s = "") noexcept __attribute__((noreturn));
+    vpanic(const char* fmt, va_list ap) noexcept __attribute__((noreturn));
 
+    __attribute__((noreturn,format(printf,1,2)))
     inline void
-    _kassert(bool expr, const char* s)
+    panic(const char* fmt, ...) noexcept
+    {
+        va_list ap;
+        va_start(ap,fmt);
+        vpanic(fmt,ap);
+        va_end(ap);
+    }
+
+     __attribute__((noreturn))
+    inline void
+    panic(int line = __builtin_LINE(), const char* file = __builtin_FILE())
+        noexcept
+    {
+        panic("%s:%d",file,line);
+    }
+
+    __attribute__((format(printf,2,3)))
+    inline void
+    _kassert(bool expr, const char* fmt, ...)
     {
         if (!expr)
-            panic(s);
+        {
+            va_list ap;
+            va_start(ap,fmt);
+            vpanic(fmt,ap);
+            va_end(ap);
+        }
     }
 }
 
 #define _LINESTR(l) #l
 #define LINESTR(l) _LINESTR(l)
 #define FILELINESTR __FILE__ ":" LINESTR(__LINE__)
-#define kassert(exp) _kassert((exp),FILELINESTR ":" #exp)
+#define kassert(exp,...) _kassert((exp),FILELINESTR ":" #exp __VA_ARGS__)
 #define KASSERT(exp) static_assert(exp, #exp)
 
 #endif /* __KERNEL_ASSERT_H */

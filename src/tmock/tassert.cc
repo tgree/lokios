@@ -3,10 +3,10 @@
 #include <stdio.h>
 
 void
-tmock::abort(const char* s)
+tmock::vabort(const char* fmt, va_list ap)
 {
     if (!(tmock::internal::mode_flags & TMOCK_MODE_FLAG_SILENT))
-        printf("%s\n",s);
+        vprintf(fmt,ap);
     ::abort();
 }
 

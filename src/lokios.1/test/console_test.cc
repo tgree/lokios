@@ -9,9 +9,9 @@ static const kernel::kernel_args args = {0,(uintptr_t)conbuf,0};
 const kernel::kernel_args* kernel::kargs = &args;
 
 void
-kernel::panic(const char* s) noexcept
+kernel::vpanic(const char* fmt, va_list ap) noexcept
 {
-    tmock::abort(s);
+    tmock::vabort(fmt,ap);
 }
 
 void*

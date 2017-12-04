@@ -9,7 +9,7 @@
 namespace tmock
 {
     // Abort with an error message.
-    void abort(const char* s) __attribute__((noreturn));
+    void vabort(const char* fmt, va_list ap) __attribute__((noreturn));
 
     // Assert that two objects are equivalent.  For values it is just a simple
     // comparison with ==.  For things like const char* it will do a string

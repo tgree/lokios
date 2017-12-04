@@ -85,7 +85,7 @@ clean:
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cc
 	@echo Compiling $(SRC_DIR)/$*.cc...
 	@mkdir -p $(dir $@)
-	@$(CXX) -MMD -MP -MF $(BUILD_DIR)/$*.d -c $(CXXFLAGS) $(SRC_DIR)/$*.cc -o $@
+	$(CXX) -MMD -MP -MF $(BUILD_DIR)/$*.d -c $(CXXFLAGS) $(SRC_DIR)/$*.cc -o $@
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.s
 	@echo Assembling $^...

@@ -1,5 +1,6 @@
 #include "kassert.h"
 #include "kernel_args.h"
+#include "string_stream.h"
 #include <stdlib.h>
 
 void
@@ -34,11 +35,15 @@ abort()
 }
 
 void
-kernel::panic(const char* s) noexcept
+kernel::vpanic(const char* fmt, va_list ap) noexcept
 {
     // Draw the message in hilited red text at the top-left corner of the
     // screen.
     kernel::vgawrite(0,0,"Kernel panic");
-    kernel::vgawrite(0,1,s);
+
+    fixed_string_stream<256> ss;
+    ss.vprintf(fmt,ap);
+    kernel::vgawrite(0,1,ss);
+
     kernel::halt();
 }
