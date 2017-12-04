@@ -23,8 +23,8 @@ init()
 
     // Initialize the free page list with whatever the bootloader has mapped
     // for us.
-    uintptr_t top_addr = (kernel::kargs->highest_pte_val & PAGE_PFN_MASK) +
-                         2*1024*1024;
+    uintptr_t top_addr =
+        (kernel::kargs->highest_pte_val & 0x000000FFFFFFF000) + 2*1024*1024;
     kernel::page_preinit(kernel::kargs->e820_base,top_addr);
 
     // Do the __preinit array.
