@@ -37,3 +37,45 @@ tmock::assert_equiv(uint16_t v, uint16_t expected)
         exit(-1);
     }
 }
+
+void
+tmock::assert_equiv(uint64_t v, uint64_t expected)
+{
+    if (v != expected)
+    {
+        if (!(tmock::internal::mode_flags & TMOCK_MODE_FLAG_SILENT))
+        {
+            printf("Expected: 0x%016lX\n",expected);
+            printf("     Got: 0x%016lX\n",v);
+        }
+        exit(-1);
+    }
+}
+
+void
+tmock::assert_equiv(int32_t v, int32_t expected)
+{
+    if (v != expected)
+    {
+        if (!(tmock::internal::mode_flags & TMOCK_MODE_FLAG_SILENT))
+        {
+            printf("Expected: %u\n",expected);
+            printf("     Got: %u\n",v);
+        }
+        exit(-1);
+    }
+}
+
+void
+tmock::assert_equiv(int64_t v, int64_t expected)
+{
+    if (v != expected)
+    {
+        if (!(tmock::internal::mode_flags & TMOCK_MODE_FLAG_SILENT))
+        {
+            printf("Expected: %lu\n",expected);
+            printf("     Got: %lu\n",v);
+        }
+        exit(-1);
+    }
+}

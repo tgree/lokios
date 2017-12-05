@@ -58,7 +58,7 @@ class tmock_test
         kl.push_back(&o1.link);
         kl.push_back(&o4.link);
 
-        tmock::assert_equiv(kl.size(),3);
+        tmock::assert_equiv(kl.size(),3U);
 
         kl.pop_all();
     }

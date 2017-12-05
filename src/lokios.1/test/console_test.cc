@@ -25,14 +25,14 @@ class tmock_test
     TMOCK_TEST(test_screen_initialized)
     {
         for (uint16_t v : conbuf)
-            tmock::assert_equiv(v,0x1F20);
+            tmock::assert_equiv(v,0x1F20U);
     }
 
     TMOCK_TEST(test_putc)
     {
-        tmock::assert_equiv(conbuf[0],0x1F20);
+        tmock::assert_equiv(conbuf[0],0x1F20U);
         kernel::vga->_putc('T');
-        tmock::assert_equiv(conbuf[0],0x1F00 | 'T');
+        tmock::assert_equiv(conbuf[0],0x1F00U | 'T');
     }
 };
 

@@ -18,6 +18,9 @@ namespace tmock
     // comparison.
     void assert_equiv(const char* s, const char* expected);
     void assert_equiv(uint16_t v, uint16_t expected);
+    void assert_equiv(uint64_t v, uint64_t expected);
+    void assert_equiv(int32_t v, int32_t expected);
+    void assert_equiv(int64_t v, int64_t expected);
 
     int run_tests(int argc, const char* argv[]);
 
