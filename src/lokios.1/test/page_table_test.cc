@@ -96,6 +96,39 @@ class tmock_test
         TASSERT(page_alloc_count == 1);
         TASSERT(page_free_count == 1);
     }
+
+    TMOCK_TEST(test_4k_level_fields_work)
+    {
+        kernel::page_table pt;
+        pt.map_4k_page((void*)0,0,PAGE_FLAG_WRITEABLE);
+        TASSERT((pt.cr3[0] & ~PAGE_PADDR_MASK) == 0x0000000000000003UL);
+        uint64_t* l2 = (uint64_t*)(pt.cr3[0] & PAGE_PADDR_MASK);
+        TASSERT((l2[0] & ~PAGE_PADDR_MASK) == 0x1000000000000003UL);
+        uint64_t* l3 = (uint64_t*)(l2[0] & PAGE_PADDR_MASK);
+        TASSERT((l3[0] & ~PAGE_PADDR_MASK) == 0x2000000000000003UL);
+        uint64_t* l4 = (uint64_t*)(l3[0] & PAGE_PADDR_MASK);
+        TASSERT(l4[0] == 0x3000000000000083UL);
+    }
+
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_2m_level_fields_work)
+    {
+        kernel::page_table pt;
+        pt.map_2m_page((void*)0,0,PAGE_FLAG_WRITEABLE);
+        TASSERT((pt.cr3[0] & ~PAGE_PADDR_MASK) == 0x0000000000000003UL);
+        uint64_t* l2 = (uint64_t*)(pt.cr3[0] & PAGE_PADDR_MASK);
+        TASSERT((l2[0] & ~PAGE_PADDR_MASK) == 0x1000000000000003UL);
+        uint64_t* l3 = (uint64_t*)(l2[0] & PAGE_PADDR_MASK);
+        TASSERT(l3[0] == 0x2000000000000083UL);
+    }
+
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_1g_level_fields_work)
+    {
+        kernel::page_table pt;
+        pt.map_1g_page((void*)0,0,PAGE_FLAG_WRITEABLE);
+        TASSERT((pt.cr3[0] & ~PAGE_PADDR_MASK) == 0x0000000000000003UL);
+        uint64_t* l2 = (uint64_t*)(pt.cr3[0] & PAGE_PADDR_MASK);
+        TASSERT(l2[0] == 0x1000000000000083UL);
+    }
 };
 
 TMOCK_MAIN();

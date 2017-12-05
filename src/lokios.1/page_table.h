@@ -5,6 +5,8 @@
 #include "vector.h"
 #include "x86.h"
 
+class tmock_test;
+
 namespace kernel
 {
     // The PAT, PCD and PWT bits select an entry in the page attribute table.
@@ -71,6 +73,8 @@ namespace kernel
         // Create a blank table.
         page_table();
         ~page_table();
+
+        friend class ::tmock_test;
     };
 
     // Type returned from the page table iterator classes.
