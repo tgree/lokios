@@ -28,6 +28,34 @@ kernel::page_free(void* p)
     free(p);
 }
 
+struct pte_check
+{
+    size_t      levels;
+    size_t      vaddr;
+    uint64_t    mask;
+    uint64_t    val;
+};
+
+template<size_t N>
+static void check_ptes(uint64_t* cr3, const pte_check (&positions)[N])
+{
+
+    for (const pte_check& pos : positions)
+    {
+        uint64_t* page = cr3;
+        uint64_t vaddr = pos.vaddr;
+        size_t index   = ((vaddr >> 39) & 0x1FF);
+        for (size_t i = 0; i != pos.levels - 1; ++i)
+        {
+            page    = (uint64_t*)(page[index] & PAGE_PADDR_MASK);
+            vaddr <<= 9;
+            index   = ((vaddr >> 39) & 0x1FF);
+        }
+        uint64_t pte = page[index];
+        tmock::assert_equiv(pte & pos.mask,pos.val);
+    }
+}
+
 class tmock_test
 {
     TMOCK_TEST(test_page_table_iterator_all_empty_page_works)
@@ -140,6 +168,104 @@ class tmock_test
     {
         kernel::page_table pt;
         pt.map_4k_page((void*)0x8000000000000000UL,0UL,PAGE_FLAG_WRITEABLE);
+    }
+
+    TMOCK_TEST(test_random_map_4k_works)
+    {
+        {
+            kernel::page_table pt;
+            pt.map_4k_page((void*)0x0000123456789000,0x000000ABCDEFF000,0);
+            TASSERT(page_alloc_count == 4);
+            TASSERT(page_free_count == 0);
+
+            pte_check ptes[] = {
+                {1,0x0000123456789000,~PAGE_PADDR_MASK,  0x0000000000000003UL},
+                {2,0x0000123456789000,~PAGE_PADDR_MASK,  0x1000000000000003UL},
+                {3,0x0000123456789000,~PAGE_PADDR_MASK,  0x2000000000000003UL},
+                {4,0x0000123456789000,0xFFFFFFFFFFFFFFFF,0x300000ABCDEFF081UL},
+            };
+            check_ptes(pt.cr3,ptes);
+        }
+        TASSERT(page_alloc_count == 4);
+        TASSERT(page_free_count == 4);
+    }
+
+    TMOCK_TEST(test_random_map_2m_works)
+    {
+        {
+            kernel::page_table pt;
+            pt.map_2m_page((void*)0x00002468ACE00000,0x000000ABCDE00000,0);
+            TASSERT(page_alloc_count == 3);
+            TASSERT(page_free_count == 0);
+
+            pte_check ptes[] = {
+                {1,0x00002468ACE00000,~PAGE_PADDR_MASK,  0x0000000000000003UL},
+                {2,0x00002468ACE00000,~PAGE_PADDR_MASK,  0x1000000000000003UL},
+                {3,0x00002468ACE00000,0xFFFFFFFFFFFFFFFF,0x200000ABCDE00081UL},
+            };
+            check_ptes(pt.cr3,ptes);
+        }
+        TASSERT(page_alloc_count == 3);
+        TASSERT(page_free_count == 3);
+    }
+
+    TMOCK_TEST(test_random_map_1g_works)
+    {
+        {
+            kernel::page_table pt;
+            pt.map_1g_page((void*)0x00000000C0000000UL,0x0000000140000000UL,
+                            PAGE_FLAG_WRITEABLE);
+            TASSERT(page_alloc_count == 2);
+            TASSERT(page_free_count == 0);
+
+            pte_check ptes[] = {
+                {1,0x00000000C0000000,~PAGE_PADDR_MASK,  0x0000000000000003UL},
+                {2,0x00000000C0000000,0xFFFFFFFFFFFFFFFF,0x1000000140000083UL},
+            };
+            check_ptes(pt.cr3,ptes);
+        }
+        TASSERT(page_alloc_count == 2);
+        TASSERT(page_free_count == 2);
+    }
+
+    TMOCK_TEST(test_mixed_mappings_on_shared_page_table_pages_work)
+    {
+        {
+            kernel::page_table pt;
+            pt.map_1g_page((void*)0x00000000C0000000UL,0x0000000140000000UL,
+                            PAGE_FLAG_WRITEABLE);
+            pt.map_2m_page((void*)0x0000000000400000,0x000000ABCDE00000,0);
+            pt.map_2m_page((void*)0x0000000000200000,0x000000ABCE000000,0);
+            pt.map_4k_page((void*)0x0000000000000000,0x0000000000001000,0);
+            pt.map_4k_page((void*)0x0000000000001000,0x000000FFFFFFF000,0);
+            TASSERT(page_alloc_count == 4);
+            TASSERT(page_free_count == 0);
+
+            pte_check ptes[] = {
+                {1,0x00000000C0000000,~PAGE_PADDR_MASK,  0x0000000000000003UL},
+                {1,0x0000000000400000,~PAGE_PADDR_MASK,  0x0000000000000003UL},
+                {1,0x0000000000200000,~PAGE_PADDR_MASK,  0x0000000000000003UL},
+                {1,0x0000000000000000,~PAGE_PADDR_MASK,  0x0000000000000003UL},
+                {1,0x0000000000001000,~PAGE_PADDR_MASK,  0x0000000000000003UL},
+
+                {2,0x00000000C0000000,0xFFFFFFFFFFFFFFFF,0x1000000140000083UL},
+                {2,0x0000000000400000,~PAGE_PADDR_MASK,  0x1000000000000003UL},
+                {2,0x0000000000200000,~PAGE_PADDR_MASK,  0x1000000000000003UL},
+                {2,0x0000000000000000,~PAGE_PADDR_MASK,  0x1000000000000003UL},
+                {2,0x0000000000001000,~PAGE_PADDR_MASK,  0x1000000000000003UL},
+
+                {3,0x0000000000400000,0xFFFFFFFFFFFFFFFF,0x200000ABCDE00081UL},
+                {3,0x0000000000200000,0xFFFFFFFFFFFFFFFF,0x200000ABCE000081UL},
+                {3,0x0000000000000000,~PAGE_PADDR_MASK,  0x2000000000000003UL},
+                {3,0x0000000000001000,~PAGE_PADDR_MASK,  0x2000000000000003UL},
+
+                {4,0x0000000000000000,0xFFFFFFFFFFFFFFFF,0x3000000000001081UL},
+                {4,0x0000000000001000,0xFFFFFFFFFFFFFFFF,0x300000FFFFFFF081UL},
+            };
+            check_ptes(pt.cr3,ptes);
+        }
+        TASSERT(page_alloc_count == 4);
+        TASSERT(page_free_count == 4);
     }
 };
 
