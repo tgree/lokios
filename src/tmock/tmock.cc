@@ -16,8 +16,8 @@ struct test_case
 static tmock::internal::test_case_info* test_cases;
 uint64_t tmock::internal::mode_flags = 0;
 
-tmock::internal::test_case_registrar::test_case_registrar(
-    tmock::internal::test_case_info* tci)
+void
+tmock::internal::register_test_case(tmock::internal::test_case_info* tci)
 {
     tci->next = NULL;
 

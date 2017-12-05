@@ -36,9 +36,14 @@ namespace tmock
             pid_t               pid;
         };
 
+        void register_test_case(test_case_info* tci);
+
         struct test_case_registrar
         {
-            test_case_registrar(test_case_info* tci);
+            inline test_case_registrar(test_case_info* tci)
+            {
+                register_test_case(tci);
+            }
         };
 
 #define TMOCK_MODE_FLAG_SILENT  (1<<0)  // Don't print expected vs. actual
