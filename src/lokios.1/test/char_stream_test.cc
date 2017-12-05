@@ -47,94 +47,97 @@ kernel::panic(const char* s) noexcept
     tmock::abort(s);
 }
 
-TMOCK_TEST(test_fixed_string_stream)
+class tmock_test
 {
-    kernel::fixed_string_stream<10> fs;
-    fs.printf("Hello, world!");
-    tmock::assert_equiv(fs,"Hello, wo");
-}
+    TMOCK_TEST(test_fixed_string_stream)
+    {
+        kernel::fixed_string_stream<10> fs;
+        fs.printf("Hello, world!");
+        tmock::assert_equiv(fs,"Hello, wo");
+    }
 
-TMOCK_TEST(test_fmt_unsigned_int)
-{
-    static fmt_test_case<unsigned int> uint_tests[] = {
-        {12345,     "%u"  },
-        {12345,     "%8u" },
-        {12345,     "%08u"},
-        {12345,     "%08d"},
-        {0x2468ABCD,"%08X"},
-        {0x12EF,    "%X"  },
-        {0x789AB,   "%08X"},
-        {0x2468ABCD,"%08x"},
-        {0x12EF,    "%x"  },
-        {0x789AB,   "%08x"},
-    };
-    run_fmt_tests(uint_tests);
-}
+    TMOCK_TEST(test_fmt_unsigned_int)
+    {
+        static fmt_test_case<unsigned int> uint_tests[] = {
+            {12345,     "%u"  },
+            {12345,     "%8u" },
+            {12345,     "%08u"},
+            {12345,     "%08d"},
+            {0x2468ABCD,"%08X"},
+            {0x12EF,    "%X"  },
+            {0x789AB,   "%08X"},
+            {0x2468ABCD,"%08x"},
+            {0x12EF,    "%x"  },
+            {0x789AB,   "%08x"},
+        };
+        run_fmt_tests(uint_tests);
+    }
 
-TMOCK_TEST(test_fmt_positive_int)
-{
-    static fmt_test_case<int> int_tests[] = {
-        {12345,"%d"},
-        {2222, "%08d"},
-        {4321, "%-08d"},
-        {98765,"%+d"},
-        {1357, "% d"},
-        {1357, "%+ d"},
-        {11111,"%+8d"},
-        {2222, "% 8d"},
-        {3333, "%+ 8d"},
-        {44444,"%-+8d"},
-        {5555, "%- 8d"},
-        {6666, "%-+ 8d"},
-        {7777, "%+ 1d"},
-    };
-    run_fmt_tests(int_tests);
-}
+    TMOCK_TEST(test_fmt_positive_int)
+    {
+        static fmt_test_case<int> int_tests[] = {
+            {12345,"%d"},
+            {2222, "%08d"},
+            {4321, "%-08d"},
+            {98765,"%+d"},
+            {1357, "% d"},
+            {1357, "%+ d"},
+            {11111,"%+8d"},
+            {2222, "% 8d"},
+            {3333, "%+ 8d"},
+            {44444,"%-+8d"},
+            {5555, "%- 8d"},
+            {6666, "%-+ 8d"},
+            {7777, "%+ 1d"},
+        };
+        run_fmt_tests(int_tests);
+    }
 
-TMOCK_TEST(test_fmt_negative_int)
-{
-    static fmt_test_case<int> int_tests[] = {
-        {-12345,"%d"},
-        {-2222, "%08d"},
-        {-4321, "%-08d"},
-        {-4321, "%- 8d"},
-        {-1,    "%1d"},
-        {-100,  "%1d"},
-        {-123,  "%+d"},
-    };
-    run_fmt_tests(int_tests);
-}
+    TMOCK_TEST(test_fmt_negative_int)
+    {
+        static fmt_test_case<int> int_tests[] = {
+            {-12345,"%d"},
+            {-2222, "%08d"},
+            {-4321, "%-08d"},
+            {-4321, "%- 8d"},
+            {-1,    "%1d"},
+            {-100,  "%1d"},
+            {-123,  "%+d"},
+        };
+        run_fmt_tests(int_tests);
+    }
 
-TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_octal_int)
-{
-    static fmt_test_case<int> int_tests[] = {
-        {12345,"%o"},
-    };
-    run_fmt_tests(int_tests);
-}
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_octal_int)
+    {
+        static fmt_test_case<int> int_tests[] = {
+            {12345,"%o"},
+        };
+        run_fmt_tests(int_tests);
+    }
 
-TMOCK_TEST(test_fmt_string)
-{
-    static fmt_test_case<const char*> string_tests[] = {
-        {"hello", "%s"    },
-        {"asdf",  "%8s"   },
-        {"asdf",  "%-8s"  },
-        {"ohayoo","%.3s"  },
-        {"ohayoo","%.20s" },
-        {"ohayoo","%8.3s" },
-        {"ohayoo","%-8.3s"},
-        {"hello", "%8.7s" },
-        {"hello", "-%8.7s"},
-    };
-    run_fmt_tests(string_tests);
-}
+    TMOCK_TEST(test_fmt_string)
+    {
+        static fmt_test_case<const char*> string_tests[] = {
+            {"hello", "%s"    },
+            {"asdf",  "%8s"   },
+            {"asdf",  "%-8s"  },
+            {"ohayoo","%.3s"  },
+            {"ohayoo","%.20s" },
+            {"ohayoo","%8.3s" },
+            {"ohayoo","%-8.3s"},
+            {"hello", "%8.7s" },
+            {"hello", "-%8.7s"},
+        };
+        run_fmt_tests(string_tests);
+    }
 
-TMOCK_TEST(test_random_hex_strings)
-{
-    test_random_string("Hello 0x%08X %p asdf\n",0xa1b2c3d4,(void*)12345);
-    test_random_string("%.0d",0);
-    test_random_string("%.0d",12345);
-    test_random_string("%016lX",(uint64_t)0);
-}
+    TMOCK_TEST(test_random_hex_strings)
+    {
+        test_random_string("Hello 0x%08X %p asdf\n",0xa1b2c3d4,(void*)12345);
+        test_random_string("%.0d",0);
+        test_random_string("%.0d",12345);
+        test_random_string("%016lX",(uint64_t)0);
+    }
+};
 
 TMOCK_MAIN();

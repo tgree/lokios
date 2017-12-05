@@ -20,18 +20,21 @@ kernel::sbrk(size_t n)
     return malloc(n);
 }
 
-TMOCK_TEST(test_screen_initialized)
+class tmock_test
 {
-    for (uint16_t v : conbuf)
-        tmock::assert_equiv(v,0x1F20);
-}
+    TMOCK_TEST(test_screen_initialized)
+    {
+        for (uint16_t v : conbuf)
+            tmock::assert_equiv(v,0x1F20);
+    }
 
-TMOCK_TEST(test_putc)
-{
-    tmock::assert_equiv(conbuf[0],0x1F20);
-    kernel::vga->_putc('T');
-    tmock::assert_equiv(conbuf[0],0x1F00 | 'T');
-}
+    TMOCK_TEST(test_putc)
+    {
+        tmock::assert_equiv(conbuf[0],0x1F20);
+        kernel::vga->_putc('T');
+        tmock::assert_equiv(conbuf[0],0x1F00 | 'T');
+    }
+};
 
 int
 main(int argc, const char* argv[])

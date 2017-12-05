@@ -52,11 +52,12 @@ namespace tmock
 }
 
 #define _TMOCK_TEST(fn,flags) \
-    static void fn();                                       \
-    static tmock::internal::test_case_info                  \
-        fn ## _test_case_info = {NULL,fn,#fn,flags};        \
-    static tmock::internal::test_case_registrar             \
-        fn ## _test_case_registrar(&fn ## _test_case_info); \
+    __attribute__((constructor))                                            \
+    static void fn ## _test_case_registrar()                                \
+    {                                                                       \
+        static tmock::internal::test_case_info tci = {NULL,fn,#fn,flags};   \
+        tmock::internal::register_test_case(&tci);                          \
+    }                                                                       \
     static void fn()
 
 // Define tests.  There is actually a matrix of test results and the defines
