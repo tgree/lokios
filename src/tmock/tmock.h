@@ -1,6 +1,7 @@
 #ifndef __TMOCK_H
 #define __TMOCK_H
 
+#include <hdr/fileline.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,6 +11,7 @@ namespace tmock
 {
     // Abort with an error message.
     void abort(const char* s) __attribute__((noreturn));
+#define TASSERT(expr) if (!(expr)) tmock::abort(FILELINESTR ": " #expr)
 
     // Assert that two objects are equivalent.  For values it is just a simple
     // comparison with ==.  For things like const char* it will do a string
