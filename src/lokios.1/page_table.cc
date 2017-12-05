@@ -69,8 +69,12 @@ kernel::page_table_iterator::operator++()
 {
     while (stack[0].index != 512)
     {
-        // If we exhausted this level, pop back to the parent level.
+        // Advance and make sure we didn't hit the end.
         size_t index = ++stack[level].index;
+        if (stack[0].index == 512)
+            break;
+
+        // If we exhausted this level, pop back to the parent level.
         if (index == 512)
         {
             // If the user cares, yield it.
