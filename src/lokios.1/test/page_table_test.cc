@@ -130,7 +130,7 @@ class tmock_test
         TASSERT(l2[0] == 0x1000000000000083UL);
     }
 
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_canonical_form_works)
+    TMOCK_TEST(test_canonical_form_works)
     {
         kernel::page_table pt;
         pt.map_4k_page((void*)0xFFFF800000000000UL,0UL,PAGE_FLAG_WRITEABLE);

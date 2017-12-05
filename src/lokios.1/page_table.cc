@@ -10,7 +10,7 @@ kernel::page_table::page_table()
 kernel::page_table::~page_table()
 {
     for (auto pte : page_table_nonleaf_iterator(cr3))
-        page_free(pte.vaddr);
+        page_free((void*)(pte.pte & PAGE_PADDR_MASK));
     page_free(cr3);
 }
 
