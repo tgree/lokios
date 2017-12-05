@@ -135,6 +135,12 @@ class tmock_test
         kernel::page_table pt;
         pt.map_4k_page((void*)0xFFFF800000000000UL,0UL,PAGE_FLAG_WRITEABLE);
     }
+
+    TMOCK_TEST_EXPECT_FAILURE(test_canonical_form_requirement)
+    {
+        kernel::page_table pt;
+        pt.map_4k_page((void*)0x8000000000000000UL,0UL,PAGE_FLAG_WRITEABLE);
+    }
 };
 
 TMOCK_MAIN();
