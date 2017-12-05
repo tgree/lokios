@@ -110,7 +110,7 @@ class tmock_test
         TASSERT(l4[0] == 0x3000000000000083UL);
     }
 
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_2m_level_fields_work)
+    TMOCK_TEST(test_2m_level_fields_work)
     {
         kernel::page_table pt;
         pt.map_2m_page((void*)0,0,PAGE_FLAG_WRITEABLE);
@@ -121,7 +121,7 @@ class tmock_test
         TASSERT(l3[0] == 0x2000000000000083UL);
     }
 
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_1g_level_fields_work)
+    TMOCK_TEST(test_1g_level_fields_work)
     {
         kernel::page_table pt;
         pt.map_1g_page((void*)0,0,PAGE_FLAG_WRITEABLE);

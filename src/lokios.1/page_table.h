@@ -51,7 +51,8 @@ namespace kernel
     {
         uint64_t* cr3;
 
-        uint64_t*   alloc_pte(uint64_t* entries, uint64_t vaddr, size_t level);
+        uint64_t*   alloc_pte(uint64_t* entries, uint64_t vaddr, size_t level,
+                              size_t depth = 0);
         void        map_page(void* vaddr, uint64_t paddr, uint64_t flags,
                              size_t level, uint64_t offset_mask);
 

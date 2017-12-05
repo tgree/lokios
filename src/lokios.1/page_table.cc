@@ -15,7 +15,8 @@ kernel::page_table::~page_table()
 }
 
 uint64_t*
-kernel::page_table::alloc_pte(uint64_t* entries, uint64_t vaddr, size_t level)
+kernel::page_table::alloc_pte(uint64_t* entries, uint64_t vaddr, size_t level,
+    size_t depth)
 {
     uint16_t index = ((vaddr >> 39) & 0x01FF);
     uint64_t* pte = &entries[index];
@@ -26,13 +27,14 @@ kernel::page_table::alloc_pte(uint64_t* entries, uint64_t vaddr, size_t level)
     {
         uint64_t child = (uint64_t)page_alloc();
         memset((void*)child,0,PAGE_SIZE);
-        *pte = (((PAGE_TABLE_HEIGHT - level - 1) << 60) |
-                child                                   |
-                PAGE_FLAG_PRESENT                       |
+        *pte = ((depth << 60)     |
+                child             |
+                PAGE_FLAG_PRESENT |
                 PAGE_FLAG_WRITEABLE);
     }
 
-    return alloc_pte((uint64_t*)(*pte & PAGE_PADDR_MASK),vaddr << 9,level-1);
+    return alloc_pte((uint64_t*)(*pte & PAGE_PADDR_MASK),vaddr << 9,level-1,
+                     depth+1);
 }
 
 void
