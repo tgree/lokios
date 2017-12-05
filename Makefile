@@ -27,7 +27,7 @@ all: $(BIN_DIR)/lokios.mbr test
 define define_test
 -include $$($(1).objs:.o=.d)
 $$(TESTS_DIR)/$(1): $$($(1).objs) $$(LTMOCK) $$(MODULE_MK)
-	@echo Builing $$@
+	@echo Building $$@
 	@$$(BUILD_TEST) $$($(1).objs) $$(LTMOCK)
 endef
 
