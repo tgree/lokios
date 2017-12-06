@@ -2,7 +2,7 @@
 #define __KERNEL_LIST_H
 
 #include "kassert.h"
-#include "container_of.h"
+#include <hdr/container_of.h>
 #include <stddef.h>
 
 namespace kernel
