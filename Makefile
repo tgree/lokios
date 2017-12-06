@@ -29,9 +29,9 @@ all: $(BIN_DIR)/lokios.mbr test
 
 define define_test
 -include $$($(1).objs:.o=.d)
-$$(TESTS_DIR)/$(1): $$($(1).objs) $$(LTMOCK) $$(MODULE_MK)
+$$(TESTS_DIR)/$(1): $$($(1).objs) $$($(1).libs) $$(LTMOCK) $$(MODULE_MK)
 	@echo Building $$@
-	@$$(BUILD_TEST) $$($(1).objs) $$(LTMOCK)
+	@$$(BUILD_TEST) $$($(1).objs) -Wl,-\( $$($(1).libs) -Wl,-\) $$(LTMOCK)
 endef
 
 define include_module
