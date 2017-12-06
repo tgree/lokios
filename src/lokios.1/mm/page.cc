@@ -1,7 +1,6 @@
 #include "page.h"
 #include "sbrk.h"
 #include "k++/vector.h"
-#include "kernel/console.h"
 #include <new>
 
 static kernel::klist<kernel::page> free_page_list;
@@ -55,9 +54,6 @@ populate_pages(const C& c, kernel::klist<kernel::page>& fpl)
 void
 kernel::page_preinit(const e820_map* m, uint64_t top_addr)
 {
-    // Find out how much RAM the bootloader mapped.
-    vga->printf("End of mapped RAM: 0x%016lX\n",top_addr);
-
     // Find the initial sbrk position.
     void* initial_sbrk = sbrk(0);
 
@@ -122,13 +118,6 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr)
 
     // Finally, move the page list onto the free page list global.
     free_page_list.append(page_list);
-
-    // Walk the page list and tell everyone about it.
-    size_t free_pages = free_page_list.size();
-    vga->printf("Free mapped RAM: %zuMB (%zu 4K pages)\n",
-                free_pages/256,free_pages);
-    vga->printf("  Free sbrk RAM: %luK\n",
-                ((uint64_t)get_sbrk_limit() - (uint64_t)sbrk(0))/1024);
 }
 
 size_t

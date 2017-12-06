@@ -1,6 +1,6 @@
 #include "kernel_args.h"
 #include "console.h"
-#include "mm/page.h"
+#include "mm/mm.h"
 #include <stddef.h>
 
 extern void (*__preinit_array_start[])();
@@ -21,11 +21,8 @@ init()
     // Initialize the console as early as we can.
     kernel::init_console();
 
-    // Initialize the free page list with whatever the bootloader has mapped
-    // for us.
-    uintptr_t top_addr =
-        (kernel::kargs->highest_pte_val & 0x000000FFFFFFF000) + 2*1024*1024;
-    kernel::page_preinit(kernel::kargs->e820_base,top_addr);
+    // Initialize the memory map.
+    kernel::init_mm(kernel::kargs->e820_base);
 
     // Do the __preinit array.
     size_t n = __preinit_array_end - __preinit_array_start;
