@@ -56,9 +56,6 @@ _into_long_mode:
     mov     %rax, 0(%rdi)
     mov     $0x000B8000, %eax
     mov     %rax, 8(%rdi)
-    movl    $_last_2m_entry, %eax
-    mov     (%eax), %rax
-    mov     %rax, 16(%rdi)
 
     # Enable write protection.  It seems we have to do this after the long jump
     # above or things break.

@@ -9,7 +9,6 @@ namespace kernel
     {
         const e820_map* e820_base;
         uint64_t        vga_base;
-        uint64_t        highest_pte_val;
     };
 
     extern const kernel_args* kargs;
