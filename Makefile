@@ -4,6 +4,7 @@ ALL_TESTS    :=
 TESTS_DIR    := tests
 SRC_DIR      := src
 BUILD_DIR    := build
+LIB_DIR      := $(BUILD_DIR)/lib
 BIN_DIR      := bin
 TEST_RES_DIR := $(TESTS_DIR)/.results
 CLEAN        := $(BUILD_DIR) $(BIN_DIR) $(TESTS_DIR)
