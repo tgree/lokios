@@ -1,6 +1,6 @@
 #include "char_stream.h"
-#include "kassert.h"
 #include "kmath.h"
+#include "kernel/kassert.h"
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdint.h>

@@ -2,7 +2,7 @@
 #define __KERNEL_E820_H
 
 #include "kernel/kassert.h"
-#include "kernel/region_set.h"
+#include "k++/region_set.h"
 #include <stddef.h>
 
 namespace kernel

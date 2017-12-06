@@ -1,6 +1,6 @@
 #include "page.h"
 #include "sbrk.h"
-#include "kernel/vector.h"
+#include "k++/vector.h"
 #include "kernel/console.h"
 #include <new>
 

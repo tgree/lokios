@@ -2,7 +2,7 @@
 #define __KERNEL_STRING_STREAM_H
 
 #include "char_stream.h"
-#include "kassert.h"
+#include "kernel/kassert.h"
 #include <stddef.h>
 
 namespace kernel

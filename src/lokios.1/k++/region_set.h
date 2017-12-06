@@ -1,10 +1,10 @@
 #ifndef __KERNEL_REGION_SET_H
 #define __KERNEL_REGION_SET_H
 
-#include <stdint.h>
 #include "sort.h"
 #include "kmath.h"
-#include "kassert.h"
+#include "kernel/kassert.h"
+#include <stdint.h>
 
 namespace kernel
 {

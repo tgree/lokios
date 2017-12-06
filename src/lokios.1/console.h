@@ -1,7 +1,7 @@
 #ifndef __KERNEL_CONSOLE_H
 #define __KERNEL_CONSOLE_H
 
-#include "char_stream.h"
+#include "k++/char_stream.h"
 #include <stdint.h>
 
 namespace kernel

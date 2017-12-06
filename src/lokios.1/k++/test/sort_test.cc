@@ -1,6 +1,6 @@
 #include "../sort.h"
-#include "../kassert.h"
 #include "../kmath.h"
+#include "kernel/kassert.h"
 #include "tmock/tmock.h"
 #include <string.h>
 

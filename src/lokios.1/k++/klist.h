@@ -1,7 +1,7 @@
 #ifndef __KERNEL_LIST_H
 #define __KERNEL_LIST_H
 
-#include "kassert.h"
+#include "kernel/kassert.h"
 #include <hdr/container_of.h>
 #include <stddef.h>
 
