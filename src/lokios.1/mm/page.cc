@@ -1,7 +1,7 @@
 #include "page.h"
 #include "sbrk.h"
-#include "vector.h"
-#include "console.h"
+#include "kernel/vector.h"
+#include "kernel/console.h"
 #include <new>
 
 static kernel::klist<kernel::page> free_page_list;

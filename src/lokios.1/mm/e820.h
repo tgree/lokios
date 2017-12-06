@@ -1,8 +1,8 @@
 #ifndef __KERNEL_E820_H
 #define __KERNEL_E820_H
 
-#include "kassert.h"
-#include "region_set.h"
+#include "kernel/kassert.h"
+#include "kernel/region_set.h"
 #include <stddef.h>
 
 namespace kernel

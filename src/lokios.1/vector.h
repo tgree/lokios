@@ -1,7 +1,7 @@
 #ifndef __KERNEL_VECTOR_H
 #define __KERNEL_VECTOR_H
 
-#include "page.h"
+#include "mm/page.h"
 #include <utility>
 #include <new>
 

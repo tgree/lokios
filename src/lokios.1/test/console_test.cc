@@ -1,7 +1,7 @@
 #include "../console.h"
 #include "../kernel_args.h"
 #include "../kassert.h"
-#include "../sbrk.h"
+#include "mm/sbrk.h"
 #include "tmock/tmock.h"
 
 static uint16_t conbuf[80*25];

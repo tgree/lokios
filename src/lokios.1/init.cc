@@ -1,6 +1,6 @@
 #include "kernel_args.h"
 #include "console.h"
-#include "page.h"
+#include "mm/page.h"
 #include <stddef.h>
 
 extern void (*__preinit_array_start[])();

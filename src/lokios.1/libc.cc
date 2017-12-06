@@ -1,7 +1,7 @@
 #include "console.h"
 #include "kassert.h"
-#include "sbrk.h"
-#include "page.h"
+#include "mm/sbrk.h"
+#include "mm/page.h"
 #include <stddef.h>
 #include <unistd.h>
 #include <stdio.h>

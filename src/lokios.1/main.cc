@@ -1,8 +1,8 @@
 #include "kernel_args.h"
 #include "console.h"
-#include "page_table.h"
 #include "x86.h"
 #include "kassert.h"
+#include "mm/page_table.h"
 
 extern uint8_t _tdata_begin[];
 extern uint8_t _tdata_end[];

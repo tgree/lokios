@@ -1,7 +1,7 @@
 #ifndef __KERNEL_ARGS_H
 #define __KERNEL_ARGS_H
 
-#include "e820.h"
+#include "mm/e820.h"
 
 namespace kernel
 {

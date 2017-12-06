@@ -1,9 +1,9 @@
 #ifndef __KERNEL_PAGE_H
 #define __KERNEL_PAGE_H
 
-#include "types.h"
-#include "klist.h"
 #include "e820.h"
+#include "kernel/types.h"
+#include "kernel/klist.h"
 
 namespace kernel
 {

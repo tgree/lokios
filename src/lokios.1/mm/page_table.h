@@ -2,7 +2,7 @@
 #define __KERNEL_PAGE_TABLE_H
 
 #include "page.h"
-#include "x86.h"
+#include "kernel/x86.h"
 
 class tmock_test;
 

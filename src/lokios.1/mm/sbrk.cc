@@ -1,5 +1,5 @@
 #include "sbrk.h"
-#include "kassert.h"
+#include "kernel/kassert.h"
 
 #define SBRK_MAX_LEN    1024*1024
 

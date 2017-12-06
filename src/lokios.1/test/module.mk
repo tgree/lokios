@@ -4,7 +4,6 @@ TESTS := char_stream_test \
 	 sort_test        \
 	 region_set_test  \
 	 vector_test      \
-	 page_table_test  \
 
 char_stream_test.objs := \
 	$(MODULE_BUILD_DIR)/char_stream_test.o \
@@ -26,7 +25,3 @@ region_set_test.objs := \
 
 vector_test.objs := \
     	$(MODULE_BUILD_DIR)/vector_test.o
-
-page_table_test.objs := \
-    	$(MODULE_BUILD_DIR)/page_table_test.o \
-	$(PARENT_BUILD_DIR)/page_table.o
