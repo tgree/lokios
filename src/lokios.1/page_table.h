@@ -2,7 +2,6 @@
 #define __KERNEL_PAGE_TABLE_H
 
 #include "page.h"
-#include "vector.h"
 #include "x86.h"
 
 class tmock_test;
