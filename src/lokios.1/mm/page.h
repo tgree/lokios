@@ -27,6 +27,7 @@ namespace kernel
 
     void* page_alloc();
     void page_free(void*);
+    size_t page_count_free();
 
     struct page_raii : public non_copyable
     {

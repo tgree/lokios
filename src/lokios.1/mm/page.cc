@@ -130,3 +130,9 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr)
     vga->printf("  Free sbrk RAM: %luK\n",
                 ((uint64_t)get_sbrk_limit() - (uint64_t)sbrk(0))/1024);
 }
+
+size_t
+kernel::page_count_free()
+{
+    return free_page_list.size();
+}
