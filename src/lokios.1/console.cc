@@ -1,6 +1,5 @@
 #include "console.h"
 #include "kernel_args.h"
-#include "sbrk.h"
 #include <new>
 
 kernel::console* kernel::vga;
