@@ -1,5 +1,6 @@
 #include "kernel_args.h"
 #include "console.h"
+#include "cpu.h"
 #include "mm/mm.h"
 #include <stddef.h>
 
@@ -23,6 +24,9 @@ init()
 
     // Initialize the memory map.
     kernel::init_mm(kernel::kargs->e820_base);
+
+    // Initialize the CPU.
+    kernel::init_main_cpu();
 
     // Do the __preinit array.
     size_t n = __preinit_array_end - __preinit_array_start;
