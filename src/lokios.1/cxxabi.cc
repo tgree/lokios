@@ -1,28 +1,30 @@
 #include "kassert.h"
+#include "mm/page.h"
 #include <stddef.h>
 #include <new>
 
-void
-operator delete(void*)
+void*
+operator new(std::size_t count)
 {
-
-    // We don't support dynamic memory allocations at this time.  Apparently
-    // we get two versions of destructors created - one which is used when we
-    // need to delete the object and one which is used when it is an in-place
-    // destruction.  Despite never deleting anything the linker still needs to
-    // be satisfied.
-    kernel::panic("operator delete() invoked.");
+    kernel::kassert(count <= PAGE_SIZE);
+    return kernel::page_alloc();
 }
 
 void
-operator delete(void* ptr, std::size_t sz)
+operator delete(void* p)
 {
-    // We don't support dynamic memory allocations at this time.  Apparently
-    // we get two versions of destructors created - one which is used when we
-    // need to delete the object and one which is used when it is an in-place
-    // destruction.  Despite never deleting anything the linker still needs to
-    // be satisfied.
-    kernel::panic("operator delete() invoked.");
+    kernel::kassert(((uintptr_t)p & PAGE_OFFSET_MASK) == 0);
+    if (p)
+        kernel::page_free(p);
+}
+
+void
+operator delete(void* p, std::size_t sz)
+{
+    kernel::kassert(((uintptr_t)p & PAGE_OFFSET_MASK) == 0);
+    kernel::kassert(sz <= PAGE_SIZE);
+    if (p)
+        kernel::page_free(p);
 }
 
 extern "C" void
