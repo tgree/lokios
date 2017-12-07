@@ -4,6 +4,7 @@
 #include "e820.h"
 #include "k++/klist.h"
 #include "kernel/types.h"
+#include <string.h>
 
 namespace kernel
 {
@@ -26,6 +27,12 @@ namespace kernel
     };
 
     void* page_alloc();
+    inline void* page_zalloc()
+    {
+        void* p = page_alloc();
+        memset(p,0,PAGE_SIZE);
+        return p;
+    }
     void page_free(void*);
     size_t page_count_free();
 
