@@ -75,6 +75,7 @@ _into_long_mode:
 
     # Set MSR_FS_BASE to point at the TLS area.
     mov     $0xC0000100, %ecx
+    xor     %edx, %edx
     mov     $_kernel_tls, %eax
     wrmsr
     mov     %rax, 0(%rax)
