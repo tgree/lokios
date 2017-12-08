@@ -17,16 +17,21 @@ namespace kernel
         // address MSR_FS_BASE, so compilers such as gcc expect this "loopback"
         // pointer here, load it into a register and then subtract the TLS
         // offset to get the variable's address.
-        tls_tcb*        self;
+        tls_tcb*        self;           // 0
 
         // Our own fields.
-        klink           link;
-        kernel::task*   task;
-        uint64_t        rsrv[2];
+        klink           link;           // 8
+        kernel::task*   task;           // 16
+
+        // Register save/restore area.
+        uint64_t        rflags;         // 24
+        uint16_t        cs;             // 32
+        uint16_t        ss;             // 34
+        uint32_t        rsrv;           // 36
 
         // Random value (initialized by the OS) for each thread that gcc uses
         // for stack-stomp checking.  It's required to be at FS:0x28.
-        uint64_t        stack_guard;
+        uint64_t        stack_guard;    // 40
 
         // Register save/restore area.
         uint64_t    fs_base;            // 48

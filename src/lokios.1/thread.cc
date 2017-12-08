@@ -17,6 +17,9 @@ kernel::thread::thread(void (*fn)())
     memcpy(p,_tdata_begin,(uint64_t)_tdata_size);
 
     tcb.self        = &tcb;
+    tcb.rflags      = 0;
+    tcb.cs          = 8;
+    tcb.ss          = 0;
     tcb.stack_guard = 0xA1B2C3D4E5F60718;
     tcb.rip         = (uint64_t)fn;
     tcb.rdi         = 0x1111111111111111;
