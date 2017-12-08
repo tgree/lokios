@@ -603,8 +603,8 @@ SECTIONS
         QUAD(0x30000000001EC081);
         QUAD(0x30000000001ED081);
         QUAD(0x30000000001EE081);
-        QUAD(0x30000000001EF081);   /* Guard page */
-        QUAD(0x30000000001F0083);   /* Kernel stack */
+        QUAD(0x30000000001EF081);
+        QUAD(0x30000000001F0081);   /* Guard page */
         QUAD(0x30000000001F1083);   /* Kernel stack */
         QUAD(0x30000000001F2083);   /* Kernel stack */
         QUAD(0x30000000001F3083);   /* Kernel stack */
@@ -617,9 +617,9 @@ SECTIONS
         QUAD(0x30000000001FA083);   /* Kernel stack */
         QUAD(0x30000000001FB083);   /* Kernel stack */
         QUAD(0x30000000001FC083);   /* Kernel stack */
-        QUAD(0x30000000001FD081);   /* Guard page - read only, holds kargs*/
-        QUAD(0x30000000001FE083);   /* Kernel TLS */
-        QUAD(0x30000000001FF081);   /* Guard page */
+        QUAD(0x30000000001FD083);   /* Kernel stack */
+        QUAD(0x30000000001FE083);   /* Kernel stack */
+        QUAD(0x30000000001FF081);   /* Guard page - read only, holds kargs */
         . = ALIGN(4096);
     }
 
@@ -636,8 +636,6 @@ SECTIONS
     /* This is where we are going to load the kernel. */
     _kernel_base = 0x00200000;
     _kernel_entry = _kernel_base + 0x10;
-    _kernel_stack = 0x001FD000;
+    _kernel_stack = 0x001FF000;
     _kernel_params = _kernel_stack;
-    _kernel_tls_page = 0x001FE000;
-    _kernel_tls = _kernel_tls_page + 0x800;
 }

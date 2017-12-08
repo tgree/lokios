@@ -63,26 +63,20 @@ _into_long_mode:
     or      $(1<<16), %rax
     mov     %rax, %cr0
 
-    # Zero out the kernel TLS page.
-    mov     $0x4E4F4E4F4E4F4E4F, %rax
-    #xor     %rax, %rax
-    mov     $_kernel_tls_page, %esi
-    mov     $4096/8, %ecx
-.L_zero_tls_loop:
-    mov     %rax, (%esi)
-    add     $8, %esi
-    loop    .L_zero_tls_loop
+    # Switch to the new stack.
+    xor     %rsp, %rsp
+    movl    $_kernel_stack, %esp
 
-    # Set MSR_FS_BASE to point at the TLS area.
+    # Allocate some space at the top of the stack for a temporary TLS area
+    # until kernel_task gets spawned.  We move this into MSR_FS_BASE.
     mov     $0xC0000100, %ecx
+    sub     $64, %sp
+    mov     %rsp, %rax
     xor     %edx, %edx
-    mov     $_kernel_tls, %eax
     wrmsr
     mov     %rax, 0(%rax)
 
-    # Jump into the kernel after switching to the new stack.
-    xor     %rsp, %rsp
-    movl    $_kernel_stack, %esp
+    # Jump into the kernel.
     xor     %rax, %rax
     movl    $_kernel_entry, %eax
     jmp     *%rax
