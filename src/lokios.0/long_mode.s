@@ -28,10 +28,10 @@ _enter_long_mode:
     lea     _page_table, %ax
     mov     %eax, %cr3
 
-    # Set EFER.LME.
+    # Set EFER.LME and EFER.NXE.
     mov     $0xC0000080, %ecx
     rdmsr
-    or      $(1<<8), %eax
+    or      $(1<<8) | (1 << 11), %eax
     wrmsr
 
     # Enable paging and protected mode.
