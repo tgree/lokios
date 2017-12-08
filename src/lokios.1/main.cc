@@ -1,8 +1,6 @@
 #include "kernel_args.h"
 #include "console.h"
-#include "x86.h"
 #include "kassert.h"
-#include "mm/page_table.h"
 
 extern uint8_t _tdata_begin[];
 extern uint8_t _tdata_end[];
@@ -21,11 +19,6 @@ main()
     kernel::vga->printf("_tbss_begin  = 0x%016lX\n",(uintptr_t)_tbss_begin);
     kernel::vga->printf("_tbss_end    = 0x%016lX\n",(uintptr_t)_tbss_end);
     kernel::vga->printf("_tbss_size   = 0x%016lX\n",(uintptr_t)_tbss_size);
-
-    kernel::page_table pt;
-    for (auto e : kernel::page_table_leaf_iterator((uint64_t*)mfcr3()))
-        pt.map_page(e.vaddr,e.get_paddr(),e.get_len(),e.pte);
-    pt.activate();
 
     try
     {
