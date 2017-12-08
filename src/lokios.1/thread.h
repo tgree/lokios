@@ -69,6 +69,18 @@ namespace kernel
         thread(void (*entry_fn)());
     };
     KASSERT(sizeof(thread) == 32768);
+
+    static inline tls_tcb* get_current_tcb()
+    {
+        tls_tcb* tcb;
+        asm ("mov %%fs:0, %0" : "=r"(tcb));
+        return tcb;
+    }
+
+    static inline thread* get_current_thread()
+    {
+        return container_of(get_current_tcb(),thread,tcb);
+    }
 }
 
 #endif /* __KERNEL_THREAD_H */

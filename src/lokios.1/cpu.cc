@@ -1,5 +1,6 @@
 #include "cpu.h"
 #include "x86.h"
+#include "thread.h"
 #include "mm/page.h"
 
 #define MAX_CPUS    1
@@ -43,4 +44,10 @@ kernel::cpu::register_exception_vector(size_t v, void (*handler)())
     idt[v].lo = ((p << 32) & 0xFFFF000000000000) |
                              0x00008E0100080000  |
                 ((p >>  0) & 0x000000000000FFFF);
+}
+
+extern "C" kernel::tls_tcb*
+interrupt_entry(uint64_t selector, uint64_t error_code)
+{
+    return kernel::get_current_tcb();
 }
