@@ -32,10 +32,14 @@ kernel::thread::operator new(size_t count, thread_id tid, task* task)
     for (size_t i=0; i<sizeof(t->stack)/PAGE_SIZE; ++i)
     {
         task->pt.map_4k_page(t->stack + i*PAGE_SIZE,(uint64_t)page_alloc(),
-                             PAGE_FLAG_WRITEABLE | PAGE_CACHE_WB);
+                             PAGE_FLAG_WRITEABLE |
+                             PAGE_FLAG_NOEXEC |
+                             PAGE_CACHE_WB);
     }
     task->pt.map_4k_page(t->tls,(uint64_t)page_alloc(),
-                         PAGE_FLAG_WRITEABLE | PAGE_CACHE_WB);
+                         PAGE_FLAG_WRITEABLE |
+                         PAGE_FLAG_NOEXEC |
+                         PAGE_CACHE_WB);
 
     t->tcb.task = task;
     return t;
