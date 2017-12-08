@@ -30,9 +30,6 @@ init()
     // Initialize the memory map.
     kernel::init_mm(kernel::kargs->e820_base);
 
-    // Initialize the CPU.
-    kernel::init_main_cpu();
-
     // Start the kernel task with a thread that will invoke init2().
     kernel::init_kernel_task(init2);
 }
@@ -40,6 +37,9 @@ init()
 static void
 init2()
 {
+    // Initialize the CPU.
+    kernel::init_main_cpu();
+
     // Do the __preinit array.
     size_t n = __preinit_array_end - __preinit_array_start;
     for (size_t i=0; i<n; ++i)
