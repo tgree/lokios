@@ -15,13 +15,7 @@ _entry:
     mov     %rax, %cr4
 
     # Call the _init stuff.
-    call    init
-
-    # Call main.
-    call    main
-
-    # STOP.
-    hlt
+    jmp     init
 
 
 # On entry:
