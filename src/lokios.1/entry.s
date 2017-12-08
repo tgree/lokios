@@ -53,3 +53,6 @@ _thread_jump:
 
     # Pop the RIP off the stack and return.
     ret
+
+
+.section .note.GNU-stack,"",%progbits

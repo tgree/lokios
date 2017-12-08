@@ -5,3 +5,6 @@
 .section .fini
     popq    %rbp
     ret
+
+
+.section .note.GNU-stack,"",%progbits

@@ -11,3 +11,6 @@ _init:
 _fini:
     push    %rbp
     movq    %rsp, %rbp
+
+
+.section .note.GNU-stack,"",%progbits
