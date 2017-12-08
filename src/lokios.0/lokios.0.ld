@@ -292,14 +292,14 @@ SECTIONS
         QUAD(0x30000000000B5081);
         QUAD(0x30000000000B6081);
         QUAD(0x30000000000B7081);
-        QUAD(0x30000000000B8087); /* VRAM */
-        QUAD(0x30000000000B9087); /* VRAM */
-        QUAD(0x30000000000BA087); /* VRAM */
-        QUAD(0x30000000000BB087); /* VRAM */
-        QUAD(0x30000000000BC087); /* VRAM */
-        QUAD(0x30000000000BD087); /* VRAM */
-        QUAD(0x30000000000BE087); /* VRAM */
-        QUAD(0x30000000000BF087); /* VRAM */
+        QUAD(0xB0000000000B8087); /* VRAM */
+        QUAD(0xB0000000000B9087); /* VRAM */
+        QUAD(0xB0000000000BA087); /* VRAM */
+        QUAD(0xB0000000000BB087); /* VRAM */
+        QUAD(0xB0000000000BC087); /* VRAM */
+        QUAD(0xB0000000000BD087); /* VRAM */
+        QUAD(0xB0000000000BE087); /* VRAM */
+        QUAD(0xB0000000000BF087); /* VRAM */
         QUAD(0x30000000000C0081);
         QUAD(0x30000000000C1081);
         QUAD(0x30000000000C2081);
@@ -605,20 +605,20 @@ SECTIONS
         QUAD(0x30000000001EE081);
         QUAD(0x30000000001EF081);
         QUAD(0x30000000001F0081);   /* Guard page */
-        QUAD(0x30000000001F1083);   /* Kernel stack */
-        QUAD(0x30000000001F2083);   /* Kernel stack */
-        QUAD(0x30000000001F3083);   /* Kernel stack */
-        QUAD(0x30000000001F4083);   /* Kernel stack */
-        QUAD(0x30000000001F5083);   /* Kernel stack */
-        QUAD(0x30000000001F6083);   /* Kernel stack */
-        QUAD(0x30000000001F7083);   /* Kernel stack */
-        QUAD(0x30000000001F8083);   /* Kernel stack */
-        QUAD(0x30000000001F9083);   /* Kernel stack */
-        QUAD(0x30000000001FA083);   /* Kernel stack */
-        QUAD(0x30000000001FB083);   /* Kernel stack */
-        QUAD(0x30000000001FC083);   /* Kernel stack */
-        QUAD(0x30000000001FD083);   /* Kernel stack */
-        QUAD(0x30000000001FE083);   /* Kernel stack */
+        QUAD(0xB0000000001F1083);   /* Kernel stack */
+        QUAD(0xB0000000001F2083);   /* Kernel stack */
+        QUAD(0xB0000000001F3083);   /* Kernel stack */
+        QUAD(0xB0000000001F4083);   /* Kernel stack */
+        QUAD(0xB0000000001F5083);   /* Kernel stack */
+        QUAD(0xB0000000001F6083);   /* Kernel stack */
+        QUAD(0xB0000000001F7083);   /* Kernel stack */
+        QUAD(0xB0000000001F8083);   /* Kernel stack */
+        QUAD(0xB0000000001F9083);   /* Kernel stack */
+        QUAD(0xB0000000001FA083);   /* Kernel stack */
+        QUAD(0xB0000000001FB083);   /* Kernel stack */
+        QUAD(0xB0000000001FC083);   /* Kernel stack */
+        QUAD(0xB0000000001FD083);   /* Kernel stack */
+        QUAD(0xB0000000001FE083);   /* Kernel stack */
         QUAD(0x30000000001FF081);   /* Guard page - read only, holds kargs */
         . = ALIGN(4096);
     }
