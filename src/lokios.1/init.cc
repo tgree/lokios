@@ -1,6 +1,7 @@
 #include "kernel_args.h"
 #include "console.h"
 #include "cpu.h"
+#include "task.h"
 #include "mm/mm.h"
 #include <stddef.h>
 
@@ -16,6 +17,10 @@ extern "C" void _init();
 extern "C" void init();
 extern "C" void __register_frame(char*);
 
+extern int main();
+
+static void init2();
+
 void
 init()
 {
@@ -28,6 +33,13 @@ init()
     // Initialize the CPU.
     kernel::init_main_cpu();
 
+    // Start the kernel task with a thread that will invoke init2().
+    kernel::init_kernel_task(init2);
+}
+
+static void
+init2()
+{
     // Do the __preinit array.
     size_t n = __preinit_array_end - __preinit_array_start;
     for (size_t i=0; i<n; ++i)
@@ -46,4 +58,8 @@ init()
     // to have been done first - but then we can't use exceptions in global
     // constructors?
     __register_frame(_eh_frame_begin);
+
+    // Main screen turn on and never off.
+    main();
+    kernel::halt();
 }

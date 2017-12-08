@@ -37,6 +37,4 @@ main()
     {
         kernel::panic("caught ...");
     }
-
-    kernel::halt();
 }

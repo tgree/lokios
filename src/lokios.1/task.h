@@ -10,6 +10,8 @@ namespace kernel
         page_table      pt;
         klist<thread>   threads;
     };
+
+    void init_kernel_task(void (*entry_fn)());
 }
 
 #endif /* __KERNEL_TASK_H */
