@@ -3,6 +3,7 @@
 
 #include "hdr/compiler.h"
 #include "kernel/kassert.h"
+#include "k++/vector.h"
 #include <stdint.h>
 #include <stddef.h>
 
@@ -46,6 +47,8 @@ namespace kernel
         void register_exception_vector(size_t v, void (*handler)());
     };
     KASSERT(sizeof(cpu) == 4096);
+
+    extern vector<cpu*> cpus;
 
     cpu* init_main_cpu();
 }

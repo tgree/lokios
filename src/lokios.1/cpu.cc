@@ -3,9 +3,7 @@
 #include "thread.h"
 #include "mm/page.h"
 
-#define MAX_CPUS    1
-
-static kernel::cpu* cpus[MAX_CPUS];
+kernel::vector<kernel::cpu*> kernel::cpus;
 
 kernel::cpu*
 kernel::init_main_cpu()
@@ -32,7 +30,7 @@ kernel::init_main_cpu()
     lidt((uint64_t)c->idt,sizeof(c->idt)-1);
 
     // Done.
-    cpus[0] = c;
+    cpus.emplace_back(c);
     return c;
 }
 
