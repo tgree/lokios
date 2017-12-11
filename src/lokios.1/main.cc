@@ -13,9 +13,11 @@ main()
     // Initialize the CPU.
     kernel::init_main_cpu();
 
+    // Banner.
     kernel::vga->printf("Loki is kickawesome\n");
     kernel::kassert(tls_signature == 0x135724683579468A);
 
+    // Test exceptions.
     try
     {
         throw kernel::vga;
