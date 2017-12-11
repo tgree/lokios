@@ -33,11 +33,151 @@ _thread_jump:
 # On entry:
 #   We are running on the ISR stack.
 #   We need to save everything!
-.globl _interrupt_entry_no_error_code
-.globl _interrupt_entry_with_error_code
-_interrupt_entry_no_error_code:
-    sub     $8, %rsp
-_interrupt_entry_with_error_code:
+.macro _define_interrupt num
+.global _interrupt_entry_\num
+_interrupt_entry_\num :
+    push    $0      # Dummy error code
+    push    $\num
+    jmp     _interrupt_entry_common
+.endm
+
+.macro _define_interrupt_errcode num
+.global _interrupt_entry_\num
+_interrupt_entry_\num :
+    push    $\num
+    jmp     _interrupt_entry_common
+.endm
+
+_define_interrupt           0
+_define_interrupt           1
+_define_interrupt           2
+_define_interrupt           3
+_define_interrupt           4
+_define_interrupt           5
+_define_interrupt           6
+_define_interrupt           7
+_define_interrupt_errcode   8
+_define_interrupt           9
+_define_interrupt_errcode   10
+_define_interrupt_errcode   11
+_define_interrupt_errcode   12
+_define_interrupt_errcode   13
+_define_interrupt_errcode   14
+_define_interrupt           15
+_define_interrupt           16
+_define_interrupt           17
+_define_interrupt           18
+_define_interrupt           19
+_define_interrupt           20
+_define_interrupt           21
+_define_interrupt           22
+_define_interrupt           23
+_define_interrupt           24
+_define_interrupt           25
+_define_interrupt           26
+_define_interrupt           27
+_define_interrupt           28
+_define_interrupt           29
+_define_interrupt           30
+_define_interrupt           31
+_define_interrupt           32
+_define_interrupt           33
+_define_interrupt           34
+_define_interrupt           35
+_define_interrupt           36
+_define_interrupt           37
+_define_interrupt           38
+_define_interrupt           39
+_define_interrupt           40
+_define_interrupt           41
+_define_interrupt           42
+_define_interrupt           43
+_define_interrupt           44
+_define_interrupt           45
+_define_interrupt           46
+_define_interrupt           47
+_define_interrupt           48
+_define_interrupt           49
+_define_interrupt           50
+_define_interrupt           51
+_define_interrupt           52
+_define_interrupt           53
+_define_interrupt           54
+_define_interrupt           55
+_define_interrupt           56
+_define_interrupt           57
+_define_interrupt           58
+_define_interrupt           59
+_define_interrupt           60
+_define_interrupt           61
+_define_interrupt           62
+_define_interrupt           63
+_define_interrupt           64
+_define_interrupt           65
+_define_interrupt           66
+_define_interrupt           67
+_define_interrupt           68
+_define_interrupt           69
+_define_interrupt           70
+_define_interrupt           71
+_define_interrupt           72
+_define_interrupt           73
+_define_interrupt           74
+_define_interrupt           75
+_define_interrupt           76
+_define_interrupt           77
+_define_interrupt           78
+_define_interrupt           79
+_define_interrupt           80
+_define_interrupt           81
+_define_interrupt           82
+_define_interrupt           83
+_define_interrupt           84
+_define_interrupt           85
+_define_interrupt           86
+_define_interrupt           87
+_define_interrupt           88
+_define_interrupt           89
+_define_interrupt           90
+_define_interrupt           91
+_define_interrupt           92
+_define_interrupt           93
+_define_interrupt           94
+_define_interrupt           95
+_define_interrupt           96
+_define_interrupt           97
+_define_interrupt           98
+_define_interrupt           99
+_define_interrupt           100
+_define_interrupt           101
+_define_interrupt           102
+_define_interrupt           103
+_define_interrupt           104
+_define_interrupt           105
+_define_interrupt           106
+_define_interrupt           107
+_define_interrupt           108
+_define_interrupt           109
+_define_interrupt           110
+_define_interrupt           111
+_define_interrupt           112
+_define_interrupt           113
+_define_interrupt           114
+_define_interrupt           115
+_define_interrupt           116
+_define_interrupt           117
+_define_interrupt           118
+_define_interrupt           119
+_define_interrupt           120
+_define_interrupt           121
+_define_interrupt           122
+_define_interrupt           123
+_define_interrupt           124
+_define_interrupt           125
+_define_interrupt           126
+_define_interrupt           127
+
+_interrupt_entry_common:
     # Save the general-purpose registers.
     mov     %rax, %fs:72
     mov     %rbx, %fs:80
@@ -69,9 +209,10 @@ _interrupt_entry_with_error_code:
 
     # Load a vector number, the error code and then call the interrupt handler.
     # The interrupt handler returns the new FS value in RAX.
-    mov     $32, %rdi
+    pop     %rdi
     pop     %rsi
-    call    interrupt_entry
+    mov     _interrupt_handlers(,%rdi,8), %rax
+    call    *%rax
 
     # Load the new FS.
 .L_interrupt_exit:

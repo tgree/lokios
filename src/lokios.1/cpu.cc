@@ -43,9 +43,3 @@ kernel::cpu::register_exception_vector(size_t v, void (*handler)())
                              0x00008E0100080000  |
                 ((p >>  0) & 0x000000000000FFFF);
 }
-
-extern "C" kernel::tls_tcb*
-interrupt_entry(uint64_t selector, uint64_t error_code)
-{
-    return kernel::get_current_tcb();
-}
