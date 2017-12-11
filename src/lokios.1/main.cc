@@ -1,6 +1,7 @@
 #include "kernel_args.h"
 #include "console.h"
 #include "cpu.h"
+#include "interrupt.h"
 #include "kassert.h"
 
 const kernel::kernel_args* kernel::kargs;
@@ -10,8 +11,9 @@ __thread uint64_t tls_signature = 0x135724683579468A;
 int
 main()
 {
-    // Initialize the CPU.
+    // Initialize the CPU and interrupts.
     kernel::init_main_cpu();
+    kernel::init_interrupts();
 
     // Banner.
     kernel::vga->printf("Loki is kickawesome\n");
