@@ -22,20 +22,11 @@ _entry:
 #   rdi - thread* to activate
 .globl _thread_jump
 _thread_jump:
-    # Set up a fake interrupt frame on the stack and jump to the interrupt-
-    # handler exit code that will then "restore" the context.
+    # Set up a garbage interrupt frame on the stack and jump to the interrupt-
+    # handler exit code that will restore the state out of the thread context
+    # we are trying to jump into.
     lea     26624(%rdi), %rax
-    xor     %rbx, %rbx
-    mov     34(%rax), %bx     # SS
-    push    %rbx
-    mov     64(%rax), %rdi    # RSP
-    push    %rdi
-    mov     24(%rax), %rdi    # RFLAGS
-    push    %rdi
-    mov     32(%rax), %bx     # CS
-    push    %rbx
-    mov     56(%rax), %rdi    # RIP
-    push    %rdi
+    sub     $40, %rsp
     jmp     .L_interrupt_exit
 
 
@@ -65,12 +56,16 @@ _interrupt_entry_with_error_code:
     mov     %r15, %fs:184
 
     # Save the registers that were pushed on the stack.
-    mov     8(%rsp), %rax
+    mov     8(%rsp), %rsi
+    mov     16(%rsp), %ax
     mov     24(%rsp), %rbx
     mov     32(%rsp), %rcx
-    mov     %rax, %fs:56
+    mov     40(%rsp), %dx
+    mov     %rsi, %fs:56
+    mov     %ax,  %fs:32
     mov     %rbx, %fs:24
     mov     %rcx, %fs:64
+    mov     %dx,  %fs:34
 
     # Load a vector number, the error code and then call the interrupt handler.
     # The interrupt handler returns the new FS value in RAX.
@@ -86,12 +81,18 @@ _interrupt_entry_with_error_code:
     wrmsr
 
     # Update the stack values that will be used in iretq with the new thread.
-    mov     %fs:56, %rax
+    xor     %rdx, %rdx
+    xor     %rax, %rax
+    mov     %fs:56, %rsi
+    mov     %fs:32, %dx
     mov     %fs:24, %rbx
     mov     %fs:64, %rcx
-    mov     %rax, %fs:56
-    mov     %rbx, %fs:24
-    mov     %rcx, %fs:64
+    mov     %fs:34, %ax
+    mov     %rsi, 0(%rsp)
+    mov     %rdx, 8(%rsp)
+    mov     %rbx, 16(%rsp)
+    mov     %rcx, 24(%rsp)
+    mov     %rax, 32(%rsp)
 
     # Restore the general-purpose registers.
     mov     %fs:72,  %rax 
