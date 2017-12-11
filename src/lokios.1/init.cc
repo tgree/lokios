@@ -1,6 +1,5 @@
 #include "kernel_args.h"
 #include "console.h"
-#include "cpu.h"
 #include "task.h"
 #include "mm/mm.h"
 #include <stddef.h>
@@ -37,9 +36,6 @@ init()
 static void
 init2()
 {
-    // Initialize the CPU.
-    kernel::init_main_cpu();
-
     // Do the __preinit array.
     size_t n = __preinit_array_end - __preinit_array_start;
     for (size_t i=0; i<n; ++i)

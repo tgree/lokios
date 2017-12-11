@@ -1,5 +1,6 @@
 #include "kernel_args.h"
 #include "console.h"
+#include "cpu.h"
 #include "kassert.h"
 
 const kernel::kernel_args* kernel::kargs;
@@ -9,6 +10,9 @@ __thread uint64_t tls_signature = 0x135724683579468A;
 int
 main()
 {
+    // Initialize the CPU.
+    kernel::init_main_cpu();
+
     kernel::vga->printf("Loki is kickawesome\n");
     kernel::kassert(tls_signature == 0x135724683579468A);
 
