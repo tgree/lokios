@@ -11,14 +11,10 @@ namespace kernel
     {
         page_raii   _page;
 
-        inline vector() try:
+        inline vector():
             vector_base<T>(page_alloc(),PAGE_SIZE/sizeof(T)),
             _page(this->_elems)
         {
-        }
-        catch (...)
-        {
-            page_free(this->_elems);
         }
 
         inline vector(size_t size) try:
