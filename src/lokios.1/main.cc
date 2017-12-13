@@ -3,6 +3,8 @@
 #include "cpu.h"
 #include "interrupt.h"
 #include "kassert.h"
+#include "mm/e820.h"
+#include "acpi/tables.h"
 
 const kernel::kernel_args* kernel::kargs;
 
@@ -14,6 +16,7 @@ main()
     // Initialize the CPU and interrupts.
     kernel::init_main_cpu();
     kernel::init_interrupts();
+    kernel::init_acpi_tables(kernel::kargs->e820_base);
 
     // Banner.
     kernel::vga->printf("Loki is kickawesome\n");
