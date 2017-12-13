@@ -196,11 +196,11 @@ _interrupt_entry_common:
     mov     %r15, %fs:184
 
     # Save the registers that were pushed on the stack.
-    mov     8(%rsp), %rsi
-    mov     16(%rsp), %ax
-    mov     24(%rsp), %rbx
-    mov     32(%rsp), %rcx
-    mov     40(%rsp), %dx
+    mov     16(%rsp), %rsi
+    mov     24(%rsp), %ax
+    mov     32(%rsp), %rbx
+    mov     40(%rsp), %rcx
+    mov     48(%rsp), %dx
     mov     %rsi, %fs:56
     mov     %ax,  %fs:32
     mov     %rbx, %fs:24
