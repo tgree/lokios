@@ -16,6 +16,7 @@ namespace kernel
     // Maps a physical address into the 0xFFFF800000000000 region and returns
     // the virtual address.  A 2M mapping will be used.
     void* pmap(uint64_t paddr);
+    void* pmap_range(uint64_t paddr, size_t len);
 
     inline thread* get_thread_region(thread_id id)
     {

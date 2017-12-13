@@ -36,3 +36,14 @@ kernel::pmap(uint64_t paddr)
             PAGE_FLAG_NOEXEC | PAGE_FLAG_WRITEABLE);
     return (void*)(vaddr_2m | (paddr & 0x001FFFFF));
 }
+
+void*
+kernel::pmap_range(uint64_t paddr, size_t len)
+{
+    uint64_t start = round_down_pow2(paddr,0x00200000);
+    uint64_t end   = round_up_pow2(paddr + len,0x00200000);
+    void* vaddr    = pmap(paddr);
+    for (uint64_t p = start + 0x00200000; p != end; p += 0x00200000)
+        pmap(p);
+    return vaddr;
+}
