@@ -1,6 +1,7 @@
 #ifndef __KERNEL_MATH_H
 #define __KERNEL_MATH_H
 
+#include "kernel/kassert.h"
 #include <stddef.h>
 
 namespace kernel
@@ -42,6 +43,20 @@ namespace kernel
     constexpr unsigned int ulog2(unsigned long long v)
     {
         return __builtin_ffsll(v) - 1;
+    }
+
+    template<typename T>
+    constexpr T round_up_pow2(T v, uint64_t p2)
+    {
+        kassert(is_pow2(p2));
+        return (T)(((uint64_t)v + p2 - 1) & ~(p2 - 1));
+    }
+
+    template<typename T>
+    constexpr T round_down_pow2(T v, uint64_t p2)
+    {
+        kassert(is_pow2(p2));
+        return (T)(((uint64_t)v) & ~(p2 - 1));
     }
 }
 
