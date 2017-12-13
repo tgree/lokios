@@ -6,9 +6,10 @@
 static kernel::tls_tcb*
 undefined_interrupt_entry(uint64_t selector, uint64_t error_code)
 {
+    kernel::tls_tcb* tcb = kernel::get_current_tcb();
     kernel::fixed_string_stream<80> ss;
-    ss.printf("Unregistered interrupt vector %lu error_code 0x%016lX",
-              selector,error_code);
+    ss.printf("Unregistered vector %lu error_code 0x%016lX tcb 0x%016lX",
+              selector,error_code,(uint64_t)tcb);
     kernel::panic(ss);
 }
 
