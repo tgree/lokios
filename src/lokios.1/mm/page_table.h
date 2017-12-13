@@ -40,6 +40,13 @@ namespace kernel
 #define PAGE_USER_FLAGS \
     (PAGE_FLAG_WRITEABLE | PAGE_FLAG_NOEXEC | PAGE_CACHE_MASK)
 
+    // Flags that are set when a page is mapped; excludes bits that the CPU
+    // will update if a page is accessed or modified.
+#define PAGE_KERNEL_FLAGS \
+    (PAGE_FLAG_NOEXEC | PAGE_LEVEL_MASK | PAGE_PADDR_MASK | \
+     PAGE_FLAG_USER_PAGE | PAGE_CACHE_MASK | PAGE_FLAG_WRITEABLE | \
+     PAGE_FLAG_PRESENT)
+
     // Given a PTE, extract its page table level (and hence it's page size).
 #define PTE_TO_LEVEL(pte)   (((pte) & PAGE_LEVEL_MASK) >> 60)
 

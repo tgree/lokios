@@ -47,7 +47,16 @@ kernel::page_table::map_page(void* _vaddr, uint64_t paddr, uint64_t flags,
     kassert((paddr & offset_mask) == 0);
 
     uint64_t* pte = alloc_pte(cr3,vaddr,level);
-    kassert(!(*pte & PAGE_FLAG_PRESENT));
+    uint64_t val = ((level << 60)             |
+                    paddr                     |
+                    (flags & PAGE_USER_FLAGS) |
+                    PAGE_FLAG_USER_PAGE       |
+                    PAGE_FLAG_PRESENT);
+    if (*pte & PAGE_FLAG_PRESENT)
+    {
+        kassert((*pte & PAGE_KERNEL_FLAGS) == (val & PAGE_KERNEL_FLAGS));
+        return;
+    }
 
     *pte = ((level << 60)             |
             paddr                     |
