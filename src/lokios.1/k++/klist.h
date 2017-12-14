@@ -7,13 +7,17 @@
 
 namespace kernel
 {
-#define KLINK_NOT_IN_USE ((klink*)0x4444444444444444)
+#define KLINK_NOT_IN_USE 0x4444444444444444U
     struct klink
     {
-        klink*  next;
+        union
+        {
+            uintptr_t   nextu;
+            klink*      next;
+        };
 
-        constexpr klink():next(KLINK_NOT_IN_USE) {}
-        inline ~klink() {kassert(next == KLINK_NOT_IN_USE);}
+        constexpr klink():nextu(KLINK_NOT_IN_USE) {}
+        inline ~klink() {kassert(nextu == KLINK_NOT_IN_USE);}
     };
 
     template<typename T>
@@ -40,7 +44,7 @@ namespace kernel
 
         inline void push_back(klink* l)
         {
-            kassert(l->next == KLINK_NOT_IN_USE);
+            kassert(l->nextu == KLINK_NOT_IN_USE);
             l->next = NULL;
             if (!tail)
                 head = l;
@@ -57,7 +61,7 @@ namespace kernel
                 head = tail = NULL;
             else
                 head = head->next;
-            curr->next = KLINK_NOT_IN_USE;
+            curr->nextu = KLINK_NOT_IN_USE;
         }
 
         inline void pop_all()
