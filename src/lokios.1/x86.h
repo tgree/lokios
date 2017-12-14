@@ -2,6 +2,7 @@
 #define __KERNEL_X86_H
 
 #include "hdr/compiler.h"
+#include "kernel/kassert.h"
 
 static inline uint64_t mfcr3()
 {
