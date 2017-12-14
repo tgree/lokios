@@ -119,6 +119,28 @@ int strcmp(const char* s1, const char* s2)
 }
 
 extern "C"
+int strncmp(const char* s1, const char* s2, size_t n)
+{
+    while (n && *s1 && *s2)
+    {
+        if (*s1 < *s2)
+            return -1;
+        if (*s1 > *s2)
+            return 1;
+        ++s1;
+        ++s2;
+        --n;
+    }
+    if (!n)
+        return 0;
+    if (!*s1 && !*s2)
+        return 0;
+    if (!*s1)
+        return -1;
+    return 1;
+}
+
+extern "C"
 size_t fwrite(const void* ptr, size_t size, size_t nmemb, FILE* stream)
 {
     kernel::kassert(stream == stderr);
