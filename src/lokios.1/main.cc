@@ -19,7 +19,7 @@ main()
     kernel::init_acpi_tables(kernel::kargs->e820_base);
 
     // Banner.
-    kernel::vga->printf("Loki is kickawesome\n");
+    kernel::vga->printf("Loki is rad\n");
     kernel::kassert(tls_signature == 0x135724683579468A);
 
     // Test exceptions.
