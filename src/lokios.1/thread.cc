@@ -16,6 +16,13 @@ kernel::thread::thread(void (*fn)())
               (uint64_t)_tdata_size;
     memcpy(p,_tdata_begin,(uint64_t)_tdata_size);
 
+    // Set the thread's starting register values.  A note on stack alignment:
+    // the ABI says that RSP must be 16-byte aligned *before* any call
+    // instruction, meaning that after the call instruction it will be out of
+    // alignment by 8 bytes (because the call instruction pushes the return
+    // address onto the stack).  Since we are basically invoking a function
+    // with this setup, and we want to ensure everything is properly aligned,
+    // we need to ensure that RSP % 16 == 8.
     tcb.self        = &tcb;
     tcb.rflags      = 0;
     tcb.cs          = 8;
@@ -23,7 +30,8 @@ kernel::thread::thread(void (*fn)())
     tcb.stack_guard = 0xA1B2C3D4E5F60718;
     tcb.rip         = (uint64_t)fn;
     tcb.rdi         = 0x1111111111111111;
-    tcb.rsp         = (uint64_t)stack + sizeof(stack) - 64;
+    tcb.rsp         = (uint64_t)stack + sizeof(stack) - 56;
+    kassert(tcb.rsp % 16 == 8);
 }
 
 void*
