@@ -60,4 +60,40 @@ static inline void int32()
     asm ("int $32");
 }
 
+static inline uint8_t inb(uint16_t port)
+{
+    uint8_t rc;
+    asm ("inb %1" : "=a"(rc) : "d"(port));
+    return rc;
+}
+
+static inline uint16_t inw(uint16_t port)
+{
+    uint16_t rc;
+    asm ("inw %1" : "=a"(rc) : "d"(port));
+    return rc;
+}
+
+static inline uint32_t inl(uint16_t port)
+{
+    uint32_t rc;
+    asm ("inl %1" : "=a"(rc) : "d"(port));
+    return rc;
+}
+
+static inline void outb(uint8_t val, uint16_t port)
+{
+    asm ("outb %0, %1" : : "a"(val), "di"(port));
+}
+
+static inline void outw(uint16_t val, uint16_t port)
+{
+    asm ("outw %0, %1" : : "a"(val), "di"(port));
+}
+
+static inline void outl(uint32_t val, uint16_t port)
+{
+    asm ("outl %0, %1" : : "a"(val), "di"(port));
+}
+
 #endif /* __KERNEL_X86_H */
