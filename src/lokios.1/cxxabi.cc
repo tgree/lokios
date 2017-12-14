@@ -58,7 +58,7 @@ __stack_chk_fail()
 }
 
 extern "C" int
-__sprintf_chk(char* str, int flag, size_t strlen, const char* format)
+__sprintf_chk(char* str, int flag, size_t strlen, const char* format, ...)
 {
     // The _FORTIFY_SOURCE macro triggers generation of a number of checked
     // alternatives for some standard library functions.  This one is required
