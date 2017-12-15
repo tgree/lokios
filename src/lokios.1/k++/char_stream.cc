@@ -431,3 +431,24 @@ kernel::char_stream::vprintf(const char* fmt, va_list ap)
         }
     }
 }
+
+void
+kernel::char_stream::hexdump(const void* addr, size_t len, unsigned long base)
+{
+    const unsigned char* p = (const unsigned char*)addr;
+    while (len >= 8)
+    {
+        printf("%016lX: %02X %02X %02X %02X  %02X %02X %02X %02X\n",
+               base,p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7]);
+        base += 8;
+        p    += 8;
+        len  -= 8;
+    }
+    if (!len)
+        return;
+
+    printf("%016lX:",base);
+    for (size_t i=0; i<len; ++i)
+        printf(" %02X",p[i]);
+    _putc('\n');
+}

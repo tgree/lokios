@@ -35,6 +35,8 @@ namespace kernel
             va_end(ap);
         }
 
+                void hexdump(const void* addr, size_t len, unsigned long base);
+
         char_stream();
         virtual ~char_stream();
     };
