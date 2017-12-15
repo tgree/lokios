@@ -19,6 +19,11 @@ namespace kernel
     void* pmap(uint64_t paddr, uint64_t flags = PAGE_FLAGS_DATA);
     void* pmap_range(uint64_t paddr, size_t len,
                      uint64_t flags = PAGE_FLAGS_DATA);
+    inline void* iomap_range(uint64_t paddr, size_t len,
+                             uint64_t flags = PAGE_FLAGS_IO)
+    {
+        return pmap_range(paddr,len,flags);
+    }
 
     inline thread* get_thread_region(thread_id id)
     {
