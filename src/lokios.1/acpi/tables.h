@@ -48,7 +48,7 @@ namespace kernel
         uint32_t    oem_revision;
         uint32_t    creator_id;
         uint32_t    creator_revision;
-    };
+    } __PACKED__;
     KASSERT(sizeof(sdt_header) == 36);
 
     extern vector<const sdt_header*> acpi_sdts;
