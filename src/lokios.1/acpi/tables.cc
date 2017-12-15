@@ -43,7 +43,7 @@ parse_acpi_sdts(T base)
         auto* h = pmap_sdt(_sdts[i]);
         if (kernel::checksum<uint8_t>(h,h->length) != 0)
             continue;
-        kernel::acpi_sdts.emplace_back(pmap_sdt(_sdts[i]));
+        kernel::acpi_sdts.emplace_back(h);
     }
 }
 
