@@ -40,6 +40,14 @@ namespace kernel
 #define PAGE_USER_FLAGS \
     (PAGE_FLAG_WRITEABLE | PAGE_FLAG_NOEXEC | PAGE_CACHE_MASK)
 
+    // Flags to set for a data RAM mapping.
+#define PAGE_FLAGS_DATA \
+    (PAGE_FLAG_WRITEABLE | PAGE_FLAG_NOEXEC | PAGE_CACHE_WB)
+
+    // Flags to set for an IO mapping.
+#define PAGE_FLAGS_IO \
+    (PAGE_FLAG_WRITEABLE | PAGE_FLAG_NOEXEC | PAGE_CACHE_UC)
+
     // Flags that are set when a page is mapped; excludes bits that the CPU
     // will update if a page is accessed or modified.
 #define PAGE_KERNEL_FLAGS \
