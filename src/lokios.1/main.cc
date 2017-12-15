@@ -5,6 +5,7 @@
 #include "kassert.h"
 #include "mm/e820.h"
 #include "acpi/tables.h"
+#include "pci/pci.h"
 
 const kernel::kernel_args* kernel::kargs;
 
@@ -17,6 +18,7 @@ main()
     kernel::init_main_cpu();
     kernel::init_interrupts();
     kernel::init_acpi_tables(kernel::kargs->e820_base);
+    kernel::pci::init_pci();
 
     // Banner.
     kernel::vga->printf("Loki is rad\n");

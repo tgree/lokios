@@ -36,7 +36,6 @@ namespace kernel
     } __PACKED__;
     KASSERT(sizeof(rsdp_table_2) == 36);
 
-#define MCFG_SIG 0x4746434DU
     struct sdt_header
     {
         uint32_t    signature;
@@ -50,6 +49,25 @@ namespace kernel
         uint32_t    creator_revision;
     } __PACKED__;
     KASSERT(sizeof(sdt_header) == 36);
+
+#define MCFG_SIG 0x4746434DU
+    struct mcfg_entry
+    {
+        uint64_t    addr;
+        uint16_t    domain;
+        uint8_t     start_bus_num;
+        uint8_t     end_bus_num;
+        uint32_t    rsrv;
+    } __PACKED__;
+    KASSERT(sizeof(mcfg_entry) == 16);
+
+    struct mcfg_table
+    {
+        sdt_header  hdr;
+        uint8_t     rsrv[8];
+        mcfg_entry  entries[];
+    } __PACKED__;
+    KASSERT(sizeof(mcfg_table) == 44);
 
     extern vector<const sdt_header*> acpi_sdts;
 
