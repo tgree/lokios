@@ -3,65 +3,62 @@
 
 #include "kernel_iterator.h"
 
-namespace kernel
+namespace kernel::sort
 {
-    namespace sort
+    template<typename RandomAccessIterator>
+    RandomAccessIterator partition(RandomAccessIterator begin,
+                                   RandomAccessIterator end)
     {
-        template<typename RandomAccessIterator>
-        RandomAccessIterator partition(RandomAccessIterator begin,
-                                       RandomAccessIterator end)
+        auto pivoti = end - 1;
+        auto pivot  = *pivoti;
+        auto i      = begin;
+        for (auto j = begin; j != pivoti; ++j)
         {
-            auto pivoti = end - 1;
-            auto pivot  = *pivoti;
-            auto i      = begin;
-            for (auto j = begin; j != pivoti; ++j)
+            if (*j < pivot)
             {
-                if (*j < pivot)
-                {
-                    auto tmp = *i;
-                    *i       = *j;
-                    *j       = tmp;
-                    ++i;
-                }
+                auto tmp = *i;
+                *i       = *j;
+                *j       = tmp;
+                ++i;
             }
-            if (pivot < *i)
-            {
-                *pivoti = *i;
-                *i      = pivot;
-            }
-
-            return i;
         }
-
-        template<typename RandomAccessIterator>
-        void quicksort(RandomAccessIterator begin, RandomAccessIterator end)
+        if (pivot < *i)
         {
-            // TODO: Turn this compare into an == and then we can quicksort
-            // anything that allows iterator increment, decrement and
-            // assignment.
-            if (begin >= end)
-                return;
-
-            RandomAccessIterator pivot = partition(begin,end);
-            quicksort(begin,pivot);
-            quicksort(pivot + 1,end);
+            *pivoti = *i;
+            *i      = pivot;
         }
 
-        template<typename T>
-        inline void quicksort(T& c)
-        {
-            quicksort(kernel::begin(c),kernel::end(c));
-        }
+        return i;
+    }
 
-        // Given a sorted range, find the first entry we are smaller than.
-        // TODO: Make this a binary search.
-        template<typename T, typename RAI>
-        RAI find_insertion_point(const T& e, RAI begin, RAI end)
-        {
-            while (begin != end && *begin < e)
-                ++begin;
-            return begin;
-        }
+    template<typename RandomAccessIterator>
+    void quicksort(RandomAccessIterator begin, RandomAccessIterator end)
+    {
+        // TODO: Turn this compare into an == and then we can quicksort
+        // anything that allows iterator increment, decrement and
+        // assignment.
+        if (begin >= end)
+            return;
+
+        RandomAccessIterator pivot = partition(begin,end);
+        quicksort(begin,pivot);
+        quicksort(pivot + 1,end);
+    }
+
+    template<typename T>
+    inline void quicksort(T& c)
+    {
+        quicksort(kernel::begin(c),kernel::end(c));
+    }
+
+    // Given a sorted range, find the first entry we are smaller than.
+    // TODO: Make this a binary search.
+    template<typename T, typename RAI>
+    RAI find_insertion_point(const T& e, RAI begin, RAI end)
+    {
+        while (begin != end && *begin < e)
+            ++begin;
+        return begin;
     }
 }
 
