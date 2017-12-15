@@ -7,20 +7,28 @@
 FROM ubuntu:latest
 
 # Install the base OS packages.
-RUN apt-get -y update && apt-get install -y \
-    g++                                     \
-    gdb                                     \
-    git                                     \
-    libc6-dev-i386                          \
-    make                                    \
-    man                                     \
-    manpages                                \
-    manpages-dev                            \
-    python                                  \
-    sudo                                    \
-    tig                                     \
-    tmux                                    \
-    vim
+RUN apt-get update -y                                   \
+ && apt-get install -y                                  \
+    gdb                                                 \
+    git                                                 \
+    libc6-dev-i386                                      \
+    make                                                \
+    man                                                 \
+    manpages                                            \
+    manpages-dev                                        \
+    python                                              \
+    software-properties-common                          \
+    sudo                                                \
+    tig                                                 \
+    tmux                                                \
+    vim                                                 \
+ && add-apt-repository ppa:ubuntu-toolchain-r/test -y   \
+ && apt-get update -y                                   \
+ && apt-get install -y                                  \
+    g++-7                                               \
+    gcc-7                                               \
+ && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 --slave /usr/bin/g++ g++ /usr/bin/g++-7 \
+ && update-alternatives --config gcc
 
 # Copy in the filesystem.
 COPY fs/ /
