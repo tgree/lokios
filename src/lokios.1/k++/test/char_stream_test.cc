@@ -137,6 +137,7 @@ class tmock_test
         test_random_string("%.0d",0);
         test_random_string("%.0d",12345);
         test_random_string("%016lX",(uint64_t)0);
+        test_random_string("%02X",(char)0xE0);
     }
 };
 
