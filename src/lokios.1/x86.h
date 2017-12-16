@@ -55,9 +55,9 @@ static inline void ltr(uint16_t val)
     asm ("ltr %0" : : "r"(val));
 }
 
-static inline void int32()
+static inline void int126()
 {
-    asm ("int $32");
+    asm ("int $126");
 }
 
 static inline uint8_t inb(uint16_t port)

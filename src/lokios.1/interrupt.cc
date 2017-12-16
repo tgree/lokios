@@ -1,6 +1,7 @@
 #include "interrupt.h"
 #include "thread.h"
 #include "cpu.h"
+#include "console.h"
 #include "k++/string_stream.h"
 
 static kernel::tls_tcb*
@@ -11,6 +12,16 @@ undefined_interrupt_entry(uint64_t selector, uint64_t error_code)
     ss.printf("Unregistered vector %lu error_code 0x%016lX tcb 0x%016lX",
               selector,error_code,(uint64_t)tcb);
     kernel::panic(ss);
+}
+
+static bool int126_test_succeeded = false;
+static kernel::tls_tcb*
+int126_test_interrupt_entry(uint64_t selector, uint64_t error_code,
+    uint64_t rsp)
+{
+    kernel::kassert(rsp % 16 == 0);
+    int126_test_succeeded = true;
+    return kernel::get_current_tcb();
 }
 
 extern "C" void _interrupt_entry_0();
@@ -407,6 +418,11 @@ kernel::init_interrupts()
         cpu->register_exception_vector(126,_interrupt_entry_126);
         cpu->register_exception_vector(127,_interrupt_entry_127);
     }
+
+    register_handler(126,(interrupt_handler)int126_test_interrupt_entry);
+    int126();
+    kassert(int126_test_succeeded == true);
+    vga->printf("INT 126h test succeeded\n");
 }
 
 void
