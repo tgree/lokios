@@ -16,9 +16,4 @@ namespace kernel
     void init_interrupts();
 }
 
-extern "C"
-{
-    kernel::tls_tcb* interrupt_entry(uint64_t selector, uint64_t error_code);
-}
-
 #endif /* __KERNEL_INTERRUPT_H */
