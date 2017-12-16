@@ -5,6 +5,7 @@ using kernel::_kassert;
 using kernel::round_up_pow2;
 using kernel::round_down_pow2;
 using kernel::ulog2;
+using kernel::ceil_pow2;
 
 void
 kernel::panic(const char* s) noexcept
@@ -63,6 +64,31 @@ class tmock_Test
         kassert(ulog2(14U) == 3);
         kassert(ulog2(15U) == 3);
         kassert(ulog2(16U) == 4);
+    }
+
+    TMOCK_TEST(test_ceil_pow2)
+    {
+        kassert(ceil_pow2(0U) == 0);
+        kassert(ceil_pow2(1U) == 1);
+        kassert(ceil_pow2(2U) == 2);
+        kassert(ceil_pow2(3U) == 4);
+        kassert(ceil_pow2(4U) == 4);
+        kassert(ceil_pow2(5U) == 8);
+        kassert(ceil_pow2(7U) == 8);
+        kassert(ceil_pow2(8U) == 8);
+        kassert(ceil_pow2(9U) == 16);
+        kassert(ceil_pow2(15U) == 16);
+        kassert(ceil_pow2(16U) == 16);
+        kassert(ceil_pow2(17U) == 32);
+        kassert(ceil_pow2(31U) == 32);
+        kassert(ceil_pow2(32U) == 32);
+        kassert(ceil_pow2(33U) == 64);
+        kassert(ceil_pow2(63U) == 64);
+        kassert(ceil_pow2(64U) == 64);
+        kassert(ceil_pow2(65U) == 128);
+        kassert(ceil_pow2(127U) == 128);
+        kassert(ceil_pow2(128U) == 128);
+        kassert(ceil_pow2(129U) == 256);
     }
 };
 

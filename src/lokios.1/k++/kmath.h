@@ -58,6 +58,23 @@ namespace kernel
         kassert(is_pow2(p2));
         return (T)(((uint64_t)v) & ~(p2 - 1));
     }
+
+    // Find the next power-of-2 that is greater than or equal to v.  Note that
+    // this will wrap back to 0 if your high bit and some other bit are set.
+    constexpr unsigned int ceil_pow2(unsigned int v)
+    {
+        return (!v ? 0 : (is_pow2(v) ? v : (2U << ulog2(v))));
+    }
+
+    constexpr unsigned long ceil_pow2(unsigned long v)
+    {
+        return (!v ? 0 : (is_pow2(v) ? v : (2UL << ulog2(v))));
+    }
+
+    constexpr unsigned long long ceil_pow2(unsigned long long v)
+    {
+        return (!v ? 0 : (is_pow2(v) ? v : (2ULL << ulog2(v))));
+    }
 }
 
 #endif /* __KERNEL_MATH_H */
