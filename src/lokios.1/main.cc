@@ -1,6 +1,5 @@
 #include "kernel_args.h"
 #include "console.h"
-#include "cpu.h"
 #include "interrupt.h"
 #include "kassert.h"
 #include "mm/e820.h"
@@ -15,7 +14,6 @@ int
 main()
 {
     // Initialize the CPU and interrupts.
-    kernel::init_main_cpu();
     kernel::init_interrupts();
     kernel::init_acpi_tables(kernel::kargs->e820_base);
     kernel::pci::init_pci();

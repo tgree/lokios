@@ -1,6 +1,7 @@
 #include "kernel_args.h"
 #include "console.h"
 #include "task.h"
+#include "cpu.h"
 #include "mm/mm.h"
 #include <stddef.h>
 
@@ -18,23 +19,16 @@ extern "C" void __register_frame(char*);
 
 extern int main();
 
-static void init2();
-
-void
-init()
+static void
+main_bounce()
 {
-    // Initialize the console as early as we can.
-    kernel::init_console();
-
-    // Initialize the memory map.
-    kernel::init_mm(kernel::kargs->e820_base);
-
-    // Start the kernel task with a thread that will invoke init2().
-    kernel::init_kernel_task(init2);
+    // Main screen turn on and never off.
+    main();
+    kernel::halt();
 }
 
 static void
-init2()
+init_globals()
 {
     // Do the __preinit array.
     size_t n = __preinit_array_end - __preinit_array_start;
@@ -54,8 +48,25 @@ init2()
     // to have been done first - but then we can't use exceptions in global
     // constructors?
     __register_frame(_eh_frame_begin);
+}
 
-    // Main screen turn on and never off.
-    main();
-    kernel::halt();
+void
+init()
+{
+    // Initialize the console as early as we can.
+    kernel::init_console();
+
+    // Initialize the memory map.
+    kernel::init_mm(kernel::kargs->e820_base);
+
+    // Initialize globals.
+    init_globals();
+
+    // Initialize the main CPU.  We need to do this before initializing tasks
+    // since this is where the GDT gets re-initialized and we need the GDT for
+    // starting the first thread.
+    kernel::init_main_cpu();
+
+    // Start the kernel task with a thread that will invoke main().
+    kernel::init_kernel_task(main_bounce);
 }
