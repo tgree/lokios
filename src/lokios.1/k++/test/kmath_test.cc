@@ -45,7 +45,7 @@ class tmock_Test
                     == (uint64_t*)0x12300);
     }
 
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_ulog2)
+    TMOCK_TEST(test_ulog2)
     {
         kassert(ulog2(1U)  == 0);
         kassert(ulog2(2U)  == 1);
