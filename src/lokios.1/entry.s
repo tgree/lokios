@@ -208,11 +208,16 @@ _interrupt_entry_common:
     mov     %dx,  %fs:34
 
     # Load a vector number, the error code and then call the interrupt handler.
-    # The interrupt handler returns the new FS value in RAX.
+    # The interrupt handler returns the new FS value in RAX.  With the error
+    # code still pushed onto the stack, the stack will be at 16-byte alignment.
+    # We require 16-byte alignment prior to a call instruction, so we don't
+    # pop the error code until later.
     pop     %rdi
-    pop     %rsi
+    mov     0(%rsp), %rsi
+    mov     %rsp, %rdx
     mov     _interrupt_handlers(,%rdi,8), %rax
     call    *%rax
+    pop     %rsi
 
     # Load the new FS.
 .L_interrupt_exit:
