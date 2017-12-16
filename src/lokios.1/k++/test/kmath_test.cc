@@ -4,6 +4,7 @@
 using kernel::_kassert;
 using kernel::round_up_pow2;
 using kernel::round_down_pow2;
+using kernel::ulog2;
 
 void
 kernel::panic(const char* s) noexcept
@@ -42,6 +43,26 @@ class tmock_Test
 
         kassert(round_down_pow2((uint64_t*)0x12345,0x0100)
                     == (uint64_t*)0x12300);
+    }
+
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_ulog2)
+    {
+        kassert(ulog2(1U)  == 0);
+        kassert(ulog2(2U)  == 1);
+        kassert(ulog2(3U)  == 1);
+        kassert(ulog2(4U)  == 2);
+        kassert(ulog2(5U)  == 2);
+        kassert(ulog2(6U)  == 2);
+        kassert(ulog2(7U)  == 2);
+        kassert(ulog2(8U)  == 3);
+        kassert(ulog2(9U)  == 3);
+        kassert(ulog2(10U) == 3);
+        kassert(ulog2(11U) == 3);
+        kassert(ulog2(12U) == 3);
+        kassert(ulog2(13U) == 3);
+        kassert(ulog2(14U) == 3);
+        kassert(ulog2(15U) == 3);
+        kassert(ulog2(16U) == 4);
     }
 };
 
