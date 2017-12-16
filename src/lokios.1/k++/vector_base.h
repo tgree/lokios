@@ -45,6 +45,13 @@ namespace kernel
             ++_size;
         }
 
+        inline void pop_back()
+        {
+            kassert(!empty());
+            _elems[size() - 1].~T();
+            --_size;
+        }
+
         inline void _make_slot(const iterator pos)
         {
             kassert(!full());

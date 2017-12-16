@@ -459,6 +459,46 @@ class tmock_test
         kassert(v[2].a == 0 && v[2].b == 0 && !strcmp(v[2].c,"the end"));
         kassert(entry::destructor_calls == 2);
     }
+
+    TMOCK_TEST(test_pop_back_one)
+    {
+        kernel::vector<entry> v;
+        v.emplace_back(1,2,"one two");
+        v.pop_back();
+        kassert(v.empty());
+        kassert(entry::destructor_calls == 1);
+    }
+
+    TMOCK_TEST(test_pop_back_lots)
+    {
+        kernel::vector<entry> v;
+        v.emplace_back(1,2,"one two");
+        v.emplace_back(3,4,"three four");
+        v.emplace_back(5,6,"five six");
+        v.emplace_back(0,0,"the end");
+
+        v.pop_back();
+        kassert(v.size() == 3);
+        kassert(v[0].a == 1 && v[0].b == 2 && !strcmp(v[0].c,"one two"));
+        kassert(v[1].a == 3 && v[1].b == 4 && !strcmp(v[1].c,"three four"));
+        kassert(v[2].a == 5 && v[2].b == 6 && !strcmp(v[2].c,"five six"));
+        kassert(entry::destructor_calls == 1);
+
+        v.pop_back();
+        kassert(v.size() == 2);
+        kassert(v[0].a == 1 && v[0].b == 2 && !strcmp(v[0].c,"one two"));
+        kassert(v[1].a == 3 && v[1].b == 4 && !strcmp(v[1].c,"three four"));
+        kassert(entry::destructor_calls == 2);
+
+        v.pop_back();
+        kassert(v.size() == 1);
+        kassert(v[0].a == 1 && v[0].b == 2 && !strcmp(v[0].c,"one two"));
+        kassert(entry::destructor_calls == 3);
+
+        v.pop_back();
+        kassert(v.empty());
+        kassert(entry::destructor_calls == 4);
+    }
 };
 
 TMOCK_MAIN();
