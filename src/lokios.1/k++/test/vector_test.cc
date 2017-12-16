@@ -71,6 +71,12 @@ class tmock_test
             kassert(v[i].b == entries[i].b);
             kassert(v[i].c == entries[i].c);
         }
+        for (ssize_t i=1; i<=(ssize_t)v.size(); ++i)
+        {
+            kassert(v[-i].a == entries[kernel::nelems(entries)-i].a);
+            kassert(v[-i].b == entries[kernel::nelems(entries)-i].b);
+            kassert(v[-i].c == entries[kernel::nelems(entries)-i].c);
+        }
     }
 
     TMOCK_TEST_EXPECT_FAILURE(test_subscript_operator_bounds_check_empty_vector)
@@ -87,6 +93,16 @@ class tmock_test
         v.emplace_back(5,6,"five six");
         v.emplace_back(0,0,"the end");
         v[4].a = 0;
+    }
+
+    TMOCK_TEST_EXPECT_FAILURE(test_subscript_operator_negative_bounds_check)
+    {
+        kernel::vector<entry> v;
+        v.emplace_back(1,2,"one two");
+        v.emplace_back(3,4,"three four");
+        v.emplace_back(5,6,"five six");
+        v.emplace_back(0,0,"the end");
+        v[-5].a = 0;
     }
 
     TMOCK_TEST(test_push_back_copy)

@@ -3,6 +3,7 @@
 
 #include "kernel/kassert.h"
 #include <stddef.h>
+#include <unistd.h>
 #include <utility>
 #include <new>
 
@@ -23,10 +24,20 @@ namespace kernel
         inline size_t capacity() const {return _capacity;}
         inline bool   full() const     {return size() == capacity();}
 
-        inline T& operator[](size_t index) const
+        inline T& operator[](ssize_t index) const
         {
-            kassert(index < size());
-            return _elems[index];
+            if (index >= 0)
+            {
+                // The range [0, size-1] contains all elements.
+                kassert(index < (ssize_t)size());
+                return _elems[index];
+            }
+            else
+            {
+                // The range [-size, -1] contains all elements.
+                kassert(-index <= (ssize_t)size());
+                return _elems[size() + index];
+            }
         }
 
         inline void push_back(const T& val)
