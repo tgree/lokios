@@ -4,6 +4,7 @@
 #include "console.h"
 #include "pic.h"
 #include "ioapic.h"
+#include "lapic.h"
 #include "k++/string_stream.h"
 
 static kernel::tls_tcb*
@@ -293,6 +294,7 @@ kernel::init_interrupts()
     // them all in a state where they have interrupts masked.
     init_pic();
     init_ioapics();
+    init_lapic();
 
     for (auto cpu : cpus)
     {
