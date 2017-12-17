@@ -28,6 +28,14 @@ static inline void mtcr4(uint64_t val)
     asm ("mov %0, %%cr4" : : "r"(val));
 }
 
+static inline uint64_t rdmsr(uint32_t msr)
+{
+    uint32_t eax;
+    uint32_t edx;
+    asm ("rdmsr" : "=a"(eax), "=d"(edx) : "c"(msr));
+    return ((uint64_t)edx << 32) | (uint64_t)eax;
+}
+
 static inline void lgdt(uint64_t base, uint16_t limit)
 {
     struct __PACKED__
