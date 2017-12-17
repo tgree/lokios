@@ -13,8 +13,8 @@ int
 main()
 {
     // Initialize the CPU and interrupts.
-    kernel::init_interrupts();
     kernel::init_acpi_tables(kernel::kargs->e820_base);
+    kernel::init_interrupts();
     kernel::pci::init_pci();
 
     // Banner.
