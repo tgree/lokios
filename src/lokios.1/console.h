@@ -2,30 +2,34 @@
 #define __KERNEL_CONSOLE_H
 
 #include "k++/char_stream.h"
+#include "k++/klist.h"
+#include "hdr/compiler.h"
 #include <stdint.h>
 
 namespace kernel
 {
-    struct console : public char_stream
+    struct kconsole : public char_stream
     {
-        uint16_t*   base;
-        uint16_t    x;
-        uint16_t    y;
-
-        void    scroll();
-
-        // Move to the start of the next line, scrolling if necessary.
-        void    putnewline();
-
-        // Put a character or a string.
-        virtual void    _putc(char c);
-
-        console(uint16_t* base);
+        klink kc_link;
     };
+}
 
-    extern console* vga;
+namespace kernel::console
+{
+    void vprintf(const char* fmt, va_list ap);
+    inline void __PRINTF__(1,2) printf(const char* fmt, ...)
+    {
+        va_list ap;
+        va_start(ap,fmt);
+        kernel::console::vprintf(fmt,ap);
+        va_end(ap);
+    }
 
-    void init_console();
+    void _putc(char c);
+
+    void hexdump(const void* addr, size_t len, unsigned long base);
+
+    void register_console(kconsole* kc);
 }
 
 #endif /* __KERNEL_CONSOLE_H */

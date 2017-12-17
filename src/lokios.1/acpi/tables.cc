@@ -5,6 +5,8 @@
 #include "k++/vector.h"
 #include "k++/checksum.h"
 
+using kernel::console::printf;
+
 kernel::vector<const kernel::sdt_header*> kernel::acpi_sdts;
 
 static kernel::rsdp_table*
@@ -90,7 +92,7 @@ kernel::init_acpi_tables(const e820_map* m)
     kassert(rsdp != NULL);
 
     // Checksum the legacy table.
-    vga->printf("Found RSDP at 0x%016lX\n",(uint64_t)rsdp);
+    printf("Found RSDP at 0x%016lX\n",(uint64_t)rsdp);
     kassert(checksum<uint8_t>(rsdp,sizeof(*rsdp)) == 0);
     kassert(rsdp->revision == 0 || rsdp->revision == 2);
 

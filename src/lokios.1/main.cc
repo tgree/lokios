@@ -7,6 +7,8 @@
 #include "acpi/tables.h"
 #include "pci/pci.h"
 
+using kernel::console::printf;
+
 const kernel::kernel_args* kernel::kargs;
 
 __thread uint64_t tls_signature = 0x135724683579468A;
@@ -21,7 +23,7 @@ main()
     kernel::pci::init_pci();
 
     // Banner.
-    kernel::vga->printf("Loki is rad\n");
+    printf("Loki is rad\n");
     kernel::kassert(tls_signature == 0x135724683579468A);
 
     // Test exceptions.
@@ -36,7 +38,7 @@ main()
     }
     catch (kernel::exception& e)
     {
-        kernel::vga->printf("caught kernel::exception&: %s\n",e.c_str());
+        printf("caught kernel::exception&: %s\n",e.c_str());
     }
     catch (...)
     {

@@ -1,5 +1,5 @@
 #include "kernel_args.h"
-#include "console.h"
+#include "vga.h"
 #include "task.h"
 #include "cpu.h"
 #include "mm/mm.h"
@@ -54,7 +54,7 @@ void
 init()
 {
     // Initialize the console as early as we can.
-    kernel::init_console();
+    kernel::init_vga_console();
 
     // Initialize the memory map.
     kernel::init_mm(kernel::kargs->e820_base);

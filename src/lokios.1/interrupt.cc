@@ -8,6 +8,8 @@
 #include "pmtimer.h"
 #include "k++/string_stream.h"
 
+using kernel::console::printf;
+
 static kernel::tls_tcb*
 undefined_interrupt_entry(uint64_t selector, uint64_t error_code)
 {
@@ -456,7 +458,7 @@ kernel::init_interrupts()
     register_handler(126,(interrupt_handler)int126_test_interrupt_entry);
     int126();
     kassert(int126_test_succeeded == true);
-    vga->printf("INT 126h test succeeded\n");
+    printf("INT 126h test succeeded\n");
 
     // Generate an external interrupt to test that we have hardware interrupts
     // working properly.

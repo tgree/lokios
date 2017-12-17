@@ -7,6 +7,7 @@
 #include "mm/mm.h"
 
 using namespace kernel;
+using kernel::console::printf;
 
 static lapic_registers* lapic;
 
@@ -53,15 +54,15 @@ kernel::init_lapic()
     }
     kassert(r == end);
 
-    vga->printf("LOCAL_APIC_ADDR 0x%016lX\n",local_apic_addr);
-    vga->printf("IA32_APIC_BASE  0x%016lX\n",rdmsr(0x1B));
+    printf("LOCAL_APIC_ADDR 0x%016lX\n",local_apic_addr);
+    printf("IA32_APIC_BASE  0x%016lX\n",rdmsr(0x1B));
 
     // Map the local APIC.  Since the local APIC is at the same physical
     // address in all CPUs, this maps it for them all.
     lapic = (lapic_registers*)iomap(local_apic_addr);
-    vga->printf("LAPIC: apic_id 0x%08X apic_version 0x%08X tp 0%08X\n",
-                (uint32_t)lapic->apic_id,(uint32_t)lapic->apic_version,
-                (uint32_t)lapic->task_priority);
+    printf("LAPIC: apic_id 0x%08X apic_version 0x%08X tp 0%08X\n",
+           (uint32_t)lapic->apic_id,(uint32_t)lapic->apic_version,
+           (uint32_t)lapic->task_priority);
 
     // Mask all local APIC interrupts.
     uint8_t max_lvt = (lapic->apic_version >> 16);
@@ -101,7 +102,7 @@ kernel::test_lapic()
     lapic->eoi = 0;
     for (size_t i=0; i<2; ++i)
     {
-        vga->printf("LAPIC self-test %zu\n",i);
+        printf("LAPIC self-test %zu\n",i);
         kassert(lapic_test_passed == false);
         lapic->icr[1] = 0x00000000;
         lapic->icr[0] = 0x00044000 | 125;

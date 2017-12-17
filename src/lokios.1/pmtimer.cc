@@ -7,6 +7,7 @@
 #define MAX_TICKS       0x00800000
 
 using kernel::_kassert;
+using kernel::console::printf;
 
 static uint16_t pmtimer_ioaddr;
 
@@ -45,12 +46,12 @@ kernel::pmtimer::init()
     kassert(fadt != NULL);
     if (offsetof(fadt_table,x_pm_tmr_blk) < fadt->hdr.length)
     {
-        vga->printf("PM TIMER: %02X %02X %02X %02X %016lX\n",
-                    fadt->x_pm_tmr_blk.addr_space_id,
-                    fadt->x_pm_tmr_blk.register_bit_width,
-                    fadt->x_pm_tmr_blk.register_bit_offset,
-                    fadt->x_pm_tmr_blk.access_size,
-                    fadt->x_pm_tmr_blk.addr);
+        printf("PM TIMER: %02X %02X %02X %02X %016lX\n",
+               fadt->x_pm_tmr_blk.addr_space_id,
+               fadt->x_pm_tmr_blk.register_bit_width,
+               fadt->x_pm_tmr_blk.register_bit_offset,
+               fadt->x_pm_tmr_blk.access_size,
+               fadt->x_pm_tmr_blk.addr);
         kassert(fadt->x_pm_tmr_blk.addr_space_id == 1);
         kassert(fadt->x_pm_tmr_blk.register_bit_width == 32);
         kassert(fadt->x_pm_tmr_blk.register_bit_offset == 0);
@@ -60,7 +61,7 @@ kernel::pmtimer::init()
     }
     else
     {
-        vga->printf("PM TIMER: %08X\n",fadt->pm_tmr_blk);
+        printf("PM TIMER: %08X\n",fadt->pm_tmr_blk);
         kassert(fadt->pm_tmr_blk < 0x00010000);
         pmtimer_ioaddr = fadt->pm_tmr_blk;
     }

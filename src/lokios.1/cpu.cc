@@ -5,6 +5,8 @@
 #include "console.h"
 #include "mm/page.h"
 
+using kernel::console::printf;
+
 kernel::vector<kernel::cpu*> kernel::cpus;
 
 kernel::cpu*
@@ -32,14 +34,14 @@ kernel::init_main_cpu()
     lidt((uint64_t)c->idt,sizeof(c->idt)-1);
 
     // Fill in some cpuid feature flags.
-    vga->printf("Max Basic CPUID Selector: 0x%08X\n",cpuid(0).eax);
-    vga->printf("Max Extnd CPUID Selector: 0x%08X\n",cpuid(0x80000000).eax);
+    printf("Max Basic CPUID Selector: 0x%08X\n",cpuid(0).eax);
+    printf("Max Extnd CPUID Selector: 0x%08X\n",cpuid(0x80000000).eax);
     char brand[49];
     for (size_t i=0; i<3; ++i)
         cpuid(0x80000002+i,0,brand + 16*i);
     brand[48] = '\0';
-    vga->printf("CPU Brand: %s\n",brand);
-    vga->printf("Initial APIC ID: %u\n",cpuid(1).ebx >> 24);
+    printf("CPU Brand: %s\n",brand);
+    printf("Initial APIC ID: %u\n",cpuid(1).ebx >> 24);
 
     // Done.
     cpus.emplace_back(c);

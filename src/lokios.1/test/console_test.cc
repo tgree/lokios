@@ -1,4 +1,4 @@
-#include "../console.h"
+#include "../vga.h"
 #include "../kernel_args.h"
 #include "../kassert.h"
 #include "mm/sbrk.h"
@@ -31,7 +31,7 @@ class tmock_test
     TMOCK_TEST(test_putc)
     {
         tmock::assert_equiv(conbuf[0],0x1F20U);
-        kernel::vga->_putc('T');
+        kernel::console::_putc('T');
         tmock::assert_equiv(conbuf[0],0x1F00U | 'T');
     }
 };
@@ -39,6 +39,6 @@ class tmock_test
 int
 main(int argc, const char* argv[])
 {
-    kernel::init_console();
+    kernel::init_vga_console();
     return tmock::run_tests(argc,argv);
 }

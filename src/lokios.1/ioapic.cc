@@ -4,6 +4,7 @@
 #include "mm/mm.h"
 
 using namespace kernel;
+using kernel::console::printf;
 
 kernel::ioapic::ioapic(uint8_t apic_id, uint64_t apic_addr,
     uint32_t interrupt_base):
@@ -12,8 +13,8 @@ kernel::ioapic::ioapic(uint8_t apic_id, uint64_t apic_addr,
         interrupt_base(interrupt_base),
         apic_id(apic_id)
 {
-    vga->printf("IOAPIC_ID %u IOAPIC_ADDR 0x%08lX INT_BASE %u\n",
-                apic_id,apic_addr,interrupt_base);
+    printf("IOAPIC_ID %u IOAPIC_ADDR 0x%08lX INT_BASE %u\n",
+           apic_id,apic_addr,interrupt_base);
 
     // Mask all IOAPIC interrupts.
     uint32_t ver = read_reg(1);

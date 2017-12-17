@@ -75,7 +75,7 @@ void* memcpy(void* dest, const void* src, size_t n)
 extern "C"
 int memcmp(const void* _s1, const void* _s2, size_t n)
 {
-    kernel::vga->printf("memcmp\n");
+    kernel::console::printf("memcmp\n");
     const char* s1 = (const char*)_s1;
     const char* s2 = (const char*)_s2;
     while (n)
@@ -147,7 +147,7 @@ size_t fwrite(const void* ptr, size_t size, size_t nmemb, FILE* stream)
     const char* p = (const char*)ptr;
     for (size_t i=0; i<nmemb; ++i)
         for (size_t j=0; j<size; ++j)
-            kernel::vga->_putc(*p++);
+            kernel::console::_putc(*p++);
     return nmemb;
 }
 
@@ -155,7 +155,7 @@ extern "C"
 int fputc(int c, FILE* stream)
 {
     kernel::kassert(stream == stderr);
-    kernel::vga->_putc(c);
+    kernel::console::_putc(c);
     return (unsigned char)c;
 }
 
@@ -163,7 +163,7 @@ extern "C"
 int fputs(const char* s, FILE* stream)
 {
     kernel::kassert(stream == stderr);
-    kernel::vga->printf("%s",s);
+    kernel::console::printf("%s",s);
     return 0;
 }
 
@@ -176,7 +176,7 @@ int fprintf(FILE* stream, const char* fmt, ...)
     kernel::kassert(stream == stderr);
     va_list ap;
     va_start(ap,fmt);
-    kernel::vga->vprintf(fmt,ap);
+    kernel::console::vprintf(fmt,ap);
     va_end(ap);
     return 0;
 }
@@ -187,7 +187,7 @@ ssize_t write(int fd, const void* buf, size_t count)
     kernel::kassert(fd == STDERR_FILENO);
     const char* p = (const char*)buf;
     while (count--)
-        kernel::vga->_putc(*p++);
+        kernel::console::_putc(*p++);
     return count;
 }
 

@@ -2,6 +2,8 @@
 #include "kernel/x86.h"
 #include "kernel/console.h"
 
+using kernel::console::printf;
+
 static inline uint32_t
 config_addr_val(uint8_t bus, uint8_t devfn, uint16_t offset)
 {
@@ -16,7 +18,7 @@ kernel::io_config_accessor::io_config_accessor(uint16_t config_addr,
         config_addr(config_addr),
         config_data(config_data)
 {
-    vga->printf("IOCFG %04X:%04X\n",config_addr,config_data);
+    printf("IOCFG %04X:%04X\n",config_addr,config_data);
 }
 
 uint8_t

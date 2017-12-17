@@ -5,6 +5,8 @@
 #include "kernel/console.h"
 #include "k++/sort.h"
 
+using kernel::console::printf;
+
 kernel::vector<kernel::pci::domain> kernel::pci::domains;
 
 void
@@ -38,7 +40,7 @@ kernel::pci::init_pci()
     // Probe all domains.
     for (auto& d : domains)
     {
-        vga->printf("Probing PCI domain %04X...\n",d.id);
+        printf("Probing PCI domain %04X...\n",d.id);
         for (uint16_t bus=0; bus<256; ++bus)
         {
             for (uint8_t dev=0; dev<32; ++dev)
@@ -56,8 +58,8 @@ kernel::pci::init_pci()
                         continue;
 
                     uint16_t device_id = d.cfg->config_read_16(bus,devfn,2);
-                    vga->printf("%02X:%02X.%u: %04X %04X\n",
-                                bus,dev,fn,vendor_id,device_id);
+                    printf("%02X:%02X.%u: %04X %04X\n",
+                           bus,dev,fn,vendor_id,device_id);
                 }
             }
         }

@@ -3,6 +3,8 @@
 #include "kernel/console.h"
 #include "kernel/kassert.h"
 
+using kernel::console::printf;
+
 static inline size_t
 config_len(size_t start_bus_num, size_t end_bus_num)
 {
@@ -24,7 +26,7 @@ kernel::mem_config_accessor::mem_config_accessor(uint64_t base,
         start_bus_num(start_bus_num),
         end_bus_num(end_bus_num)
 {
-    vga->printf("MCFG 0x%016lX [%02X:%02X]\n",base,start_bus_num,end_bus_num);
+    printf("MCFG 0x%016lX [%02X:%02X]\n",base,start_bus_num,end_bus_num);
 }
 
 uint8_t
