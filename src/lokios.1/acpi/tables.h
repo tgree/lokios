@@ -139,6 +139,60 @@ namespace kernel
     } __PACKED__;
     KASSERT(sizeof(mcfg_table) == 44);
 
+#define MADT_SIG 0x43495041
+    struct madt_record
+    {
+        uint8_t type;
+        uint8_t len;
+
+        union
+        {
+            struct
+            {
+                uint8_t     acpi_processor_id;
+                uint8_t     apic_id;
+                uint32_t    flags;
+            } __PACKED__ type0;
+
+            struct
+            {
+                uint8_t     io_apic_id;
+                uint8_t     rsrv;
+                uint32_t    io_apic_addr;
+                uint32_t    interrupt_base;
+            } __PACKED__ type1;
+
+            struct
+            {
+                uint8_t     bus_source;
+                uint8_t     irq_source;
+                uint32_t    interrupt_num;
+                uint16_t    flags;
+            } __PACKED__ type2;
+
+            struct
+            {
+                uint8_t     processor;
+                uint16_t    flags;
+                uint8_t     lint_num;
+            } __PACKED__ type4;
+
+            struct
+            {
+                uint16_t    rsrv;
+                uint64_t    local_apic_addr;
+            } __PACKED__ type5;
+        };
+    } __PACKED__;
+
+    struct madt_table
+    {
+        sdt_header  hdr;
+        uint32_t    local_apic_addr;
+        uint32_t    flags;
+        madt_record records[];
+    };
+
     extern vector<const sdt_header*> acpi_sdts;
 
     const sdt_header* find_acpi_table(uint32_t signature);
