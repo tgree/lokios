@@ -2,7 +2,6 @@
 #include "console.h"
 #include "interrupt.h"
 #include "kassert.h"
-#include "mm/e820.h"
 #include "acpi/tables.h"
 #include "pci/pci.h"
 
