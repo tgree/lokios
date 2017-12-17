@@ -2,6 +2,7 @@
 #include "thread.h"
 #include "cpu.h"
 #include "console.h"
+#include "pic.h"
 #include "k++/string_stream.h"
 
 static kernel::tls_tcb*
@@ -287,6 +288,10 @@ kernel::interrupt_handler _interrupt_handlers[128] = {
 void
 kernel::init_interrupts()
 {
+    // Start by initializing the various interrupt controllers.  This will put
+    // them all in a state where they have interrupts masked.
+    init_pic();
+
     for (auto cpu : cpus)
     {
         cpu->register_exception_vector(0,_interrupt_entry_0);
