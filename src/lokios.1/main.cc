@@ -2,6 +2,7 @@
 #include "console.h"
 #include "interrupt.h"
 #include "pmtimer.h"
+#include "cxx_exception.h"
 #include "kassert.h"
 #include "acpi/tables.h"
 #include "pci/pci.h"
@@ -26,16 +27,16 @@ main()
     // Test exceptions.
     try
     {
-        throw kernel::vga;
+        kernel::throw_test_exception();
         kernel::panic("throw failed");
     }
     catch (int)
     {
         kernel::panic("caught int");
     }
-    catch (kernel::console* c)
+    catch (kernel::exception& e)
     {
-        kernel::vga->printf("caught console*\n");
+        kernel::vga->printf("caught kernel::exception&: %s\n",e.c_str());
     }
     catch (...)
     {
