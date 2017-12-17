@@ -1,6 +1,7 @@
 #include "kernel_args.h"
 #include "console.h"
 #include "interrupt.h"
+#include "pmtimer.h"
 #include "kassert.h"
 #include "acpi/tables.h"
 #include "pci/pci.h"
@@ -14,6 +15,7 @@ main()
 {
     // Initialize the CPU and interrupts.
     kernel::init_acpi_tables(kernel::kargs->e820_base);
+    kernel::pmtimer::init();
     kernel::init_interrupts();
     kernel::pci::init_pci();
 
