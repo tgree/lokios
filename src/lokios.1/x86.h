@@ -104,4 +104,14 @@ static inline void outl(uint32_t val, uint16_t port)
     asm ("outl %0, %1" : : "a"(val), "di"(port));
 }
 
+static inline void cpu_enable_interrupts()
+{
+    asm ("sti");
+}
+
+static inline void cpu_disable_interrupts()
+{
+    asm ("cli");
+}
+
 #endif /* __KERNEL_X86_H */
