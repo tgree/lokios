@@ -89,6 +89,12 @@ namespace kernel
         inline ~klist() {kassert(head == NULL && tail == NULL);}
     };
 
+    template<typename T>
+    struct klist_leaks : klist<T>
+    {
+        inline ~klist_leaks() {this->head = this->tail = NULL;}
+    };
+
     template<typename T, size_t OFFSET>
     struct klist_rbfl_adapter
     {
