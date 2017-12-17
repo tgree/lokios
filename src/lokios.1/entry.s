@@ -258,6 +258,8 @@ _interrupt_entry_common:
     mov     %fs:184, %r15 
 
     # We're done!
+.globl _interrupt_entry_noop
+_interrupt_entry_noop:
     iretq
 
 

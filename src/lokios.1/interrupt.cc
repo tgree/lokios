@@ -5,6 +5,7 @@
 #include "pic.h"
 #include "ioapic.h"
 #include "lapic.h"
+#include "pmtimer.h"
 #include "k++/string_stream.h"
 
 static kernel::tls_tcb*
@@ -27,6 +28,7 @@ int126_test_interrupt_entry(uint64_t selector, uint64_t error_code,
     return kernel::get_current_tcb();
 }
 
+extern "C" void _interrupt_entry_noop();
 extern "C" void _interrupt_entry_0();
 extern "C" void _interrupt_entry_1();
 extern "C" void _interrupt_entry_2();
@@ -296,6 +298,27 @@ kernel::init_interrupts()
     init_ioapics();
     init_lapic();
 
+    // Now: there could be pending interrupts if, say, a timer interrupt
+    // previously fired.  Those interrupt vectors are already latched by the
+    // CPU and they are going to trigger an interrupt vector no matter what at
+    // this point when we enable the IF bit.  So, we start by setting up dummy
+    // handlers for all the external interrupts, set the IF bit which will
+    // cause the dummy handler to be called and drain the pending interrupt
+    // queue and then we can finally set the real vectors we want in those
+    // slots.
+    for (auto cpu : cpus)
+    {
+        for (size_t i=0; i<nelems(cpu->idt); ++i)
+            cpu->register_exception_vector(i,_interrupt_entry_noop);
+    }
+
+    // Enable interrupts.  This is going to trigger any pending external
+    // interrupts which we will ignore.
+    cpu_enable_interrupts();
+    pmtimer::wait_us(100);
+
+    // Now that we have drained the external interrupts and the interrupt
+    // controllers are all masked.
     for (auto cpu : cpus)
     {
         cpu->register_exception_vector(0,_interrupt_entry_0);
@@ -428,10 +451,16 @@ kernel::init_interrupts()
         cpu->register_exception_vector(127,_interrupt_entry_127);
     }
 
+    // Generate a software interrupt to check that we have basic exception-
+    // handling working properly.
     register_handler(126,(interrupt_handler)int126_test_interrupt_entry);
     int126();
     kassert(int126_test_succeeded == true);
     vga->printf("INT 126h test succeeded\n");
+
+    // Generate an external interrupt to test that we have hardware interrupts
+    // working properly.
+    test_lapic();
 }
 
 void
