@@ -1,5 +1,5 @@
 #include "pic.h"
-#include "x86.h"
+#include "kernel/x86.h"
 
 void
 kernel::init_pic()

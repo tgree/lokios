@@ -1,8 +1,8 @@
 #ifndef __KERNEL_IOAPIC_H
 #define __KERNEL_IOAPIC_H
 
-#include "kassert.h"
-#include "types.h"
+#include "kernel/kassert.h"
+#include "kernel/types.h"
 #include <stdint.h>
 
 namespace kernel

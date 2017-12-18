@@ -1,5 +1,5 @@
 #include "ioapic.h"
-#include "console.h"
+#include "kernel/console.h"
 #include "acpi/tables.h"
 #include "mm/mm.h"
 

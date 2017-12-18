@@ -1,11 +1,11 @@
 #include "interrupt.h"
-#include "thread.h"
-#include "cpu.h"
-#include "console.h"
 #include "pic.h"
 #include "ioapic.h"
 #include "lapic.h"
-#include "pmtimer.h"
+#include "kernel/thread.h"
+#include "kernel/cpu.h"
+#include "kernel/console.h"
+#include "kernel/pmtimer.h"
 #include "k++/string_stream.h"
 
 using kernel::console::printf;

@@ -1,10 +1,10 @@
 #include "kernel_args.h"
 #include "console.h"
-#include "interrupt.h"
 #include "pmtimer.h"
 #include "cxx_exception.h"
 #include "kassert.h"
 #include "acpi/tables.h"
+#include "interrupts/interrupt.h"
 #include "pci/pci.h"
 
 using kernel::console::printf;

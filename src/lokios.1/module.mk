@@ -1,4 +1,4 @@
-SUBMODULES := mm acpi pci platform k++ test
+SUBMODULES := mm acpi interrupts pci platform k++ test
 
 CRTBEGIN_OBJ := $(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
 CRTEND_OBJ   := $(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
@@ -9,7 +9,7 @@ LOKIOS_1_CXX_SRC := $(wildcard $(MODULE_SRC_DIR)/*.cc)
 LOKIOS_1_ASM_SRC := $(wildcard $(MODULE_SRC_DIR)/*.s)
 LOKIOS_1_OBJ := $(LOKIOS_1_CXX_SRC:$(MODULE_SRC_DIR)/%.cc=$(MODULE_BUILD_DIR)/%.o) \
                 $(LOKIOS_1_ASM_SRC:$(MODULE_SRC_DIR)/%.s=$(MODULE_BUILD_DIR)/%.o)
-LOKIOS_1_LIB := mm.a acpi.a pci.a platform.a k++.a
+LOKIOS_1_LIB := mm.a acpi.a interrupts.a pci.a platform.a k++.a
 
 -include $(LOKIOS_1_OBJ:.o=.d)
 

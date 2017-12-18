@@ -1,7 +1,7 @@
 #ifndef __KERNEL_LAPIC_H
 #define __KERNEL_LAPIC_H
 
-#include "types.h"
+#include "kernel/types.h"
 #include "kernel/kassert.h"
 
 namespace kernel
