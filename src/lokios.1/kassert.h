@@ -7,10 +7,6 @@
 namespace kernel
 {
     void
-    vgawrite(uint8_t x, uint8_t y, const char* s,
-             uint16_t cflags = 0x4F00) noexcept;
-
-    void
     halt() noexcept __attribute__((noreturn));
 
     void

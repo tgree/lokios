@@ -12,6 +12,31 @@ kernel::init_vga_console()
     kernel::console::register_console(vga);
 }
 
+void
+kernel::vga_write(uint8_t x, uint8_t y, const char* s, uint16_t cflags) noexcept
+{
+    uint16_t* addr = &((uint16_t*)kernel::kargs->vga_base)[y*80 + x];
+    while (*s)
+        *addr++ = cflags | *s++;
+}
+
+void
+kernel::vga_set_flags(uint16_t _cflags) noexcept
+{
+    uint64_t* addr  = (uint64_t*)kernel::kargs->vga_base;
+    uint64_t cflags = ((uint64_t)_cflags << 48) |
+                      ((uint64_t)_cflags << 32) |
+                      ((uint64_t)_cflags << 16) |
+                      ((uint64_t)_cflags <<  0);
+    for (unsigned int i=0; i<500; ++i)
+    {
+        uint64_t val = *addr;
+        val         &= 0x00FF00FF00FF00FF;
+        val         |= cflags;
+        *addr++      = val;
+    }
+}
+
 kernel::vga_console::vga_console(uint16_t* base):
     base(base),
     x(0),
