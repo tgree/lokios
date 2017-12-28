@@ -26,7 +26,7 @@ main_bounce()
 {
     // Main screen turn on and never off.
     main();
-    kernel::halt();
+    kernel::exit_guest(1);
 }
 
 static void

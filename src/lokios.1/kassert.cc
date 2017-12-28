@@ -2,6 +2,7 @@
 #include "kernel_args.h"
 #include "vga.h"
 #include "serial.h"
+#include "platform/platform.h"
 #include <stdlib.h>
 
 void
@@ -23,7 +24,7 @@ abort()
     kernel::serial_write("ABORT\n");
 
     // Stop.
-    kernel::halt();
+    kernel::exit_guest(2);
 }
 
 void
@@ -36,5 +37,5 @@ kernel::panic(const char* s) noexcept
     kernel::serial_write("Kernel panic\n");
     kernel::serial_write(s);
     kernel::serial_write("\n");
-    kernel::halt();
+    kernel::exit_guest(3);
 }
