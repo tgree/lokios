@@ -1,19 +1,17 @@
 #ifndef __KERNEL_ASSERT_H
 #define __KERNEL_ASSERT_H
 
+#include <hdr/compiler.h>
 #include <hdr/fileline.h>
 #include <stdint.h>
 
 namespace kernel
 {
-    void
-    halt() noexcept __attribute__((noreturn));
+    void halt() noexcept __NORETURN__;
 
-    void
-    panic(const char* s = "") noexcept __attribute__((noreturn));
+    void panic(const char* s = "") noexcept __NORETURN__;
 
-    inline void
-    _kassert(bool expr, const char* s)
+    inline void _kassert(bool expr, const char* s)
     {
         if (!expr)
             panic(s);
