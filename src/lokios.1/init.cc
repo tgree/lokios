@@ -3,6 +3,7 @@
 #include "serial.h"
 #include "task.h"
 #include "cpu.h"
+#include "platform/platform.h"
 #include "mm/mm.h"
 #include <stddef.h>
 
@@ -63,6 +64,9 @@ init()
 
     // Initialize globals.
     init_globals();
+
+    // Initialize the platform.
+    kernel::init_platform();
 
     // Initialize the main CPU.  We need to do this before initializing tasks
     // since this is where the GDT gets re-initialized and we need the GDT for
