@@ -1,6 +1,8 @@
 #ifndef __KERNEL_CPUID_H
 #define __KERNEL_CPUID_H
 
+#include <stdint.h>
+
 namespace kernel
 {
     struct cpuid_result
