@@ -10,16 +10,16 @@ kernel::ioapic::ioapic(uint8_t apic_id, uint64_t apic_addr,
     uint32_t acpi_interrupt_base):
         regs((ioapic_registers*)iomap(apic_addr)),
         apic_addr(apic_addr),
+        interrupt_count(((read_reg(1) >> 16) & 0xFF) + 1),
         acpi_interrupt_base(acpi_interrupt_base),
         apic_id(apic_id)
 {
-    printf("IOAPIC_ID %u IOAPIC_ADDR 0x%08lX INT_BASE %u\n",
-           apic_id,apic_addr,acpi_interrupt_base);
+    printf("IOAPIC_ID %u IOAPIC_ADDR 0x%08lX INT_RANGE [%u,%u)\n",
+           apic_id,apic_addr,acpi_interrupt_base,
+           acpi_interrupt_base+interrupt_count);
 
     // Mask all IOAPIC interrupts.
-    uint32_t ver = read_reg(1);
-    uint32_t nints = ((ver >> 16) & 0xFF) + 1;
-    for (size_t i=0; i<nints; ++i)
+    for (size_t i=0; i<interrupt_count; ++i)
     {
         uint8_t index = 0x10 + i*2;
         uint32_t v    = read_reg(index);

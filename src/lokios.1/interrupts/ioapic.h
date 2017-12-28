@@ -22,6 +22,7 @@ namespace kernel
     {
         ioapic_registers*   regs;
         const uint64_t      apic_addr;
+        const uint8_t       interrupt_count;
         const uint32_t      acpi_interrupt_base;
         const uint8_t       apic_id;
 
