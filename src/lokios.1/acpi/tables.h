@@ -140,10 +140,27 @@ namespace kernel
     KASSERT(sizeof(mcfg_table) == 44);
 
 #define MADT_SIG 0x43495041
+    enum madt_record_type : uint8_t
+    {
+        MADT_TYPE_LAPIC                         = 0,
+        MADT_TYPE_IOAPIC                        = 1,
+        MADT_TYPE_INTERRUPT_OVERRIDE            = 2,
+        MADT_TYPE_NMI_SOURCE                    = 3,
+        MADT_TYPE_LAPIC_NMI                     = 4,
+        MADT_TYPE_LAPIC_ADDRESS_OVERRIDE        = 5,
+        MADT_TYPE_IOSAPIC                       = 6,
+        MADT_TYPE_LSAPIC                        = 7,
+        MADT_TYPE_PLATFORM_INTERRUPT_SOURCES    = 8,
+        MADT_TYPE_Lx2APIC                       = 9,
+        MADT_TYPE_Lx2APIC_NMI                   = 10,
+        MADT_TYPE_GIC                           = 11,
+        MADT_TYPE_GICD                          = 12,
+    };
+
     struct madt_record
     {
-        uint8_t type;
-        uint8_t len;
+        madt_record_type    type;
+        uint8_t             len;
 
         union
         {

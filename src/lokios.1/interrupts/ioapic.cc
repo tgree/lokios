@@ -52,7 +52,7 @@ kernel::init_ioapics()
     const madt_record* end = (const madt_record*)((uintptr_t)h + h->length);
     while (r < end)
     {
-        if (r->type == 1)
+        if (r->type == MADT_TYPE_IOAPIC)
         {
             new ioapic(r->type1.io_apic_id,r->type1.io_apic_addr,
                        r->type1.interrupt_base);

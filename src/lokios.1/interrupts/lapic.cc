@@ -44,7 +44,7 @@ kernel::init_lapic()
     const madt_record* end   = (const madt_record*)((uintptr_t)h + h->length);
     while (r < end)
     {
-        if (r->type == 5)
+        if (r->type == MADT_TYPE_LAPIC_ADDRESS_OVERRIDE)
         {
             local_apic_addr = r->type5.local_apic_addr;
             break;
