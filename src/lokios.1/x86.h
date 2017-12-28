@@ -91,17 +91,17 @@ static inline uint32_t inl(uint16_t port)
 
 static inline void outb(uint8_t val, uint16_t port)
 {
-    asm ("outb %0, %1" : : "a"(val), "di"(port));
+    asm ("outb %0, %1" : : "a"(val), "d"(port));
 }
 
 static inline void outw(uint16_t val, uint16_t port)
 {
-    asm ("outw %0, %1" : : "a"(val), "di"(port));
+    asm ("outw %0, %1" : : "a"(val), "d"(port));
 }
 
 static inline void outl(uint32_t val, uint16_t port)
 {
-    asm ("outl %0, %1" : : "a"(val), "di"(port));
+    asm ("outl %0, %1" : : "a"(val), "d"(port));
 }
 
 static inline void cpu_enable_interrupts()
