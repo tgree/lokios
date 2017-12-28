@@ -25,6 +25,7 @@ kernel::init_main_cpu()
     // Fill in the TSS and load the TR.
     memset(&c->tss,0,sizeof(c->tss));
     c->tss.iomap_base = sizeof(c->tss);
+    c->ones           = 0xFFFF;
     for (size_t i=1; i<nelems(c->tss.ist); ++i)
         c->tss.ist[i] = (uint64_t)page_zalloc() + PAGE_SIZE - 32;
     ltr(4*sizeof(c->gdt[0]));

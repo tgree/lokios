@@ -34,7 +34,8 @@ namespace kernel
         uint64_t    rsrv1[2];
 
         tss64       tss;
-        uint64_t    rsrv2;
+        uint16_t    ones;
+        uint8_t     rsrv2[6];
 
         struct
         {
