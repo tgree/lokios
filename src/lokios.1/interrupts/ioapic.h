@@ -35,6 +35,8 @@ namespace kernel
                uint32_t acpi_interrupt_base);
     };
 
+    ioapic* find_ioapic_for_acpi_interrupt(uint32_t acpi_interrupt);
+
     void init_ioapics();
 }
 

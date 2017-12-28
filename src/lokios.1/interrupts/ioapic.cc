@@ -8,6 +8,20 @@ using kernel::console::printf;
 
 static kernel::klist<kernel::ioapic> ioapics;
 
+kernel::ioapic*
+kernel::find_ioapic_for_acpi_interrupt(uint32_t acpi_interrupt)
+{
+    for (auto& ioa : klist_elems(ioapics,link))
+    {
+        if (ioa.acpi_interrupt_base <= acpi_interrupt &&
+            acpi_interrupt < ioa.acpi_interrupt_base + ioa.interrupt_count)
+        {
+            return &ioa;
+        }
+    }
+    return NULL;
+}
+
 kernel::ioapic::ioapic(uint8_t apic_id, uint64_t apic_addr,
     uint32_t acpi_interrupt_base):
         regs((ioapic_registers*)iomap(apic_addr)),
