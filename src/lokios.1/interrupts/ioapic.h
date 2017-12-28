@@ -22,13 +22,14 @@ namespace kernel
     {
         ioapic_registers*   regs;
         const uint64_t      apic_addr;
-        const uint32_t      interrupt_base;
+        const uint32_t      acpi_interrupt_base;
         const uint8_t       apic_id;
 
         uint32_t    read_reg(uint8_t index);
         void        write_reg(uint32_t value, uint8_t index);
 
-        ioapic(uint8_t apic_id, uint64_t apic_addr, uint32_t interrupt_base);
+        ioapic(uint8_t apic_id, uint64_t apic_addr,
+               uint32_t acpi_interrupt_base);
     };
 
     void init_ioapics();
