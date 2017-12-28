@@ -6,6 +6,8 @@
 using namespace kernel;
 using kernel::console::printf;
 
+static kernel::klist<kernel::ioapic> ioapics;
+
 kernel::ioapic::ioapic(uint8_t apic_id, uint64_t apic_addr,
     uint32_t acpi_interrupt_base):
         regs((ioapic_registers*)iomap(apic_addr)),
@@ -54,8 +56,9 @@ kernel::init_ioapics()
     {
         if (r->type == MADT_TYPE_IOAPIC)
         {
-            new ioapic(r->type1.io_apic_id,r->type1.io_apic_addr,
-                       r->type1.interrupt_base);
+            auto ioa = new ioapic(r->type1.io_apic_id,r->type1.io_apic_addr,
+                                  r->type1.interrupt_base);
+            ioapics.push_back(&ioa->link);
         }
 
         r = (const madt_record*)((uintptr_t)r + r->len);

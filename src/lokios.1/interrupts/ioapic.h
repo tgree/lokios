@@ -3,6 +3,7 @@
 
 #include "kernel/kassert.h"
 #include "kernel/types.h"
+#include "k++/klist.h"
 #include <stdint.h>
 
 namespace kernel
@@ -20,6 +21,7 @@ namespace kernel
 
     struct ioapic
     {
+        klink               link;
         ioapic_registers*   regs;
         const uint64_t      apic_addr;
         const uint8_t       interrupt_count;
