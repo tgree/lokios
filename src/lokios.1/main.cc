@@ -5,6 +5,7 @@
 #include "kassert.h"
 #include "acpi/tables.h"
 #include "interrupts/interrupt.h"
+#include "interrupts/routing.h"
 #include "pci/pci.h"
 
 using kernel::console::printf;
@@ -20,6 +21,7 @@ main()
     kernel::init_acpi_tables(kernel::kargs->e820_base);
     kernel::pmtimer::init();
     kernel::init_interrupts();
+    kernel::init_irq_routing();
     kernel::pci::init_pci();
 
     // Banner.
