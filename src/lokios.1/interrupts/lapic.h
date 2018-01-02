@@ -32,8 +32,7 @@ namespace kernel
         lapic_register  lvt_timer;                  // 0x320
         lapic_register  lvt_thermal_sensor;         // 0x330
         lapic_register  lvt_perfmon_counters;       // 0x340
-        lapic_register  lvt_lint0;                  // 0x350
-        lapic_register  lvt_lint1;                  // 0x360
+        lapic_register  lvt_lint[2];                // 0x350
         lapic_register  lvt_error;                  // 0x370
         lapic_register  initial_count;              // 0x380
         lapic_register  current_count;              // 0x390

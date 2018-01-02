@@ -71,8 +71,8 @@ kernel::init_lapic()
             lapic->lvt_perfmon_counters |= 0x00010000;
         case 3:
             lapic->lvt_timer            |= 0x00010000;
-            lapic->lvt_lint0            |= 0x00010000;
-            lapic->lvt_lint1            |= 0x00010000;
+            lapic->lvt_lint[0]          |= 0x00010000;
+            lapic->lvt_lint[1]          |= 0x00010000;
             lapic->lvt_error            |= 0x00010000;
         break;
 
