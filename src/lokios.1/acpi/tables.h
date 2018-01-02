@@ -202,12 +202,44 @@ namespace kernel
         };
     } __PACKED__;
 
+    struct madt_iterator
+    {
+        const madt_record* r;
+
+        inline const madt_record& operator*() const
+        {
+            return *r;
+        }
+
+        inline void operator++()
+        {
+            r = (const madt_record*)((uintptr_t)r + r->len);
+        }
+
+        inline bool operator!=(const madt_iterator& end) const
+        {
+            return (uintptr_t)r + r->len <= (uintptr_t)end.r;
+        }
+
+        constexpr madt_iterator(const madt_record* r):r(r) {}
+    };
+
     struct madt_table
     {
         sdt_header  hdr;
         uint32_t    local_apic_addr;
         uint32_t    flags;
         madt_record records[];
+
+        inline madt_iterator begin() const
+        {
+            return madt_iterator(records);
+        }
+
+        inline madt_iterator end() const
+        {
+            return madt_iterator((madt_record*)((uintptr_t)&hdr + hdr.length));
+        }
     };
 
     extern vector<const sdt_header*> acpi_sdts;
