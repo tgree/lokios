@@ -45,11 +45,6 @@ init_globals()
     n = __init_array_end - __init_array_start;
     for (size_t i=0; i<n; ++i)
         __init_array_start[i]();
-
-    // Register exception handling support.  This seems to require __init array
-    // to have been done first - but then we can't use exceptions in global
-    // constructors?
-    __register_frame(_eh_frame_begin);
 }
 
 void
@@ -61,6 +56,11 @@ init()
 
     // Initialize the memory map.
     kernel::init_mm(kernel::kargs->e820_base);
+
+    // Register exception handling support.  This is going to require the use
+    // of malloc() which is why we can't set up exceptions before init_mm() is
+    // called.
+    __register_frame(_eh_frame_begin);
 
     // Initialize globals.
     init_globals();
