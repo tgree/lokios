@@ -7,6 +7,8 @@
 #include "mm/mm.h"
 #include <stddef.h>
 
+using kernel::console::printf;
+
 extern void (*__preinit_array_start[])();
 extern void (*__preinit_array_end[])();
 extern void (*__init_array_start[])();
@@ -24,8 +26,8 @@ extern int main();
 static void
 main_bounce()
 {
-    // Main screen turn on and never off.
     main();
+    printf("Kernel exiting successfully.\n");
     kernel::exit_guest(1);
 }
 
