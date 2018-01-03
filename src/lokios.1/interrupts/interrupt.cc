@@ -30,6 +30,14 @@ int126_test_interrupt_entry(uint64_t selector, uint64_t error_code,
     return kernel::get_current_tcb();
 }
 
+static kernel::tls_tcb*
+nmi_handler(uint64_t selector, uint64_t error_code)
+{
+    printf("NMI received\n");
+    kernel::lapic_eoi();
+    return kernel::get_current_tcb();
+}
+
 extern "C" void _interrupt_entry_noop();
 extern "C" void _interrupt_entry_0();
 extern "C" void _interrupt_entry_1();
@@ -460,6 +468,10 @@ kernel::init_interrupts()
     int126();
     kassert(int126_test_succeeded == true);
     printf("INT 126h test succeeded\n");
+
+    // Register the NMI handler.
+    register_handler(2,nmi_handler);
+    lapic_enable_nmi();
 
     // Generate an external interrupt to test that we have hardware interrupts
     // working properly.

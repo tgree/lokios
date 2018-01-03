@@ -1,5 +1,6 @@
 #include "lapic.h"
 #include "interrupt.h"
+#include "routing.h"
 #include "kernel/console.h"
 #include "kernel/x86.h"
 #include "kernel/pmtimer.h"
@@ -23,7 +24,7 @@ find_lapic_by_acpi_processor_id(uint8_t acpi_processor_id)
     return NULL;
 }
 
-__UNUSED__ static lapic_configuration*
+static lapic_configuration*
 find_lapic_by_apic_id(uint8_t apic_id)
 {
     for (auto& lac : lapic_configs)
@@ -163,6 +164,35 @@ kernel::init_lapic()
     // Set up a local APIC test handler on vector 125.  This will be used to
     // test sending an interrupt to ourselves via the LAPIC.
     register_handler(INTN_LAPIC_SELFTEST,lapic_interrupt_self_test);
+}
+
+void
+kernel::lapic_enable_nmi()
+{
+    uint8_t apic_id = (lapic->apic_id >> 24);
+    auto* lac = find_lapic_by_apic_id(apic_id);
+    if (!lac || !(lac->flags & LAPIC_FLAG_HAS_LINT_NMI))
+        return;
+
+    printf("Enabling NMI for LAPIC 0x%02X\n",apic_id);
+    kassert(lac->lint_pin < nelems(lapic->lvt_lint));
+
+    // Figure out the LINT configuration.  When the delivery mode is NMI, the
+    // interrupt is always edge-sensitive.  The default polarity should be
+    // active-high - at least that's what they use in the Intel Multiprocessor
+    // Specification from the '90s so...
+    uint32_t val = 0x00000400;
+    switch (lac->lint_flags & ACPI_FLAG_POLARITY_MASK)
+    {
+        case ACPI_FLAG_POLARITY_DEFAULT:
+        case ACPI_FLAG_POLARITY_HIGH:    val |= 0x00000000; break;
+        case ACPI_FLAG_POLARITY_LOW:     val |= 0x00002000; break;
+
+        default:
+            kernel::panic("reserved polarity for nmi?");
+        break;
+    }
+    lapic->lvt_lint[lac->lint_pin] = val;
 }
 
 void
