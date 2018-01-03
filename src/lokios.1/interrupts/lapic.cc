@@ -97,7 +97,7 @@ kernel::test_lapic()
     lapic->eoi = 0;
     for (size_t i=0; i<2; ++i)
     {
-        printf("LAPIC self-test %zu\n",i);
+        printf("LAPIC IPI self-test %zu\n",i);
         kassert(lapic_test_passed == false);
         lapic->icr[1] = 0x00000000;
         lapic->icr[0] = 0x00044000 | 125;
