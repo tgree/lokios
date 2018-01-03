@@ -42,6 +42,22 @@ namespace kernel
     };
     KASSERT(sizeof(lapic_registers) == 0x400);
 
+#define LAPIC_FLAG_HAS_LINT_NMI (1<<0)
+    struct lapic_configuration
+    {
+        // Always present.
+        uint8_t     acpi_processor_id;
+        uint8_t     apic_id;
+
+        // Flags describing which fields are valid.
+        uint16_t    flags;
+
+        // If HAS_LINT_NMI is set, these fields describe the NMI interrupt.
+        // The lint_flags field uses the same bits defined in routing.h.
+        uint8_t     lint_pin;
+        uint8_t     lint_flags;
+    };
+
     void test_lapic();
     void init_lapic();
 }

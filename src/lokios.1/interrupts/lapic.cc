@@ -10,6 +10,29 @@ using namespace kernel;
 using kernel::console::printf;
 
 static lapic_registers* lapic;
+static kernel::vector<lapic_configuration> lapic_configs;
+
+static lapic_configuration*
+find_lapic_by_acpi_processor_id(uint8_t acpi_processor_id)
+{
+    for (auto& lac : lapic_configs)
+    {
+        if (lac.acpi_processor_id == acpi_processor_id)
+            return &lac;
+    }
+    return NULL;
+}
+
+__UNUSED__ static lapic_configuration*
+find_lapic_by_apic_id(uint8_t apic_id)
+{
+    for (auto& lac : lapic_configs)
+    {
+        if (lac.apic_id == apic_id)
+            return &lac;
+    }
+    return NULL;
+}
 
 static kernel::tls_tcb*
 lapic_spurious_interrupt(uint64_t selector, uint64_t error_code)
@@ -39,13 +62,58 @@ kernel::init_lapic()
     kassert(h != NULL);
 
     const madt_table* madt   = (const madt_table*)h;
+
+    // First pass: find the local APIC address and populate the APIC list.
     uint64_t local_apic_addr = madt->local_apic_addr;
     for (auto& r : *madt)
     {
         if (r.type == MADT_TYPE_LAPIC_ADDRESS_OVERRIDE)
-        {
             local_apic_addr = r.type5.local_apic_addr;
-            break;
+        else if (r.type == MADT_TYPE_LAPIC)
+        {
+            printf("0: ACPI_PID %u APIC_ID %u FL 0x%08X\n",
+                   r.type0.acpi_processor_id,r.type0.apic_id,r.type0.flags);
+
+            // Ignore disabled LAPICs.
+            if (!(r.type0.flags & (1<<0)))
+                continue;
+
+            lapic_configs.emplace_back(
+                lapic_configuration{r.type0.acpi_processor_id,
+                                    r.type0.apic_id,0,0,0});
+        }
+    }
+
+    // Second pass: parse NMI information into the local APIC config.
+    for (auto& r : *madt)
+    {
+        if (r.type != MADT_TYPE_LAPIC_NMI)
+            continue;
+
+        printf("4: CPU 0x%02X FL 0x%04X LINT %u\n",
+               r.type4.processor,r.type4.flags,r.type4.lint_num);
+
+        if (r.type4.processor == 0xFF)
+        {
+            for (auto& lac : lapic_configs)
+            {
+                if (lac.flags & LAPIC_FLAG_HAS_LINT_NMI)
+                    continue;
+
+                lac.flags     |= LAPIC_FLAG_HAS_LINT_NMI;
+                lac.lint_pin   = r.type4.lint_num;
+                lac.lint_flags = r.type4.flags;
+            }
+        }
+        else
+        {
+            auto* lac = find_lapic_by_acpi_processor_id(r.type4.processor);
+            if (!lac || (lac->flags & LAPIC_FLAG_HAS_LINT_NMI))
+                continue;
+
+            lac->flags     |= LAPIC_FLAG_HAS_LINT_NMI;
+            lac->lint_pin   = r.type4.lint_num;
+            lac->lint_flags = r.type4.flags;
         }
     }
 
