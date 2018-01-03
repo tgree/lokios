@@ -56,6 +56,12 @@ lapic_interrupt_self_test(uint64_t selector, uint64_t error_code)
 }
 
 void
+kernel::lapic_eoi()
+{
+    lapic->eoi = 0;
+}
+
+void
 kernel::init_lapic()
 {
     const sdt_header* h = find_acpi_table(MADT_SIG);

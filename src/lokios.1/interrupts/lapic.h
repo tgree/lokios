@@ -58,6 +58,8 @@ namespace kernel
         uint8_t     lint_flags;
     };
 
+    void lapic_eoi();
+
     void test_lapic();
     void init_lapic();
 }
