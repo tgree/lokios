@@ -64,18 +64,13 @@ kernel::init_ioapics()
     kassert(h != NULL);
 
     const madt_table* madt = (const madt_table*)h;
-    const madt_record* r   = madt->records;
-    const madt_record* end = (const madt_record*)((uintptr_t)h + h->length);
-    while (r < end)
+    for (auto& r : *madt)
     {
-        if (r->type == MADT_TYPE_IOAPIC)
+        if (r.type == MADT_TYPE_IOAPIC)
         {
-            auto ioa = new ioapic(r->type1.io_apic_id,r->type1.io_apic_addr,
-                                  r->type1.interrupt_base);
+            auto ioa = new ioapic(r.type1.io_apic_id,r.type1.io_apic_addr,
+                                  r.type1.interrupt_base);
             ioapics.push_back(&ioa->link);
         }
-
-        r = (const madt_record*)((uintptr_t)r + r->len);
     }
-    kassert(r == end);
 }

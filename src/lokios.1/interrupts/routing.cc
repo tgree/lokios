@@ -46,27 +46,24 @@ kernel::init_irq_routing()
     // Walk the MADT table looking for interrupt overrides.
     const sdt_header* h = find_acpi_table(MADT_SIG);
     kassert(h != NULL);
-    const madt_table* madt   = (const madt_table*)h;
-    const madt_record* r     = madt->records;
-    const madt_record* end   = (const madt_record*)((uintptr_t)h + h->length);
-    while (r < end)
+    const madt_table* madt = (const madt_table*)h;
+    for (auto& r : *madt)
     {
-        if (r->type == MADT_TYPE_INTERRUPT_OVERRIDE &&
-            r->type2.bus_source == 0)
+        if (r.type == MADT_TYPE_INTERRUPT_OVERRIDE && r.type2.bus_source == 0)
         {
             printf("BUS_SRC %u IRQ_SRC %u INT_NUM %u FL 0x%04X\n",
-                   r->type2.bus_source,r->type2.irq_source,
-                   r->type2.interrupt_num,r->type2.flags);
+                   r.type2.bus_source,r.type2.irq_source,
+                   r.type2.interrupt_num,r.type2.flags);
 
             // We are going to assume that interrupts don't map to the same
             // IOAPIC pin.  So, if there is an interrupt override then we
             // assume that whatever device was connected to that pin doesn't
             // get an interrupt anymore (and presumably there is another
             // override for it later if that device even exists).
-            auto* ioa = find_ioapic_for_acpi_interrupt(r->type2.interrupt_num);
+            auto* ioa = find_ioapic_for_acpi_interrupt(r.type2.interrupt_num);
             kassert(ioa != NULL);
-            auto* irqr    = &irq_routes[r->type2.irq_source];
-            uint32_t irqn = r->type2.interrupt_num;
+            auto* irqr    = &irq_routes[r.type2.irq_source];
+            uint32_t irqn = r.type2.interrupt_num;
             for (auto& ir : irq_routes)
             {
                 if (ir.ioapic == ioa && ir.acpi_interrupt_num == irqn)
@@ -77,14 +74,12 @@ kernel::init_irq_routing()
             irqr->acpi_interrupt_num = irqn;
             irqr->ioapic             = ioa;
             irqr->apic_index         = irqn - ioa->acpi_interrupt_base;
-            irqr->acpi_flags         = r->type2.flags;
+            irqr->acpi_flags         = r.type2.flags;
             if (!(irqr->acpi_flags & ACPI_FLAG_POLARITY_MASK))
                 irqr->acpi_flags |= ACPI_FLAG_POLARITY_HIGH;
             if (!(irqr->acpi_flags & ACPI_FLAG_TRIGGER_MASK))
                 irqr->acpi_flags |= ACPI_FLAG_TRIGGER_EDGE;
         }
-
-        r = (const madt_record*)((uintptr_t)r + r->len);
     }
 
     // Dump the final table.

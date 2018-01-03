@@ -40,19 +40,14 @@ kernel::init_lapic()
 
     const madt_table* madt   = (const madt_table*)h;
     uint64_t local_apic_addr = madt->local_apic_addr;
-    const madt_record* r     = madt->records;
-    const madt_record* end   = (const madt_record*)((uintptr_t)h + h->length);
-    while (r < end)
+    for (auto& r : *madt)
     {
-        if (r->type == MADT_TYPE_LAPIC_ADDRESS_OVERRIDE)
+        if (r.type == MADT_TYPE_LAPIC_ADDRESS_OVERRIDE)
         {
-            local_apic_addr = r->type5.local_apic_addr;
+            local_apic_addr = r.type5.local_apic_addr;
             break;
         }
-
-        r = (const madt_record*)((uintptr_t)r + r->len);
     }
-    kassert(r == end);
 
     printf("LOCAL_APIC_ADDR 0x%016lX\n",local_apic_addr);
     printf("IA32_APIC_BASE  0x%016lX\n",rdmsr(0x1B));

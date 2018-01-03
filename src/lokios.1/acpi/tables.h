@@ -218,6 +218,13 @@ namespace kernel
 
         inline bool operator!=(const madt_iterator& end) const
         {
+            if (r >= end.r)
+                return false;
+            if ((uintptr_t)r + offsetof(madt_record,len) +
+                    sizeof(r->len) > (uintptr_t)end.r)
+            {
+                return false;
+            }
             return (uintptr_t)r + r->len <= (uintptr_t)end.r;
         }
 
