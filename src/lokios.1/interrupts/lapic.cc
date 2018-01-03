@@ -83,12 +83,12 @@ kernel::init_lapic()
 
     // Set the spurious interrupt vector to be 127.  We need the low-order 4
     // bits to be set.
-    register_handler(127,lapic_spurious_interrupt);
-    lapic->spurious_interrupt_vector = 0x00000100 | 127;
+    register_handler(INTN_LAPIC_SPURIOUS,lapic_spurious_interrupt);
+    lapic->spurious_interrupt_vector = 0x00000100 | INTN_LAPIC_SPURIOUS;
 
     // Set up a local APIC test handler on vector 125.  This will be used to
     // test sending an interrupt to ourselves via the LAPIC.
-    register_handler(125,lapic_interrupt_self_test);
+    register_handler(INTN_LAPIC_SELFTEST,lapic_interrupt_self_test);
 }
 
 void

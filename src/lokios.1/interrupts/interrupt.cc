@@ -455,7 +455,8 @@ kernel::init_interrupts()
 
     // Generate a software interrupt to check that we have basic exception-
     // handling working properly.
-    register_handler(126,(interrupt_handler)int126_test_interrupt_entry);
+    register_handler(INTN_INT126_TEST,
+                     (interrupt_handler)int126_test_interrupt_entry);
     int126();
     kassert(int126_test_succeeded == true);
     printf("INT 126h test succeeded\n");

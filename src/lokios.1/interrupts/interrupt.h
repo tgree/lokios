@@ -7,6 +7,11 @@ namespace kernel
 {
     struct tls_tcb;
 
+    // List of predefined interrupt numbers.
+#define INTN_LAPIC_SPURIOUS 127
+#define INTN_INT126_TEST    126
+#define INTN_LAPIC_SELFTEST 125
+
     typedef tls_tcb* (*interrupt_handler)(uint64_t selector,
                                           uint64_t error_code);
 
