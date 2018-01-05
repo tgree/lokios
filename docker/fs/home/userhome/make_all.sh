@@ -6,5 +6,11 @@
 # that fails or go until the rebase is complete.
 while true; do
     make clean && make -j || break
+    qemu-system-x86_64 -drive file=bin/lokios.mbr,format=raw -nographic -device isa-debug-exit
+    if [ $? -ne 3 ]
+    then
+        echo "-----Integration test failure-----"
+        break
+    fi
     git rebase --continue || break
 done
