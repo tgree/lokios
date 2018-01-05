@@ -9,6 +9,7 @@ FROM ubuntu:latest
 # Install the base OS packages.
 RUN apt-get update -y                                   \
  && apt-get install -y                                  \
+    ctags                                               \
     gdb                                                 \
     git                                                 \
     libc6-dev-i386                                      \
