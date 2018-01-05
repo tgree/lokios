@@ -18,6 +18,7 @@ RUN apt-get update -y                                   \
     manpages                                            \
     manpages-dev                                        \
     python                                              \
+    qemu                                                \
     software-properties-common                          \
     sudo                                                \
     tig                                                 \
