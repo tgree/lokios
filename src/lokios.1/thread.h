@@ -2,12 +2,31 @@
 #define __KERNEL_THREAD_H
 
 #include "mm/page_table.h"
+#include "hdr/compiler.h"
 
 namespace kernel
 {
     struct task;
 
     typedef uint16_t thread_id;
+
+    struct fxsave_area
+    {
+        uint16_t    fcw;
+        uint16_t    fsw;
+        uint8_t     ftw;
+        uint8_t     rsrv1;
+        uint16_t    fop;
+        uint64_t    fip;
+        uint64_t    fdp;
+        uint32_t    mxcsr;
+        uint32_t    mxcsr_mask;
+        uint128_t   sromm[8];
+        uint128_t   xmm[16];
+        uint128_t   rsrv2[3];
+        uint128_t   avail[3];
+    };
+    KASSERT(sizeof(fxsave_area) == 512);
 
     struct tls_tcb
     {
@@ -45,13 +64,16 @@ namespace kernel
         uint64_t    rsi;                // 112
         uint64_t    rbp;                // 120
         uint64_t    r[8];               // 128 + 8*i
+        fxsave_area fxsa;               // 192
 
         // More free space that we could use for other stuff.
-        uint64_t    rsrv2[232];
+        uint64_t    rsrv2[168];         // 704
     };
     KASSERT(offsetof(tls_tcb, stack_guard) == 0x28);
     KASSERT(sizeof(tls_tcb) == 2048);
     KASSERT(offsetof(tls_tcb, fs_base) == 48);
+    KASSERT(offsetof(tls_tcb, fxsa) % 16 == 0);
+    KASSERT(offsetof(tls_tcb, fxsa) == 192);
 
     struct thread
     {
