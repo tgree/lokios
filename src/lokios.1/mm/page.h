@@ -41,8 +41,7 @@ namespace kernel
         void*   addr;
 
         inline operator void*() {return addr;}
-        inline page_raii():addr(page_alloc()) {}
-        inline page_raii(void* p):addr(p) {}
+        inline page_raii(void* addr = page_alloc()):addr(addr) {}
         inline ~page_raii() {page_free(addr);}
     };
 
