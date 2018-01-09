@@ -29,8 +29,16 @@ kernel::thread::thread(void (*fn)())
     tcb.ss          = 0;
     tcb.stack_guard = 0xA1B2C3D4E5F60718;
     tcb.rip         = (uint64_t)fn;
-    tcb.rdi         = 0x1111111111111111;
     tcb.rsp         = (uint64_t)stack + sizeof(stack) - 56;
+    tcb.rax         = 0x4E4F4E4F4E4F4E4F;
+    tcb.rbx         = 0x4E4F4E4F4E4F4E4F;
+    tcb.rcx         = 0x4E4F4E4F4E4F4E4F;
+    tcb.rdx         = 0x4E4F4E4F4E4F4E4F;
+    tcb.rdi         = 0x4E4F4E4F4E4F4E4F;
+    tcb.rsi         = 0x4E4F4E4F4E4F4E4F;
+    tcb.rbp         = 0x4E4F4E4F4E4F4E4F;
+    for (auto& r : tcb.r)
+        r = 0x4E4F4E4F4E4F4E4F;
     kassert(tcb.rsp % 16 == 8);
 }
 
