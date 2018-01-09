@@ -7,6 +7,7 @@
 #include "interrupts/interrupt.h"
 #include "interrupts/routing.h"
 #include "pci/pci.h"
+#include <typeinfo>
 
 using kernel::console::printf;
 
@@ -40,7 +41,7 @@ main()
     }
     catch (kernel::exception& e)
     {
-        printf("caught kernel::exception&: %s\n",e.c_str());
+        printf("caught '%s': %s\n",typeid(e).name(),e.c_str());
     }
     catch (...)
     {
