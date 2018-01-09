@@ -207,6 +207,9 @@ _interrupt_entry_common:
     mov     %rcx, %fs:64
     mov     %dx,  %fs:34
 
+    # Save the FPU and SSE state.
+    fxsaveq %fs:192
+
     # Load a vector number, the error code and then call the interrupt handler.
     # The interrupt handler returns the new FS value in RAX.  With the error
     # code still pushed onto the stack, the stack will be at 16-byte alignment.
@@ -225,6 +228,9 @@ _interrupt_entry_common:
     mov     %rax, %rdx
     shr     $32, %rdx
     wrmsr
+
+    # Restore the FPU and SSE state.
+    fxrstorq    %fs:192
 
     # Update the stack values that will be used in iretq with the new thread.
     xor     %rdx, %rdx

@@ -40,6 +40,8 @@ kernel::thread::thread(void (*fn)())
     for (auto& r : tcb.r)
         r = 0x4E4F4E4F4E4F4E4F;
     kassert(tcb.rsp % 16 == 8);
+
+    memset(&tcb.fxsa,0,sizeof(tcb.fxsa));
 }
 
 void*
