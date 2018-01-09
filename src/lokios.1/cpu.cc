@@ -42,7 +42,16 @@ kernel::init_main_cpu()
         cpuid(0x80000002+i,0,brand + 16*i);
     brand[48] = '\0';
     printf("CPU Brand: %s\n",brand);
-    printf("Initial APIC ID: %u\n",cpuid(1).ebx >> 24);
+
+    // Check for FXSAVE/FXRSTOR support.
+    auto cpuid1 = cpuid(1);
+    printf("CPUID 1: 0x%08X:0x%08X:0x%08X:0x%08X\n",
+           cpuid1.eax,cpuid1.ebx,cpuid1.ecx,cpuid1.edx);
+    kassert(cpuid1.edx & (1 << 25));    // SSE availability.
+    kassert(cpuid1.edx & (1 << 24));    // FXSAVE/FXRSTOR availability.
+
+    // APIC info.
+    printf("Initial APIC ID: %u\n",cpuid1.ebx >> 24);
 
     // Done.
     cpus.emplace_back(c);
