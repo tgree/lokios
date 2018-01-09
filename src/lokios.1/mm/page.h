@@ -45,6 +45,11 @@ namespace kernel
         inline ~page_raii() {page_free(addr);}
     };
 
+    struct page_zraii : public page_raii
+    {
+        inline page_zraii():page_raii(page_zalloc()) {}
+    };
+
     void page_preinit(const e820_map* m, uintptr_t top_addr);
 }
 
