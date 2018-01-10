@@ -114,4 +114,19 @@ static inline void cpu_disable_interrupts()
     asm ("cli");
 }
 
+static inline void xsetbv(uint64_t bv, uint32_t ecx = 0)
+{
+    uint32_t eax = (uint32_t)bv;
+    uint32_t edx = (uint32_t)(bv >> 32);
+    asm ("xsetbv" : : "a"(eax), "c"(ecx), "d"(edx));
+}
+
+static inline void xrstor(void* xsave_area, uint64_t bv)
+{
+    // TODO: Should we mark this as stomping a bunch of XMM registers?
+    uint32_t eax = (uint32_t)bv;
+    uint32_t edx = (uint32_t)(bv >> 32);
+    asm ("xrstorq %0" : : ""((uint64_t)xsave_area), "a"(eax), "d"(edx));
+}
+
 #endif /* __KERNEL_X86_H */
