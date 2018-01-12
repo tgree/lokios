@@ -1,3 +1,4 @@
+#include "libc.h"
 #include "console.h"
 #include "kassert.h"
 #include "mm/sbrk.h"
@@ -5,12 +6,11 @@
 #include <stddef.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 FILE* stderr;
 
 extern "C"
-void* malloc(size_t n)
+void* malloc(size_t n) noexcept
 {
     if (n <= PAGE_SIZE)
         return kernel::page_alloc();
@@ -36,7 +36,7 @@ void* realloc(void* ptr, size_t size)
 }
 
 extern "C"
-void free(void* p)
+void free(void* p) noexcept
 {
     kernel::kassert(p >= kernel::sbrk(0));
     kernel::page_free(p);

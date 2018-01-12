@@ -1,10 +1,11 @@
 #include "char_stream.h"
 #include "kmath.h"
+#include "kernel/libc.h"
 #include "kernel/kassert.h"
-#include <stdlib.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+#include <unistd.h>
 
 // Flag characters.
 #define PRINTF_FLAG_ALTERNATE_FORM  (1<<0)

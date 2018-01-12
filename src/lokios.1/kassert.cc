@@ -3,7 +3,6 @@
 #include "vga.h"
 #include "serial.h"
 #include "platform/platform.h"
-#include <stdlib.h>
 
 void
 kernel::halt() noexcept
