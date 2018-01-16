@@ -6,6 +6,7 @@
 #include "acpi/tables.h"
 #include "interrupts/interrupt.h"
 #include "interrupts/routing.h"
+#include "interrupts/lapic.h"
 #include "pci/pci.h"
 #include <typeinfo>
 
@@ -23,6 +24,7 @@ main()
     kernel::pmtimer::init();
     kernel::init_interrupts();
     kernel::init_irq_routing();
+    kernel::init_lapic_periodic();
     kernel::pci::init_pci();
 
     // Banner.

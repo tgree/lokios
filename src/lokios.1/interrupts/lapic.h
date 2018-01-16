@@ -61,6 +61,8 @@ namespace kernel
     void lapic_eoi();
     void lapic_enable_nmi();
 
+    void init_lapic_periodic();
+
     void test_lapic();
     void init_lapic();
 }
