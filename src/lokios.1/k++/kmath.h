@@ -99,6 +99,18 @@ namespace kernel
     {
         return (!v ? 0 : (is_pow2(v) ? v : (2ULL << ulog2(v))));
     }
+
+    template<typename T>
+    constexpr T ceil_div(T num, T denom)
+    {
+        return (T)((num + denom - 1)/denom);
+    }
+
+    template<typename T>
+    constexpr T floor_div(T num, T denom)
+    {
+        return (T)(num/denom);
+    }
 }
 
 #endif /* __KERNEL_MATH_H */
