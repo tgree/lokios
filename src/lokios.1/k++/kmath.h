@@ -72,6 +72,17 @@ namespace kernel
     KASSERT(round_to_nearest_multiple(12400,100) == 12400);
     KASSERT(round_to_nearest_multiple(12401,100) == 12400);
 
+    template<typename T>
+    constexpr T round_up_to_nearest_multiple(T v, T base)
+    {
+        return (T)(((v + (base - 1))/base)*base);
+    }
+    KASSERT(round_up_to_nearest_multiple(12300,100) == 12300);
+    KASSERT(round_up_to_nearest_multiple(12301,100) == 12400);
+    KASSERT(round_up_to_nearest_multiple(12345,100) == 12400);
+    KASSERT(round_up_to_nearest_multiple(12399,100) == 12400);
+    KASSERT(round_up_to_nearest_multiple(12400,100) == 12400);
+
     // Find the next power-of-2 that is greater than or equal to v.  Note that
     // this will wrap back to 0 if your high bit and some other bit are set.
     constexpr unsigned int ceil_pow2(unsigned int v)
