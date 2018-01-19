@@ -28,6 +28,7 @@ namespace kernel
         klink*  head;
         klink*  tail;
 
+        inline void clear() {head = tail = NULL;}
         constexpr bool empty() const {return head == NULL;}
 
         inline size_t size() const    
