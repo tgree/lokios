@@ -132,11 +132,11 @@ namespace kernel
     };
 
 #define klist_front(q,field) \
-    (q.empty() ? NULL : container_of(q.head,decltype(q)::container_type,field))
+    (q.empty() ? NULL : container_of(q.head,typename decltype(q)::container_type,field))
 
 #define klist_elems(q,field) \
-    kernel::klist_rbfl_adapter<decltype(q)::container_type, \
-                               offsetof(decltype(q)::container_type,field)>(q)
+    kernel::klist_rbfl_adapter<typename decltype(q)::container_type, \
+                               offsetof(typename decltype(q)::container_type,field)>(q)
 }
 
 #endif /* __KERNEL_LIST_H */
