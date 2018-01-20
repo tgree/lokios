@@ -114,4 +114,9 @@ static inline void cpu_disable_interrupts()
     asm ("cli");
 }
 
+static inline void cpu_pause()
+{
+    asm ("pause");
+}
+
 #endif /* __KERNEL_X86_H */
