@@ -1,16 +1,24 @@
 #include "page.h"
 #include "sbrk.h"
+#include "../spinlock.h"
 #include "k++/vector.h"
 #include <new>
 
+static kernel::spinlock            free_page_lock;
 static kernel::klist<kernel::page> free_page_list;
 
 void*
 kernel::page_alloc()
 {
-    kassert(!free_page_list.empty());
-    page* p = klist_front(free_page_list,link);
-    free_page_list.pop_front();
+    page* p;
+
+    with (free_page_lock)
+    {
+        kassert(!free_page_list.empty());
+        p = klist_front(free_page_list,link);
+        free_page_list.pop_front();
+    }
+
     p->~page();
     return p;
 }
@@ -20,7 +28,10 @@ kernel::page_free(void* _p)
 {
     kassert(((uintptr_t)_p & PAGE_OFFSET_MASK) == 0);
     page* p = new(_p) page;
-    free_page_list.push_back(&p->link); // TODO: We need klist.push_front!
+    with (free_page_lock)
+    {
+        free_page_list.push_back(&p->link); // TODO: We need klist.push_front!
+    }
 }
 
 // Given a list of regions in some container, add them to the free page list.
@@ -123,5 +134,8 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr)
 size_t
 kernel::page_count_free()
 {
-    return free_page_list.size();
+    with (free_page_lock)
+    {
+        return free_page_list.size();
+    }
 }
