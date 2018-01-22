@@ -70,12 +70,18 @@ init()
     // Initialize the platform.
     kernel::init_platform();
 
-    // Initialize the main CPU.  We need to do this before initializing tasks
-    // since this is where the GDT gets re-initialized and we need the GDT for
-    // starting the first thread.
+    // Create the kernel task.  This holds the kernel memory map and all the
+    // kernel threads.
+    kernel::init_kernel_task();
+
+    // Initialize the boot CPU.
     kernel::init_this_cpu();
 
-    // Start the kernel task with a thread that will invoke main().
-    kernel::init_kernel_task();
+    // Spawn a thread for main() and jump into it.
+    // TODO: Really we should be spawning the thread above without jumping in
+    //       to it just after we create the kernel task.  Then init_this_cpu()
+    //       should add the CPU to the pool of usable CPUs which would then
+    //       immediately schedule the first thread (or, if no thread is
+    //       runnable then halt the CPU).  We're not there yet.
     kernel::kernel_task->spawn_and_jump_into_thread(main_bounce);
 }
