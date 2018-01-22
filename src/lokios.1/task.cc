@@ -7,9 +7,12 @@ kernel::task* kernel::kernel_task;
 void
 kernel::task::spawn_thread(void (*entry_fn)())
 {
-    // TODO: Find a free thread id!
-    thread* t = new((thread_id)1,this) thread(entry_fn);
-    threads.push_back(&t->tcb.link);
+    with (threads_lock)
+    {
+        // TODO: Find a free thread id!
+        thread* t = new((thread_id)1,this) thread(entry_fn);
+        threads.push_back(&t->tcb.link);
+    }
 }
 
 void

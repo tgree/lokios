@@ -2,12 +2,15 @@
 #define __KERNEL_TASK_H
 
 #include "thread.h"
+#include "spinlock.h"
 
 namespace kernel
 {
     struct task
     {
         page_table      pt;
+
+        spinlock        threads_lock;
         klist<thread>   threads;
 
         void spawn_thread(void (*entry_fn)());
