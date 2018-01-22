@@ -48,6 +48,7 @@ void*
 kernel::thread::operator new(size_t count, thread_id tid, task* task)
 {
     kassert(count == sizeof(thread));
+    kassert(tid != 0);
 
     thread* t = get_thread_region(tid);
     for (size_t i=0; i<sizeof(t->stack)/PAGE_SIZE; ++i)
@@ -72,6 +73,7 @@ kernel::thread::operator delete(void* p, thread_id tid, task* task)
     // This is called if the thread constructor for thread id 0 throws an
     // exception.  We should free the physical pages and unmap them from the
     // page table.
+    kassert(tid != 0);
     kassert(((uint64_t)p & 0xFFFFFFFF00000000) == 0xFFFFFFFF00000000);
     kassert(((uint64_t)p & 0x000000000000FFFF) == 0);
     kassert((((uint64_t)p >> 16) & 0xFFFF) == tid);
