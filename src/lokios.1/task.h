@@ -9,9 +9,14 @@ namespace kernel
     {
         page_table      pt;
         klist<thread>   threads;
+
+        void spawn_thread(void (*entry_fn)());
+        void spawn_and_jump_into_thread(void (*entry_fn)());
     };
 
-    void init_kernel_task(void (*entry_fn)());
+    extern task* kernel_task;
+
+    void init_kernel_task();
 }
 
 #endif /* __KERNEL_TASK_H */

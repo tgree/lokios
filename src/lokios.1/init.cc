@@ -76,5 +76,6 @@ init()
     kernel::init_main_cpu();
 
     // Start the kernel task with a thread that will invoke main().
-    kernel::init_kernel_task(main_bounce);
+    kernel::init_kernel_task();
+    kernel::kernel_task->spawn_and_jump_into_thread(main_bounce);
 }
