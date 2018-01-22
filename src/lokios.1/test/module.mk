@@ -1,4 +1,5 @@
 TESTS := console_test     \
+    	 spinlock_test    \
 
 console_test.objs := \
     	$(MODULE_TBUILD_DIR)/console_test.o \
@@ -7,3 +8,6 @@ console_test.objs := \
 
 console_test.libs := \
 	$(LIB_DIR)/k++.a
+
+spinlock_test.objs := \
+    	$(MODULE_TBUILD_DIR)/spinlock_test.o
