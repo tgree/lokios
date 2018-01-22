@@ -7,59 +7,72 @@
 
 namespace kernel
 {
-    template<size_t ElemSize>
-    struct slab
+    struct free_elem
     {
-        struct free_elem
+        klink link;
+    };
+    KASSERT(sizeof(free_elem) == 8);
+
+    struct slab_page_footer
+    {
+        const uint32_t      signature;
+        uint16_t            usage_count;
+        uint16_t            rsrv0;
+        klink               link;
+        struct slab* const  slab;
+        uint8_t             rsrv1[40];
+
+        inline slab_page_footer(struct slab* slab):
+            signature('SLAB'),
+            usage_count(0),
+            slab(slab)
         {
-            klink   link;
-            uint8_t pad[ElemSize - sizeof(klink)];
-        };
-        KASSERT(sizeof(free_elem) == ElemSize);
+        }
+    };
+    KASSERT(sizeof(slab_page_footer) == 64);
 
-        struct page_footer
+    struct slab_page
+    {
+        uint8_t             data[PAGE_SIZE - sizeof(slab_page_footer)];
+        slab_page_footer    footer;
+
+        static constexpr uint16_t elem_count_for_elem_size(uint16_t elem_size)
         {
-            uint32_t        signature;
-            uint32_t        usage_count;
-            klink           link;
-            struct slab*    slab;
-            uint8_t         rsrv[40];
-        };
-        KASSERT(sizeof(page_footer) == 64);
+            return sizeof(data)/elem_size;
+        }
 
-        struct page
-        {
-            uint8_t     elem_base[PAGE_SIZE - sizeof(page_footer)];
-            page_footer footer;
+        inline slab_page(slab* slab):footer(slab) {}
+    };
+    KASSERT(sizeof(slab_page) == PAGE_SIZE);
 
-            static constexpr size_t elem_count = sizeof(elem_base)/ElemSize;
-        };
-
-        klist<page>         pages;
+    class slab
+    {
+        klist<slab_page>    pages;
         klist<free_elem>    free_elems;
+        const uint16_t      elem_size;
+        const uint16_t      page_elem_count;
 
-        inline page* page_from_elem(void* p)
+        inline slab_page* page_from_elem(void* p)
         {
-            return (page*)((uintptr_t)p & PAGE_PFN_MASK);
+            return (slab_page*)((uintptr_t)p & PAGE_PFN_MASK);
         }
 
         void page_alloc()
         {
-            void* kp              = kernel::page_alloc();
-            page* p               = new(kp) page();
-            p->footer.signature   = 0x12345678;
-            p->footer.usage_count = 0;
-            p->footer.slab        = this;
-            free_elem* fe         = (free_elem*)p->elem_base;
-            for (size_t i=0; i<p->elem_count; ++i)
+            slab_page* p = new(kernel::page_alloc()) slab_page(this);
+            uintptr_t ep = (uintptr_t)p->data;
+            for (size_t i=0; i<page_elem_count; ++i)
             {
+                free_elem* fe = (free_elem*)ep;
                 new(fe) free_elem;
                 free_elems.push_back(&fe->link);
-                ++fe;
+                ep += elem_size;
             }
+
             pages.push_back(&p->footer.link);
         }
 
+    public:
         void* alloc()
         {
             if (free_elems.empty())
@@ -69,21 +82,34 @@ namespace kernel
             free_elems.pop_front();
             fe->~free_elem();
 
-            page* p = page_from_elem(fe);
+            slab_page* p = page_from_elem(fe);
             ++p->footer.usage_count;
 
             return fe;
         }
 
+        void* zalloc()
+        {
+            void* p = alloc();
+            memset(p,0,elem_size);
+            return p;
+        }
+
         void free(void* e)
         {
-            page* p = page_from_elem(e);
+            slab_page* p = page_from_elem(e);
             kassert(p->footer.slab == this);
-            kassert((uintptr_t)p % ElemSize == 0);
+            kassert((uintptr_t)p % elem_size == 0);
             --p->footer.usage_count;
 
             free_elem* fe = new(e) free_elem;
             free_elems.push_back(&fe->link);
+        }
+
+        inline slab(size_t elem_size):
+            elem_size(max(elem_size,sizeof(free_elem))),
+            page_elem_count(slab_page::elem_count_for_elem_size(elem_size))
+        {
         }
 
         ~slab()
@@ -91,7 +117,7 @@ namespace kernel
             free_elems.clear();
             while (!pages.empty())
             {
-                page* p = klist_front(pages,footer.link);
+                slab_page* p = klist_front(pages,footer.link);
                 pages.pop_front();
                 kernel::page_free(p);
             }
