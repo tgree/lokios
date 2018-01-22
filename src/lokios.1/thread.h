@@ -99,6 +99,11 @@ namespace kernel
         return tcb;
     }
 
+    inline thread_id get_thread_id()
+    {
+        return (thread_id)((uintptr_t)get_current_tcb() >> 16);
+    }
+
     static inline thread* get_current_thread()
     {
         return container_of(get_current_tcb(),thread,tcb);
