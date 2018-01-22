@@ -73,7 +73,7 @@ init()
     // Initialize the main CPU.  We need to do this before initializing tasks
     // since this is where the GDT gets re-initialized and we need the GDT for
     // starting the first thread.
-    kernel::init_main_cpu();
+    kernel::init_this_cpu();
 
     // Start the kernel task with a thread that will invoke main().
     kernel::init_kernel_task();
