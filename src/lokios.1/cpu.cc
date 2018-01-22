@@ -16,7 +16,8 @@ kernel::init_this_cpu()
 {
     with (cpus_lock)
     {
-        cpu* c = new cpu;
+        cpu* c        = new cpu;
+        c->cpu_number = cpus.size();
 
         // Start by setting up the GDT.
         c->gdt[0] = 0x0000000000000000;     // Unused/reserved.
@@ -39,23 +40,25 @@ kernel::init_this_cpu()
         lidt((uint64_t)c->idt,sizeof(c->idt)-1);
 
         // Fill in some cpuid feature flags.
-        printf("Max Basic CPUID Selector: 0x%08X\n",cpuid(0).eax);
-        printf("Max Extnd CPUID Selector: 0x%08X\n",cpuid(0x80000000).eax);
+        printf("CPU%zu Max Basic CPUID Selector: 0x%08X\n",
+               c->cpu_number,cpuid(0).eax);
+        printf("CPU%zu Max Extnd CPUID Selector: 0x%08X\n",
+               c->cpu_number,cpuid(0x80000000).eax);
         char brand[49];
         for (size_t i=0; i<3; ++i)
             cpuid(0x80000002+i,0,brand + 16*i);
         brand[48] = '\0';
-        printf("CPU Brand: %s\n",brand);
+        printf("CPU%zu CPU Brand: %s\n",c->cpu_number,brand);
 
         // Check for FXSAVE/FXRSTOR support.
         auto cpuid1 = cpuid(1);
-        printf("CPUID 1: 0x%08X:0x%08X:0x%08X:0x%08X\n",
-               cpuid1.eax,cpuid1.ebx,cpuid1.ecx,cpuid1.edx);
+        printf("CPU%zu CPUID 1: 0x%08X:0x%08X:0x%08X:0x%08X\n",
+               c->cpu_number,cpuid1.eax,cpuid1.ebx,cpuid1.ecx,cpuid1.edx);
         kassert(cpuid1.edx & (1 << 25));    // SSE availability.
         kassert(cpuid1.edx & (1 << 24));    // FXSAVE/FXRSTOR availability.
 
         // APIC info.
-        printf("Initial APIC ID: %u\n",cpuid1.ebx >> 24);
+        printf("CPU%zu Initial APIC ID: %u\n",c->cpu_number,cpuid1.ebx >> 24);
 
         // Done.
         cpus.emplace_back(c);

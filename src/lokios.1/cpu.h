@@ -31,7 +31,8 @@ namespace kernel
     struct cpu
     {
         uint64_t    gdt[6];
-        uint64_t    rsrv1[2];
+        size_t      cpu_number;
+        uint64_t    rsrv1;
 
         tss64       tss;
         uint16_t    ones;
