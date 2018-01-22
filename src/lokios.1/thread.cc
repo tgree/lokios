@@ -70,9 +70,8 @@ kernel::thread::operator new(size_t count, thread_id tid, task* task)
 void
 kernel::thread::operator delete(void* p, thread_id tid, task* task)
 {
-    // This is called if the thread constructor for thread id 0 throws an
-    // exception.  We should free the physical pages and unmap them from the
-    // page table.
+    // This is called if the thread constructor throws an exception.  We should
+    // free the physical pages and unmap them from the page table.
     kassert(tid != 0);
     kassert(((uint64_t)p & 0xFFFFFFFF00000000) == 0xFFFFFFFF00000000);
     kassert(((uint64_t)p & 0x000000000000FFFF) == 0);
