@@ -18,6 +18,13 @@ void* malloc(size_t n) noexcept
 }
 
 extern "C"
+void* aligned_alloc(size_t alignment, size_t size) noexcept
+{
+    kernel::kassert(size <= PAGE_SIZE);
+    return kernel::page_alloc();
+}
+
+extern "C"
 void* realloc(void* ptr, size_t size)
 {
     // Check if this is a malloc- or free-equivalent.
