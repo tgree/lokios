@@ -124,8 +124,8 @@ namespace kernel
         const uint64_t  set_mask;
         const uint64_t  set_flags;
 
-        inline page_table_iterator&       begin() {return *this;}
-        inline const page_table_iterator& end()   {return *this;}
+        inline page_table_iterator& begin()     {return *this;}
+        inline kernel::end_sentinel end() const {return kernel::end_sentinel();}
         void operator++();
 
         inline void* get_vaddr() const
@@ -144,7 +144,7 @@ namespace kernel
                                     stack[level].entries[stack[level].index]};
         }
 
-        inline bool operator!=(const page_table_iterator&) const
+        inline bool operator!=(kernel::end_sentinel) const
         {
             return stack[0].index != 512;
         }
