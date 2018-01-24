@@ -28,6 +28,8 @@ namespace kernel
     {
         return arr + N;
     }
+
+    struct end_sentinel {};
 }
 
 #endif /* __KERNEL_ITERATOR_H */
