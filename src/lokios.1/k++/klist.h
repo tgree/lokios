@@ -1,6 +1,7 @@
 #ifndef __KERNEL_LIST_H
 #define __KERNEL_LIST_H
 
+#include "kernel_iterator.h"
 #include "kernel/kassert.h"
 #include <hdr/container_of.h>
 #include <stddef.h>
@@ -111,7 +112,7 @@ namespace kernel
             pos = pos->next;
         }
 
-        inline bool operator!=(const klist_rbfl_adapter&) const
+        inline bool operator!=(kernel::end_sentinel) const
         {
             // We only allow testing for a loop termination condition - this is
             // a RBFL adapter and not a general iterator.
@@ -123,9 +124,9 @@ namespace kernel
             return *this;
         }
 
-        inline const klist_rbfl_adapter end()
+        inline kernel::end_sentinel end() const
         {
-            return *this;
+            return kernel::end_sentinel();
         }
 
         constexpr klist_rbfl_adapter(klist<T>& kl):pos(kl.head) {}
