@@ -24,9 +24,10 @@ namespace kernel
         uint128_t   sromm[8];
         uint128_t   xmm[16];
         uint128_t   rsrv2[3];
-        uint128_t   avail[3];
+        uint8_t     avail[48];  // 464 - Used as IRET frame for thread bouncing.
     };
     KASSERT(sizeof(fxsave_area) == 512);
+    KASSERT(offsetof(fxsave_area,avail) == 464);
 
     struct tls_tcb
     {
@@ -91,6 +92,8 @@ namespace kernel
 
         thread(void (*entry_fn)());
     };
+    KASSERT(offsetof(thread,tcb) == 26624);
+    KASSERT(offsetof(thread,tcb.fxsa.avail) == 27280);
     KASSERT(sizeof(thread) == 32768);
 
     static inline tls_tcb* get_current_tcb()

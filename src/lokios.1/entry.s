@@ -22,11 +22,11 @@ _entry:
 #   rdi - thread* to activate
 .globl _thread_jump
 _thread_jump:
-    # Set up a garbage interrupt frame on the stack and jump to the interrupt-
-    # handler exit code that will restore the state out of the thread context
-    # we are trying to jump into.
-    lea     26624(%rdi), %rax
-    sub     $40, %rsp
+    # Set up a dummy interrupt frame in the thread tcb and jump to the
+    # interrupt-handler exit code that will restore the state out of the thread
+    # context we are trying to jump into.
+    lea     26624(%rdi), %rax   # thread.tcb
+    lea     27280(%rdi), %rsp   # thread.tcb.fxsa.avail
     jmp     .L_interrupt_exit
 
 
