@@ -1,12 +1,26 @@
 #include "thread.h"
 #include "task.h"
 #include "mm/mm.h"
+#include <new>
 
 extern uint8_t _tdata_begin[];
 extern uint8_t _tdata_size[];
 extern uint8_t _tbss_begin[];
 extern uint8_t _tbss_end[];
 extern uint8_t _tbss_size[];
+
+struct thread_mem
+{
+    uint8_t         guard1[4096];
+    uint8_t         stack[16384];
+    uint8_t         guard2[4096];
+    uint8_t         tls[2048];
+    kernel::klink   link;
+};
+
+static kernel::spinlock             free_threads_lock;
+static kernel::klist<thread_mem>    free_threads;
+static uint16_t                     next_free_tid = 1;
 
 typedef void (*bounce_fn)(kernel::thread* t, void (*fn)());
 
@@ -53,47 +67,49 @@ kernel::thread::bounce(void (*fn)())
 }
 
 void*
-kernel::thread::operator new(size_t count, thread_id tid, task* task)
+kernel::thread::operator new(size_t size)
 {
-    kassert(count == sizeof(thread));
-    kassert(tid != 0);
+    kassert(size == sizeof(thread));
 
-    thread* t = get_thread_region(tid);
-    for (size_t i=0; i<sizeof(t->stack)/PAGE_SIZE; ++i)
+    // Try recycling a freed thread.
+    uint16_t tid;
+    with (free_threads_lock)
     {
-        task->pt.map_4k_page(t->stack + i*PAGE_SIZE,(uint64_t)page_alloc(),
-                             PAGE_FLAG_WRITEABLE |
-                             PAGE_FLAG_NOEXEC |
-                             PAGE_CACHE_WB);
+        if (!free_threads.empty())
+        {
+            thread_mem* tm = klist_front(free_threads,link);
+            free_threads.pop_front();
+            tm->~thread_mem();
+            return tm;
+        }
+        kassert(next_free_tid != 0);
+        tid = next_free_tid++;
     }
-    task->pt.map_4k_page(t->tls,(uint64_t)page_alloc(),
-                         PAGE_FLAG_WRITEABLE |
-                         PAGE_FLAG_NOEXEC |
-                         PAGE_CACHE_WB);
 
-    t->tcb.task = task;
-    return t;
-}
-
-void
-kernel::thread::operator delete(void* p, thread_id tid, task* task)
-{
-    // This is called if the thread constructor throws an exception.  We should
-    // free the physical pages and unmap them from the page table.
-    kassert(tid != 0);
-    kassert(((uint64_t)p & 0xFFFFFFFF00000000) == 0xFFFFFFFF00000000);
-    kassert(((uint64_t)p & 0x000000000000FFFF) == 0);
-    kassert((((uint64_t)p >> 16) & 0xFFFF) == tid);
-    kernel::panic();
+    // Allocate a new thread.
+    thread_mem* tm = (thread_mem*)get_thread_region(tid);
+    for (size_t i=0; i<sizeof(tm->stack)/PAGE_SIZE; ++i)
+    {
+        kernel_task->pt.map_4k_page(tm->stack + i*PAGE_SIZE,
+                                    (uint64_t)page_alloc(),
+                                    PAGE_FLAG_WRITEABLE |
+                                    PAGE_FLAG_NOEXEC |
+                                    PAGE_CACHE_WB);
+    }
+    kernel_task->pt.map_4k_page(tm->tls,(uint64_t)page_alloc(),
+                                PAGE_FLAG_WRITEABLE |
+                                PAGE_FLAG_NOEXEC |
+                                PAGE_CACHE_WB);
+    return tm;
 }
 
 void
 kernel::thread::operator delete(void* p)
 {
-    // This is called for a regular delete.  Here, too, we should free the
-    // physical pages and unmap them from the page table.  We can access the
-    // page table via the pointer in the thread control block.
-    kassert(((uint64_t)p & 0xFFFFFFFF00000000) == 0xFFFFFFFF00000000);
-    kassert(((uint64_t)p & 0x000000000000FFFF) == 0);
-    kernel::panic();
+    kassert(((uint64_t)p & 0xFFFFFFFF0000FFFF) == 0xFFFFFFFF00000000);
+    thread_mem* tm = new(p) thread_mem;
+    with (free_threads_lock)
+    {
+        free_threads.push_back(&tm->link);
+    }
 }

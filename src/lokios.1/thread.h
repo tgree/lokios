@@ -41,13 +41,13 @@ namespace kernel
 
         // Our own fields.
         klink           link;           // 8
-        kernel::task*   task;           // 16
+        uint64_t        rsrv0;          // 16
 
         // Register save/restore area.
         uint64_t        rflags;         // 24
         uint16_t        cs;             // 32
         uint16_t        ss;             // 34
-        uint32_t        rsrv;           // 36
+        uint32_t        rsrv1;          // 36
 
         // Random value (initialized by the OS) for each thread that gcc uses
         // for stack-stomp checking.  It's required to be at FS:0x28.
@@ -85,10 +85,9 @@ namespace kernel
         tls_tcb     tcb;
         uint8_t     unmapped_but_free_if_we_need_it[4096];
 
-        static void* operator new(size_t count, thread_id tid, task* t);
-        static void operator delete(void* p, thread_id tid, task* t);
-        static void operator delete(void*);
-               void bounce(void (*fn)());
+        static  void*   operator new(size_t size);
+        static  void    operator delete(void*);
+                void    bounce(void (*fn)());
 
         thread(void (*entry_fn)());
     };
