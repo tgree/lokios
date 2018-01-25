@@ -33,7 +33,7 @@ kernel::pmap(uint64_t paddr, uint64_t flags)
 {
     uint64_t paddr_2m = round_down_pow2(paddr,0x00200000);
     uint64_t vaddr_2m = 0xFFFF800000000000UL | paddr_2m;
-    get_current_tcb()->task->pt.map_2m_page((void*)vaddr_2m,paddr_2m,flags);
+    kernel_task->pt.map_2m_page((void*)vaddr_2m,paddr_2m,flags);
     return (void*)(vaddr_2m | (paddr & 0x001FFFFF));
 }
 
