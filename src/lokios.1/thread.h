@@ -87,6 +87,7 @@ namespace kernel
         static void* operator new(size_t count, thread_id tid, task* t);
         static void operator delete(void* p, thread_id tid, task* t);
         static void operator delete(void*);
+               void bounce(void (*fn)());
 
         thread(void (*entry_fn)());
     };

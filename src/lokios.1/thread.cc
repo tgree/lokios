@@ -8,6 +8,8 @@ extern uint8_t _tbss_begin[];
 extern uint8_t _tbss_end[];
 extern uint8_t _tbss_size[];
 
+typedef void (*bounce_fn)(kernel::thread* t, void (*fn)());
+
 kernel::thread::thread(void (*fn)())
 {
     memset(stack,0,sizeof(stack));
@@ -28,20 +30,26 @@ kernel::thread::thread(void (*fn)())
     tcb.cs          = 8;
     tcb.ss          = 0;
     tcb.stack_guard = 0xA1B2C3D4E5F60718;
-    tcb.rip         = (uint64_t)fn;
+    tcb.rip         = (uint64_t)(bounce_fn)&kernel::thread::bounce;
     tcb.rsp         = (uint64_t)stack + sizeof(stack) - 56;
     tcb.rax         = 0x4E4F4E4F4E4F4E4F;
     tcb.rbx         = 0x4E4F4E4F4E4F4E4F;
     tcb.rcx         = 0x4E4F4E4F4E4F4E4F;
     tcb.rdx         = 0x4E4F4E4F4E4F4E4F;
-    tcb.rdi         = 0x4E4F4E4F4E4F4E4F;
-    tcb.rsi         = 0x4E4F4E4F4E4F4E4F;
+    tcb.rdi         = (uint64_t)this;
+    tcb.rsi         = (uint64_t)fn;
     tcb.rbp         = 0x4E4F4E4F4E4F4E4F;
     for (auto& r : tcb.r)
         r = 0x4E4F4E4F4E4F4E4F;
     kassert(tcb.rsp % 16 == 8);
 
     memset(&tcb.fxsa,0,sizeof(tcb.fxsa));
+}
+
+void
+kernel::thread::bounce(void (*fn)())
+{
+    (*fn)();
 }
 
 void*
