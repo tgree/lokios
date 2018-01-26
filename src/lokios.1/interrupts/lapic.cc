@@ -2,7 +2,7 @@
 #include "interrupt.h"
 #include "routing.h"
 #include "kernel/console.h"
-#include "kernel/x86.h"
+#include "kernel/msr.h"
 #include "kernel/pmtimer.h"
 #include "acpi/tables.h"
 #include "mm/mm.h"
@@ -140,7 +140,7 @@ kernel::init_lapic()
     }
 
     printf("LOCAL_APIC_ADDR 0x%016lX\n",local_apic_addr);
-    printf("IA32_APIC_BASE  0x%016lX\n",rdmsr(0x1B));
+    printf("IA32_APIC_BASE  0x%016lX\n",rdmsr(IA32_APIC_BASE));
 
     // Map the local APIC.  Since the local APIC is at the same physical
     // address in all CPUs, this maps it for them all.
