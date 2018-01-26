@@ -12,6 +12,7 @@ namespace kernel
 
         spinlock        threads_lock;
         kdlist<thread>  runnable_threads;
+        kdlist<thread>  running_threads;
 
         void spawn_thread(void (*entry_fn)());
         void spawn_and_jump_into_thread(void (*entry_fn)());

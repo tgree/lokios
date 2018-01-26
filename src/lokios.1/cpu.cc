@@ -85,6 +85,7 @@ kernel::init_this_cpu()
         {
             t = klist_front(kernel_task->runnable_threads,tcb.link);
             t->tcb.link.unlink();
+            kernel_task->running_threads.push_back(&t->tcb.link);
         }
     }
     _thread_jump(t);
