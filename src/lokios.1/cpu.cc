@@ -18,7 +18,7 @@ idle_loop()
         asm ("hlt;");
 }
 
-kernel::cpu*
+void
 kernel::init_this_cpu()
 {
     cpu* c         = new cpu;
@@ -71,9 +71,6 @@ kernel::init_this_cpu()
 
     // APIC info.
     printf("CPU%zu Initial APIC ID: %u\n",c->cpu_number,cpuid1.ebx >> 24);
-
-    // Done.
-    return c;
 }
 
 void
