@@ -2,11 +2,14 @@
 #include "x86.h"
 #include "cpuid.h"
 #include "thread.h"
+#include "task.h"
 #include "console.h"
 #include "spinlock.h"
 #include "mm/page.h"
 
 using kernel::console::printf;
+
+extern "C" void _thread_jump(kernel::thread* t) __attribute__((noreturn));
 
 static kernel::spinlock cpus_lock;
 kernel::vector<kernel::cpu*> kernel::cpus;
@@ -71,6 +74,20 @@ kernel::init_this_cpu()
 
     // APIC info.
     printf("CPU%zu Initial APIC ID: %u\n",c->cpu_number,cpuid1.ebx >> 24);
+
+    // Start executing.
+    thread* t;
+    with (kernel_task->threads_lock)
+    {
+        if (kernel_task->runnable_threads.empty())
+            t = c->idle_thread;
+        else
+        {
+            t = klist_front(kernel_task->runnable_threads,tcb.link);
+            t->tcb.link.unlink();
+        }
+    }
+    _thread_jump(t);
 }
 
 void
