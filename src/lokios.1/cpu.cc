@@ -11,10 +11,18 @@ using kernel::console::printf;
 static kernel::spinlock cpus_lock;
 kernel::vector<kernel::cpu*> kernel::cpus;
 
+static void
+idle_loop()
+{
+    for (;;)
+        asm ("hlt;");
+}
+
 kernel::cpu*
 kernel::init_this_cpu()
 {
-    cpu* c = new cpu;
+    cpu* c         = new cpu;
+    c->idle_thread = new thread(idle_loop);
 
     // Start by setting up the GDT.
     c->gdt[0] = 0x0000000000000000;     // Unused/reserved.

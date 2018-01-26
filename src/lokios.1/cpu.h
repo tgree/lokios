@@ -9,6 +9,8 @@
 
 namespace kernel
 {
+    struct thread;
+
     struct tss64
     {
         uint32_t    rsrv0;
@@ -44,7 +46,9 @@ namespace kernel
             uint64_t    hi;
         } idt[128];
 
-        uint8_t     rsrv3[1872];
+        thread*     idle_thread;
+
+        uint8_t     rsrv3[1864];
 
         void register_exception_vector(size_t v, void (*handler)());
     };
