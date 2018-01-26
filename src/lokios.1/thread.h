@@ -40,8 +40,7 @@ namespace kernel
         tls_tcb*        self;           // 0
 
         // Our own fields.
-        klink           link;           // 8
-        uint64_t        rsrv0;          // 16
+        kdlink          link;           // 8
 
         // Register save/restore area.
         uint64_t        rflags;         // 24
