@@ -1,5 +1,5 @@
 #include "cpu.h"
-#include "x86.h"
+#include "msr.h"
 #include "cpuid.h"
 #include "thread.h"
 #include "task.h"
@@ -46,6 +46,9 @@ kernel::init_this_cpu()
     // Load the IDT.
     memset(&c->idt,0,sizeof(c->idt));
     lidt((uint64_t)c->idt,sizeof(c->idt)-1);
+
+    // Record the cpu* in the GS_BASE MSR.
+    wrmsr((uint64_t)c,IA32_GS_BASE);
 
     // Insert us into the cpus list.
     with (cpus_lock)
