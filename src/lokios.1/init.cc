@@ -82,4 +82,7 @@ init()
     // Initialize the boot CPU and make it available to the scheduler.  The
     // scheduler will take ownership of the CPU; this should never return.
     kernel::init_this_cpu();
+
+    // Oops.
+    kernel::panic("init_this_cpu() returned!");
 }
