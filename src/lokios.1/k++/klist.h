@@ -25,12 +25,16 @@ namespace kernel
     struct klist_leaks
     {
         typedef T elem_type;
+        typedef klink link_type;
 
         klink*  head;
         klink*  tail;
 
         inline void clear() {head = tail = NULL;}
         constexpr bool empty() const {return head == NULL;}
+
+        constexpr klink* first_link() const {return head;}
+        constexpr const klink* sentinel_link() const {return NULL;}
 
         inline size_t size() const    
         {
@@ -97,10 +101,13 @@ namespace kernel
         inline ~klist() {kassert(this->head == NULL && this->tail == NULL);}
     };
 
-    template<typename T, size_t OFFSET>
+    template<typename L, size_t OFFSET>
     struct klist_rbfl_adapter
     {
-        klink* pos;
+        typedef typename L::elem_type T;
+
+        typename L::link_type* pos;
+        const typename L::link_type* sentinel;
 
         inline T& operator*() const
         {
@@ -116,7 +123,7 @@ namespace kernel
         {
             // We only allow testing for a loop termination condition - this is
             // a RBFL adapter and not a general iterator.
-            return pos != NULL;
+            return pos != sentinel;
         }
 
         inline klist_rbfl_adapter begin()
@@ -129,15 +136,18 @@ namespace kernel
             return kernel::end_sentinel();
         }
 
-        constexpr klist_rbfl_adapter(klist_leaks<T>& kl):pos(kl.head) {}
+        constexpr klist_rbfl_adapter(L& kl):
+            pos(kl.first_link()),
+            sentinel(kl.sentinel_link())
+        {}
     };
 
 #define klist_front(q,field) \
     (q.empty() ? NULL : \
-     container_of(q.head,typename decltype(q)::elem_type,field))
+     container_of(q.first_link(),typename decltype(q)::elem_type,field))
 
 #define klist_elems(q,field) \
-    kernel::klist_rbfl_adapter<typename decltype(q)::elem_type, \
+    kernel::klist_rbfl_adapter<decltype(q), \
                        offsetof(typename decltype(q)::elem_type,field)>(q)
 }
 
