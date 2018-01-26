@@ -24,7 +24,7 @@ namespace kernel
     template<typename T>
     struct klist
     {
-        typedef T container_type;
+        typedef T elem_type;
 
         klink*  head;
         klink*  tail;
@@ -134,11 +134,11 @@ namespace kernel
 
 #define klist_front(q,field) \
     (q.empty() ? NULL : \
-     container_of(q.head,typename decltype(q)::container_type,field))
+     container_of(q.head,typename decltype(q)::elem_type,field))
 
 #define klist_elems(q,field) \
-    kernel::klist_rbfl_adapter<typename decltype(q)::container_type, \
-                       offsetof(typename decltype(q)::container_type,field)>(q)
+    kernel::klist_rbfl_adapter<typename decltype(q)::elem_type, \
+                       offsetof(typename decltype(q)::elem_type,field)>(q)
 }
 
 #endif /* __KERNEL_LIST_H */
