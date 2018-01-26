@@ -48,6 +48,7 @@ kernel::init_this_cpu()
 
     // Record the cpu* in the GS_BASE MSR.
     wrmsr((uint64_t)c,IA32_GS_BASE);
+    kassert(get_current_cpu() == c);
 
     // Insert us into the cpus list.
     with (cpus_lock)
