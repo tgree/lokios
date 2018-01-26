@@ -1,5 +1,4 @@
 #include "cpu.h"
-#include "msr.h"
 #include "cpuid.h"
 #include "thread.h"
 #include "task.h"

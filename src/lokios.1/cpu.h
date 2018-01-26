@@ -1,6 +1,7 @@
 #ifndef __KERNEL_CPU_H
 #define __KERNEL_CPU_H
 
+#include "msr.h"
 #include "hdr/compiler.h"
 #include "kernel/kassert.h"
 #include "k++/vector.h"
@@ -53,6 +54,12 @@ namespace kernel
         void register_exception_vector(size_t v, void (*handler)());
     };
     KASSERT(sizeof(cpu) == 4096);
+
+    static inline cpu* get_current_cpu()
+    {
+        // The cpu* is stored in the GS_BASE MSR.
+        return (cpu*)rdmsr(IA32_GS_BASE);
+    }
 
     extern vector<cpu*> cpus;
 
