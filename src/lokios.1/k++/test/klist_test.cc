@@ -9,6 +9,14 @@ struct klinked_object
     constexpr klinked_object(int val):val(val) {}
 };
 
+struct kdlinked_object
+{
+    kernel::kdlink  link;
+    int             val;
+
+    constexpr kdlinked_object(int val):val(val) {}
+};
+
 void
 kernel::panic(const char* s) noexcept
 {
@@ -109,6 +117,126 @@ class tmock_test
         }
         kernel::kassert(n == 1);
         kl.pop_front();
+    }
+
+    TMOCK_TEST(test_unused_kdlink_works)
+    {
+        kernel::kdlink kdl;
+    }
+
+    TMOCK_TEST_EXPECT_FAILURE(test_kdlink_inuse_assert)
+    {
+        kernel::kdlink kdl;
+        kdl.next = NULL;
+    }
+
+    TMOCK_TEST(test_empty_kdlist_works)
+    {
+        kernel::kdlist<kdlinked_object> kdl;
+    }
+
+    TMOCK_TEST_EXPECT_FAILURE(test_kdlist_head_inuse_assert)
+    {
+        kernel::kdlist<kdlinked_object> kdl;
+        kdl.sentinel.next = (kernel::kdlink*)0x12345;
+    }
+
+    TMOCK_TEST_EXPECT_FAILURE(test_kdlist_tail_inuse_assert)
+    {
+        kernel::kdlist<kdlinked_object> kdl;
+        kdl.sentinel.prev = (kernel::kdlink*)0x12345;
+    }
+
+    TMOCK_TEST(test_kdlist_push_back_works)
+    {
+        kdlinked_object o1(1);
+        kdlinked_object o2(2);
+        kdlinked_object o3(3);
+        kdlinked_object o4(4);
+        kdlinked_object o5(5);
+        kernel::kdlist<kdlinked_object> kdl;
+
+        kdl.push_back(&o3.link);
+        kdl.push_back(&o1.link);
+        kdl.push_back(&o4.link);
+
+        tmock::assert_equiv(kdl.size(),3U);
+
+        kdl.pop_all();
+    }
+
+    TMOCK_TEST(test_kdlist_rbfl_works)
+    {
+        kdlinked_object o1(1);
+        kdlinked_object o2(2);
+        kdlinked_object o3(3);
+        kdlinked_object o4(4);
+        kdlinked_object o5(5);
+        kernel::kdlist<kdlinked_object> kdl;
+
+        kdl.push_back(&o3.link);
+        kdl.push_back(&o1.link);
+        kdl.push_back(&o4.link);
+        kdl.push_back(&o2.link);
+        kdl.push_back(&o5.link);
+
+        static int vals[] = {3,1,4,2,5};
+        int* vp = vals;
+        for (kdlinked_object& o : klist_elems(kdl,link))
+            tmock::assert_equiv(o.val,*vp++);
+        kernel::kassert(vp == &vals[5]);
+
+        kdl.pop_all();
+    }
+
+    TMOCK_TEST(test_kdlist_empty_rbfl_works)
+    {
+        kernel::kdlist<kdlinked_object> kdl;
+        size_t n = 0;
+        for (kdlinked_object& o __attribute__((unused)) : klist_elems(kdl,link))
+            ++n;
+        kernel::kassert(n == 0);
+    }
+
+    TMOCK_TEST(test_kdlist_one_elem_rbfl_works)
+    {
+        kernel::kdlist<kdlinked_object> kdl;
+        kdlinked_object o1(12345);
+        kdl.push_back(&o1.link);
+        size_t n = 0;
+        for (kdlinked_object& o __attribute__((unused)) : klist_elems(kdl,link))
+        {
+            kernel::kassert(o.val == 12345);
+            ++n;
+        }
+        kernel::kassert(n == 1);
+        kdl.pop_front();
+    }
+
+    TMOCK_TEST(test_kdlist_unlink_works)
+    {
+        kdlinked_object o1(1);
+        kdlinked_object o2(2);
+        kdlinked_object o3(3);
+        kdlinked_object o4(4);
+        kdlinked_object o5(5);
+        kernel::kdlist<kdlinked_object> kdl;
+
+        kdl.push_back(&o3.link);
+        kdl.push_back(&o1.link);
+        kdl.push_back(&o4.link);
+        kdl.push_back(&o2.link);
+        kdl.push_back(&o5.link);
+
+        o4.link.unlink();
+
+        static int vals[] = {3,1,2,5};
+        int* vp = vals;
+        for (kdlinked_object& o : klist_elems(kdl,link))
+            tmock::assert_equiv(o.val,*vp++);
+        kernel::kassert(vp == &vals[4]);
+
+        kdl.pop_all();
     }
 };
 
