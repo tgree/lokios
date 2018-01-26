@@ -10,16 +10,16 @@ kernel::task::spawn_thread(void (*entry_fn)())
     with (threads_lock)
     {
         thread* t = new thread(entry_fn);
-        threads.push_back(&t->tcb.link);
+        runnable_threads.push_back(&t->tcb.link);
     }
 }
 
 void
 kernel::task::spawn_and_jump_into_thread(void (*entry_fn)())
 {
-    kassert(threads.empty());
+    kassert(runnable_threads.empty());
     spawn_thread(entry_fn);
-    _thread_jump(klist_front(threads,tcb.link));
+    _thread_jump(klist_front(runnable_threads,tcb.link));
 }
 
 void

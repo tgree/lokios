@@ -11,7 +11,7 @@ namespace kernel
         page_table      pt;
 
         spinlock        threads_lock;
-        kdlist<thread>  threads;
+        kdlist<thread>  runnable_threads;
 
         void spawn_thread(void (*entry_fn)());
         void spawn_and_jump_into_thread(void (*entry_fn)());
