@@ -22,7 +22,7 @@ namespace kernel
     };
 
     template<typename T>
-    struct klist
+    struct klist_leaks
     {
         typedef T elem_type;
 
@@ -72,7 +72,7 @@ namespace kernel
                 pop_front();
         }
 
-        inline void append(klist& other)
+        inline void append(klist_leaks& other)
         {
             if (other.empty())
                 return;
@@ -87,14 +87,14 @@ namespace kernel
             other.tail = NULL;
         }
 
-        constexpr klist():head(NULL),tail(NULL) {}
-        inline ~klist() {kassert(head == NULL && tail == NULL);}
+        constexpr klist_leaks():head(NULL),tail(NULL) {}
     };
 
     template<typename T>
-    struct klist_leaks : klist<T>
+    struct klist : public klist_leaks<T>
     {
-        inline ~klist_leaks() {this->head = this->tail = NULL;}
+        constexpr klist():klist_leaks<T>() {}
+        inline ~klist() {kassert(this->head == NULL && this->tail == NULL);}
     };
 
     template<typename T, size_t OFFSET>
@@ -129,7 +129,7 @@ namespace kernel
             return kernel::end_sentinel();
         }
 
-        constexpr klist_rbfl_adapter(klist<T>& kl):pos(kl.head) {}
+        constexpr klist_rbfl_adapter(klist_leaks<T>& kl):pos(kl.head) {}
     };
 
 #define klist_front(q,field) \
