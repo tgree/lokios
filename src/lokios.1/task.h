@@ -15,7 +15,6 @@ namespace kernel
         kdlist<thread>  running_threads;
 
         void spawn_thread(void (*entry_fn)());
-        void spawn_and_jump_into_thread(void (*entry_fn)());
     };
 
     extern task* kernel_task;

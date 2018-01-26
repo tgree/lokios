@@ -1,7 +1,5 @@
 #include "task.h"
 
-extern "C" void _thread_jump(kernel::thread* t) __attribute__((noreturn));
-
 kernel::task* kernel::kernel_task;
 
 void
@@ -12,14 +10,6 @@ kernel::task::spawn_thread(void (*entry_fn)())
         thread* t = new thread(entry_fn);
         runnable_threads.push_back(&t->tcb.link);
     }
-}
-
-void
-kernel::task::spawn_and_jump_into_thread(void (*entry_fn)())
-{
-    kassert(runnable_threads.empty());
-    spawn_thread(entry_fn);
-    _thread_jump(klist_front(runnable_threads,tcb.link));
 }
 
 void
