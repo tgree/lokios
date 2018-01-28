@@ -10,7 +10,7 @@ namespace kernel
         N81_115200 = 0,
     };
 
-    struct serial_console : public kconsole
+    class serial_console : public kconsole
     {
         const uint16_t  ioaddr;
 
@@ -20,6 +20,7 @@ namespace kernel
                 void    putnewline();
         virtual void    _putc(char c);
 
+    public:
         serial_console(uint16_t ioaddr, serial_config config);
     };
 

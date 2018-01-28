@@ -7,13 +7,11 @@
 
 namespace kernel
 {
-    struct string_stream : public char_stream
+    class string_stream : public char_stream
     {
         char*       base;
         char*       pos;
         char* const end;
-
-        inline operator const char*() const {return base;}
 
         virtual void _putc(char c)
         {
@@ -23,6 +21,9 @@ namespace kernel
                 *pos   = '\0';
             }
         }
+
+    public:
+        inline operator const char*() const {return base;}
 
         inline string_stream(char* base, size_t len):
             base(base),pos(base),end(base+len)

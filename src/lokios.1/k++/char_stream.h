@@ -22,9 +22,9 @@ namespace kernel
         void    print_string(const char* s, unsigned int flags,
                              unsigned int width, unsigned int precision);
 
-    public:
         virtual void _putc(char c) = 0;
 
+    public:
                 void vprintf(const char* fmt, va_list ap);
         inline  void printf(const char* fmt, ...)
             __attribute__((format(printf,2,3)))

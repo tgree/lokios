@@ -32,8 +32,7 @@ kernel::serial_write(const char* s) noexcept
     if (!serial)
         return;
 
-    while (*s)
-        serial->_putc(*s++);
+    serial->printf("%s",s);
 }
 
 kernel::serial_console::serial_console(uint16_t ioaddr, serial_config config):
