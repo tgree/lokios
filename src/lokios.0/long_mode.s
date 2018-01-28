@@ -2,8 +2,7 @@
 .text
 
 
-# Identity-map the first 2M of RAM using a single hugepage.  Interrupts should
-# be disabled.
+# Switch to long mode and jump into the kernel.  Interrupts should be disabled.
 .global  _enter_long_mode
 _enter_long_mode:
     # Set the PAT MSR to: 
@@ -23,7 +22,7 @@ _enter_long_mode:
     mov     %eax, %cr4
 
     # Set CR3 to point at the first level page table we defined in the linker
-    # file.  This page table identity-maps the first 2M of RAM.
+    # file.  This page table identity-maps the first 8M of RAM.
     xor     %eax, %eax
     lea     _page_table, %ax
     mov     %eax, %cr3
