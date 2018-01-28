@@ -24,7 +24,7 @@ void
 kernel::console::_putc(char c)
 {
     for (auto& kc : klist_elems(consoles,kc_link))
-        kc._putc(c);
+        kc.printf("%c",c);
 }
 
 void
