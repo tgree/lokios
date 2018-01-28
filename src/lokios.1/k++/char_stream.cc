@@ -381,10 +381,14 @@ kernel::char_stream::vprintf(const char* fmt, va_list ap)
             break;
 
             case 'c':
+            {
                 // We don't support wide chars.
                 if (length_modifier != PRINTF_LM_none)
                     abort();
-                _putc(*fmt++);
+                int c = va_arg(ap,int);
+                _putc(c);
+                ++fmt;
+            }
             break;
 
             case 's':
