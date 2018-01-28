@@ -45,6 +45,12 @@ namespace kernel
         constexpr spinlock():val(0),owner(0) {}
         inline ~spinlock() {kassert(val == 0);}
     };
+
+    struct noop_lock
+    {
+        inline void acquire() {}
+        inline void release() {}
+    };
 }
 
 #endif /* _KERNEL_SPINLOCK_H */
