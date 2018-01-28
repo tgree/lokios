@@ -1,6 +1,11 @@
+.org 0
+    jmp     _bsp_entry
+
+
 # On entry:
 #   RDI - address of the kernel_args struct
-_entry:
+#   RSP - set to the bootloader temporary stack
+_bsp_entry:
     # Populate kernel::args.
     mov     %rdi, _ZN6kernel5kargsE
 
