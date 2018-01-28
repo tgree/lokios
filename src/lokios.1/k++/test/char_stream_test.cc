@@ -139,6 +139,11 @@ class tmock_test
         test_random_string("%016lX",(uint64_t)0);
         test_random_string("%02X",(char)0xE0);
     }
+
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_random_chars)
+    {
+        test_random_string("Hello %c 1234",'T');
+    }
 };
 
 TMOCK_MAIN();
