@@ -8,7 +8,7 @@
 
 namespace kernel
 {
-    struct kconsole : public char_stream
+    struct kconsole : public char_stream<spinlock>
     {
         klink kc_link;
     };

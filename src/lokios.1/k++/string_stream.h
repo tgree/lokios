@@ -7,7 +7,7 @@
 
 namespace kernel
 {
-    class string_stream : public char_stream
+    class string_stream : public char_stream<noop_lock>
     {
         char*       base;
         char*       pos;

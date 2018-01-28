@@ -33,16 +33,16 @@ enum length_modifier_e
 static const char* hex_uc_lut = "0123456789ABCDEF";
 static const char* hex_lc_lut = "0123456789abcdef";
 
-kernel::char_stream::char_stream()
+kernel::char_stream_base::char_stream_base()
 {
 }
 
-kernel::char_stream::~char_stream()
+kernel::char_stream_base::~char_stream_base()
 {
 }
 
 void
-kernel::char_stream::print_field(const char* ptr, size_t digits,
+kernel::char_stream_base::print_field(const char* ptr, size_t digits,
     unsigned int flags, unsigned int width, unsigned int precision)
 {
     size_t zeroes = digits < precision ? precision - digits : 0;
@@ -81,7 +81,7 @@ kernel::char_stream::print_field(const char* ptr, size_t digits,
 }
 
 void
-kernel::char_stream::print_decimal(long long v, unsigned int flags,
+kernel::char_stream_base::print_decimal(long long v, unsigned int flags,
     unsigned int width, unsigned int precision)
 {
     if (v < 0)
@@ -96,8 +96,8 @@ kernel::char_stream::print_decimal(long long v, unsigned int flags,
 }
 
 void
-kernel::char_stream::print_udecimal(unsigned long long v, unsigned int flags,
-    unsigned int width, unsigned int precision)
+kernel::char_stream_base::print_udecimal(unsigned long long v,
+    unsigned int flags, unsigned int width, unsigned int precision)
 {
     char buf[20];
     char* ptr = buf + sizeof(buf);
@@ -132,13 +132,13 @@ kernel::char_stream::print_udecimal(unsigned long long v, unsigned int flags,
 }
 
 void
-kernel::char_stream::print_octal(unsigned long long v, unsigned int flags,
+kernel::char_stream_base::print_octal(unsigned long long v, unsigned int flags,
     unsigned int width, unsigned int precision)
 {
 }
 
 void
-kernel::char_stream::print_hex(unsigned long long v, unsigned int flags,
+kernel::char_stream_base::print_hex(unsigned long long v, unsigned int flags,
     unsigned int width, unsigned int precision, const char* lut)
 {
     char buf[19];
@@ -168,7 +168,7 @@ kernel::char_stream::print_hex(unsigned long long v, unsigned int flags,
 }
 
 void
-kernel::char_stream::print_string(const char* s, unsigned int flags,
+kernel::char_stream_base::print_string(const char* s, unsigned int flags,
     unsigned int width, unsigned int precision)
 {
     size_t digits;
@@ -182,7 +182,7 @@ kernel::char_stream::print_string(const char* s, unsigned int flags,
 }
 
 void
-kernel::char_stream::vprintf(const char* fmt, va_list ap)
+kernel::char_stream_base::locked_vprintf(const char* fmt, va_list ap)
 {
     char c;
     while ( (c = *fmt++) != 0)
@@ -438,12 +438,13 @@ kernel::char_stream::vprintf(const char* fmt, va_list ap)
 }
 
 void
-kernel::char_stream::hexdump(const void* addr, size_t len, unsigned long base)
+kernel::char_stream_base::locked_hexdump(const void* addr, size_t len,
+    unsigned long base)
 {
     const unsigned char* p = (const unsigned char*)addr;
     while (len >= 8)
     {
-        printf("%016lX: %02X %02X %02X %02X  %02X %02X %02X %02X\n",
+        locked_printf("%016lX: %02X %02X %02X %02X  %02X %02X %02X %02X\n",
                base,p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7]);
         base += 8;
         p    += 8;
@@ -452,8 +453,8 @@ kernel::char_stream::hexdump(const void* addr, size_t len, unsigned long base)
     if (!len)
         return;
 
-    printf("%016lX:",base);
+    locked_printf("%016lX:",base);
     for (size_t i=0; i<len; ++i)
-        printf(" %02X",p[i]);
+        locked_printf(" %02X",p[i]);
     _putc('\n');
 }
