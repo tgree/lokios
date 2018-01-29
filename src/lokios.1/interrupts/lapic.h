@@ -66,6 +66,11 @@ namespace kernel
 
     void init_lapic_periodic();
 
+    void send_init_ipi(uint8_t target_apic_id);
+    void send_sipi_ipi(uint8_t target_apic_id);
+
+    uint8_t get_lapic_id();
+
     void test_lapic();
     void init_lapic();
 }

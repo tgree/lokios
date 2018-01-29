@@ -280,3 +280,23 @@ kernel::init_lapic_periodic()
     // Start the timer in one-shot mode.
     lapic->initial_count = lapic_periodic_value;
 }
+
+void
+kernel::send_init_ipi(uint8_t target_apic_id)
+{
+    lapic->icr[1] = ((uint32_t)target_apic_id << 24);
+    lapic->icr[0] = 0x00004500;
+}
+
+void
+kernel::send_sipi_ipi(uint8_t target_apic_id)
+{
+    lapic->icr[1] = ((uint32_t)target_apic_id << 24);
+    lapic->icr[0] = 0x00004608;
+}
+
+uint8_t
+kernel::get_lapic_id()
+{
+    return (lapic->apic_id >> 24);
+}
