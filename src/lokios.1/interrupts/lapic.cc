@@ -15,12 +15,12 @@ using kernel::console::printf;
 static lapic_registers* lapic;
 static uint64_t lapic_frequency;
 static uint32_t lapic_periodic_value;
-static kernel::vector<lapic_configuration> lapic_configs;
+kernel::vector<lapic_configuration> kernel::lapic_configs;
 
 static lapic_configuration*
 find_lapic_by_acpi_processor_id(uint8_t acpi_processor_id)
 {
-    for (auto& lac : lapic_configs)
+    for (auto& lac : kernel::lapic_configs)
     {
         if (lac.acpi_processor_id == acpi_processor_id)
             return &lac;
@@ -31,7 +31,7 @@ find_lapic_by_acpi_processor_id(uint8_t acpi_processor_id)
 static lapic_configuration*
 find_lapic_by_apic_id(uint8_t apic_id)
 {
-    for (auto& lac : lapic_configs)
+    for (auto& lac : kernel::lapic_configs)
     {
         if (lac.apic_id == apic_id)
             return &lac;

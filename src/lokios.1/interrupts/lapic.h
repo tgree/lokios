@@ -1,6 +1,7 @@
 #ifndef __KERNEL_LAPIC_H
 #define __KERNEL_LAPIC_H
 
+#include "k++/vector.h"
 #include "kernel/types.h"
 #include "kernel/kassert.h"
 
@@ -57,6 +58,8 @@ namespace kernel
         uint8_t     lint_pin;
         uint8_t     lint_flags;
     };
+
+    extern kernel::vector<lapic_configuration> lapic_configs;
 
     void lapic_eoi();
     void lapic_enable_nmi();
