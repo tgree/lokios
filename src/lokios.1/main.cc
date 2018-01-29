@@ -1,6 +1,7 @@
 #include "kernel_args.h"
 #include "console.h"
 #include "pmtimer.h"
+#include "cpu.h"
 #include "cxx_exception.h"
 #include "kassert.h"
 #include "acpi/tables.h"
@@ -25,6 +26,7 @@ main()
     kernel::init_interrupts();
     kernel::init_irq_routing();
     kernel::init_lapic_periodic();
+    kernel::init_ap_cpus();
     kernel::pci::init_pci();
 
     // Banner.

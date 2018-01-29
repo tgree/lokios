@@ -64,6 +64,7 @@ namespace kernel
     extern vector<cpu*> cpus;
 
     void init_this_cpu();
+    void init_ap_cpus();
 }
 
 #endif /* __KERNEL_CPU_H */

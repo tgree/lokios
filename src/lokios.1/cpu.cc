@@ -4,7 +4,9 @@
 #include "task.h"
 #include "console.h"
 #include "spinlock.h"
+#include "pmtimer.h"
 #include "mm/page.h"
+#include "interrupts/lapic.h"
 
 using kernel::console::printf;
 
@@ -102,4 +104,33 @@ kernel::cpu::register_exception_vector(size_t v, void (*handler)())
     idt[v].lo = ((p << 32) & 0xFFFF000000000000) |
                              0x00008E0100080000  |
                 ((p >>  0) & 0x000000000000FFFF);
+}
+
+void
+kernel::init_ap_cpus()
+{
+    // Start the APs one at a time.
+    uint8_t lapic_id = get_lapic_id();
+    size_t expected_cpu_count = cpus.size();
+    for (const auto& lc : lapic_configs)
+    {
+        if (lc.apic_id == lapic_id)
+            continue;
+
+        send_init_ipi(lc.apic_id);
+        pmtimer::wait_us(20*1000);
+        send_sipi_ipi(lc.apic_id);
+
+        size_t elapsed_ms;
+        for (elapsed_ms = 0;
+             elapsed_ms < 200 && cpus.size() != expected_cpu_count + 1;
+             ++elapsed_ms)
+        {
+            pmtimer::wait_us(1000);
+        }
+
+        kassert(cpus.size() == expected_cpu_count + 1);
+        printf("CPU%zu arrived in %zums.\n",expected_cpu_count,elapsed_ms);
+        ++expected_cpu_count;
+    }
 }
