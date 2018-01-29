@@ -3,6 +3,8 @@
 
 
 # Switch to long mode and jump into the kernel.  Interrupts should be disabled.
+#   On entry:
+#       ESI - kernel address to jump to
 .global  _enter_long_mode
 _enter_long_mode:
     # Set the PAT MSR to: 
@@ -77,5 +79,5 @@ _into_long_mode:
 
     # Jump into the kernel.
     xor     %rax, %rax
-    movl    $_kernel_entry, %eax
+    mov     %esi, %eax
     jmp     *%rax

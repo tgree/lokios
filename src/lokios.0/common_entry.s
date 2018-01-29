@@ -40,6 +40,7 @@ _common_entry:
     call    _E820_convert_to_length
 
     # Enter long mode - point of no return so we jmp there.
+    movl    $_kernel_bsp_entry, %esi
     jmp     _enter_long_mode
 
 .L_E820_get_list_failed:
