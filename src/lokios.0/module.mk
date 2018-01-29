@@ -2,6 +2,7 @@ SUBMODULES := bootsector
 
 LOKIOS_0_OBJ := \
     	$(MODULE_BUILD_DIR)/bootsector/bootsector.a \
+	$(MODULE_BUILD_DIR)/smp_entry.o             \
 	$(MODULE_BUILD_DIR)/common_entry.o          \
 	$(MODULE_BUILD_DIR)/pxe_entry.o             \
 	$(MODULE_BUILD_DIR)/mbr_entry.o             \

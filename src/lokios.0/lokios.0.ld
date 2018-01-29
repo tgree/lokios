@@ -24,13 +24,21 @@ SECTIONS
         BYTE(0xAA)
     }
 
+    /* Space for 0x7E00-0x7FFF is currently unused. */
+
     /* That's the end of the boot sector.  If we PXE-booted the rest of the
      * code is already in memory.  If we MBR-booted then the bootsector has
      * gone and loaded the rest of the code into memory.  In either case, they
-     * will then branch into code at or above 0x7E00. */
-    . = 0x7e00;
+     * will then branch into code at or above 0x8000.  We align the _smp_entry
+     * routine at 0x8000 because the MP SIPI vector requires page alignment and
+     * we want this to all be mapped read-only by the time lokios.1 is up and
+     * running.  Due to alignment of other sections such as page table pages,
+     * bumping the .text base address from 0x7E00 to 0x8000 doesn't actually
+     * increase the size of the image. */
+    . = 0x8000;
     .text :
     {
+        *smp_entry.o(.text)
         *(.text)
     }
     .data :
@@ -636,6 +644,7 @@ SECTIONS
     /* This is where we are going to load the kernel. */
     _kernel_base = 0x00200000;
     _kernel_bsp_entry = _kernel_base + 0x10;
+    _kernel_ap_entry = _kernel_base + 0x20;
     _kernel_stack = 0x001FF000;
     _kernel_params = _kernel_stack;
 }
