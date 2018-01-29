@@ -16,10 +16,10 @@ make -j5
 
 qemu comes preinstalled in the docker image, so you can just test your changes immediately from the command line.
 
-qemu-system-x86_64 -drive file=bin/lokios.mbr,format=raw -nographic -device isa-debug-exit
+qemu-system-x86_64 -drive file=bin/lokios.mbr,format=raw -nographic -device isa-debug-exit -smp 2
 
 # Typical build/test cycle
 
-make -j && qemu-system-x86_64 -drive file=bin/lokios.mbr,format=raw -nographic -device isa-debug-exit
+make -j && qemu-system-x86_64 -drive file=bin/lokios.mbr,format=raw -nographic -device isa-debug-exit -smp 2
 
 An exit code of 3 indicates that the kernel successful ran and exited.  Any other exit code indicates a problem.
