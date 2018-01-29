@@ -11,6 +11,14 @@ _bsp_entry:
 
     # Enable SSE since the stupid compiler is generating %xmm register
     # references and I can't turn it off because then stdint.h doesn't work.
+    call    _enable_sse
+
+    # Initialize the bootstrap processor.
+    jmp     init_bsp
+
+
+# Enable SSE.
+_enable_sse:
     mov     %cr0, %rax
     and     $0xFFFB, %ax
     or      $2, %ax
@@ -18,9 +26,7 @@ _bsp_entry:
     mov     %cr4, %rax
     or      $(3 << 9), %ax
     mov     %rax, %cr4
-
-    # Call the _init stuff.
-    jmp     init_bsp
+    ret
 
 
 # On entry:
