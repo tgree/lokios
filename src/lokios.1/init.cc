@@ -18,7 +18,7 @@ extern void (*__fini_array_end[])();
 extern char _eh_frame_begin[];
 
 extern "C" void _init();
-extern "C" void init();
+extern "C" void init_bsp();
 extern "C" void __register_frame(char*);
 
 extern int main();
@@ -50,7 +50,7 @@ init_globals()
 }
 
 void
-init()
+init_bsp()
 {
     // Initialize the console as early as we can.
     kernel::init_vga_console();
@@ -72,7 +72,7 @@ init()
 
     // Create the kernel task.  This holds the kernel memory map and all the
     // kernel threads.
-    kernel::init_kernel_task();
+    kernel::init_kernel_task_bsp();
 
     // Spawn the main thread in the kernel task.  This will create the thread
     // but we won't start running it yet since no CPUs are available to the
@@ -84,5 +84,5 @@ init()
     kernel::init_this_cpu();
 
     // Oops.
-    kernel::panic("init_this_cpu() returned!");
+    kernel::panic("bsp: init_this_cpu() returned!");
 }

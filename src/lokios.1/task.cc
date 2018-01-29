@@ -13,7 +13,7 @@ kernel::task::spawn_thread(void (*entry_fn)())
 }
 
 void
-kernel::init_kernel_task()
+kernel::init_kernel_task_bsp()
 {
     // Create a task object.
     kernel_task = new task;

@@ -20,7 +20,7 @@ _bsp_entry:
     mov     %rax, %cr4
 
     # Call the _init stuff.
-    jmp     init
+    jmp     init_bsp
 
 
 # On entry:
