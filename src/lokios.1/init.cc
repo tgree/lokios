@@ -19,6 +19,7 @@ extern char _eh_frame_begin[];
 
 extern "C" void _init();
 extern "C" void init_bsp();
+extern "C" void init_ap();
 extern "C" void __register_frame(char*);
 
 extern int main();
@@ -85,4 +86,12 @@ init_bsp()
 
     // Oops.
     kernel::panic("bsp: init_this_cpu() returned!");
+}
+
+void
+init_ap()
+{
+    kernel::init_kernel_task_ap();
+    kernel::init_this_cpu();
+    kernel::panic("ap: init_this_cpu() returned!");
 }

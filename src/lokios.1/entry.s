@@ -1,6 +1,9 @@
 .org 0
     jmp     _bsp_entry
 
+.org 16
+    jmp     _ap_entry
+
 
 # On entry:
 #   RDI - address of the kernel_args struct
@@ -15,6 +18,17 @@ _bsp_entry:
 
     # Initialize the bootstrap processor.
     jmp     init_bsp
+
+
+# On entry:
+#   RDI - address of the kernel_args struct
+#   RSP - set to the bootloader temporary stack
+_ap_entry:
+    # Enable SSE (see above).
+    call    _enable_sse
+
+    # Initialize the application processor.
+    jmp     init_ap
 
 
 # Enable SSE.

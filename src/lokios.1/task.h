@@ -20,6 +20,7 @@ namespace kernel
     extern task* kernel_task;
 
     void init_kernel_task_bsp();
+    void init_kernel_task_ap();
 }
 
 #endif /* __KERNEL_TASK_H */

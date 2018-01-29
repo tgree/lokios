@@ -23,3 +23,11 @@ kernel::init_kernel_task_bsp()
         kernel_task->pt.map_page(e.vaddr,e.get_paddr(),e.get_len(),e.pte);
     kernel_task->pt.activate();
 }
+
+void
+kernel::init_kernel_task_ap()
+{
+    // We're a secondary CPU booting up.  We just need to activate the
+    // existing memory map.
+    kernel_task->pt.activate();
+}
