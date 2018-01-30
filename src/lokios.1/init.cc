@@ -22,15 +22,8 @@ extern "C" void init_bsp();
 extern "C" void init_ap();
 extern "C" void __register_frame(char*);
 
-extern int main();
+extern void kernel_main();
 
-static void
-main_bounce()
-{
-    main();
-    printf("Kernel exiting successfully.\n");
-    kernel::exit_guest(1);
-}
 
 static void
 init_globals()
@@ -78,7 +71,7 @@ init_bsp()
     // Spawn the main thread in the kernel task.  This will create the thread
     // but we won't start running it yet since no CPUs are available to the
     // scheduler yet.
-    kernel::kernel_task->spawn_thread(main_bounce);
+    kernel::kernel_task->spawn_thread(kernel_main);
 
     // Initialize the boot CPU and make it available to the scheduler.  The
     // scheduler will take ownership of the CPU; this should never return.

@@ -9,6 +9,7 @@
 #include "interrupts/routing.h"
 #include "interrupts/lapic.h"
 #include "pci/pci.h"
+#include "platform/platform.h"
 #include <typeinfo>
 
 using kernel::console::printf;
@@ -17,8 +18,8 @@ const kernel::kernel_args* kernel::kargs;
 
 __thread uint64_t tls_signature = 0x135724683579468A;
 
-int
-main()
+void
+kernel_main()
 {
     // Initialize the CPU and interrupts.
     kernel::init_acpi_tables(kernel::kargs->e820_base);
@@ -51,4 +52,7 @@ main()
     {
         kernel::panic("caught ...");
     }
+
+    printf("Kernel exiting successfully.\n");
+    kernel::exit_guest(1);
 }
