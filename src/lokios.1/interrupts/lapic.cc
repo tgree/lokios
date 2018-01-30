@@ -260,7 +260,7 @@ kernel::test_lapic()
         printf("LAPIC IPI self-test %zu\n",i);
         kassert(lapic_test_passed == false);
         lapic->icr[1] = 0x00000000;
-        lapic->icr[0] = 0x00044000 | 125;
+        lapic->icr[0] = 0x00044000 | INTN_LAPIC_SELFTEST;
         pmtimer::wait_us(100);
         kassert(lapic_test_passed == true);
         lapic_test_passed = false;
