@@ -20,6 +20,7 @@ namespace kernel
     void unregister_handler(uint64_t selector);
 
     void init_interrupts();
+    void init_cpu_interrupts();
 }
 
 #endif /* __KERNEL_INTERRUPT_H */

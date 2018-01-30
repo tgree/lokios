@@ -14,19 +14,12 @@ extern "C" void _thread_jump(kernel::thread* t) __attribute__((noreturn));
 
 kernel::vector<kernel::cpu*> kernel::cpus;
 
-static void
-idle_loop()
-{
-    for (;;)
-        asm ("hlt;");
-}
-
 void
-kernel::init_this_cpu()
+kernel::init_this_cpu(void (*entry_func)())
 {
-    cpu* c         = new cpu;
-    c->idle_thread = new thread(idle_loop);
-    c->cpu_number  = cpus.size();
+    cpu* c             = new cpu;
+    c->schedule_thread = new thread(entry_func,false);
+    c->cpu_number      = cpus.size();
 
     // Start by setting up the GDT.
     c->gdt[0] = 0x0000000000000000;     // Unused/reserved.
@@ -52,8 +45,6 @@ kernel::init_this_cpu()
     wrmsr((uint64_t)c,IA32_GS_BASE);
     kassert(get_current_cpu() == c);
 
-    register_cpu();
-
     // Fill in some cpuid feature flags.
     printf("CPU%zu Max Basic CPUID Selector: 0x%08X\n",
            c->cpu_number,cpuid(0).eax);
@@ -76,19 +67,7 @@ kernel::init_this_cpu()
     printf("CPU%zu Initial APIC ID: %u\n",c->cpu_number,cpuid1.ebx >> 24);
 
     // Start executing.
-    thread* t;
-    with (kernel_task->threads_lock)
-    {
-        if (kernel_task->runnable_threads.empty())
-            t = c->idle_thread;
-        else
-        {
-            t = klist_front(kernel_task->runnable_threads,tcb.link);
-            t->tcb.link.unlink();
-            kernel_task->running_threads.push_back(&t->tcb.link);
-        }
-    }
-    _thread_jump(t);
+    _thread_jump(c->schedule_thread);
 }
 
 void

@@ -47,7 +47,7 @@ namespace kernel
             uint64_t    hi;
         } idt[128];
 
-        thread*     idle_thread;
+        thread*     schedule_thread;
 
         uint8_t     rsrv3[1864];
 
@@ -65,7 +65,7 @@ namespace kernel
 
     void register_cpu();
 
-    void init_this_cpu();
+    void init_this_cpu(void (*entry_func)());
     void init_ap_cpus();
 }
 

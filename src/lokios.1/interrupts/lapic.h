@@ -73,6 +73,7 @@ namespace kernel
 
     void test_lapic();
     void init_lapic();
+    void init_lapic_cpu_interrupts();
 }
 
 #endif /* __KERNEL_LAPIC_H */

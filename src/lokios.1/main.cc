@@ -1,13 +1,8 @@
 #include "kernel_args.h"
 #include "console.h"
-#include "pmtimer.h"
 #include "cpu.h"
 #include "cxx_exception.h"
 #include "kassert.h"
-#include "acpi/tables.h"
-#include "interrupts/interrupt.h"
-#include "interrupts/routing.h"
-#include "interrupts/lapic.h"
 #include "pci/pci.h"
 #include "platform/platform.h"
 #include <typeinfo>
@@ -22,11 +17,6 @@ void
 kernel_main()
 {
     // Initialize the CPU and interrupts.
-    kernel::init_acpi_tables(kernel::kargs->e820_base);
-    kernel::pmtimer::init();
-    kernel::init_interrupts();
-    kernel::init_irq_routing();
-    kernel::init_lapic_periodic();
     kernel::init_ap_cpus();
     kernel::pci::init_pci();
 

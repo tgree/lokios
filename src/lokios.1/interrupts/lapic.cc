@@ -4,6 +4,7 @@
 #include "kernel/console.h"
 #include "kernel/msr.h"
 #include "kernel/pmtimer.h"
+#include "kernel/schedule.h"
 #include "kernel/cpu.h"
 #include "acpi/tables.h"
 #include "mm/mm.h"
@@ -72,7 +73,7 @@ lapic_interrupt_periodic(uint64_t selector, uint64_t error_code)
             printf("Elapsed: %lu sec\n",jiffies/100);
     }
     lapic->eoi = 0;
-    return get_current_tcb();
+    return kernel::schedule_tick();
 }
 
 void
@@ -201,7 +202,11 @@ kernel::init_lapic()
     lapic_periodic_value = lapic_frequency/(2*100);
     printf("LAPIC frequency: %lu Hz\n",lapic_frequency);
     printf("LAPIC periodic:  %u\n",lapic_periodic_value);
+}
 
+void
+kernel::init_lapic_cpu_interrupts()
+{
     // Mask all local APIC interrupts.
     uint8_t max_lvt = (lapic->apic_version >> 16);
     switch (max_lvt)

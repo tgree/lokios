@@ -3,8 +3,16 @@
 #include "serial.h"
 #include "task.h"
 #include "cpu.h"
+#include "pmtimer.h"
+#include "schedule.h"
 #include "platform/platform.h"
 #include "mm/mm.h"
+#include "acpi/tables.h"
+#include "interrupts/interrupt.h"
+#include "interrupts/routing.h"
+#include "interrupts/pic.h"
+#include "interrupts/ioapic.h"
+#include "interrupts/lapic.h"
 #include <stddef.h>
 
 using kernel::console::printf;
@@ -24,6 +32,8 @@ extern "C" void __register_frame(char*);
 
 extern void kernel_main();
 
+static void init_bsp_stage2();
+static void init_ap_stage2();
 
 static void
 init_globals()
@@ -65,26 +75,58 @@ init_bsp()
     kernel::init_platform();
 
     // Create the kernel task.  This holds the kernel memory map and all the
-    // kernel threads.
-    kernel::init_kernel_task_bsp();
-
-    // Spawn the main thread in the kernel task.  This will create the thread
-    // but we won't start running it yet since no CPUs are available to the
-    // scheduler yet.
+    // kernel threads.  The main thread 
+    kernel::init_kernel_task();
+    kernel::kernel_task->pt.activate();
     kernel::kernel_task->spawn_thread(kernel_main);
 
-    // Initialize the boot CPU and make it available to the scheduler.  The
-    // scheduler will take ownership of the CPU; this should never return.
-    kernel::init_this_cpu();
-
-    // Oops.
+    // Create the CPU and thread-switch it to the init_bsp_stage2() routine.
+    // We need the CPU struct early because it providers the GDT/TSS/IDT that
+    // we need for things like interrupts to work.
+    kernel::init_this_cpu(init_bsp_stage2);
     kernel::panic("bsp: init_this_cpu() returned!");
+}
+
+static void
+init_bsp_stage2()
+{
+    // Init more stuff.
+    kernel::init_acpi_tables(kernel::kargs->e820_base);
+    kernel::pmtimer::init();
+    kernel::init_interrupts();
+    kernel::init_pic();
+    kernel::init_ioapics();
+    kernel::init_lapic();
+    kernel::init_irq_routing();
+
+    // Init local CPU stuff.
+    kernel::init_lapic_cpu_interrupts();
+    kernel::init_cpu_interrupts();
+    kernel::lapic_enable_nmi();
+    kernel::test_lapic();
+    kernel::init_lapic_periodic();
+    kernel::register_cpu();
+    kernel::schedule_loop();
+    kernel::panic("bsp: schedule_loop() returned!");
 }
 
 void
 init_ap()
 {
-    kernel::init_kernel_task_ap();
-    kernel::init_this_cpu();
+    kernel::kernel_task->pt.activate();
+    kernel::init_this_cpu(init_ap_stage2);
     kernel::panic("ap: init_this_cpu() returned!");
+}
+
+static void
+init_ap_stage2()
+{
+    kernel::init_lapic_cpu_interrupts();
+    kernel::init_cpu_interrupts();
+    kernel::lapic_enable_nmi();
+    kernel::test_lapic();
+    kernel::init_lapic_periodic();
+    kernel::register_cpu();
+    kernel::schedule_loop();
+    kernel::panic("ap: schedule_loop() returned!");
 }
