@@ -63,6 +63,8 @@ namespace kernel
 
     extern vector<cpu*> cpus;
 
+    void register_cpu();
+
     void init_this_cpu();
     void init_ap_cpus();
 }

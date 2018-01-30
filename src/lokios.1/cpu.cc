@@ -12,7 +12,6 @@ using kernel::console::printf;
 
 extern "C" void _thread_jump(kernel::thread* t) __attribute__((noreturn));
 
-static kernel::spinlock cpus_lock;
 kernel::vector<kernel::cpu*> kernel::cpus;
 
 static void
@@ -53,11 +52,7 @@ kernel::init_this_cpu()
     wrmsr((uint64_t)c,IA32_GS_BASE);
     kassert(get_current_cpu() == c);
 
-    // Insert us into the cpus list.
-    with (cpus_lock)
-    {
-        cpus.emplace_back(c);
-    }
+    register_cpu();
 
     // Fill in some cpuid feature flags.
     printf("CPU%zu Max Basic CPUID Selector: 0x%08X\n",
@@ -94,6 +89,13 @@ kernel::init_this_cpu()
         }
     }
     _thread_jump(t);
+}
+
+void
+kernel::register_cpu()
+{
+    // Insert us into the cpus list.
+    cpus.emplace_back(get_current_cpu());
 }
 
 void
