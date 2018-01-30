@@ -111,4 +111,11 @@ static inline void cpu_pause()
     asm ("pause");
 }
 
+static inline uint64_t get_rflags()
+{
+    uint64_t rc;
+    asm ("pushfq; pop %0;" : "=r"(rc));
+    return rc;
+}
+
 #endif /* __KERNEL_X86_H */
