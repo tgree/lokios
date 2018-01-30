@@ -27,6 +27,7 @@ kernel::init_this_cpu()
 {
     cpu* c         = new cpu;
     c->idle_thread = new thread(idle_loop);
+    c->cpu_number  = cpus.size();
 
     // Start by setting up the GDT.
     c->gdt[0] = 0x0000000000000000;     // Unused/reserved.
@@ -55,7 +56,6 @@ kernel::init_this_cpu()
     // Insert us into the cpus list.
     with (cpus_lock)
     {
-        c->cpu_number = cpus.size();
         cpus.emplace_back(c);
     }
 
