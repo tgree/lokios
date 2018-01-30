@@ -17,8 +17,8 @@ namespace kernel
                 uint8_t     val;
                 thread_id   owner;
             };
-            uint8_t     cacheline[64];
-        } __ALIGNED__(64);
+            uint8_t     sector[128];
+        } __ALIGNED__(128);
 
         template<void (&Pause)(void) = cpu_pause>
         inline void acquire()
@@ -45,6 +45,7 @@ namespace kernel
         constexpr spinlock():val(0),owner(0) {}
         inline ~spinlock() {kassert(val == 0);}
     };
+    KASSERT(sizeof(spinlock) == 128);
 
     struct noop_lock
     {
