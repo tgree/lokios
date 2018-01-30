@@ -77,6 +77,37 @@ kernel::lapic_eoi()
     lapic->eoi = 0;
 }
 
+static uint64_t
+lapic_measure_ticks(uint64_t interval_ms)
+{
+    // Stop the APIC timer.
+    lapic->initial_count = 0;
+
+    // Set the divider to 2.
+    lapic->divide_configuration = 0;
+
+    // The timer is already configured for 1-shot mode.  Start the timer and
+    // wait 10ms.
+    lapic->initial_count = 0xFFFFFFFF;
+    kernel::pmtimer::wait_us(interval_ms*1000);
+    uint32_t final_count = lapic->current_count;
+
+    // Stop the APIC timer.
+    lapic->initial_count = 0;
+
+    return ~final_count;
+}
+
+static uint64_t
+lapic_calibrate(uint64_t calibration_interval_ms)
+{
+    // Calculate the frequency (taking into account the divider of 2), rounding
+    // to the nearest MHz.
+    uint64_t elapsed_ticks = lapic_measure_ticks(calibration_interval_ms);
+    uint64_t freq = ((uint64_t)elapsed_ticks*2*1000/calibration_interval_ms);
+    return round_to_nearest_multiple(freq,1000000UL);
+}
+
 void
 kernel::init_lapic()
 {
@@ -148,6 +179,12 @@ kernel::init_lapic()
     printf("LAPIC: apic_id 0x%08X apic_version 0x%08X tp 0%08X\n",
            (uint32_t)lapic->apic_id,(uint32_t)lapic->apic_version,
            (uint32_t)lapic->task_priority);
+
+    // Calibrate the local APIC timer.
+    lapic_frequency      = lapic_calibrate(LAPIC_CALIBRATE_MS);
+    lapic_periodic_value = lapic_frequency/(2*100);
+    printf("LAPIC frequency: %lu Hz\n",lapic_frequency);
+    printf("LAPIC periodic:  %u\n",lapic_periodic_value);
 
     // Mask all local APIC interrupts.
     uint8_t max_lvt = (lapic->apic_version >> 16);
@@ -230,46 +267,9 @@ kernel::test_lapic()
     }
 }
 
-static uint64_t
-lapic_measure_ticks(uint64_t interval_ms)
-{
-    // Stop the APIC timer.
-    lapic->initial_count = 0;
-
-    // Set the divider to 2.
-    lapic->divide_configuration = 0;
-
-    // The timer is already configured for 1-shot mode.  Start the timer and
-    // wait 10ms.
-    lapic->initial_count = 0xFFFFFFFF;
-    kernel::pmtimer::wait_us(interval_ms*1000);
-    uint32_t final_count = lapic->current_count;
-
-    // Stop the APIC timer.
-    lapic->initial_count = 0;
-
-    return ~final_count;
-}
-
-static uint64_t
-lapic_calibrate(uint64_t calibration_interval_ms)
-{
-    // Calculate the frequency (taking into account the divider of 2), rounding
-    // to the nearest MHz.
-    uint64_t elapsed_ticks = lapic_measure_ticks(calibration_interval_ms);
-    uint64_t freq = ((uint64_t)elapsed_ticks*2*1000/calibration_interval_ms);
-    return round_to_nearest_multiple(freq,1000000UL);
-}
-
 void
 kernel::init_lapic_periodic()
 {
-    // Calibrate the local APIC timer.
-    lapic_frequency      = lapic_calibrate(LAPIC_CALIBRATE_MS);
-    lapic_periodic_value = lapic_frequency/(2*100);
-    printf("LAPIC frequency: %lu Hz\n",lapic_frequency);
-    printf("LAPIC periodic:  %u\n",lapic_periodic_value);
-
     // Ensure the timer is stopped with a divisor of 2.
     lapic->initial_count        = 0;
     lapic->divide_configuration = 0;
