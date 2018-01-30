@@ -4,6 +4,7 @@
 #include "kernel/console.h"
 #include "kernel/msr.h"
 #include "kernel/pmtimer.h"
+#include "kernel/cpu.h"
 #include "acpi/tables.h"
 #include "mm/mm.h"
 
@@ -64,9 +65,12 @@ static volatile uint64_t jiffies = 0;
 static kernel::tls_tcb*
 lapic_interrupt_periodic(uint64_t selector, uint64_t error_code)
 {
-    ++jiffies;
-    if ((jiffies % 100) == 0)
-        printf("Elapsed: %lu sec\n",jiffies/100);
+    if (kernel::get_current_cpu() == kernel::cpus[0])
+    {
+        ++jiffies;
+        if ((jiffies % 100) == 0)
+            printf("Elapsed: %lu sec\n",jiffies/100);
+    }
     lapic->eoi = 0;
     return get_current_tcb();
 }
