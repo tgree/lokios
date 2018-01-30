@@ -24,7 +24,7 @@ static uint16_t                     next_free_tid = 1;
 
 typedef void (*bounce_fn)(kernel::thread* t, void (*fn)());
 
-kernel::thread::thread(void (*fn)())
+kernel::thread::thread(void (*fn)(), bool enable_interrupts)
 {
     memset(stack,0,sizeof(stack));
     memset(tls,0,sizeof(tls));
@@ -40,7 +40,7 @@ kernel::thread::thread(void (*fn)())
     // with this setup, and we want to ensure everything is properly aligned,
     // we need to ensure that RSP % 16 == 8.
     tcb.self        = &tcb;
-    tcb.rflags      = 0;
+    tcb.rflags      = 0x2 | (enable_interrupts ? 0x200 : 0);
     tcb.cs          = 8;
     tcb.ss          = 0;
     tcb.stack_guard = 0xA1B2C3D4E5F60718;

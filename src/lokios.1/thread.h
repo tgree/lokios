@@ -88,7 +88,7 @@ namespace kernel
         static  void    operator delete(void*);
                 void    bounce(void (*fn)());
 
-        thread(void (*entry_fn)());
+        thread(void (*entry_fn)(), bool enable_interrupts = true);
     };
     KASSERT(offsetof(thread,tcb) == 26624);
     KASSERT(offsetof(thread,tcb.fxsa.avail) == 27280);
