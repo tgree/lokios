@@ -180,6 +180,18 @@ kernel::init_lapic()
            (uint32_t)lapic->apic_id,(uint32_t)lapic->apic_version,
            (uint32_t)lapic->task_priority);
 
+    // Set the spurious interrupt vector to be 127.  We need the low-order 4
+    // bits to be set.
+    register_handler(INTN_LAPIC_SPURIOUS,lapic_spurious_interrupt);
+
+    // Set up a local APIC test handler on vector 125.  This will be used to
+    // test sending an interrupt to ourselves via the LAPIC.
+    register_handler(INTN_LAPIC_SELFTEST,lapic_interrupt_self_test);
+
+    // Set up a periodic handler on vector 124.  This is used to get a periodic
+    // 10ms interrupt from the local APIC.
+    register_handler(INTN_LAPIC_10MS,lapic_interrupt_periodic);
+
     // Calibrate the local APIC timer.
     lapic_frequency      = lapic_calibrate(LAPIC_CALIBRATE_MS);
     lapic_periodic_value = lapic_frequency/(2*100);
@@ -207,19 +219,7 @@ kernel::init_lapic()
             kernel::panic("Can't handle this max_lvt value!");
         break;
     }
-
-    // Set the spurious interrupt vector to be 127.  We need the low-order 4
-    // bits to be set.
-    register_handler(INTN_LAPIC_SPURIOUS,lapic_spurious_interrupt);
     lapic->spurious_interrupt_vector = 0x00000100 | INTN_LAPIC_SPURIOUS;
-
-    // Set up a local APIC test handler on vector 125.  This will be used to
-    // test sending an interrupt to ourselves via the LAPIC.
-    register_handler(INTN_LAPIC_SELFTEST,lapic_interrupt_self_test);
-
-    // Set up a periodic handler on vector 124.  This is used to get a periodic
-    // 10ms interrupt from the local APIC.
-    register_handler(INTN_LAPIC_10MS,lapic_interrupt_periodic);
 }
 
 void
