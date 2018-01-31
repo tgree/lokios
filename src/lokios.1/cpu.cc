@@ -20,6 +20,7 @@ kernel::init_this_cpu(void (*entry_func)())
     cpu* c             = new cpu;
     c->schedule_thread = new thread(entry_func,false);
     c->cpu_number      = cpus.size();
+    c->flags           = (cpus.empty() ? CPU_FLAG_BSP : 0);
 
     // Start by setting up the GDT.
     c->gdt[0] = 0x0000000000000000;     // Unused/reserved.

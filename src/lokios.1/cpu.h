@@ -31,6 +31,7 @@ namespace kernel
 #define TSS_DESC_1(base,limit) \
     (((base) >> 32) & 0x00000000FFFFFFFF)
 
+#define CPU_FLAG_BSP    0x01
     struct cpu
     {
         uint64_t    gdt[6];
@@ -39,7 +40,8 @@ namespace kernel
 
         tss64       tss;
         uint16_t    ones;
-        uint8_t     rsrv2[6];
+        uint8_t     rsrv2[5];
+        uint8_t     flags;
 
         struct
         {
