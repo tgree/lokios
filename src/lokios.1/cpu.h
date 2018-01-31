@@ -42,7 +42,8 @@ namespace kernel
 
         tss64       tss;
         uint16_t    ones;
-        uint8_t     rsrv2[5];
+        uint8_t     rsrv2[4];
+        uint8_t     apic_id;
         uint8_t     flags;
 
         struct

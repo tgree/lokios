@@ -214,6 +214,7 @@ kernel::init_lapic_cpu_interrupts()
 
     // Save the LAPIC address in KERNEL_GS_BASE.
     wrmsr((uint64_t)lapic,IA32_KERNEL_GS_BASE);
+    get_current_cpu()->apic_id = get_lapic_id();
 }
 
 void
