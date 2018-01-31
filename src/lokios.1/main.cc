@@ -14,6 +14,13 @@ const kernel::kernel_args* kernel::kargs;
 
 __thread uint64_t tls_signature = 0x135724683579468A;
 
+static void
+kernel_hello(kernel::work_entry* wqe)
+{
+    kernel::free_wqe(wqe);
+    printf("Hello from CPU%zu.\n",kernel::get_current_cpu()->cpu_number);
+}
+
 void
 kernel_main(kernel::work_entry* wqe)
 {
@@ -45,6 +52,13 @@ kernel_main(kernel::work_entry* wqe)
     catch (...)
     {
         kernel::panic("caught ...");
+    }
+
+    for (auto* c : kernel::cpus)
+    {
+        auto* wqe = kernel::alloc_wqe();
+        wqe->fn   = kernel_hello;
+        kernel::schedule_wqe(c,wqe);
     }
 
     printf("Kernel exiting successfully.\n");
