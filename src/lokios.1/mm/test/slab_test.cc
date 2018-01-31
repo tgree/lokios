@@ -42,7 +42,7 @@ class tmock_test
         {
             kernel::slab s(8);
             kassert(page_alloc_count == 0);
-            void* e = s.alloc();
+            void* e = s._alloc();
             kassert(e != NULL);
             kassert(page_alloc_count == 1);
             kassert(page_free_count  == 0);
@@ -61,7 +61,7 @@ class tmock_test
             kernel::slab s(elem_size);
             std::set<void*> elems;
             for (size_t i=0; i<alloc_count; ++i)
-                elems.insert(s.alloc());
+                elems.insert(s._alloc());
             kassert(elems.size() == alloc_count);
             kassert(page_alloc_count == expected_pages);
         }

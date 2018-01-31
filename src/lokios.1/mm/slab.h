@@ -73,7 +73,7 @@ namespace kernel
         }
 
     public:
-        void* alloc()
+        void* _alloc()
         {
             if (free_elems.empty())
                 page_alloc();
@@ -90,9 +90,16 @@ namespace kernel
 
         void* zalloc()
         {
-            void* p = alloc();
+            void* p = _alloc();
             memset(p,0,elem_size);
             return p;
+        }
+
+        template<typename T, typename ...Args>
+        T* alloc(Args&& ...args)
+        {
+            kassert(sizeof(T) <= elem_size);
+            return new(_alloc()) T(std::forward<Args>(args)...);
         }
 
         void free(void* e)
@@ -104,6 +111,13 @@ namespace kernel
 
             free_elem* fe = new(e) free_elem;
             free_elems.push_back(&fe->link);
+        }
+
+        template<typename T>
+        void free(T* t)
+        {
+            t->~T();
+            this->free((void*)t);
         }
 
         inline slab(size_t elem_size):
