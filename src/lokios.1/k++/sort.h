@@ -3,7 +3,7 @@
 
 #include "kernel_iterator.h"
 
-namespace kernel::sort
+namespace quick_sort
 {
     template<typename RandomAccessIterator>
     RandomAccessIterator partition(RandomAccessIterator begin,
@@ -45,10 +45,14 @@ namespace kernel::sort
         quicksort(pivot + 1,end);
     }
 
+}
+
+namespace kernel::sort
+{
     template<typename T>
     inline void quicksort(T& c)
     {
-        quicksort(kernel::begin(c),kernel::end(c));
+        quick_sort::quicksort(kernel::begin(c),kernel::end(c));
     }
 
     // Given a sorted range, find the first entry we are smaller than.
