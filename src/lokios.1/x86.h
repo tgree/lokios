@@ -4,6 +4,13 @@
 #include "hdr/compiler.h"
 #include "kernel/kassert.h"
 
+static inline uint64_t mfcr2()
+{
+    uint64_t rc;
+    asm ("mov %%cr2, %0" : "=r"(rc));
+    return rc;
+}
+
 static inline uint64_t mfcr3()
 {
     uint64_t rc;
