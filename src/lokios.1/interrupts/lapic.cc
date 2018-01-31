@@ -229,6 +229,9 @@ kernel::init_lapic_cpu_interrupts()
         break;
     }
     lapic->spurious_interrupt_vector = 0x00000100 | INTN_LAPIC_SPURIOUS;
+
+    // Save the LAPIC address in KERNEL_GS_BASE.
+    wrmsr((uint64_t)lapic,IA32_KERNEL_GS_BASE);
 }
 
 void
