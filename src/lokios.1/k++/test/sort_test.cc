@@ -4,6 +4,8 @@
 #include "tmock/tmock.h"
 #include <string.h>
 
+using kernel::_kassert;
+
 void
 kernel::panic(const char* s) noexcept
 {
@@ -17,12 +19,12 @@ class tmock_test
         const int sorted[]   = {1,2,3,4,5,6};
               int unsorted[] = {1,3,4,2,6,5};
 
-        kernel::kassert(kernel::nelems(unsorted) == kernel::nelems(sorted));
-        kernel::kassert(kernel::nelems(unsorted) == 6);
+        kassert(kernel::nelems(unsorted) == kernel::nelems(sorted));
+        kassert(kernel::nelems(unsorted) == 6);
         kernel::sort::quicksort(unsorted);
 
         for (size_t i=0; i < kernel::nelems(unsorted); ++i)
-            kernel::kassert(unsorted[i] == sorted[i]);
+            kassert(unsorted[i] == sorted[i]);
     }
 
     TMOCK_TEST(test_some_integers_flex_array)
@@ -31,12 +33,12 @@ class tmock_test
               int unsorted[kernel::nelems(sorted)];
         for (size_t i=0; i<kernel::nelems(sorted); ++i)
             unsorted[i] = sorted[kernel::nelems(sorted) - 1 - i];
-        kernel::kassert(kernel::nelems(unsorted) == kernel::nelems(sorted));
-        kernel::kassert(kernel::nelems(unsorted) == 6);
+        kassert(kernel::nelems(unsorted) == kernel::nelems(sorted));
+        kassert(kernel::nelems(unsorted) == 6);
         kernel::sort::quicksort(unsorted);
 
         for (size_t i=0; i < kernel::nelems(unsorted); ++i)
-            kernel::kassert(unsorted[i] == sorted[i]);
+            kassert(unsorted[i] == sorted[i]);
     }
 };
 
