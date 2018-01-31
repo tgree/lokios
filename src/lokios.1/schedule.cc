@@ -5,6 +5,7 @@
 #include "console.h"
 #include "pmtimer.h"
 #include "mm/slab.h"
+#include "interrupts/lapic.h"
 
 static kernel::spinlock wqe_slab_lock;
 static kernel::slab wqe_slab(sizeof(kernel::work_entry));
@@ -36,7 +37,11 @@ kernel::schedule_wqe(cpu* c, work_entry* wqe)
         return;
     }
 
-    kernel::panic("Can't schedule work on other CPUs yet!");
+    with (c->work_queue_lock)
+    {
+        c->work_queue.push_back(&wqe->link);
+    }
+    kernel::send_schedule_wakeup_ipi(c->apic_id);
 }
 
 void
