@@ -38,6 +38,15 @@ nmi_handler(uint64_t selector, uint64_t error_code)
     return kernel::get_current_tcb();
 }
 
+static kernel::tls_tcb*
+page_fault_handler(uint64_t selector, uint64_t error_code)
+{
+    kernel::tls_tcb* tcb = kernel::get_current_tcb();
+    printf("Page fault\n");
+    printf("RIP 0x%016lX Addr 0x%016lX\n",tcb->rip,mfcr2());
+    kernel::panic("Panic\n");
+}
+
 extern "C" void _interrupt_entry_noop();
 extern "C" void _interrupt_entry_0();
 extern "C" void _interrupt_entry_1();
@@ -305,6 +314,7 @@ kernel::init_interrupts()
     register_handler(INTN_INT126_TEST,
                      (interrupt_handler)int126_test_interrupt_entry);
     register_handler(2,nmi_handler);
+    register_handler(14,page_fault_handler);
 }
 
 void
