@@ -290,6 +290,15 @@ kernel::send_sipi_ipi(uint8_t target_apic_id)
     lapic->icr[0] = 0x00004608;
 }
 
+void
+kernel::send_schedule_wakeup_ipi(uint8_t target_apic_id)
+{
+    while (lapic->icr[0] & (1<<12))
+        ;
+    lapic->icr[1] = ((uint32_t)target_apic_id << 24);
+    lapic->icr[0] = 0x00004000 | INTN_LAPIC_WAKEUP;
+}
+
 uint8_t
 kernel::get_lapic_id()
 {
