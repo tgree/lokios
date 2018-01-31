@@ -48,6 +48,8 @@ page_fault_handler(uint64_t selector, uint64_t error_code)
 }
 
 extern "C" void _interrupt_entry_noop();
+extern "C" void _interrupt_entry_ticker();
+extern "C" void _interrupt_entry_scheduler_wakeup();
 extern "C" void _interrupt_entry_0();
 extern "C" void _interrupt_entry_1();
 extern "C" void _interrupt_entry_2();
@@ -462,8 +464,8 @@ kernel::init_cpu_interrupts()
     c->register_exception_vector(120,_interrupt_entry_120);
     c->register_exception_vector(121,_interrupt_entry_121);
     c->register_exception_vector(122,_interrupt_entry_122);
-    c->register_exception_vector(123,_interrupt_entry_123);
-    c->register_exception_vector(124,_interrupt_entry_124);
+    c->register_exception_vector(123,_interrupt_entry_scheduler_wakeup);
+    c->register_exception_vector(124,_interrupt_entry_ticker);
     c->register_exception_vector(125,_interrupt_entry_125);
     c->register_exception_vector(126,_interrupt_entry_126);
     c->register_exception_vector(127,_interrupt_entry_127);

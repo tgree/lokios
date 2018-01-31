@@ -3,37 +3,66 @@
 #include "thread.h"
 #include "task.h"
 #include "console.h"
+#include "pmtimer.h"
+#include "mm/slab.h"
+
+static kernel::spinlock wqe_slab_lock;
+static kernel::slab wqe_slab(sizeof(kernel::work_entry));
+
+kernel::work_entry*
+kernel::alloc_wqe()
+{
+    with (wqe_slab_lock)
+    {
+        return wqe_slab.alloc<kernel::work_entry>();
+    }
+}
+
+void
+kernel::free_wqe(work_entry* wqe)
+{
+    with (wqe_slab_lock)
+    {
+        wqe_slab.free(wqe);
+    }
+}
+
+void
+kernel::schedule_wqe(cpu* c, work_entry* wqe)
+{
+    if (c == get_current_cpu())
+    {
+        c->work_queue.push_back(&wqe->link);
+        return;
+    }
+
+    kernel::panic("Can't schedule work on other CPUs yet!");
+}
 
 void
 kernel::schedule_loop()
 {
+    cpu* c = get_current_cpu();
     for (;;)
-        asm ("hlt;");
-}
-
-kernel::tls_tcb*
-kernel::schedule_tick()
-{
-    cpu* c    = get_current_cpu();
-    thread* t = get_current_thread();
-
-    with (kernel_task->threads_lock)
     {
-        if (t != c->schedule_thread)
+        asm ("cli;");
+
+        while (c->work_queue.empty())
+            asm ("sti; hlt; cli;");
+
+        klist<work_entry> wq;
+        with (c->work_queue_lock)
         {
-            t->tcb.link.unlink();
-            kernel_task->runnable_threads.push_back(&t->tcb.link);
+            wq.append(c->work_queue);
         }
 
-        if (kernel_task->runnable_threads.empty())
-            t = c->schedule_thread;
-        else
+        asm ("sti;");
+
+        while (!wq.empty())
         {
-            t = klist_front(kernel_task->runnable_threads,tcb.link);
-            t->tcb.link.unlink();
-            kernel_task->running_threads.push_back(&t->tcb.link);
+            work_entry* wqe = klist_front(wq,link);
+            wq.pop_front();
+            wqe->fn(wqe);
         }
     }
-
-    return &t->tcb;
 }

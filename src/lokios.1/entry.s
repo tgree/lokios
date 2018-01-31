@@ -293,5 +293,21 @@ _interrupt_entry_common:
 _interrupt_entry_noop:
     iretq
 
+# BSP/AP tickers.  Our only task is to increment jiffies and ack the lapic
+# interrupt by writing to EOI.  This ticker's only purpose is to periodically
+# wake up a halted CPU so that it can service its timer wheels.
+# We also use this exact same code as an entry point for IPIs used to wake up a
+# halted CPU that may now have new work on its work queue.
+#   Note: The KERNEL_GS_BASE contains a pointer to the local APIC
+.globl _interrupt_entry_ticker
+.globl _interrupt_entry_scheduler_wakeup
+_interrupt_entry_ticker:
+    incq    %gs:56  # jiffies
+_interrupt_entry_scheduler_wakeup:
+    swapgs
+    movl    $0, %gs:0xB0
+    swapgs
+    iretq
+
 
 .section .note.GNU-stack,"",%progbits

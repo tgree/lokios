@@ -30,7 +30,7 @@ extern "C" void init_bsp();
 extern "C" void init_ap();
 extern "C" void __register_frame(char*);
 
-extern void kernel_main();
+extern void kernel_main(kernel::work_entry* wqe);
 
 static void init_bsp_stage2();
 static void init_ap_stage2();
@@ -78,7 +78,6 @@ init_bsp()
     // kernel threads.  The main thread 
     kernel::init_kernel_task();
     kernel::kernel_task->pt.activate();
-    kernel::kernel_task->spawn_thread(kernel_main);
 
     // Create the CPU and thread-switch it to the init_bsp_stage2() routine.
     // We need the CPU struct early because it providers the GDT/TSS/IDT that
@@ -90,6 +89,11 @@ init_bsp()
 static void
 init_bsp_stage2()
 {
+    // We now have a working get_current_cpu().  Schedule the main() wqe.
+    auto* wqe = kernel::alloc_wqe();
+    wqe->fn = kernel_main;
+    kernel::schedule_wqe(kernel::get_current_cpu(),wqe);
+
     // Init more stuff.
     kernel::init_acpi_tables(kernel::kargs->e820_base);
     kernel::pmtimer::init();

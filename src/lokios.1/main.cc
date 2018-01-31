@@ -3,6 +3,7 @@
 #include "cpu.h"
 #include "cxx_exception.h"
 #include "kassert.h"
+#include "schedule.h"
 #include "pci/pci.h"
 #include "platform/platform.h"
 #include <typeinfo>
@@ -14,8 +15,11 @@ const kernel::kernel_args* kernel::kargs;
 __thread uint64_t tls_signature = 0x135724683579468A;
 
 void
-kernel_main()
+kernel_main(kernel::work_entry* wqe)
 {
+    // Free the wqe.
+    kernel::free_wqe(wqe);
+
     // Initialize the CPU and interrupts.
     kernel::init_ap_cpus();
     kernel::pci::init_pci();

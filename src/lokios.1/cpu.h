@@ -2,6 +2,7 @@
 #define __KERNEL_CPU_H
 
 #include "msr.h"
+#include "spinlock.h"
 #include "hdr/compiler.h"
 #include "kernel/kassert.h"
 #include "k++/vector.h"
@@ -11,6 +12,7 @@
 namespace kernel
 {
     struct thread;
+    struct work_entry;
 
     struct tss64
     {
@@ -34,9 +36,9 @@ namespace kernel
 #define CPU_FLAG_BSP    0x01
     struct cpu
     {
-        uint64_t    gdt[6];
-        size_t      cpu_number;
-        uint64_t    rsrv1;
+        uint64_t            gdt[6];
+        size_t              cpu_number;
+        volatile uint64_t   jiffies;
 
         tss64       tss;
         uint16_t    ones;
@@ -49,13 +51,17 @@ namespace kernel
             uint64_t    hi;
         } idt[128];
 
-        thread*     schedule_thread;
+        klist<work_entry>   work_queue;
+        thread*             schedule_thread;
 
-        uint8_t     rsrv3[1864];
+        uint8_t     rsrv4[1712];
+
+        spinlock    work_queue_lock;
 
         void register_exception_vector(size_t v, void (*handler)());
     };
     KASSERT(sizeof(cpu) == 4096);
+    KASSERT(offsetof(cpu,jiffies) == 56);
 
     static inline cpu* get_current_cpu()
     {

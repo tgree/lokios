@@ -62,20 +62,6 @@ lapic_interrupt_self_test(uint64_t selector, uint64_t error_code)
     return get_current_tcb();
 }
 
-static volatile uint64_t jiffies = 0;
-static kernel::tls_tcb*
-lapic_interrupt_periodic(uint64_t selector, uint64_t error_code)
-{
-    if (kernel::get_current_cpu() == kernel::cpus[0])
-    {
-        ++jiffies;
-        if ((jiffies % 100) == 0)
-            printf("Elapsed: %lu sec\n",jiffies/100);
-    }
-    lapic->eoi = 0;
-    return kernel::schedule_tick();
-}
-
 void
 kernel::lapic_eoi()
 {
@@ -192,10 +178,6 @@ kernel::init_lapic()
     // Set up a local APIC test handler on vector 125.  This will be used to
     // test sending an interrupt to ourselves via the LAPIC.
     register_handler(INTN_LAPIC_SELFTEST,lapic_interrupt_self_test);
-
-    // Set up a periodic handler on vector 124.  This is used to get a periodic
-    // 10ms interrupt from the local APIC.
-    register_handler(INTN_LAPIC_10MS,lapic_interrupt_periodic);
 
     // Calibrate the local APIC timer.
     lapic_frequency      = lapic_calibrate(LAPIC_CALIBRATE_MS);
