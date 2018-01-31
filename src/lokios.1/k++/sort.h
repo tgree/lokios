@@ -2,6 +2,7 @@
 #define __KERNEL_SORT_H
 
 #include "kernel_iterator.h"
+#include "kernel/kassert.h"
 
 namespace quick_sort
 {
@@ -47,12 +48,130 @@ namespace quick_sort
 
 }
 
+namespace heap_sort
+{
+    template<typename RandomAccessIterator>
+    constexpr RandomAccessIterator parent_iter(RandomAccessIterator begin,
+                                               RandomAccessIterator pos)
+    {
+        kernel::kassert(pos > begin);
+        return begin + (pos - begin - 1)/2;
+    }
+
+    template<typename RandomAccessIterator>
+    constexpr bool has_left_child(RandomAccessIterator begin,
+                                  RandomAccessIterator end,
+                                  RandomAccessIterator pos)
+    {
+        return (2*(pos - begin) + 1) < (end - begin);
+    }
+
+    template<typename RandomAccessIterator>
+    constexpr RandomAccessIterator left_child_iter(RandomAccessIterator begin,
+                                                   RandomAccessIterator pos)
+    {
+        return begin + (2*(pos - begin) + 1);
+    }
+
+    template<typename RandomAccessIterator>
+    constexpr bool has_right_child(RandomAccessIterator begin,
+                                   RandomAccessIterator end,
+                                   RandomAccessIterator pos)
+    {
+        return (2*(pos - begin) + 2) < (end - begin);
+    }
+                             
+    template<typename RandomAccessIterator>
+    constexpr RandomAccessIterator right_child_iter(RandomAccessIterator begin,
+                                                    RandomAccessIterator pos)
+    {
+        return begin + (2*(pos - begin) + 2);
+    }
+
+    template<typename RandomAccessIterator>
+    void sift_down(RandomAccessIterator begin,
+                   RandomAccessIterator end,
+                   RandomAccessIterator pos)
+    {
+        while (has_left_child(begin,end,pos))
+        {
+            auto child = left_child_iter(begin,pos);
+            auto swap  = pos;
+
+            if (*swap < *child)
+                swap = child;
+            if (child + 1 < end && *swap < *(child + 1))
+                swap = child + 1;
+            if (swap == pos)
+                return;
+
+            auto tmp = *pos;
+            *pos     = *swap;
+            *swap    = tmp;
+            pos      = swap;
+        }
+    }
+
+    template<typename RandomAccessIterator>
+    void heapify(RandomAccessIterator begin,
+                 RandomAccessIterator end)
+    {
+        if (end - begin < 2)
+            return;
+
+        auto pos = parent_iter(begin,end - 1);
+        do
+        {
+            sift_down(begin,end,pos);
+        } while (pos-- != begin);
+    }
+
+    template<typename RandomAccessIterator>
+    bool is_max_heap(RandomAccessIterator begin,
+                     RandomAccessIterator end)
+    {
+        if (begin == end)
+            return true;
+
+        while (--end != begin)
+        {
+            if (*parent_iter(begin,end) < *end)
+                return false;
+        }
+        return true;
+    }
+
+    template<typename RandomAccessIterator>
+    void heapsort(RandomAccessIterator begin,
+                  RandomAccessIterator end)
+    {
+        if (begin == end)
+            return;
+
+        heapify(begin,end);
+        auto pos = end - 1;
+        while (pos != begin)
+        {
+            auto tmp = *begin;
+            *begin   = *pos;
+            *pos     = tmp;
+            sift_down(begin,--pos,begin);
+        }
+    }
+}
+
 namespace kernel::sort
 {
     template<typename T>
     inline void quicksort(T& c)
     {
         quick_sort::quicksort(kernel::begin(c),kernel::end(c));
+    }
+
+    template<typename T>
+    inline void heapsort(T& c)
+    {
+        heap_sort::heapsort(kernel::begin(c),kernel::end(c));
     }
 
     // Given a sorted range, find the first entry we are smaller than.

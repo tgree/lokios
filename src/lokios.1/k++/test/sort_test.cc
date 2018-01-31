@@ -125,6 +125,109 @@ class tmock_test
         for (size_t i=0; i < kernel::nelems(_unsorted); ++i)
             kassert(_unsorted[i] == sorted[i]);
     }
+
+    TMOCK_TEST_EXPECT_FAILURE(test_parent_iter_begin_fails)
+    {
+        auto begin = kernel::begin(unsorted);
+        heap_sort::parent_iter(begin,begin);
+    }
+
+    TMOCK_TEST(test_parent_iter)
+    {
+        auto begin = kernel::begin(unsorted);
+        for (size_t i = 1; i < kernel::nelems(unsorted); ++i)
+        {
+            auto pos                 = begin + i;
+            auto parent              = heap_sort::parent_iter(begin,pos);
+            ptrdiff_t expected_index = (i-1)/2;
+            kassert(parent - begin == expected_index);
+        }
+    }
+
+    TMOCK_TEST(test_has_left_child)
+    {
+        auto begin = kernel::begin(unsorted);
+        auto end   = kernel::end(unsorted);
+        for (size_t i = 0; i < kernel::nelems(unsorted); ++i)
+        {
+            auto pos = begin + i;
+            kassert(heap_sort::has_left_child(begin,end,pos)
+                    == ((2*i + 1) < kernel::nelems(unsorted)));
+        }
+    }
+
+    TMOCK_TEST(test_left_child_iter)
+    {
+        auto begin = kernel::begin(unsorted);
+        for (size_t i = 0; i < kernel::nelems(unsorted); ++i)
+        {
+            auto pos                 = begin + i;
+            auto left_child          = heap_sort::left_child_iter(begin,pos);
+            ptrdiff_t expected_index = 2*i + 1;
+            kassert(left_child - begin == expected_index);
+        }
+    }
+
+    TMOCK_TEST(test_has_right_child)
+    {
+        auto begin = kernel::begin(unsorted);
+        auto end   = kernel::end(unsorted);
+        for (size_t i = 0; i < kernel::nelems(unsorted); ++i)
+        {
+            auto pos = begin + i;
+            kassert(heap_sort::has_right_child(begin,end,pos)
+                    == ((2*i + 2) < kernel::nelems(unsorted)));
+        }
+    }
+
+    TMOCK_TEST(test_right_child_iter)
+    {
+        auto begin = kernel::begin(unsorted);
+        for (size_t i = 0; i < kernel::nelems(unsorted); ++i)
+        {
+            auto pos                 = begin + i;
+            auto right_child         = heap_sort::right_child_iter(begin,pos);
+            ptrdiff_t expected_index = 2*i + 2;
+            kassert(right_child - begin == expected_index);
+        }
+    }
+
+    TMOCK_TEST(test_heapify)
+    {
+        auto begin = kernel::begin(unsorted);
+        auto end   = kernel::end(unsorted);
+        kassert(!heap_sort::is_max_heap(begin,end));
+        heap_sort::heapify(begin,end);
+        kassert(heap_sort::is_max_heap(begin,end));
+    }
+
+    TMOCK_TEST(test_heapsort)
+    {
+        kernel::sort::heapsort(unsorted);
+        for (size_t i=0; i < kernel::nelems(unsorted); ++i)
+            kassert(unsorted[i] == sorted[i]);
+    }
+
+    TMOCK_TEST(test_heapsort_empty)
+    {
+        uint64_t empty[0] = {};
+        heap_sort::heapsort(empty,empty);
+    }
+
+    TMOCK_TEST(test_heapsort_one)
+    {
+        uint64_t one[] = {1234567};
+        kernel::sort::heapsort(one);
+        kassert(one[0] == 1234567);
+    }
+
+    TMOCK_TEST(test_heapsort_two)
+    {
+        uint64_t two[] = {1234567,3};
+        kernel::sort::heapsort(two);
+        kassert(two[0] == 3);
+        kassert(two[1] == 1234567);
+    }
 };
 
 TMOCK_MAIN();
