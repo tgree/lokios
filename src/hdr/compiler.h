@@ -7,6 +7,8 @@
 #define __PRINTF__(a,b) __attribute__((format(printf,a,b)))
 #define __NORETURN__    __attribute__((noreturn))
 
+#define __CACHE_ALIGNED__   __ALIGNED__(64)
+
 typedef __uint128_t uint128_t;
 
 #endif /* __LOKIOS_COMPILER_H */
