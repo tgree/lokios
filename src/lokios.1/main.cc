@@ -21,6 +21,15 @@ kernel_hello(kernel::work_entry* wqe)
     printf("Hello from CPU%zu.\n",kernel::get_current_cpu()->cpu_number);
 }
 
+static kernel::work_entry one_sec_wqe;
+static uint64_t sec_ticks = 0;
+static void
+kernel_one_sec_tick(kernel::work_entry* wqe)
+{
+    kernel::get_current_cpu()->scheduler.schedule_deferred_local_work(wqe,99);
+    printf("Elapsed: %lu secs\n",++sec_ticks);
+}
+
 void
 kernel_main(kernel::work_entry* wqe)
 {
@@ -60,6 +69,11 @@ kernel_main(kernel::work_entry* wqe)
         wqe->fn   = kernel_hello;
         c->scheduler.schedule_remote_work(wqe);
     }
+
+    // Set up a 1-second ticker.
+    one_sec_wqe.fn = kernel_one_sec_tick;
+    kernel::get_current_cpu()->scheduler.schedule_deferred_local_work(
+            &one_sec_wqe,99);
 
     printf("Kernel exiting successfully.\n");
     kernel::exit_guest(1);
