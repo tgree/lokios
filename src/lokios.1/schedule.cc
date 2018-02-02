@@ -28,41 +28,103 @@ kernel::free_wqe(work_entry* wqe)
     }
 }
 
-void
-kernel::schedule_wqe(cpu* c, work_entry* wqe)
+kernel::scheduler::scheduler(uint64_t tbase):
+    tbase(tbase),
+    current_slot(0)
 {
-    if (c == get_current_cpu())
-    {
-        c->work_queue.push_back(&wqe->link);
-        return;
-    }
+    wheel = new scheduler_table;
+}
 
-    with (c->work_queue_lock)
-    {
-        c->work_queue.push_back(&wqe->link);
-    }
-    kernel::send_schedule_wakeup_ipi(c->apic_id);
+kernel::scheduler::~scheduler()
+{
+    delete wheel;
 }
 
 void
-kernel::schedule_loop()
+kernel::scheduler::schedule_local_work(work_entry* wqe)
+{
+    // The currently-executing CPU is the local CPU.
+    kassert(get_current_cpu() == container_of(this,cpu,scheduler));
+    local_work.push_back(&wqe->link);
+}
+
+void
+kernel::scheduler::schedule_remote_work(work_entry* wqe)
+{
+    // The currently-executing CPU is a remote CPU trying to schedule work on
+    // us.
+    with (remote_work_lock)
+    {
+        remote_work.push_back(&wqe->link);
+    }
+    kernel::send_schedule_wakeup_ipi(container_of(this,cpu,scheduler)->apic_id);
+}
+
+void
+kernel::scheduler::schedule_deferred_local_work(work_entry* wqe, uint64_t dt)
+{
+    // The currently-executing CPU is the local CPU and in non-interrupt
+    // context.
+    kassert(get_current_cpu() == container_of(this,cpu,scheduler));
+    kassert(dt && dt < kernel::nelems(wheel->slots) - 1);
+    size_t slot = (current_slot + dt + 1) % kernel::nelems(wheel->slots);
+    wheel->slots[slot].push_back(&wqe->link);
+}
+
+void
+kernel::scheduler::workloop()
 {
     cpu* c = get_current_cpu();
+    kassert(container_of(this,cpu,scheduler) == c);
+
     for (;;)
     {
-        asm ("cli;");
-
-        while (c->work_queue.empty())
-            asm ("sti; hlt; cli;");
-
+        // This list of work we are going to do this iteration.
         klist<work_entry> wq;
-        with (c->work_queue_lock)
+
+        // Disable interrupts, check for work and then halt if there is no work
+        // to do presently.
+        asm ("cli;");
+        while (remote_work.empty() &&
+               local_work.empty() &&
+               c->jiffies == tbase + current_slot)
         {
-            wq.append(c->work_queue);
+            // sti; hlt; is an atomic sequence even though it is two
+            // instructions.  We enable interrupts while the CPU is halted; an
+            // interrupt is what's going to cause the hlt instruction to
+            // complete after which point we will re-disable interrupts and
+            // check for work.
+            asm ("sti; hlt; cli;");
         }
 
+        // Build the list of work we are going to do.  The local_work queue can
+        // be modified by a device interrupt on the local CPU, so we need to
+        // move it before we reenable interrupts.
+        wq.append(local_work);
         asm ("sti;");
 
+        // Compute the new current slot and append all queues up to and
+        // including the new current slot.
+        while (c->jiffies != tbase + current_slot)
+        {
+            if (++current_slot == kernel::nelems(wheel->slots))
+            {
+                current_slot = 0;
+                tbase       += kernel::nelems(wheel->slots);
+            }
+            wq.append(wheel->slots[current_slot]);
+        }
+
+        // If there is work to do on the remote queue, add it to the list.
+        if (!remote_work.empty())
+        {
+            with (remote_work_lock)
+            {
+                wq.append(remote_work);
+            }
+        }
+
+        // Process all work elements.
         while (!wq.empty())
         {
             work_entry* wqe = klist_front(wq,link);

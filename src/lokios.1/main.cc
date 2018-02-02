@@ -58,7 +58,7 @@ kernel_main(kernel::work_entry* wqe)
     {
         auto* wqe = kernel::alloc_wqe();
         wqe->fn   = kernel_hello;
-        kernel::schedule_wqe(c,wqe);
+        c->scheduler.schedule_remote_work(wqe);
     }
 
     printf("Kernel exiting successfully.\n");

@@ -92,7 +92,7 @@ init_bsp_stage2()
     // We now have a working get_current_cpu().  Schedule the main() wqe.
     auto* wqe = kernel::alloc_wqe();
     wqe->fn = kernel_main;
-    kernel::schedule_wqe(kernel::get_current_cpu(),wqe);
+    kernel::get_current_cpu()->scheduler.schedule_local_work(wqe);
 
     // Init more stuff.
     kernel::init_acpi_tables(kernel::kargs->e820_base);
@@ -110,8 +110,8 @@ init_bsp_stage2()
     kernel::test_lapic();
     kernel::init_lapic_periodic();
     kernel::register_cpu();
-    kernel::schedule_loop();
-    kernel::panic("bsp: schedule_loop() returned!");
+    kernel::get_current_cpu()->scheduler.workloop();
+    kernel::panic("bsp: workloop() returned!");
 }
 
 void
@@ -131,6 +131,6 @@ init_ap_stage2()
     kernel::test_lapic();
     kernel::init_lapic_periodic();
     kernel::register_cpu();
-    kernel::schedule_loop();
-    kernel::panic("ap: schedule_loop() returned!");
+    kernel::get_current_cpu()->scheduler.workloop();
+    kernel::panic("ap: workloop() returned!");
 }

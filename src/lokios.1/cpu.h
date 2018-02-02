@@ -3,6 +3,7 @@
 
 #include "msr.h"
 #include "spinlock.h"
+#include "schedule.h"
 #include "hdr/compiler.h"
 #include "kernel/kassert.h"
 #include "k++/vector.h"
@@ -52,10 +53,10 @@ namespace kernel
             uint64_t    hi;
         } idt[128];
 
-        klist<work_entry>   work_queue;
         thread*             schedule_thread;
+        struct scheduler    scheduler;
 
-        uint8_t     rsrv4[1712];
+        uint8_t     rsrv4[1328];
 
         spinlock    work_queue_lock;
 
