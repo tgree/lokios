@@ -82,6 +82,25 @@ kernel::register_cpu()
 void
 kernel::cpu::register_exception_vector(size_t v, void (*handler)())
 {
+    // In 64-bit mode, the IDT can contain either an interrupt gate or a trap
+    // gate (task gates are not supported in 64-bit mode, although everything
+    // requires that a TSS has been set up via the LTR instruction since the
+    // processor is going to use it to set interrupt handler stack pointers).
+    // The only difference between a trap gate and an interrupt gate is that an
+    // interrupt gate will automatically clear IF when it is invoked and a trap
+    // gate will not.  We will use interrupt gates exclusively.
+    //
+    // Stack switching.  Two types of stack switching are possible:
+    //  1. If gate.IST != 0, the processor will unconditionally switch to
+    //     TSS.IST[gate.IST] when invoking the interrupt handler.
+    //  2. If gate.IST == 0 and gate.DPL < CPL, the processor will switch to
+    //     TSS.RSP[gate.DPL] when invoking the interrupt handler.
+    // Note that this means if gate.IST == 0 and gate.DPL >= CPL then we won't
+    // perform a stack switch and the current stack will be used by the
+    // processor for pushing the interrupt stack frame.  This may be useful to
+    // reduce interrupt latency for the scheduler wakeup and ticker handlers.
+    //
+    // For now, we are always setting gate.IST = 1 to use the first IST entry.
     uint64_t p = (uint64_t)handler;
     idt[v].hi = ((p >> 32) & 0x00000000FFFFFFFF);
     idt[v].lo = ((p << 32) & 0xFFFF000000000000) |
