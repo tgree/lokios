@@ -1,4 +1,4 @@
-SUBMODULES := mm acpi interrupts pci platform k++ test
+SUBMODULES := mm acpi interrupts pci platform k++ test net
 
 CRTBEGIN_OBJ := $(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
 CRTEND_OBJ   := $(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
