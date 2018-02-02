@@ -2,12 +2,16 @@
 #include "iocfg.h"
 #include "mcfg.h"
 #include "acpi/tables.h"
-#include "kernel/console.h"
 #include "k++/sort.h"
 
-using kernel::console::printf;
-
 kernel::vector<kernel::pci::domain> kernel::pci::domains;
+static kernel::klist<kernel::pci::driver> drivers;
+
+kernel::pci::driver::driver(const char* name):
+    name(name)
+{
+    drivers.push_back(&link);
+}
 
 void
 kernel::pci::init_pci()
@@ -40,7 +44,6 @@ kernel::pci::init_pci()
     // Probe all domains.
     for (auto& d : domains)
     {
-        printf("Probing PCI domain %04X...\n",d.id);
         for (uint16_t bus=0; bus<256; ++bus)
         {
             for (uint8_t dev=0; dev<32; ++dev)
@@ -53,13 +56,26 @@ kernel::pci::init_pci()
                 for (uint8_t fn=0; fn<maxfns; ++fn)
                 {
                     uint8_t devfn = ((dev << 3) | fn);
-                    uint16_t vendor_id = d.cfg->config_read_16(bus,devfn,0);
-                    if (vendor_id == 0xFFFF)
+                    pci::dev pd(&d,bus,devfn);
+                    if (pd.config_read_16(0) == 0xFFFF)
                         continue;
 
-                    uint16_t device_id = d.cfg->config_read_16(bus,devfn,2);
-                    printf("%02X:%02X.%u: %04X %04X\n",
-                           bus,dev,fn,vendor_id,device_id);
+                    pci::driver* driver = NULL;
+                    uint64_t best_score = 0;
+                    for (auto& drv : klist_elems(drivers,link))
+                    {
+                        uint64_t score = drv.score(&pd);
+                        if (score > best_score)
+                        {
+                            driver     = &drv;
+                            best_score = score;
+                        }
+                    }
+
+                    if (!driver)
+                        continue;
+
+                    driver->devices.push_back(&driver->claim(&pd)->link);
                 }
             }
         }
