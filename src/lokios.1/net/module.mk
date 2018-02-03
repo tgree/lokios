@@ -1,1 +1,1 @@
-SUBMODULES := e1000
+SUBMODULES := e1000 virtio
