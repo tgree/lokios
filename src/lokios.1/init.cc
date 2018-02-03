@@ -8,6 +8,7 @@
 #include "platform/platform.h"
 #include "mm/mm.h"
 #include "acpi/tables.h"
+#include "interrupts/mp_tables.h"
 #include "interrupts/interrupt.h"
 #include "interrupts/routing.h"
 #include "interrupts/pic.h"
@@ -96,6 +97,7 @@ init_bsp_stage2()
 
     // Init more stuff.
     kernel::init_acpi_tables(kernel::kargs->e820_base);
+    kernel::init_mp_tables();
     kernel::pmtimer::init();
     kernel::init_interrupts();
     kernel::init_pic();
