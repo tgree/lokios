@@ -90,6 +90,11 @@ namespace kernel::pci
         inline cap_list_adapter cap_list() {return cap_list_adapter(this);}
         uint8_t find_pci_capability(uint8_t cap_id);
 
+        // Map [offset, offset+len) of BARi.  Typically you will map the whole
+        // BAR, but for some devices (virtio devices) and for MSI-X tables it
+        // is also convenient to map just a subset of the BAR.
+        void* map_bar(uint8_t bari, size_t len, size_t offset = 0);
+
         dev(pci::domain* domain, uint8_t bus, uint8_t devfn):
             domain(domain),
             bus(bus),

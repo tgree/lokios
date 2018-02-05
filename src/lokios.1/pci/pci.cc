@@ -2,6 +2,7 @@
 #include "iocfg.h"
 #include "mcfg.h"
 #include "acpi/tables.h"
+#include "mm/mm.h"
 #include "k++/sort.h"
 
 kernel::vector<kernel::pci::domain> kernel::pci::domains;
@@ -22,6 +23,18 @@ kernel::pci::dev::find_pci_capability(uint8_t cap_id)
             return pos;
     }
     return 0;
+}
+
+void*
+kernel::pci::dev::map_bar(uint8_t bari, size_t len, size_t offset)
+{
+    kassert(bari < 6);
+    uint32_t barl = config_read_32(0x10 + bari*4);
+    uint64_t baru = 0;
+    kassert((barl & 1) == 0); // IO BARs not supported
+    if ((barl & 0x6) == 4)
+        baru = config_read_32(0x10 + bari*4 + 4);
+    return iomap_range(((baru << 32) | (barl & 0xFFFFFFF0)) + offset,len);
 }
 
 void
