@@ -14,16 +14,18 @@
 
 namespace kernel
 {
+    typedef uint64_t dma_addr64;
+
     // Maps a physical address into the 0xFFFF800000000000 region and returns
     // the virtual address.  A 2M mapping will be used.
-    void* pmap(uint64_t paddr, uint64_t flags = PAGE_FLAGS_DATA);
-    void* pmap_range(uint64_t paddr, size_t len,
+    void* pmap(dma_addr64 paddr, uint64_t flags = PAGE_FLAGS_DATA);
+    void* pmap_range(dma_addr64 paddr, size_t len,
                      uint64_t flags = PAGE_FLAGS_DATA);
-    inline void* iomap(uint64_t paddr, uint64_t flags = PAGE_FLAGS_IO)
+    inline void* iomap(dma_addr64 paddr, uint64_t flags = PAGE_FLAGS_IO)
     {
         return pmap(paddr,flags);
     }
-    inline void* iomap_range(uint64_t paddr, size_t len,
+    inline void* iomap_range(dma_addr64 paddr, size_t len,
                              uint64_t flags = PAGE_FLAGS_IO)
     {
         return pmap_range(paddr,len,flags);

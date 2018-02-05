@@ -29,7 +29,7 @@ kernel::init_mm(const e820_map* m)
 }
 
 void*
-kernel::pmap(uint64_t paddr, uint64_t flags)
+kernel::pmap(dma_addr64 paddr, uint64_t flags)
 {
     uint64_t paddr_2m = round_down_pow2(paddr,0x00200000);
     uint64_t vaddr_2m = 0xFFFF800000000000UL | paddr_2m;
@@ -38,7 +38,7 @@ kernel::pmap(uint64_t paddr, uint64_t flags)
 }
 
 void*
-kernel::pmap_range(uint64_t paddr, size_t len, uint64_t flags)
+kernel::pmap_range(dma_addr64 paddr, size_t len, uint64_t flags)
 {
     uint64_t start = round_down_pow2(paddr,0x00200000);
     uint64_t end   = round_up_pow2(paddr + len,0x00200000);
