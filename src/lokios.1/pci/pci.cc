@@ -13,6 +13,17 @@ kernel::pci::driver::driver(const char* name):
     drivers.push_back(&link);
 }
 
+uint8_t
+kernel::pci::dev::find_pci_capability(uint8_t cap_id)
+{
+    for (uint8_t pos : cap_list())
+    {
+        if (config_read_8(pos) == cap_id)
+            return pos;
+    }
+    return 0;
+}
+
 void
 kernel::pci::init_pci()
 {

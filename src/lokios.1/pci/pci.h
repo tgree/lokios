@@ -23,6 +23,46 @@ namespace kernel::pci
 
     struct dev
     {
+        struct cap_list_adapter
+        {
+            pci::dev*   dev;
+            uint8_t     pos;
+
+            inline uint8_t operator*() const
+            {
+                return pos;
+            }
+
+            inline void operator++()
+            {
+                pos = dev->config_read_8(pos + 1);
+            }
+
+            inline bool operator!=(kernel::end_sentinel) const
+            {
+                return pos != 0 && pos < 254;
+            }
+
+            inline cap_list_adapter begin()
+            {
+                return *this;
+            }
+
+            inline kernel::end_sentinel end() const
+            {
+                return kernel::end_sentinel();
+            }
+
+            inline cap_list_adapter(pci::dev* dev):
+                dev(dev)
+            {
+                if (dev->config_read_16(0x06) & 0x0010)
+                    pos = dev->config_read_8(0x34);
+                else
+                    pos = 0;
+            }
+        };
+
         klink               link;
         pci::domain*        domain;
         const uint8_t       bus;
@@ -46,6 +86,9 @@ namespace kernel::pci
             {domain->cfg->config_write_32(val,bus,devfn,offset);}
         inline void config_write_64(uint64_t val, uint16_t offset)
             {domain->cfg->config_write_64(val,bus,devfn,offset);}
+
+        inline cap_list_adapter cap_list() {return cap_list_adapter(this);}
+        uint8_t find_pci_capability(uint8_t cap_id);
 
         dev(pci::domain* domain, uint8_t bus, uint8_t devfn):
             domain(domain),
