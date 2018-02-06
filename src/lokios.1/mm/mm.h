@@ -4,6 +4,7 @@
 // address space is divided up as follows (from high to low addresses):
 //
 //      0xFFFFFFFFnnnn0000 - 0xFFFFFFFFFFFFFFFF: thread space for tid nnnn
+//      0xFFFFFFFEnnnn0000 - 0xFFFFFFFEFFFFFFFF: cpu space for cpu nnnn
 //      0xFFFF800000000000 - 0xFFFF8FFFFFFFFFFF: used to map all RAM
 #ifndef __KERNEL_MM_H
 #define __KERNEL_MM_H
@@ -11,6 +12,7 @@
 #include "e820.h"
 #include "page_table.h"
 #include "kernel/thread.h"
+#include "kernel/cpu.h"
 
 namespace kernel
 {
@@ -34,6 +36,11 @@ namespace kernel
     inline thread* get_thread_region(thread_id id)
     {
         return (thread*)(0xFFFFFFFF00000000 | ((uint64_t)id << 16));
+    }
+
+    inline cpu* get_cpu_region(uint16_t n)
+    {
+        return (cpu*)(0xFFFFFFFE00000000 | ((uint64_t)n << 16));
     }
 
     void init_mm(const e820_map* m);

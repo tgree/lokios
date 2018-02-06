@@ -61,8 +61,11 @@ namespace kernel
         spinlock    work_queue_lock;
 
         void register_exception_vector(size_t v, void (*handler)());
+
+        static  void*   operator new(size_t size);
+        static  void    operator delete(void*);
     };
-    KASSERT(sizeof(cpu) == 4096);
+    KASSERT(sizeof(cpu) < 65536);
     KASSERT(offsetof(cpu,jiffies) == 56);
 
     static inline cpu* get_current_cpu()

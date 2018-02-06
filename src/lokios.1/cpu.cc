@@ -6,7 +6,9 @@
 #include "spinlock.h"
 #include "pmtimer.h"
 #include "mm/page.h"
+#include "mm/mm.h"
 #include "interrupts/lapic.h"
+#include <new>
 
 using kernel::console::printf;
 
@@ -14,10 +16,35 @@ extern "C" void _thread_jump(kernel::thread* t) __attribute__((noreturn));
 
 kernel::vector<kernel::cpu*> kernel::cpus;
 
+void*
+kernel::cpu::operator new(size_t size)
+{
+    kassert(size == sizeof(cpu));
+    size = round_up_pow2(size,PAGE_SIZE);
+
+    uint16_t cpu_number = cpus.size();
+    char* region = (char*)get_cpu_region(cpu_number);
+    for (size_t i=0; i<size/PAGE_SIZE; ++i)
+    {
+        kernel_task->pt.map_4k_page(region + i*PAGE_SIZE,
+                                    (uint64_t)page_alloc(),
+                                    PAGE_FLAGS_DATA);
+    }
+    return region;
+}
+
+void
+kernel::cpu::operator delete(void*)
+{
+    kernel::panic("cpu deletion not supported!");
+}
+
 void
 kernel::init_this_cpu(void (*entry_func)())
 {
-    cpu* c             = new cpu;
+    cpu* c = new cpu;
+    kassert(c == get_cpu_region(cpus.size()));
+
     c->schedule_thread = new thread(entry_func,false);
     c->cpu_number      = cpus.size();
     c->jiffies         = 0;
