@@ -58,8 +58,6 @@ namespace kernel
 
         uint8_t     rsrv4[1328];
 
-        spinlock    work_queue_lock;
-
         void register_exception_vector(size_t v, void (*handler)());
 
         static  void*   operator new(size_t size);
