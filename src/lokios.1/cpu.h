@@ -38,12 +38,13 @@ namespace kernel
     struct cpu
     {
         uint64_t            gdt[6];
-        size_t              cpu_number;
+        cpu*                cpu_addr;
         volatile uint64_t   jiffies;
 
         tss64       tss;
         uint16_t    ones;
-        uint8_t     rsrv2[4];
+        uint8_t     rsrv2[3];
+        uint8_t     cpu_number;
         uint8_t     apic_id;
         uint8_t     flags;
 
@@ -63,6 +64,7 @@ namespace kernel
         static  void    operator delete(void*);
     };
     KASSERT(sizeof(cpu) < 65536);
+    KASSERT(offsetof(cpu,cpu_addr) == 48);
     KASSERT(offsetof(cpu,jiffies) == 56);
 
     static inline cpu* get_current_cpu()

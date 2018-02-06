@@ -45,6 +45,7 @@ kernel::init_this_cpu(void (*entry_func)())
     cpu* c = new cpu;
     kassert(c == get_cpu_region(cpus.size()));
 
+    c->cpu_addr        = c;
     c->schedule_thread = new thread(entry_func,false);
     c->cpu_number      = cpus.size();
     c->jiffies         = 0;
@@ -75,25 +76,25 @@ kernel::init_this_cpu(void (*entry_func)())
     kassert(get_current_cpu() == c);
 
     // Fill in some cpuid feature flags.
-    printf("CPU%zu Max Basic CPUID Selector: 0x%08X\n",
+    printf("CPU%u Max Basic CPUID Selector: 0x%08X\n",
            c->cpu_number,cpuid(0).eax);
-    printf("CPU%zu Max Extnd CPUID Selector: 0x%08X\n",
+    printf("CPU%u Max Extnd CPUID Selector: 0x%08X\n",
            c->cpu_number,cpuid(0x80000000).eax);
     char brand[49];
     for (size_t i=0; i<3; ++i)
         cpuid(0x80000002+i,0,brand + 16*i);
     brand[48] = '\0';
-    printf("CPU%zu CPU Brand: %s\n",c->cpu_number,brand);
+    printf("CPU%u CPU Brand: %s\n",c->cpu_number,brand);
 
     // Check for FXSAVE/FXRSTOR support.
     auto cpuid1 = cpuid(1);
-    printf("CPU%zu CPUID 1: 0x%08X:0x%08X:0x%08X:0x%08X\n",
+    printf("CPU%u CPUID 1: 0x%08X:0x%08X:0x%08X:0x%08X\n",
            c->cpu_number,cpuid1.eax,cpuid1.ebx,cpuid1.ecx,cpuid1.edx);
     kassert(cpuid1.edx & (1 << 25));    // SSE availability.
     kassert(cpuid1.edx & (1 << 24));    // FXSAVE/FXRSTOR availability.
 
     // APIC info.
-    printf("CPU%zu Initial APIC ID: %u\n",c->cpu_number,cpuid1.ebx >> 24);
+    printf("CPU%u Initial APIC ID: %u\n",c->cpu_number,cpuid1.ebx >> 24);
 
     // Start executing.
     _thread_jump(c->schedule_thread);
