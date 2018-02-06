@@ -56,7 +56,6 @@ namespace kernel
         thread*             schedule_thread;
         struct scheduler    scheduler;
 
-        uint8_t     rsrv4[1328];
 
         void register_exception_vector(size_t v, void (*handler)());
 
