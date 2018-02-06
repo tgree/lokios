@@ -8,6 +8,14 @@ namespace kernel::pci
 {
     struct dev;
 
+    struct msix_entry
+    {
+        uint64_t    msg_addr;
+        uint32_t    msg_data;
+        uint32_t    vector_control;
+    };
+    KASSERT(sizeof(msix_entry) == 16);
+
     struct driver
     {
         klink           link;
