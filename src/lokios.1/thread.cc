@@ -92,14 +92,9 @@ kernel::thread::operator new(size_t size)
     {
         kernel_task->pt.map_4k_page(tm->stack + i*PAGE_SIZE,
                                     (uint64_t)page_alloc(),
-                                    PAGE_FLAG_WRITEABLE |
-                                    PAGE_FLAG_NOEXEC |
-                                    PAGE_CACHE_WB);
+                                    PAGE_FLAGS_DATA);
     }
-    kernel_task->pt.map_4k_page(tm->tls,(uint64_t)page_alloc(),
-                                PAGE_FLAG_WRITEABLE |
-                                PAGE_FLAG_NOEXEC |
-                                PAGE_CACHE_WB);
+    kernel_task->pt.map_4k_page(tm->tls,(uint64_t)page_alloc(),PAGE_FLAGS_DATA);
     return tm;
 }
 
