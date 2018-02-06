@@ -66,6 +66,12 @@ namespace kernel
     KASSERT(sizeof(cpu) < 65536);
     KASSERT(offsetof(cpu,cpu_addr) == 48);
     KASSERT(offsetof(cpu,jiffies) == 56);
+    KASSERT(offsetof(cpu,ones) == 168);
+    KASSERT(offsetof(cpu,schedule_thread) == 2224);
+    KASSERT(offsetof(cpu,scheduler) == 2304);
+    KASSERT(offsetof(cpu,scheduler.local_work) == 2496);
+    KASSERT(offsetof(cpu,scheduler.local_work.head) == 2496);
+    KASSERT(offsetof(cpu,scheduler.local_work.tail) == 2504);
 
     static inline cpu* get_current_cpu()
     {
