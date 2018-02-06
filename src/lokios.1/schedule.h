@@ -17,6 +17,7 @@ namespace kernel
         uint64_t    args[6];
     };
     KASSERT(sizeof(work_entry) == 64);
+    KASSERT(offsetof(work_entry,args) == 16);
 
     struct scheduler_table
     {
@@ -44,6 +45,7 @@ namespace kernel
         scheduler(uint64_t tbase = 0);
         ~scheduler();
     };
+    KASSERT(offsetof(scheduler,local_work) == 192);
 
     // These will allocate/free WQEs off a locked, shared internal slab.  Use
     // of these is optional, you can define WQE objects anywhere.
