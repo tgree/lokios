@@ -46,6 +46,8 @@ namespace kernel
         ~scheduler();
     };
     KASSERT(offsetof(scheduler,local_work) == 192);
+    KASSERT(offsetof(scheduler,local_work.head) == 192);
+    KASSERT(offsetof(scheduler,local_work.tail) == 200);
 
     // These will allocate/free WQEs off a locked, shared internal slab.  Use
     // of these is optional, you can define WQE objects anywhere.
