@@ -11,6 +11,7 @@ namespace kernel
 #define PAGE_SIZE           4096UL
 #define PAGE_OFFSET_MASK    (PAGE_SIZE-1)
 #define PAGE_PFN_MASK       ~PAGE_OFFSET_MASK
+#define __PAGE_ALIGNED__    __ALIGNED__(PAGE_SIZE)
 
 #define HPAGE_SIZE          (2*1024*1024UL)
 #define HPAGE_OFFSET_MASK   (HPAGE_SIZE-1)
