@@ -4,6 +4,7 @@
 #include "spinlock.h"
 #include "k++/klist.h"
 #include "mm/page.h"
+#include <type_traits>
 
 namespace kernel
 {
@@ -51,6 +52,21 @@ namespace kernel
     KASSERT(offsetof(scheduler,local_work) == 192);
     KASSERT(offsetof(scheduler,local_work.head) == 192);
     KASSERT(offsetof(scheduler,local_work.tail) == 200);
+
+    // Delegation of work to a member function.  For this to work you must
+    // populate wqe->args[0] with a T*.
+    template<typename T, void (T::*Handler)()>
+    struct _work_delegate
+    {
+        static void handler(kernel::work_entry* wqe)
+        {
+            (((T*)wqe->args[0])->*Handler)();
+        }
+    };
+#define work_delegate(fn) \
+    kernel::_work_delegate< \
+        std::remove_reference_t<decltype(*this)>, \
+        &std::remove_reference_t<decltype(*this)>::fn>::handler
 
     // These will allocate/free WQEs off a locked, shared internal slab.  Use
     // of these is optional, you can define WQE objects anywhere.
