@@ -14,6 +14,13 @@ namespace kernel
 {
     struct thread;
     struct work_entry;
+    struct cpu;
+
+    static inline cpu* get_current_cpu()
+    {
+        // The cpu* is stored in the GS_BASE MSR.
+        return (cpu*)rdmsr(IA32_GS_BASE);
+    }
 
     struct tss64
     {
@@ -70,6 +77,18 @@ namespace kernel
         static  void*   operator new(size_t size);
         static  void    operator delete(void*);
 
+        static inline void schedule_local_work(work_entry* wqe)
+        {
+            get_current_cpu()->scheduler.schedule_local_work(wqe);
+        }
+
+        static inline void schedule_deferred_local_work(work_entry* wqe,
+                                                        uint64_t dt10ms)
+        {
+            get_current_cpu()->scheduler.schedule_deferred_local_work(wqe,
+                                                                      dt10ms);
+        }
+
         cpu(void (*entry_func)());
     };
     KASSERT(sizeof(cpu) < 65536);
@@ -77,12 +96,6 @@ namespace kernel
     KASSERT(offsetof(cpu,jiffies) == 8);
     KASSERT(offsetof(cpu,scheduler) == 128);
     KASSERT(offsetof(cpu,msix_entries) == 4096);
-
-    static inline cpu* get_current_cpu()
-    {
-        // The cpu* is stored in the GS_BASE MSR.
-        return (cpu*)rdmsr(IA32_GS_BASE);
-    }
 
     extern vector<cpu*> cpus;
 
