@@ -38,6 +38,59 @@ kernel::pci::dev::map_bar(uint8_t bari, size_t len, size_t offset)
 }
 
 void
+kernel::pci::dev::map_msix_table()
+{
+    // Find the MSI-X capability.
+    uint8_t msix_pos = find_pci_capability(0x11);
+    kassert(msix_pos != 0);
+    uint16_t msix_control = config_read_16(msix_pos + 2);
+    uint32_t msix_table_offset = config_read_32(msix_pos + 4);
+
+    // Map the table.
+    msix_nvecs      = (msix_control & 0x7FF) + 1;
+    uint8_t bar     = (msix_table_offset & 7);
+    uint64_t offset = (msix_table_offset & ~7UL);
+    msix_table = (msix_entry*)map_bar(bar,msix_nvecs*sizeof(msix_entry),offset);
+
+    // Mask all interrupts.
+    for (size_t i=0; i<msix_nvecs; ++i)
+        msix_table[i].vector_control = 0x00000001;
+
+    // Enable MSI-X.
+    config_write_16((config_read_16(msix_pos + 2) & 0x3FF) | 0x8000,
+                    msix_pos + 2);
+}
+
+kernel::work_entry*
+kernel::pci::dev::alloc_msix_vector(size_t vec,
+    kernel::work_handler handler)
+{
+    if (!msix_table)
+        map_msix_table();
+
+    kassert(msix_table != 0);
+    kassert(vec < msix_nvecs);
+
+    cpu* c                  = get_current_cpu();
+    kernel::work_entry* wqe = c->alloc_msix_interrupt();
+    msix_entry* me          = &msix_table[vec];
+    me->msg_addr            = 0xFEE00000;
+    me->msg_data            = wqe - c->msix_entries;
+    wqe->fn                 = handler;
+    wqe->args[0]            = (uintptr_t)this;
+    wqe->args[1]            = (uintptr_t)&me->vector_control;
+    return wqe;
+}
+
+void
+kernel::pci::dev::enable_msix_vector(size_t vec)
+{
+    kassert(msix_table != 0);
+    kassert(vec < msix_nvecs);
+    msix_table[vec].vector_control = 0;
+}
+
+void
 kernel::pci::init_pci()
 {
     // Parse and MCFG entries first.

@@ -2,6 +2,7 @@
 #define __KERNEL_PCI_H
 
 #include "domain.h"
+#include "kernel/schedule.h"
 #include "k++/vector.h"
 
 namespace kernel::pci
@@ -77,6 +78,9 @@ namespace kernel::pci
         const uint8_t       devfn;
         const pci::driver*  owner;
 
+        size_t              msix_nvecs;
+        msix_entry*         msix_table;
+
         inline uint8_t config_read_8(uint16_t offset)
             {return domain->cfg->config_read_8(bus,devfn,offset);}
         inline uint16_t config_read_16(uint16_t offset)
@@ -103,11 +107,18 @@ namespace kernel::pci
         // is also convenient to map just a subset of the BAR.
         void* map_bar(uint8_t bari, size_t len, size_t offset = 0);
 
+        void map_msix_table();
+        kernel::work_entry* alloc_msix_vector(size_t vec,
+                                              kernel::work_handler handler);
+        void enable_msix_vector(size_t vec);
+
         dev(pci::domain* domain, uint8_t bus, uint8_t devfn):
             domain(domain),
             bus(bus),
             devfn(devfn),
-            owner(NULL)
+            owner(NULL),
+            msix_nvecs(0),
+            msix_table(NULL)
         {
         }
         virtual ~dev() {}
@@ -117,7 +128,9 @@ namespace kernel::pci
             domain(pd->domain),
             bus(pd->bus),
             devfn(pd->devfn),
-            owner(owner)
+            owner(owner),
+            msix_nvecs(pd->msix_nvecs),
+            msix_table(pd->msix_table)
         {
         }
     };
