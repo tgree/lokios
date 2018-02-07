@@ -9,12 +9,15 @@ namespace kernel
 {
     struct tls_tcb;
     struct cpu;
+    struct work_entry;
+
+    typedef void (*work_handler)(work_entry* wqe);
 
     struct work_entry
     {
-        klink       link;
-        void       (*fn)(work_entry* wqe);
-        uint64_t    args[6];
+        klink           link;
+        work_handler    fn;
+        uint64_t        args[6];
     };
     KASSERT(sizeof(work_entry) == 64);
     KASSERT(offsetof(work_entry,args) == 16);
