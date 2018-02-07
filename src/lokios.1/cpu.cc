@@ -32,6 +32,14 @@ kernel::cpu::cpu(void (*entry_func)()):
     // Create the scheduler thread.
     schedule_thread = new thread(entry_func,false);
 
+    // Initialize the msix freelist.
+    for (auto& e : msix_entries)
+    {
+        if (&e - msix_entries < 128)
+            continue;
+        free_msix_interrupts.push_back(&e.link);
+    }
+
     // Initialize the TSS.
     memset(&tss,0,sizeof(tss));
     tss.iomap_base = sizeof(tss);
@@ -53,6 +61,14 @@ kernel::cpu::claim_current_cpu()
     // Record the cpu* in the GS_BASE MSR.
     wrmsr((uint64_t)this,IA32_GS_BASE);
     kassert(get_current_cpu() == this);
+}
+
+kernel::work_entry*
+kernel::cpu::alloc_msix_interrupt()
+{
+    kernel::work_entry* wqe = klist_front(free_msix_interrupts,link);
+    free_msix_interrupts.pop_front();
+    return wqe;
 }
 
 void*

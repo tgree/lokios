@@ -45,7 +45,11 @@ namespace kernel
         const uint8_t       flags;                                  // 25
         uint8_t             rsrv[6];                                // 32
         thread*             schedule_thread;                        // 40
+        klist<work_entry>   free_msix_interrupts;                   // 48
         struct scheduler    scheduler;                              // 128
+
+        // Page boundary
+        work_entry          msix_entries[256] __PAGE_ALIGNED__;     // 4096
 
         // Page boundary.
         struct
@@ -60,6 +64,7 @@ namespace kernel
         const uint16_t  ones;
 
         void claim_current_cpu();
+        kernel::work_entry* alloc_msix_interrupt();
         void register_exception_vector(size_t v, void (*handler)());
 
         static  void*   operator new(size_t size);
@@ -71,6 +76,7 @@ namespace kernel
     KASSERT(offsetof(cpu,cpu_addr) == 0);
     KASSERT(offsetof(cpu,jiffies) == 8);
     KASSERT(offsetof(cpu,scheduler) == 128);
+    KASSERT(offsetof(cpu,msix_entries) == 4096);
 
     static inline cpu* get_current_cpu()
     {
