@@ -1,3 +1,6 @@
+# Offsets of struct cpu stuff
+.equiv cpu_jiffies_offset,      8
+
 .org 0
     jmp     _bsp_entry
 
@@ -302,7 +305,7 @@ _interrupt_entry_noop:
 .globl _interrupt_entry_ticker
 .globl _interrupt_entry_scheduler_wakeup
 _interrupt_entry_ticker:
-    incq    %gs:56  # jiffies
+    incq    %gs:cpu_jiffies_offset
 _interrupt_entry_scheduler_wakeup:
     swapgs
     movl    $0, %gs:0xB0

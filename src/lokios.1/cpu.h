@@ -37,41 +37,40 @@ namespace kernel
 #define CPU_FLAG_BSP    0x01
     struct cpu
     {
-        uint64_t            gdt[6];
-        cpu*                cpu_addr;
-        volatile uint64_t   jiffies;
+        // Page boundary.
+        cpu* const          cpu_addr;                               // 0
+        volatile uint64_t   jiffies;                                // 8
+        const size_t        cpu_number;                             // 16
+        int8_t              apic_id;                                // 24
+        const uint8_t       flags;                                  // 25
+        uint8_t             rsrv[6];                                // 32
+        thread*             schedule_thread;                        // 40
+        struct scheduler    scheduler;                              // 128
 
-        tss64       tss;
-        uint16_t    ones;
-        uint8_t     rsrv2[3];
-        uint8_t     cpu_number;
-        uint8_t     apic_id;
-        uint8_t     flags;
-
+        // Page boundary.
         struct
         {
             uint64_t    lo;
             uint64_t    hi;
-        } idt[128];
+        } idt[256] __PAGE_ALIGNED__;
 
-        thread*             schedule_thread;
-        struct scheduler    scheduler;
+        // Page boundary.
+        const uint64_t  gdt[6] __PAGE_ALIGNED__;
+        tss64           tss __CACHE_ALIGNED__;
+        const uint16_t  ones;
 
-
+        void claim_current_cpu();
         void register_exception_vector(size_t v, void (*handler)());
 
         static  void*   operator new(size_t size);
         static  void    operator delete(void*);
+
+        cpu(void (*entry_func)());
     };
     KASSERT(sizeof(cpu) < 65536);
-    KASSERT(offsetof(cpu,cpu_addr) == 48);
-    KASSERT(offsetof(cpu,jiffies) == 56);
-    KASSERT(offsetof(cpu,ones) == 168);
-    KASSERT(offsetof(cpu,schedule_thread) == 2224);
-    KASSERT(offsetof(cpu,scheduler) == 2304);
-    KASSERT(offsetof(cpu,scheduler.local_work) == 2496);
-    KASSERT(offsetof(cpu,scheduler.local_work.head) == 2496);
-    KASSERT(offsetof(cpu,scheduler.local_work.tail) == 2504);
+    KASSERT(offsetof(cpu,cpu_addr) == 0);
+    KASSERT(offsetof(cpu,jiffies) == 8);
+    KASSERT(offsetof(cpu,scheduler) == 128);
 
     static inline cpu* get_current_cpu()
     {

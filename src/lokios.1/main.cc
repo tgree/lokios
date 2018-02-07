@@ -19,7 +19,7 @@ static void
 kernel_hello(kernel::work_entry* wqe)
 {
     kernel::free_wqe(wqe);
-    printf("Hello from CPU%u.\n",kernel::get_current_cpu()->cpu_number);
+    printf("Hello from CPU%zu.\n",kernel::get_current_cpu()->cpu_number);
 }
 
 static kernel::work_entry one_sec_wqe;

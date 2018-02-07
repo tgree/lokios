@@ -16,6 +16,45 @@ extern "C" void _thread_jump(kernel::thread* t) __attribute__((noreturn));
 
 kernel::vector<kernel::cpu*> kernel::cpus;
 
+kernel::cpu::cpu(void (*entry_func)()):
+    cpu_addr(this),
+    jiffies(0),
+    cpu_number(cpus.size()),
+    flags(cpu_number == 0 ? CPU_FLAG_BSP : 0),
+    gdt{0x0000000000000000,     // Unused/reserved.
+        0x00209A0000000000,     // Code descriptor
+        0x0000920000000000,     // Data descriptor
+        0x0000000000000000,     // Unused/reserved.
+        TSS_DESC_0((uint64_t)&tss,sizeof(tss)),
+        TSS_DESC_1((uint64_t)&tss,sizeof(tss))},
+    ones(0xFFFF)
+{
+    // Create the scheduler thread.
+    schedule_thread = new thread(entry_func,false);
+
+    // Initialize the TSS.
+    memset(&tss,0,sizeof(tss));
+    tss.iomap_base = sizeof(tss);
+    for (size_t i=1; i<nelems(tss.ist); ++i)
+        tss.ist[i] = (uint64_t)page_zalloc() + PAGE_SIZE - 32;
+
+    // Initialize the IDT.
+    memset(&idt,0,sizeof(idt));
+}
+
+void
+kernel::cpu::claim_current_cpu()
+{
+    // Load the GDT, TR and IDT.
+    lgdt((uint64_t)gdt,sizeof(gdt)-1);
+    ltr(4*sizeof(gdt[0]));
+    lidt((uint64_t)idt,sizeof(idt)-1);
+
+    // Record the cpu* in the GS_BASE MSR.
+    wrmsr((uint64_t)this,IA32_GS_BASE);
+    kassert(get_current_cpu() == this);
+}
+
 void*
 kernel::cpu::operator new(size_t size)
 {
@@ -42,59 +81,30 @@ kernel::cpu::operator delete(void*)
 void
 kernel::init_this_cpu(void (*entry_func)())
 {
-    cpu* c = new cpu;
-    kassert(c == get_cpu_region(cpus.size()));
-
-    c->cpu_addr        = c;
-    c->schedule_thread = new thread(entry_func,false);
-    c->cpu_number      = cpus.size();
-    c->jiffies         = 0;
-    c->flags           = (cpus.empty() ? CPU_FLAG_BSP : 0);
-
-    // Start by setting up the GDT.
-    c->gdt[0] = 0x0000000000000000;     // Unused/reserved.
-    c->gdt[1] = 0x00209A0000000000;     // Code descriptor
-    c->gdt[2] = 0x0000920000000000;     // Data descriptor
-    c->gdt[4] = TSS_DESC_0((uint64_t)&c->tss,sizeof(c->tss));
-    c->gdt[5] = TSS_DESC_1((uint64_t)&c->tss,sizeof(c->tss));
-    lgdt((uint64_t)c->gdt,sizeof(c->gdt)-1);
-
-    // Fill in the TSS and load the TR.
-    memset(&c->tss,0,sizeof(c->tss));
-    c->tss.iomap_base = sizeof(c->tss);
-    c->ones           = 0xFFFF;
-    for (size_t i=1; i<nelems(c->tss.ist); ++i)
-        c->tss.ist[i] = (uint64_t)page_zalloc() + PAGE_SIZE - 32;
-    ltr(4*sizeof(c->gdt[0]));
-
-    // Load the IDT.
-    memset(&c->idt,0,sizeof(c->idt));
-    lidt((uint64_t)c->idt,sizeof(c->idt)-1);
-
-    // Record the cpu* in the GS_BASE MSR.
-    wrmsr((uint64_t)c,IA32_GS_BASE);
-    kassert(get_current_cpu() == c);
+    // Allocate the CPU object and claim the current CPU.
+    cpu* c = new cpu(entry_func);
+    c->claim_current_cpu();
 
     // Fill in some cpuid feature flags.
-    printf("CPU%u Max Basic CPUID Selector: 0x%08X\n",
+    printf("CPU%zu Max Basic CPUID Selector: 0x%08X\n",
            c->cpu_number,cpuid(0).eax);
-    printf("CPU%u Max Extnd CPUID Selector: 0x%08X\n",
+    printf("CPU%zu Max Extnd CPUID Selector: 0x%08X\n",
            c->cpu_number,cpuid(0x80000000).eax);
     char brand[49];
     for (size_t i=0; i<3; ++i)
         cpuid(0x80000002+i,0,brand + 16*i);
     brand[48] = '\0';
-    printf("CPU%u CPU Brand: %s\n",c->cpu_number,brand);
+    printf("CPU%zu CPU Brand: %s\n",c->cpu_number,brand);
 
     // Check for FXSAVE/FXRSTOR support.
     auto cpuid1 = cpuid(1);
-    printf("CPU%u CPUID 1: 0x%08X:0x%08X:0x%08X:0x%08X\n",
+    printf("CPU%zu CPUID 1: 0x%08X:0x%08X:0x%08X:0x%08X\n",
            c->cpu_number,cpuid1.eax,cpuid1.ebx,cpuid1.ecx,cpuid1.edx);
     kassert(cpuid1.edx & (1 << 25));    // SSE availability.
     kassert(cpuid1.edx & (1 << 24));    // FXSAVE/FXRSTOR availability.
 
     // APIC info.
-    printf("CPU%u Initial APIC ID: %u\n",c->cpu_number,cpuid1.ebx >> 24);
+    printf("CPU%zu Initial APIC ID: %u\n",c->cpu_number,cpuid1.ebx >> 24);
 
     // Start executing.
     _thread_jump(c->schedule_thread);
