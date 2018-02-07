@@ -1,5 +1,14 @@
+# Offsets of struct scheduler stuff.
+.equiv scheduler_local_work_head_offset,    192
+.equiv scheduler_local_work_tail_offset,    200
+
 # Offsets of struct cpu stuff
+.equiv cpu_cpu_addr_offset,     0
 .equiv cpu_jiffies_offset,      8
+.equiv cpu_scheduler_offset,    128
+.equiv cpu_scheduler_local_work_head_offset, (cpu_scheduler_offset + scheduler_local_work_head_offset)
+.equiv cpu_scheduler_local_work_tail_offset, (cpu_scheduler_offset + scheduler_local_work_tail_offset)
+.equiv cpu_msix_entries_offset, 4096
 
 .org 0
     jmp     _bsp_entry
@@ -296,6 +305,7 @@ _interrupt_entry_common:
 _interrupt_entry_noop:
     iretq
 
+
 # BSP/AP tickers.  Our only task is to increment jiffies and ack the lapic
 # interrupt by writing to EOI.  This ticker's only purpose is to periodically
 # wake up a halted CPU so that it can service its timer wheels.
@@ -309,6 +319,185 @@ _interrupt_entry_ticker:
 _interrupt_entry_scheduler_wakeup:
     swapgs
     movl    $0, %gs:0xB0
+    swapgs
+    iretq
+
+
+# MSI-X vector entry.  We need to look at the cpu* to find the work_entry* that
+# is going to handle this interrupt at task level.  Using that information we
+# will then mask the MSI-X vector in the device.  Then we will queue up the
+# work_entry* on the cpu's scheduler and finally acknowledge the interrupt in
+# the local APIC.
+#   The work_entry's args[] is as follows:
+#       [0] - address of the MSI-X vector register on the device
+.macro _define_msix_interrupt num
+.global _msix_entry_\num
+_msix_entry_\num :
+    push    %rbx
+    movq    $(cpu_msix_entries_offset + (64 * \num)), %rbx
+    jmp     _msix_entry_generic
+.endm
+
+_define_msix_interrupt  128
+_define_msix_interrupt  129
+_define_msix_interrupt  130
+_define_msix_interrupt  131
+_define_msix_interrupt  132
+_define_msix_interrupt  133
+_define_msix_interrupt  134
+_define_msix_interrupt  135
+_define_msix_interrupt  136
+_define_msix_interrupt  137
+_define_msix_interrupt  138
+_define_msix_interrupt  139
+_define_msix_interrupt  140
+_define_msix_interrupt  141
+_define_msix_interrupt  142
+_define_msix_interrupt  143
+_define_msix_interrupt  144
+_define_msix_interrupt  145
+_define_msix_interrupt  146
+_define_msix_interrupt  147
+_define_msix_interrupt  148
+_define_msix_interrupt  149
+_define_msix_interrupt  150
+_define_msix_interrupt  151
+_define_msix_interrupt  152
+_define_msix_interrupt  153
+_define_msix_interrupt  154
+_define_msix_interrupt  155
+_define_msix_interrupt  156
+_define_msix_interrupt  157
+_define_msix_interrupt  158
+_define_msix_interrupt  159
+_define_msix_interrupt  160
+_define_msix_interrupt  161
+_define_msix_interrupt  162
+_define_msix_interrupt  163
+_define_msix_interrupt  164
+_define_msix_interrupt  165
+_define_msix_interrupt  166
+_define_msix_interrupt  167
+_define_msix_interrupt  168
+_define_msix_interrupt  169
+_define_msix_interrupt  170
+_define_msix_interrupt  171
+_define_msix_interrupt  172
+_define_msix_interrupt  173
+_define_msix_interrupt  174
+_define_msix_interrupt  175
+_define_msix_interrupt  176
+_define_msix_interrupt  177
+_define_msix_interrupt  178
+_define_msix_interrupt  179
+_define_msix_interrupt  180
+_define_msix_interrupt  181
+_define_msix_interrupt  182
+_define_msix_interrupt  183
+_define_msix_interrupt  184
+_define_msix_interrupt  185
+_define_msix_interrupt  186
+_define_msix_interrupt  187
+_define_msix_interrupt  188
+_define_msix_interrupt  189
+_define_msix_interrupt  190
+_define_msix_interrupt  191
+_define_msix_interrupt  192
+_define_msix_interrupt  193
+_define_msix_interrupt  194
+_define_msix_interrupt  195
+_define_msix_interrupt  196
+_define_msix_interrupt  197
+_define_msix_interrupt  198
+_define_msix_interrupt  199
+_define_msix_interrupt  200
+_define_msix_interrupt  201
+_define_msix_interrupt  202
+_define_msix_interrupt  203
+_define_msix_interrupt  204
+_define_msix_interrupt  205
+_define_msix_interrupt  206
+_define_msix_interrupt  207
+_define_msix_interrupt  208
+_define_msix_interrupt  209
+_define_msix_interrupt  210
+_define_msix_interrupt  211
+_define_msix_interrupt  212
+_define_msix_interrupt  213
+_define_msix_interrupt  214
+_define_msix_interrupt  215
+_define_msix_interrupt  216
+_define_msix_interrupt  217
+_define_msix_interrupt  218
+_define_msix_interrupt  219
+_define_msix_interrupt  220
+_define_msix_interrupt  221
+_define_msix_interrupt  222
+_define_msix_interrupt  223
+_define_msix_interrupt	224
+_define_msix_interrupt  225
+_define_msix_interrupt  226
+_define_msix_interrupt  227
+_define_msix_interrupt  228
+_define_msix_interrupt  229
+_define_msix_interrupt  230
+_define_msix_interrupt  231
+_define_msix_interrupt  232
+_define_msix_interrupt  233
+_define_msix_interrupt  234
+_define_msix_interrupt  235
+_define_msix_interrupt  236
+_define_msix_interrupt  237
+_define_msix_interrupt  238
+_define_msix_interrupt  239
+_define_msix_interrupt  240
+_define_msix_interrupt  241
+_define_msix_interrupt  242
+_define_msix_interrupt  243
+_define_msix_interrupt  244
+_define_msix_interrupt  245
+_define_msix_interrupt  246
+_define_msix_interrupt  247
+_define_msix_interrupt  248
+_define_msix_interrupt  249
+_define_msix_interrupt  250
+_define_msix_interrupt  251
+_define_msix_interrupt  252
+_define_msix_interrupt  253
+_define_msix_interrupt  254
+_define_msix_interrupt  255
+
+# On entry:
+#   rbx      - offset to the msix_entries _work_entry*
+#   orig rbx - on stack
+_msix_entry_generic:
+    push    %rax
+    movq    %gs:cpu_cpu_addr_offset, %rax # rax = cpu*
+    push    %rcx
+    add     %rax, %rbx          # rbx = msix_entry*
+    movq    24(%rbx), %rcx      # rcx = msix_entry->args[1]
+    swapgs
+    movl    $1, (%rcx)          # mask the vector
+
+    # Queue up our work entry.
+    xorq    %rcx, %rcx
+    movq    %rcx, (%rbx)        # msix_entry->link.next = NULL
+    movq    cpu_scheduler_local_work_tail_offset(%rax), %rcx
+    test    %rcx, %rcx
+    jz      .L_null_tail
+.L_non_null_tail:
+    mov     %rbx, (%rcx)        # tail->next = l
+    jmp     .L_set_tail
+.L_null_tail:
+    mov     %rbx, cpu_scheduler_local_work_head_offset(%rax)
+.L_set_tail:
+    mov     %rbx, cpu_scheduler_local_work_tail_offset(%rax)
+
+    # Exit
+    movl    %eax, %gs:0xB0      # EOI the interrupt
+    pop     %rcx
+    pop     %rax
+    pop     %rbx
     swapgs
     iretq
 
