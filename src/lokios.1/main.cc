@@ -28,7 +28,8 @@ static void
 kernel_one_sec_tick(kernel::work_entry* wqe)
 {
     kernel::get_current_cpu()->scheduler.schedule_deferred_local_work(wqe,99);
-    printf("Elapsed: %lu secs\n",++sec_ticks);
+    printf("Elapsed: %lu secs  Free pages: %zu\n",
+           ++sec_ticks,kernel::page_count_free());
 }
 
 void
