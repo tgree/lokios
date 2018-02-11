@@ -18,6 +18,9 @@ namespace kernel
 {
     typedef uint64_t dma_addr64;
 
+    extern dma_addr64 zero_page_dma;
+    extern dma_addr64 trash_page_dma;
+
     // Maps a physical address into the 0xFFFF800000000000 region and returns
     // the virtual address.  A 2M mapping will be used.
     void* pmap(dma_addr64 paddr, uint64_t flags = PAGE_FLAGS_DATA);

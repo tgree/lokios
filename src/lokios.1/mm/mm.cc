@@ -7,6 +7,9 @@
 
 using kernel::console::printf;
 
+kernel::dma_addr64 kernel::zero_page_dma;
+kernel::dma_addr64 kernel::trash_page_dma;
+
 void
 kernel::init_mm(const e820_map* m)
 {
@@ -26,6 +29,10 @@ kernel::init_mm(const e820_map* m)
     // Print out the sbrk stats.
     printf("  Free sbrk RAM: %luK\n",
            ((uint64_t)get_sbrk_limit() - (uint64_t)sbrk(0))/1024);
+
+    // Set up the zero/trash pages.
+    zero_page_dma  = (dma_addr64)page_zalloc();
+    trash_page_dma = (dma_addr64)page_zalloc();
 }
 
 void*
