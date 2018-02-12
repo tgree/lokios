@@ -18,6 +18,12 @@ namespace kernel
 {
     typedef uint64_t dma_addr64;
 
+    struct dma_alp
+    {
+        dma_addr64  paddr;
+        size_t      len;
+    };
+
     extern dma_addr64 zero_page_dma;
     extern dma_addr64 trash_page_dma;
 
