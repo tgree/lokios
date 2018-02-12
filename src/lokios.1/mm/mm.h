@@ -5,6 +5,8 @@
 //
 //      0xFFFFFFFFnnnn0000 - 0xFFFFFFFFFFFFFFFF: thread space for tid nnnn
 //      0xFFFFFFFEnnnn0000 - 0xFFFFFFFEFFFFFFFF: cpu space for cpu nnnn
+//      0xFFFFA00000000000 - 0xFFFFFFFDFFFFFFFF: unused
+//      0xFFFF900000000000 - 0xFFFF9FFFFFFFFFFF: vm_alloc region
 //      0xFFFF800000000000 - 0xFFFF8FFFFFFFFFFF: used to map all RAM
 #ifndef __KERNEL_MM_H
 #define __KERNEL_MM_H
