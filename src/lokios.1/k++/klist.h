@@ -5,6 +5,7 @@
 #include "kernel/kassert.h"
 #include <hdr/container_of.h>
 #include <stddef.h>
+#include <type_traits>
 
 namespace kernel
 {
@@ -272,11 +273,12 @@ namespace kernel
 
 #define klist_front(q,field) \
     (q.empty() ? NULL : \
-     container_of(q.first_link(),typename decltype(q)::elem_type,field))
+     container_of(q.first_link(), \
+              typename std::remove_reference_t<decltype(q)>::elem_type,field))
 
 #define klist_elems(q,field) \
-    kernel::klist_rbfl_adapter<decltype(q), \
-                       offsetof(typename decltype(q)::elem_type,field)>(q)
+    kernel::klist_rbfl_adapter<std::remove_reference_t<decltype(q)>, \
+   offsetof(typename std::remove_reference_t<decltype(q)>::elem_type,field)>(q)
 }
 
 #endif /* __KERNEL_LIST_H */
