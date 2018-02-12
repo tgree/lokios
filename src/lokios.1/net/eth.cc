@@ -95,7 +95,7 @@ eth::interface::handle_dhcp_offer_recv_comp(rx_page* p)
 {
     auto* disc = (dhcp::full_message<eth::header>*)(p->payload + p->eth_offset);
 
-    dhcp::option* server_opt = dhcp::find_option(&disc->msg,54);
+    auto* server_opt = disc->msg.find_option(54);
     if (!server_opt)
     {
         dump_rx_page(p);
@@ -129,9 +129,9 @@ eth::interface::handle_dhcp_ack_recv_comp(rx_page* p)
 {
     auto* disc = (dhcp::full_message<eth::header>*)(p->payload + p->eth_offset);
 
-    dhcp::option* sn_option  = dhcp::find_option(&disc->msg,1);
-    dhcp::option* gw_option  = dhcp::find_option(&disc->msg,3);
-    dhcp::option* dns_option = dhcp::find_option(&disc->msg,6);
+    auto* sn_option  = disc->msg.find_option(1);
+    auto* gw_option  = disc->msg.find_option(3);
+    auto* dns_option = disc->msg.find_option(6);
 
     ipv4::addr sn_ip{0,0,0,0};
     if (sn_option)
@@ -182,7 +182,7 @@ eth::interface::handle_dhcp_recv_comp(rx_page* p)
 {
     auto* disc = (dhcp::full_message<eth::header>*)(p->payload + p->eth_offset);
 
-    dhcp::option* type_opt = dhcp::find_option(&disc->msg,53);
+    auto* type_opt = disc->msg.find_option(53);
     if (disc->msg.xid != dhcp_xid || !type_opt || type_opt->len != 1)
     {
         dump_rx_page(p);
@@ -349,7 +349,7 @@ eth::interface::issue_dhcp_discover(tx_op* op)
     disc->uhdr.len                = sizeof(*disc) - sizeof(disc->llhdr) -
                                     sizeof(disc->iphdr);
     disc->uhdr.checksum           = 0; // Disable checksumming
-    dhcp::format_discover(&disc->msg,++dhcp_xid,hw_mac);
+    disc->msg.format_discover(++dhcp_xid,hw_mac);
 
     op->cb            = handle_dhcp_send_comp_bounce;
     op->nalps         = 1;
@@ -380,8 +380,7 @@ eth::interface::issue_dhcp_request(tx_op* op)
     disc->uhdr.len                = sizeof(*disc) - sizeof(disc->llhdr) -
                                     sizeof(disc->iphdr);
     disc->uhdr.checksum           = 0; // Disable checksumming
-    dhcp::format_request(&disc->msg,dhcp_xid,hw_mac,dhcp_offer_addr,
-                         dhcp_server_id);
+    disc->msg.format_request(dhcp_xid,hw_mac,dhcp_offer_addr,dhcp_server_id);
 
     op->cb            = handle_dhcp_send_comp_bounce;
     op->nalps         = 1;

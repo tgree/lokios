@@ -3,59 +3,56 @@
 using kernel::_kassert;
 
 void
-dhcp::format_discover(dhcp::message* msg, uint32_t xid,
-    const eth::addr& src_mac)
+dhcp::message::format_discover(uint32_t _xid, const eth::addr& src_mac)
 {
-    msg->op                  = 1;
-    msg->htype               = 1;
-    msg->hlen                = 6;
-    msg->hops                = 0;
-    msg->xid                 = xid;
-    msg->secs                = 0;
-    msg->flags               = 0x8000;
-    msg->ciaddr              = ipv4::addr{0,0,0,0};
-    msg->yiaddr              = ipv4::addr{0,0,0,0};
-    msg->siaddr              = ipv4::addr{0,0,0,0};
-    msg->giaddr              = ipv4::addr{0,0,0,0};
-    *(eth::addr*)msg->chaddr = src_mac;
+    op                  = 1;
+    htype               = 1;
+    hlen                = 6;
+    hops                = 0;
+    xid                 = _xid;
+    secs                = 0;
+    flags               = 0x8000;
+    ciaddr              = ipv4::addr{0,0,0,0};
+    yiaddr              = ipv4::addr{0,0,0,0};
+    siaddr              = ipv4::addr{0,0,0,0};
+    giaddr              = ipv4::addr{0,0,0,0};
+    *(eth::addr*)chaddr = src_mac;
 
-    msg->magic = DHCP_OPTIONS_MAGIC;
-    msg->options[0] = 0xFF;
+    magic = DHCP_OPTIONS_MAGIC;
+    options[0] = 0xFF;
 
-    append_message_type(msg,DHCP_DISCOVER);
+    append_message_type(DHCP_DISCOVER);
 }
 
 void
-dhcp::format_request(dhcp::message* msg, uint32_t xid,
-    const eth::addr& src_mac, const ipv4::addr& req_addr,
-    const ipv4::addr& server_id)
+dhcp::message::format_request(uint32_t _xid, const eth::addr& src_mac,
+    const ipv4::addr& req_addr, const ipv4::addr& server_id)
 {
-    msg->op                  = 1;
-    msg->htype               = 1;
-    msg->hlen                = 6;
-    msg->hops                = 0;
-    msg->xid                 = xid;
-    msg->secs                = 0;
-    msg->flags               = 0x8000;
-    msg->ciaddr              = ipv4::addr{0,0,0,0};
-    msg->yiaddr              = ipv4::addr{0,0,0,0};
-    msg->siaddr              = ipv4::addr{0,0,0,0};
-    msg->giaddr              = ipv4::addr{0,0,0,0};
-    *(eth::addr*)msg->chaddr = src_mac;
+    op                  = 1;
+    htype               = 1;
+    hlen                = 6;
+    hops                = 0;
+    xid                 = _xid;
+    secs                = 0;
+    flags               = 0x8000;
+    ciaddr              = ipv4::addr{0,0,0,0};
+    yiaddr              = ipv4::addr{0,0,0,0};
+    siaddr              = ipv4::addr{0,0,0,0};
+    giaddr              = ipv4::addr{0,0,0,0};
+    *(eth::addr*)chaddr = src_mac;
 
-    msg->magic = DHCP_OPTIONS_MAGIC;
-    msg->options[0] = 0xFF;
+    magic = DHCP_OPTIONS_MAGIC;
+    options[0] = 0xFF;
 
-    append_message_type(msg,DHCP_REQUEST);
-    append_requested_ip(msg,req_addr);
-    append_server_id(msg,server_id);
+    append_message_type(DHCP_REQUEST);
+    append_requested_ip(req_addr);
+    append_server_id(server_id);
 }
 
 void
-dhcp::append_option(dhcp::message* msg, uint8_t tag, uint8_t len,
-    const void* data)
+dhcp::message::append_option(uint8_t tag, uint8_t len, const void* data)
 {
-    uint8_t* p = msg->options;
+    uint8_t* p = options;
     while (*p != 0xFF)
     {
         if (p == 0)
@@ -66,7 +63,7 @@ dhcp::append_option(dhcp::message* msg, uint8_t tag, uint8_t len,
         else
             p += 2 + p[1];
     }
-    kassert(p + 3 + len <= msg->options + kernel::nelems(msg->options));
+    kassert(p + 3 + len <= options + kernel::nelems(options));
 
     p[0]       = tag;
     p[1]       = len;
@@ -74,10 +71,10 @@ dhcp::append_option(dhcp::message* msg, uint8_t tag, uint8_t len,
     memcpy(p + 2,data,len);
 }
 
-dhcp::option*
-dhcp::find_option(dhcp::message* msg, uint8_t tag)
+const dhcp::option*
+dhcp::message::find_option(uint8_t tag) const
 {
-    uint8_t* p = msg->options;
+    const uint8_t* p = options;
     while (*p != 0xFF)
     {
         if (p == 0)
