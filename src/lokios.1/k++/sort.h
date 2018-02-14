@@ -4,6 +4,14 @@
 #include "kernel_iterator.h"
 #include "kernel/kassert.h"
 
+template<typename RandomAccessIterator>
+inline void swap_contents(RandomAccessIterator p1, RandomAccessIterator p2)
+{
+    auto t = *p1;
+    *p1    = *p2;
+    *p2    = t;
+}
+
 namespace quick_sort
 {
     template<typename RandomAccessIterator>
@@ -17,9 +25,7 @@ namespace quick_sort
         {
             if (*j < pivot)
             {
-                auto tmp = *i;
-                *i       = *j;
-                *j       = tmp;
+                swap_contents(i,j);
                 ++i;
             }
         }
@@ -105,10 +111,8 @@ namespace heap_sort
             if (swap == pos)
                 return;
 
-            auto tmp = *pos;
-            *pos     = *swap;
-            *swap    = tmp;
-            pos      = swap;
+            swap_contents(pos,swap);
+            pos = swap;
         }
     }
 
@@ -152,9 +156,7 @@ namespace heap_sort
         auto pos = end - 1;
         while (pos != begin)
         {
-            auto tmp = *begin;
-            *begin   = *pos;
-            *pos     = tmp;
+            swap_contents(begin,pos);
             sift_down(begin,--pos,begin);
         }
     }
