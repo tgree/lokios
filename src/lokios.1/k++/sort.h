@@ -117,6 +117,46 @@ namespace heap_sort
     }
 
     template<typename RandomAccessIterator>
+    void sift_up(RandomAccessIterator begin,
+                 RandomAccessIterator pos)
+    {
+        while (pos != begin)
+        {
+            auto parent = parent_iter(begin,pos);
+            if (*pos <= *parent)
+                break;
+
+            swap_contents(pos,parent);
+            pos = parent;
+        }
+    }
+
+    template<typename RandomAccessIterator>
+    void insert(RandomAccessIterator begin,
+                RandomAccessIterator end)
+    {
+        // Note: the value to be inserted has already been pushed to the back
+        // of the container, so end points just past the newly-inserted value.
+        sift_up(begin,end-1);
+    }
+
+    template<typename RandomAccessIterator>
+    void remove(RandomAccessIterator begin,
+                RandomAccessIterator end,
+                RandomAccessIterator pos)
+    {
+        // This moves the node in pos to the end of the container while
+        // maintaining the heap property on rest of the nodes.  To actually
+        // pop it you'll need to shrink the container by one element.
+        kernel::kassert(begin != end);
+        swap_contents(pos,end-1);
+        if (pos == begin || *pos >= *parent_iter(begin,pos))
+            sift_down(begin,end-1,pos);
+        else
+            sift_up(begin,pos);
+    }
+
+    template<typename RandomAccessIterator>
     void heapify(RandomAccessIterator begin,
                  RandomAccessIterator end)
     {

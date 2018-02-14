@@ -3,6 +3,7 @@
 #include "kernel/kassert.h"
 #include "tmock/tmock.h"
 #include <string.h>
+#include <vector>
 
 using kernel::_kassert;
 
@@ -199,6 +200,31 @@ class tmock_test
         kassert(!heap_sort::is_max_heap(begin,end));
         heap_sort::heapify(begin,end);
         kassert(heap_sort::is_max_heap(begin,end));
+    }
+
+    TMOCK_TEST(test_heap_insert)
+    {
+        std::vector<uint64_t> v;
+        for (auto val : unsorted)
+        {
+            v.push_back(val);
+            heap_sort::insert(v.begin(),v.end());
+            kassert(heap_sort::is_max_heap(v.begin(),v.end()));
+        }
+    }
+
+    TMOCK_TEST(test_heap_remove)
+    {
+        std::vector<uint64_t> v(kernel::begin(unsorted),kernel::end(unsorted));
+        heap_sort::heapify(v.begin(),v.end());
+        while (!v.empty())
+        {
+            auto max_val = v[0];
+            heap_sort::remove(v.begin(),v.end(),v.begin());
+            kassert(v[v.size()-1] == max_val);
+            v.pop_back();
+            kassert(heap_sort::is_max_heap(v.begin(),v.end()));
+        }
     }
 
     TMOCK_TEST(test_heapsort)
