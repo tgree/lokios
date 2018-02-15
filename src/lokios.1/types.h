@@ -75,7 +75,9 @@ struct be_uint
     T   v;
     constexpr operator T() {return to_big_endian(v);}
     void operator=(T _v)   {v = from_big_endian(_v);}
-};
+    constexpr be_uint(T v):v(to_big_endian(v)) {}
+    inline be_uint() = default;
+} __PACKED__;
 
 template<typename T>
 struct le_uint
@@ -83,7 +85,9 @@ struct le_uint
     T   v;
     constexpr operator T() {return to_little_endian(v);}
     void operator=(T _v)   {v = from_little_endian(_v);}
-};
+    constexpr le_uint(T v):v(to_big_endian(v)) {}
+    inline le_uint() = default;
+} __PACKED__;
 
 typedef be_uint<uint32_t> be_uint32_t;
 typedef be_uint<uint16_t> be_uint16_t;
