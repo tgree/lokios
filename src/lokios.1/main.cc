@@ -9,6 +9,8 @@
 #include "acpi/tables.h"
 #include <typeinfo>
 
+#define TICKER_10MS_TICKS   999
+
 using kernel::console::printf;
 
 const kernel::kernel_args* kernel::kargs;
@@ -23,13 +25,14 @@ kernel_hello(kernel::work_entry* wqe)
 }
 
 static kernel::work_entry one_sec_wqe;
-static uint64_t sec_ticks = 0;
+static uint64_t ticks = 0;
 static void
-kernel_one_sec_tick(kernel::work_entry* wqe)
+kernel_ticker(kernel::work_entry* wqe)
 {
-    kernel::get_current_cpu()->scheduler.schedule_deferred_local_work(wqe,99);
-    printf("Elapsed: %lu secs  Free pages: %zu\n",
-           ++sec_ticks,kernel::page_count_free());
+    kernel::get_current_cpu()->scheduler.
+        schedule_deferred_local_work(wqe,TICKER_10MS_TICKS);
+    printf("Ticker: %lu ticks  Free pages: %zu\n",
+           ++ticks,kernel::page_count_free());
 }
 
 void
@@ -72,10 +75,10 @@ kernel_main(kernel::work_entry* wqe)
         c->scheduler.schedule_remote_work(wqe);
     }
 
-    // Set up a 1-second ticker.
-    one_sec_wqe.fn = kernel_one_sec_tick;
+    // Set up a repeating ticker.
+    one_sec_wqe.fn = kernel_ticker;
     kernel::get_current_cpu()->scheduler.schedule_deferred_local_work(
-            &one_sec_wqe,99);
+            &one_sec_wqe,TICKER_10MS_TICKS);
 
     // If there is an 'iTST' ACPI table, this indicates we are running on qemu
     // in integration-tes mode and should just exit instead of spinning in the
