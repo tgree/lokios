@@ -9,12 +9,16 @@ extern char _sbrk[];
 static kernel::spinlock sbrklock;
 static void* _brk = (void*)_sbrk;
 static void* _brklim = (char*)0xFFFFFFFFFFFFFFFF;
+static bool sbrk_frozen = false;
 
 void*
 kernel::sbrk(size_t n)
 {
     void* p;
     void* new_brk;
+
+    if (sbrk_frozen)
+        return NULL;
 
     n = (n + 15) & ~15;
     with (sbrklock)
@@ -30,6 +34,12 @@ void
 kernel::set_sbrk(void* pos)
 {
     _brk = pos;
+}
+
+void
+kernel::freeze_sbrk()
+{
+    sbrk_frozen = true;
 }
 
 void

@@ -7,6 +7,7 @@
 #include "schedule.h"
 #include "platform/platform.h"
 #include "mm/mm.h"
+#include "mm/sbrk.h"
 #include "acpi/tables.h"
 #include "interrupts/mp_tables.h"
 #include "interrupts/interrupt.h"
@@ -71,6 +72,7 @@ init_bsp()
 
     // Initialize globals.
     init_globals();
+    kernel::freeze_sbrk();
 
     // Initialize the platform.
     kernel::init_platform();
