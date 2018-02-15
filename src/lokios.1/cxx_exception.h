@@ -9,6 +9,13 @@ namespace kernel
         operator const char*() const {return c_str();}
     };
 
+    struct message_exception : public exception
+    {
+        const char* msg;
+        virtual const char* c_str() const {return msg;}
+        constexpr message_exception(const char* msg):msg(msg) {}
+    };
+
     void throw_test_exception();
 }
 
