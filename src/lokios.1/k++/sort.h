@@ -3,6 +3,7 @@
 
 #include "kernel_iterator.h"
 #include "kernel/kassert.h"
+#include "functional.h"
 
 template<typename RandomAccessIterator>
 inline void swap_contents(RandomAccessIterator p1, RandomAccessIterator p2)
@@ -94,19 +95,20 @@ namespace heap_sort
         return begin + (2*(pos - begin) + 2);
     }
 
-    template<typename RandomAccessIterator>
+    template<typename RandomAccessIterator, typename Compare>
     void sift_down(RandomAccessIterator begin,
                    RandomAccessIterator end,
-                   RandomAccessIterator pos)
+                   RandomAccessIterator pos,
+                   Compare cmp)
     {
         while (has_left_child(begin,end,pos))
         {
             auto child = left_child_iter(begin,pos);
             auto swap  = pos;
 
-            if (*swap < *child)
+            if (cmp(*child,*swap))
                 swap = child;
-            if (child + 1 < end && *swap < *(child + 1))
+            if (child + 1 < end && cmp(*(child + 1),*swap))
                 swap = child + 1;
             if (swap == pos)
                 return;
@@ -116,14 +118,15 @@ namespace heap_sort
         }
     }
 
-    template<typename RandomAccessIterator>
+    template<typename RandomAccessIterator, typename Compare>
     void sift_up(RandomAccessIterator begin,
-                 RandomAccessIterator pos)
+                 RandomAccessIterator pos,
+                 Compare cmp)
     {
         while (pos != begin)
         {
             auto parent = parent_iter(begin,pos);
-            if (*pos <= *parent)
+            if (!cmp(*pos,*parent))
                 break;
 
             swap_contents(pos,parent);
@@ -131,34 +134,38 @@ namespace heap_sort
         }
     }
 
-    template<typename RandomAccessIterator>
+    template<typename RandomAccessIterator, typename Compare>
     void insert(RandomAccessIterator begin,
-                RandomAccessIterator end)
+                RandomAccessIterator end,
+                Compare cmp)
     {
         // Note: the value to be inserted has already been pushed to the back
         // of the container, so end points just past the newly-inserted value.
-        sift_up(begin,end-1);
+        sift_up(begin,end-1,cmp);
     }
 
-    template<typename RandomAccessIterator>
+    template<typename RandomAccessIterator, typename Compare>
     void remove(RandomAccessIterator begin,
                 RandomAccessIterator end,
-                RandomAccessIterator pos)
+                RandomAccessIterator pos,
+                Compare cmp)
     {
         // This moves the node in pos to the end of the container while
         // maintaining the heap property on rest of the nodes.  To actually
         // pop it you'll need to shrink the container by one element.
         kernel::kassert(begin != end);
         swap_contents(pos,end-1);
-        if (pos == begin || *pos >= *parent_iter(begin,pos))
-            sift_down(begin,end-1,pos);
+        if (pos == begin || !cmp(*parent_iter(begin,pos),*pos))
+            sift_down(begin,end-1,pos,cmp);
         else
-            sift_up(begin,pos);
+            sift_up(begin,pos,cmp);
     }
 
-    template<typename RandomAccessIterator>
+    template<typename RandomAccessIterator,
+     typename Compare = kernel::greater<decltype(**(RandomAccessIterator*)0)>>
     void heapify(RandomAccessIterator begin,
-                 RandomAccessIterator end)
+                 RandomAccessIterator end,
+                 Compare cmp = Compare())
     {
         if (end - begin < 2)
             return;
@@ -166,38 +173,42 @@ namespace heap_sort
         auto pos = parent_iter(begin,end - 1);
         do
         {
-            sift_down(begin,end,pos);
+            sift_down(begin,end,pos,cmp);
         } while (pos-- != begin);
     }
 
-    template<typename RandomAccessIterator>
-    bool is_max_heap(RandomAccessIterator begin,
-                     RandomAccessIterator end)
+    template<typename RandomAccessIterator,
+     typename Compare = kernel::greater<decltype(**(RandomAccessIterator*)0)>>
+    bool is_heap(RandomAccessIterator begin,
+                 RandomAccessIterator end,
+                 Compare cmp = Compare())
     {
         if (begin == end)
             return true;
 
         while (--end != begin)
         {
-            if (*parent_iter(begin,end) < *end)
+            if (cmp(*end,*parent_iter(begin,end)))
                 return false;
         }
         return true;
     }
 
-    template<typename RandomAccessIterator>
+    template<typename RandomAccessIterator,
+     typename Compare = kernel::greater<decltype(**(RandomAccessIterator*)0)>>
     void heapsort(RandomAccessIterator begin,
-                  RandomAccessIterator end)
+                  RandomAccessIterator end,
+                  Compare cmp = Compare())
     {
         if (begin == end)
             return;
 
-        heapify(begin,end);
+        heapify(begin,end,cmp);
         auto pos = end - 1;
         while (pos != begin)
         {
             swap_contents(begin,pos);
-            sift_down(begin,--pos,begin);
+            sift_down(begin,--pos,begin,cmp);
         }
     }
 }

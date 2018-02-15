@@ -59,28 +59,61 @@ kernel::panic(const char* s) noexcept
 
 class tmock_test
 {
-    TMOCK_TEST(test_heap_insert)
+    TMOCK_TEST(test_max_heap_insert)
     {
-        kernel::heap<std::vector<uint64_t>> h;
+        kernel::max_heap<std::vector<uint64_t>> h;
         for (auto val : unsorted)
         {
             h.insert(val);
-            kassert(heap_sort::is_max_heap(h.c.begin(),h.c.end()));
+            kassert(h.is_heap());
+            for (auto v2 : h.c)
+                kassert(h.front() >= v2);
         }
     }
 
-    TMOCK_TEST(test_heap_remove)
+    TMOCK_TEST(test_max_heap_remove)
     {
-        kernel::heap<std::vector<uint64_t>> h;
+        kernel::max_heap<std::vector<uint64_t>> h;
 
         for (auto val : unsorted)
             h.insert(val);
-        kassert(heap_sort::is_max_heap(h.c.begin(),h.c.end()));
+        kassert(h.is_heap());
 
         while (!h.empty())
         {
             h.pop_front();
-            kassert(heap_sort::is_max_heap(h.c.begin(),h.c.end()));
+            kassert(h.is_heap());
+            for (auto v : h.c)
+                kassert(h.front() >= v);
+        }
+    }
+
+    TMOCK_TEST(test_min_heap_insert)
+    {
+        kernel::min_heap<std::vector<uint64_t>> h;
+        for (auto val : unsorted)
+        {
+            h.insert(val);
+            kassert(h.is_heap());
+            for (auto v2 : h.c)
+                kassert(h.front() <= v2);
+        }
+    }
+
+    TMOCK_TEST(test_min_heap_remove)
+    {
+        kernel::min_heap<std::vector<uint64_t>> h;
+
+        for (auto val : unsorted)
+            h.insert(val);
+        kassert(h.is_heap());
+
+        while (!h.empty())
+        {
+            h.pop_front();
+            kassert(h.is_heap());
+            for (auto v : h.c)
+                kassert(h.front() <= v);
         }
     }
 };

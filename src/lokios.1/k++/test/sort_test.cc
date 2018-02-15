@@ -197,9 +197,9 @@ class tmock_test
     {
         auto begin = kernel::begin(unsorted);
         auto end   = kernel::end(unsorted);
-        kassert(!heap_sort::is_max_heap(begin,end));
+        kassert(!heap_sort::is_heap(begin,end));
         heap_sort::heapify(begin,end);
-        kassert(heap_sort::is_max_heap(begin,end));
+        kassert(heap_sort::is_heap(begin,end));
     }
 
     TMOCK_TEST(test_heap_insert)
@@ -208,8 +208,8 @@ class tmock_test
         for (auto val : unsorted)
         {
             v.push_back(val);
-            heap_sort::insert(v.begin(),v.end());
-            kassert(heap_sort::is_max_heap(v.begin(),v.end()));
+            heap_sort::insert(v.begin(),v.end(),kernel::greater<uint64_t>());
+            kassert(heap_sort::is_heap(v.begin(),v.end()));
         }
     }
 
@@ -220,10 +220,11 @@ class tmock_test
         while (!v.empty())
         {
             auto max_val = v[0];
-            heap_sort::remove(v.begin(),v.end(),v.begin());
+            heap_sort::remove(v.begin(),v.end(),v.begin(),
+                              kernel::greater<uint64_t>());
             kassert(v[v.size()-1] == max_val);
             v.pop_back();
-            kassert(heap_sort::is_max_heap(v.begin(),v.end()));
+            kassert(heap_sort::is_heap(v.begin(),v.end()));
         }
     }
 
