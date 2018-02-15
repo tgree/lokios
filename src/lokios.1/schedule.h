@@ -3,6 +3,8 @@
 
 #include "spinlock.h"
 #include "k++/klist.h"
+#include "k++/heap.h"
+#include "k++/vector.h"
 #include "mm/page.h"
 #include <type_traits>
 
@@ -18,10 +20,20 @@ namespace kernel
     {
         klink           link;
         work_handler    fn;
-        uint64_t        args[6];
+        uint64_t        texpiry;
+        uint64_t        args[5];
     };
     KASSERT(sizeof(work_entry) == 64);
-    KASSERT(offsetof(work_entry,args) == 16);
+    KASSERT(offsetof(work_entry,args) == 24);
+
+    struct work_entry_expiry_less
+    {
+        constexpr bool operator()(const work_entry* lhs,
+                                  const work_entry* rhs) const
+        {
+            return lhs->texpiry < rhs->texpiry;
+        }
+    };
 
     struct scheduler_table
     {
@@ -31,14 +43,16 @@ namespace kernel
 
     struct scheduler
     {
-        spinlock            remote_work_lock;
-        klist<work_entry>   remote_work;
+        spinlock                        remote_work_lock;
+        klist<work_entry>               remote_work;
 
-        klist<work_entry>   local_work __CACHE_ALIGNED__;
+        klist<work_entry>               local_work __CACHE_ALIGNED__;
 
-        uint64_t            tbase;
-        size_t              current_slot;
-        scheduler_table*    wheel;
+        uint64_t                        tbase;
+        size_t                          current_slot;
+        scheduler_table*                wheel;
+        heap<vector<work_entry*>,
+             work_entry_expiry_less>    overflow_heap;
 
         void schedule_local_work(work_entry* wqe);
         void schedule_remote_work(work_entry* wqe);

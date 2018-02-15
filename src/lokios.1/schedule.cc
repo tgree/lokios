@@ -66,9 +66,15 @@ kernel::scheduler::schedule_deferred_local_work(work_entry* wqe, uint64_t dt)
     // The currently-executing CPU is the local CPU and in non-interrupt
     // context.
     kassert(get_current_cpu() == container_of(this,cpu,scheduler));
-    kassert(dt && dt < kernel::nelems(wheel->slots) - 1);
-    size_t slot = (current_slot + dt + 1) % kernel::nelems(wheel->slots);
-    wheel->slots[slot].push_back(&wqe->link);
+    kassert(dt != 0);
+    wqe->texpiry = tbase + current_slot + dt + 1;
+    if (dt < kernel::nelems(wheel->slots) - 1)
+    {
+        size_t slot = wqe->texpiry % kernel::nelems(wheel->slots);
+        wheel->slots[slot].push_back(&wqe->link);
+    }
+    else
+        overflow_heap.insert(wqe);
 }
 
 void
@@ -113,6 +119,14 @@ kernel::scheduler::workloop()
                 tbase       += kernel::nelems(wheel->slots);
             }
             wq.append(wheel->slots[current_slot]);
+        }
+
+        // Pop any elements from the heap that have expired.
+        while (!overflow_heap.empty() &&
+               c->jiffies >= overflow_heap.front()->texpiry)
+        {
+            wq.push_back(&overflow_heap.front()->link);
+            overflow_heap.pop_front();
         }
 
         // If there is work to do on the remote queue, add it to the list.
