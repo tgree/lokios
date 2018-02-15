@@ -10,6 +10,10 @@
 .equiv cpu_scheduler_local_work_tail_offset, (cpu_scheduler_offset + scheduler_local_work_tail_offset)
 .equiv cpu_msix_entries_offset, 4096
 
+# Offsets of struct work_entry stuff.
+.equiv work_entry_args0_offset, 16
+.equiv work_entry_args1_offset, (work_entry_args0_offset + 8)
+
 .org 0
     jmp     _bsp_entry
 
@@ -475,7 +479,7 @@ _msix_entry_generic:
     movq    %gs:cpu_cpu_addr_offset, %rax # rax = cpu*
     push    %rcx
     add     %rax, %rbx          # rbx = msix_entry*
-    movq    24(%rbx), %rcx      # rcx = msix_entry->args[1]
+    movq    work_entry_args1_offset(%rbx), %rcx
     swapgs
     movl    $1, (%rcx)          # mask the vector
 
