@@ -35,6 +35,8 @@ namespace kernel
         uint64_t        texpiry;
         size_t          pos;
         uint64_t        args[3];
+
+        inline timer_entry():pos(-1) {}
     };
     KASSERT(sizeof(timer_entry) == 64);
 
@@ -77,6 +79,7 @@ namespace kernel
         {
             schedule_deferred_local_work(wqe,secs*100);
         }
+        void cancel_deferred_local_work(timer_entry* wqe);
 
         void workloop();
 
@@ -112,6 +115,13 @@ namespace kernel
     // of these is optional, you can define WQE objects anywhere.
     work_entry* alloc_wqe();
     void free_wqe(work_entry* wqe);
+}
+
+template<>
+inline void notify_moved<kernel::timer_entry*>(
+        kernel::timer_entry*& wqe, size_t new_pos)
+{
+    wqe->pos = new_pos;
 }
 
 #endif /* __KERNEL_SCHEDULE_H */

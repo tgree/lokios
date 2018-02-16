@@ -72,6 +72,7 @@ kernel::scheduler::schedule_deferred_local_work(timer_entry* wqe, uint64_t dt)
     {
         size_t slot = wqe->texpiry % kernel::nelems(wheel->slots);
         wheel->slots[slot].push_back(&wqe->link);
+        wqe->pos = -1;
     }
     else
         overflow_heap.insert(wqe);
