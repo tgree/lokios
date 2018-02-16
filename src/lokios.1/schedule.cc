@@ -79,6 +79,15 @@ kernel::scheduler::schedule_timer(timer_entry* wqe, uint64_t dt)
 }
 
 void
+kernel::scheduler::cancel_timer(timer_entry* wqe)
+{
+    if (wqe->link.nextu != KLINK_NOT_IN_USE)
+        wqe->link.unlink();
+    else
+        overflow_heap.remove(wqe->pos);
+}
+
+void
 kernel::scheduler::workloop()
 {
     cpu* c = get_current_cpu();

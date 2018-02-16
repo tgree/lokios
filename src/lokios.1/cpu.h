@@ -97,6 +97,11 @@ namespace kernel
             get_current_cpu()->scheduler.schedule_timer_sec(wqe,secs);
         }
 
+        static inline void cancel_timer(timer_entry* wqe)
+        {
+            get_current_cpu()->scheduler.cancel_timer(wqe);
+        }
+
         cpu(void (*entry_func)());
     };
     KASSERT(sizeof(cpu) < 65536);

@@ -79,7 +79,7 @@ namespace kernel
         {
             schedule_timer(wqe,secs*100);
         }
-        void cancel_deferred_local_work(timer_entry* wqe);
+        void cancel_timer(timer_entry* wqe);
 
         void workloop();
 
