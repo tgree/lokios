@@ -5,12 +5,24 @@
 #include "kernel/kassert.h"
 #include "functional.h"
 
+template<typename T>
+inline void notify_moved(T& t, size_t new_pos) {}
+
 template<typename RandomAccessIterator>
 inline void swap_contents(RandomAccessIterator p1, RandomAccessIterator p2)
 {
     auto t = *p1;
     *p1    = *p2;
     *p2    = t;
+}
+
+template<typename RandomAccessIterator>
+inline void swap_notifying(RandomAccessIterator begin, RandomAccessIterator p1,
+                           RandomAccessIterator p2)
+{
+    swap_contents(p1,p2);
+    notify_moved(*p1,p1-begin);
+    notify_moved(*p2,p2-begin);
 }
 
 namespace quick_sort
@@ -113,7 +125,7 @@ namespace heap_sort
             if (swap == pos)
                 return;
 
-            swap_contents(pos,swap);
+            swap_notifying(begin,pos,swap);
             pos = swap;
         }
     }
@@ -129,7 +141,7 @@ namespace heap_sort
             if (!cmp(*pos,*parent))
                 break;
 
-            swap_contents(pos,parent);
+            swap_notifying(begin,pos,parent);
             pos = parent;
         }
     }
@@ -141,6 +153,7 @@ namespace heap_sort
     {
         // Note: the value to be inserted has already been pushed to the back
         // of the container, so end points just past the newly-inserted value.
+        notify_moved(*(end-1),end-begin-1);
         sift_up(begin,end-1,cmp);
     }
 
@@ -154,7 +167,8 @@ namespace heap_sort
         // maintaining the heap property on rest of the nodes.  To actually
         // pop it you'll need to shrink the container by one element.
         kernel::kassert(begin != end);
-        swap_contents(pos,end-1);
+        swap_notifying(begin,pos,end-1);
+        notify_moved(*(end-1),-1);
         if (pos == begin || !cmp(*parent_iter(begin,pos),*pos))
             sift_down(begin,end-1,pos,cmp);
         else
@@ -207,7 +221,7 @@ namespace heap_sort
         auto pos = end - 1;
         while (pos != begin)
         {
-            swap_contents(begin,pos);
+            swap_notifying(begin,begin,pos);
             sift_down(begin,--pos,begin,cmp);
         }
     }
