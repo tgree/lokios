@@ -61,7 +61,7 @@ kernel::scheduler::schedule_remote_work(work_entry* wqe)
 }
 
 void
-kernel::scheduler::schedule_deferred_local_work(timer_entry* wqe, uint64_t dt)
+kernel::scheduler::schedule_timer(timer_entry* wqe, uint64_t dt)
 {
     // The currently-executing CPU is the local CPU and in non-interrupt
     // context.

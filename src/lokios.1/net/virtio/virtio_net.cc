@@ -103,7 +103,7 @@ virtio_net::dev::get_queue_notify_addr()
 void
 virtio_net::dev::arm_timer(uint64_t dt10ms)
 {
-    kernel::cpu::schedule_deferred_local_work(&timer_wqe,dt10ms);
+    kernel::cpu::schedule_timer(&timer_wqe,dt10ms);
 }
 
 void

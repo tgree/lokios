@@ -29,8 +29,7 @@ static uint64_t ticks = 0;
 static void
 kernel_ticker(kernel::timer_entry* wqe)
 {
-    kernel::get_current_cpu()->scheduler.
-        schedule_deferred_local_work(wqe,TICKER_10MS_TICKS);
+    kernel::get_current_cpu()->scheduler.schedule_timer(wqe,TICKER_10MS_TICKS);
     printf("Ticker: %lu ticks  Free pages: %zu\n",
            ++ticks,kernel::page_count_free());
 }
@@ -77,7 +76,7 @@ kernel_main(kernel::work_entry* wqe)
 
     // Set up a repeating ticker.
     one_sec_wqe.fn = kernel_ticker;
-    kernel::get_current_cpu()->scheduler.schedule_deferred_local_work(
+    kernel::get_current_cpu()->scheduler.schedule_timer(
             &one_sec_wqe,TICKER_10MS_TICKS);
 
     // If there is an 'iTST' ACPI table, this indicates we are running on qemu
