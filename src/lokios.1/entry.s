@@ -11,7 +11,7 @@
 .equiv cpu_msix_entries_offset, 4096
 
 # Offsets of struct work_entry stuff.
-.equiv work_entry_args0_offset, 24
+.equiv work_entry_args0_offset, 16
 .equiv work_entry_args1_offset, (work_entry_args0_offset + 8)
 
 .org 0

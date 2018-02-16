@@ -82,21 +82,21 @@ namespace kernel
             get_current_cpu()->scheduler.schedule_local_work(wqe);
         }
 
-        static inline void schedule_deferred_local_work(work_entry* wqe,
+        static inline void schedule_deferred_local_work(timer_entry* wqe,
                                                         uint64_t dt10ms)
         {
             get_current_cpu()->scheduler.schedule_deferred_local_work(wqe,
                                                                       dt10ms);
         }
 
-        static inline void schedule_deferred_local_work_ms(work_entry* wqe,
+        static inline void schedule_deferred_local_work_ms(timer_entry* wqe,
                                                            uint64_t dtms)
         {
             get_current_cpu()->scheduler.schedule_deferred_local_work_ms(wqe,
                                                                          dtms);
         }
 
-        static inline void schedule_deferred_local_work_sec(work_entry* wqe,
+        static inline void schedule_deferred_local_work_sec(timer_entry* wqe,
                                                             uint64_t secs)
         {
             get_current_cpu()->scheduler.schedule_deferred_local_work_sec(wqe,

@@ -24,10 +24,10 @@ kernel_hello(kernel::work_entry* wqe)
     printf("Hello from CPU%zu.\n",kernel::get_current_cpu()->cpu_number);
 }
 
-static kernel::work_entry one_sec_wqe;
+static kernel::timer_entry one_sec_wqe;
 static uint64_t ticks = 0;
 static void
-kernel_ticker(kernel::work_entry* wqe)
+kernel_ticker(kernel::timer_entry* wqe)
 {
     kernel::get_current_cpu()->scheduler.
         schedule_deferred_local_work(wqe,TICKER_10MS_TICKS);

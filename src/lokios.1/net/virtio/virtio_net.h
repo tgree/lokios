@@ -134,7 +134,7 @@ namespace virtio_net
         void*                       notify_cfg;
         uint32_t                    notify_offset_multiplier;
         eth::addr                   mac;
-        kernel::work_entry          timer_wqe;
+        kernel::timer_entry         timer_wqe;
         
         vqueue                      rq;
         vqueue                      tq;

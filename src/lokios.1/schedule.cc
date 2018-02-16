@@ -61,7 +61,7 @@ kernel::scheduler::schedule_remote_work(work_entry* wqe)
 }
 
 void
-kernel::scheduler::schedule_deferred_local_work(work_entry* wqe, uint64_t dt)
+kernel::scheduler::schedule_deferred_local_work(timer_entry* wqe, uint64_t dt)
 {
     // The currently-executing CPU is the local CPU and in non-interrupt
     // context.
@@ -87,6 +87,7 @@ kernel::scheduler::workloop()
     {
         // This list of work we are going to do this iteration.
         klist<work_entry> wq;
+        kdlist<timer_entry> tq;
 
         // Disable interrupts, check for work and then halt if there is no work
         // to do presently.
@@ -118,14 +119,14 @@ kernel::scheduler::workloop()
                 current_slot = 0;
                 tbase       += kernel::nelems(wheel->slots);
             }
-            wq.append(wheel->slots[current_slot]);
+            tq.append(wheel->slots[current_slot]);
         }
 
         // Pop any elements from the heap that have expired.
         while (!overflow_heap.empty() &&
                c->jiffies >= overflow_heap.front()->texpiry)
         {
-            wq.push_back(&overflow_heap.front()->link);
+            tq.push_back(&overflow_heap.front()->link);
             overflow_heap.pop_front();
         }
 
@@ -143,6 +144,14 @@ kernel::scheduler::workloop()
         {
             work_entry* wqe = klist_front(wq,link);
             wq.pop_front();
+            wqe->fn(wqe);
+        }
+
+        // Process all timers.
+        while (!tq.empty())
+        {
+            timer_entry* wqe = klist_front(tq,link);
+            tq.pop_front();
             wqe->fn(wqe);
         }
     }

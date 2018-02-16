@@ -13,6 +13,7 @@ namespace kernel
     struct tls_tcb;
     struct cpu;
     struct work_entry;
+    struct timer_entry;
 
     typedef void (*work_handler)(work_entry* wqe);
 
@@ -20,16 +21,27 @@ namespace kernel
     {
         klink           link;
         work_handler    fn;
-        uint64_t        texpiry;
-        uint64_t        args[5];
+        uint64_t        args[6];
     };
     KASSERT(sizeof(work_entry) == 64);
-    KASSERT(offsetof(work_entry,args) == 24);
+    KASSERT(offsetof(work_entry,args) == 16);
 
-    struct work_entry_expiry_less
+    typedef void (*timer_handler)(timer_entry* wqe);
+
+    struct timer_entry
     {
-        constexpr bool operator()(const work_entry* lhs,
-                                  const work_entry* rhs) const
+        kdlink          link;
+        timer_handler   fn;
+        uint64_t        texpiry;
+        size_t          pos;
+        uint64_t        args[3];
+    };
+    KASSERT(sizeof(timer_entry) == 64);
+
+    struct timer_entry_expiry_less
+    {
+        constexpr bool operator()(const timer_entry* lhs,
+                                  const timer_entry* rhs) const
         {
             return lhs->texpiry < rhs->texpiry;
         }
@@ -37,7 +49,7 @@ namespace kernel
 
     struct scheduler_table
     {
-        klist<work_entry>   slots[256];
+        kdlist<timer_entry> slots[256];
     };
     KASSERT(sizeof(scheduler_table) == PAGE_SIZE);
 
@@ -51,17 +63,17 @@ namespace kernel
         uint64_t                        tbase;
         size_t                          current_slot;
         scheduler_table*                wheel;
-        heap<vector<work_entry*>,
-             work_entry_expiry_less>    overflow_heap;
+        heap<vector<timer_entry*>,
+             timer_entry_expiry_less>   overflow_heap;
 
         void schedule_local_work(work_entry* wqe);
         void schedule_remote_work(work_entry* wqe);
-        void schedule_deferred_local_work(work_entry* wqe, uint64_t dt10ms);
-        void schedule_deferred_local_work_ms(work_entry* wqe, uint64_t dtms)
+        void schedule_deferred_local_work(timer_entry* wqe, uint64_t dt10ms);
+        void schedule_deferred_local_work_ms(timer_entry* wqe, uint64_t dtms)
         {
             schedule_deferred_local_work(wqe,(dtms+9)/10);
         }
-        void schedule_deferred_local_work_sec(work_entry* wqe, uint64_t secs)
+        void schedule_deferred_local_work_sec(timer_entry* wqe, uint64_t secs)
         {
             schedule_deferred_local_work(wqe,secs*100);
         }
@@ -77,10 +89,10 @@ namespace kernel
 
     // Delegation of work to a member function.  For this to work you must
     // populate wqe->args[0] with a T*.
-    template<typename T, void (T::*Handler)()>
+    template<typename T, void (T::*Handler)(), typename WQE>
     struct _work_delegate
     {
-        static void handler(kernel::work_entry* wqe)
+        static void handler(WQE* wqe)
         {
             (((T*)wqe->args[0])->*Handler)();
         }
@@ -88,7 +100,13 @@ namespace kernel
 #define work_delegate(fn) \
     kernel::_work_delegate< \
         std::remove_reference_t<decltype(*this)>, \
-        &std::remove_reference_t<decltype(*this)>::fn>::handler
+        &std::remove_reference_t<decltype(*this)>::fn, \
+        kernel::work_entry>::handler
+#define timer_delegate(fn) \
+    kernel::_work_delegate< \
+        std::remove_reference_t<decltype(*this)>, \
+        &std::remove_reference_t<decltype(*this)>::fn, \
+        kernel::timer_entry>::handler
 
     // These will allocate/free WQEs off a locked, shared internal slab.  Use
     // of these is optional, you can define WQE objects anywhere.

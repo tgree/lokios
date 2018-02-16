@@ -29,7 +29,7 @@ virtio_net::dev::dev(const kernel::pci::dev* pd,
         cq(2)
 {
     // Set up the timer wqe.
-    timer_wqe.fn      = work_delegate(handle_timer);
+    timer_wqe.fn      = timer_delegate(handle_timer);
     timer_wqe.args[0] = (uintptr_t)this;
 
     // Populate register pointers.
