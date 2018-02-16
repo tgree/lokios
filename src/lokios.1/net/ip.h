@@ -52,7 +52,7 @@ namespace ipv4
 
     static inline uint16_t csum(header* h)
     {
-        size_t nwords     = (h->version_ihl & 0x0F);
+        size_t nwords     = (h->version_ihl & 0x0F)*2;
         uint32_t s        = 0;
         const uint16_t* p = (const uint16_t*)h;
         for (size_t i=0; i<nwords; ++i)
