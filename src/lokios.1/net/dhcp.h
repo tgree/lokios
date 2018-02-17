@@ -1,31 +1,12 @@
 #ifndef __KERNEL_NET_DHCP_H
 #define __KERNEL_NET_DHCP_H
 
+#include "dhcp_option.h"
 #include "eth.h"
-#include "ip.h"
 #include "udp.h"
 
 namespace dhcp
 {
-    enum message_type
-    {
-        DHCP_DISCOVER   = 1,
-        DHCP_OFFER      = 2,
-        DHCP_REQUEST    = 3,
-        DHCP_DECLINE    = 4,
-        DHCP_ACK        = 5,
-        DHCP_NAK        = 6,
-        DHCP_RELEASE    = 7,
-        DHCP_INFORM     = 8,
-    };
-
-    struct option
-    {
-        uint8_t tag;
-        uint8_t len;
-        uint8_t data[];
-    };
-
 #define DHCP_OPTIONS_MAGIC  0x63825363
     struct message
     {
@@ -59,8 +40,22 @@ namespace dhcp
                                const ipv4::addr& server_id);
 
         const option* find_option(uint8_t tag) const;
-        void    append_option(uint8_t tag, uint8_t len, const void* data);
+        template<typename O>
+        auto get_option() const
+        {
+            auto* o = find_option(O::tag);
+            if (!o)
+                throw missing_option_exception(O::tag,typeid(O).name());
+            return O().parse_option(o);
+        }
+        template<typename O>
+        auto get_option(decltype(O().parse_option((option*)0)) d) const
+        {
+            auto* o = find_option(O::tag);
+            return (o ? O().parse_option(o) : d);
+        }
 
+        void append_option(uint8_t tag, uint8_t len, const void* data);
         inline void append_message_type(message_type type)
         {
             uint8_t opt[1] = {type};
