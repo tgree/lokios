@@ -37,7 +37,8 @@ namespace dhcp
         void    format_discover(uint32_t xid, const eth::addr& src_mac);
         void    format_request(uint32_t xid, const eth::addr& src_mac,
                                const ipv4::addr& req_addr,
-                               const ipv4::addr& server_id);
+                               const ipv4::addr& server_id,
+                               const ipv4::addr& ci_addr = ipv4::addr{0,0,0,0});
 
         const option* find_option(uint8_t tag) const;
         template<typename O>

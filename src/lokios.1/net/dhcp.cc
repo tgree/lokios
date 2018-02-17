@@ -26,7 +26,8 @@ dhcp::message::format_discover(uint32_t _xid, const eth::addr& src_mac)
 
 void
 dhcp::message::format_request(uint32_t _xid, const eth::addr& src_mac,
-    const ipv4::addr& req_addr, const ipv4::addr& server_id)
+    const ipv4::addr& req_addr, const ipv4::addr& server_id,
+    const ipv4::addr& ci_addr)
 {
     op                  = 1;
     htype               = 1;
@@ -35,7 +36,7 @@ dhcp::message::format_request(uint32_t _xid, const eth::addr& src_mac,
     xid                 = _xid;
     secs                = 0;
     flags               = 0x8000;
-    ciaddr              = ipv4::addr{0,0,0,0};
+    ciaddr              = ci_addr;
     yiaddr              = ipv4::addr{0,0,0,0};
     siaddr              = ipv4::addr{0,0,0,0};
     giaddr              = ipv4::addr{0,0,0,0};
