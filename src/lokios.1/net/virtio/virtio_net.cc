@@ -203,7 +203,7 @@ virtio_net::dev::post_rx_pages(kernel::klist<eth::rx_page>& pages)
         d->flags         = VIRTQ_DESC_F_WRITE;
 
         // Post it to the queue.
-        rq.avail_ring->ring[rq.avail_ring->idx & rq.size_mask] = dhead;
+        rq.avail_ring->ring[(rq.avail_ring->idx+count) & rq.size_mask] = dhead;
         ++count;
     }
 
