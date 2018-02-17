@@ -89,6 +89,20 @@ namespace kernel
                                                                       dt10ms);
         }
 
+        static inline void schedule_deferred_local_work_ms(work_entry* wqe,
+                                                           uint64_t dtms)
+        {
+            get_current_cpu()->scheduler.schedule_deferred_local_work_ms(wqe,
+                                                                         dtms);
+        }
+
+        static inline void schedule_deferred_local_work_sec(work_entry* wqe,
+                                                            uint64_t secs)
+        {
+            get_current_cpu()->scheduler.schedule_deferred_local_work_sec(wqe,
+                                                                          secs);
+        }
+
         cpu(void (*entry_func)());
     };
     KASSERT(sizeof(cpu) < 65536);

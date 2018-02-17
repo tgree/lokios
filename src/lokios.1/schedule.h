@@ -57,6 +57,14 @@ namespace kernel
         void schedule_local_work(work_entry* wqe);
         void schedule_remote_work(work_entry* wqe);
         void schedule_deferred_local_work(work_entry* wqe, uint64_t dt10ms);
+        void schedule_deferred_local_work_ms(work_entry* wqe, uint64_t dtms)
+        {
+            schedule_deferred_local_work(wqe,(dtms+9)/10);
+        }
+        void schedule_deferred_local_work_sec(work_entry* wqe, uint64_t secs)
+        {
+            schedule_deferred_local_work(wqe,secs*100);
+        }
 
         void workloop();
 
