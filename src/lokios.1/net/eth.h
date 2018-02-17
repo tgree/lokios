@@ -36,6 +36,10 @@ namespace eth
                lhs.v[4] == rhs.v[4] &&
                lhs.v[5] == rhs.v[5];
     }
+    constexpr bool operator!=(const addr& lhs, const addr& rhs)
+    {
+        return !(lhs == rhs);
+    }
 
     constexpr const addr broadcast_addr{0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 
