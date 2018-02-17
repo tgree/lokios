@@ -9,6 +9,11 @@
 #include <stdint.h>
 #include <stddef.h>
 
+namespace dhcp
+{
+    struct client;
+}
+
 namespace eth
 {
     // MAC address.
@@ -82,22 +87,6 @@ namespace eth
     // Ethernet interface.
     struct interface
     {
-        // State.
-        enum
-        {
-            EI_STATE_WAIT_ACTIVATE,
-
-            EI_STATE_WAIT_DHCP_DISCOVER_RESP_COMP,
-            EI_STATE_WAIT_DHCP_DISCOVER_RESP,
-            EI_STATE_WAIT_DHCP_DISCOVER_COMP,
-
-            EI_STATE_WAIT_DHCP_REQUEST_RESP_COMP,
-            EI_STATE_WAIT_DHCP_REQUEST_RESP,
-            EI_STATE_WAIT_DHCP_REQUEST_COMP,
-
-            EI_STATE_READY,
-        } state;
-
         // MAC address that was assigned by hardware.
         const eth::addr     hw_mac;
 
@@ -107,29 +96,14 @@ namespace eth
         // Size of the hardware transmit and receive queues.
         const size_t        tx_qlen;
         const size_t        rx_qlen;
+        size_t              rx_posted_count;
 
-        // Timer for the state machine.
-        kernel::work_entry      timer_wqe;
-        kernel::page_raii       dhcp_tx_page;
-        ipv4::addr              dhcp_offer_addr;
-        ipv4::addr              dhcp_server_id;
-        ipv4::addr              dhcp_ack_addr;
-        ipv4::addr              dhcp_ack_subnet_mask;
-        ipv4::addr              dhcp_ack_gw_addr;
-        ipv4::addr              dhcp_ack_dns_addr;
-        eth::tx_op              dhcp_op;
-        uint32_t                dhcp_xid;
-        kernel::klist<rx_page>  free_pages;
+        // DHCP client service.
+        dhcp::client*           dhcpc;
 
         // Activate the interface.
                 void    activate();
-                void    handle_dhcp_send_comp();
-                void    handle_dhcp_recv_comp(rx_page* p);
-                void    handle_dhcp_offer_recv_comp(rx_page* p);
-                void    handle_dhcp_ack_recv_comp(rx_page* p);
-                void    handle_dhcp_nak_recv_comp(rx_page* p);
-                void    handle_dhcp_discover_complete();
-                void    handle_dhcp_request_complete();
+                void    refill_rx_pages();
 
         // Transmit a frame.
         virtual void    post_tx_frame(tx_op* op) = 0;
@@ -139,15 +113,15 @@ namespace eth
         // efficiently.
         virtual void    post_rx_pages(kernel::klist<rx_page>& pages) = 0;
 
+        // Handle DHCP status updates.
+                void    handle_dhcp_success();
+                void    handle_dhcp_failure();
+
         // Handle send and receive completions.
                 void    handle_tx_completion(eth::tx_op* op);
                 void    handle_rx_pages(kernel::klist<rx_page>& pages);
                 void    handle_rx_ipv4_frame(rx_page* p);
                 void    handle_rx_ipv4_udp_frame(rx_page* p);
-
-        // Issue different types of packet.
-                void    issue_dhcp_discover(tx_op* op);
-                void    issue_dhcp_request(tx_op* op);
 
         interface(const eth::addr& hw_mac, size_t tx_qlen, size_t rx_qlen);
         virtual ~interface();
