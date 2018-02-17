@@ -43,6 +43,7 @@ dhcp::message::format_request(uint32_t _xid, const eth::addr& src_mac,
 
     magic = DHCP_OPTIONS_MAGIC;
     options[0] = 0xFF;
+    memset(options+1,0,sizeof(options)-1);
 
     append_message_type(DHCP_REQUEST);
     append_requested_ip(req_addr);
