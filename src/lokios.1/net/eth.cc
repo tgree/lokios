@@ -93,7 +93,7 @@ eth::interface::handle_dhcp_send_comp()
 void
 eth::interface::handle_dhcp_offer_recv_comp(rx_page* p)
 {
-    auto* disc = (dhcp::full_message<eth::header>*)(p->payload + p->eth_offset);
+    auto* disc = (dhcp::eth_message*)(p->payload + p->eth_offset);
 
     auto* server_opt = disc->msg.find_option(54);
     if (!server_opt)
@@ -127,7 +127,7 @@ eth::interface::handle_dhcp_offer_recv_comp(rx_page* p)
 void
 eth::interface::handle_dhcp_ack_recv_comp(rx_page* p)
 {
-    auto* disc = (dhcp::full_message<eth::header>*)(p->payload + p->eth_offset);
+    auto* disc = (dhcp::eth_message*)(p->payload + p->eth_offset);
 
     auto* sn_option  = disc->msg.find_option(1);
     auto* gw_option  = disc->msg.find_option(3);
@@ -180,7 +180,7 @@ eth::interface::handle_dhcp_nak_recv_comp(rx_page* p)
 void
 eth::interface::handle_dhcp_recv_comp(rx_page* p)
 {
-    auto* disc = (dhcp::full_message<eth::header>*)(p->payload + p->eth_offset);
+    auto* disc = (dhcp::eth_message*)(p->payload + p->eth_offset);
 
     auto* type_opt = disc->msg.find_option(53);
     if (disc->msg.xid != dhcp_xid || !type_opt || type_opt->len != 1)
@@ -330,7 +330,7 @@ eth::interface::handle_rx_ipv4_udp_frame(rx_page* p)
 void
 eth::interface::issue_dhcp_discover(tx_op* op)
 {
-    auto* disc = (dhcp::full_message<eth::header>*)dhcp_tx_page.addr;
+    auto* disc = (dhcp::eth_message*)dhcp_tx_page.addr;
     disc->llhdr.dst_mac           = eth::broadcast_addr;
     disc->llhdr.src_mac           = hw_mac;
     disc->llhdr.ethertype         = 0x0800;
@@ -361,7 +361,7 @@ eth::interface::issue_dhcp_discover(tx_op* op)
 void
 eth::interface::issue_dhcp_request(tx_op* op)
 {
-    auto* disc = (dhcp::full_message<eth::header>*)dhcp_tx_page.addr;
+    auto* disc = (dhcp::eth_message*)dhcp_tx_page.addr;
     disc->llhdr.dst_mac           = eth::broadcast_addr;
     disc->llhdr.src_mac           = hw_mac;
     disc->llhdr.ethertype         = 0x0800;

@@ -76,7 +76,7 @@ namespace dhcp
     KASSERT(sizeof(message) == 548);
 
     template<typename LLHeader>
-    struct full_message
+    struct layer2_message
     {
         typedef typename LLHeader::addr_type lladdr;
 
@@ -85,9 +85,10 @@ namespace dhcp
         udp::header     uhdr;
         dhcp::message   msg;
     } __PACKED__;
-    KASSERT(sizeof(dhcp::full_message<eth::header>) ==
-            548 + sizeof(eth::header) + sizeof(ipv4::header) +
-            sizeof(udp::header));
+    typedef layer2_message<eth::header> eth_message;
+    KASSERT(sizeof(dhcp::eth_message) ==
+            sizeof(eth::header) + sizeof(ipv4::header) +
+            sizeof(udp::header) + sizeof(dhcp::message));
 }
 
 #endif /* __KERNEL_NET_DHCP_H */
