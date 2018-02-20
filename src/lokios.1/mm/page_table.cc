@@ -3,8 +3,7 @@
 
 kernel::page_table::page_table()
 {
-    cr3 = (uint64_t*)page_alloc();
-    memset(cr3,0,PAGE_SIZE);
+    cr3 = (uint64_t*)page_zalloc();
 }
 
 kernel::page_table::~page_table()
@@ -25,8 +24,7 @@ kernel::page_table::alloc_pte(uint64_t* entries, uint64_t vaddr, size_t level,
 
     if (!(*pte & PAGE_FLAG_PRESENT))
     {
-        uint64_t child = (uint64_t)page_alloc();
-        memset((void*)child,0,PAGE_SIZE);
+        uint64_t child = (uint64_t)page_zalloc();
         *pte = ((depth << 60)     |
                 child             |
                 PAGE_FLAG_PRESENT |
