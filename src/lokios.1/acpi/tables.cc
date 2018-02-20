@@ -28,8 +28,8 @@ static const kernel::sdt_header*
 pmap_sdt(uint64_t paddr)
 {
     auto* h = (const kernel::sdt_header*)kernel::pmap_range(
-                paddr,sizeof(kernel::sdt_header));
-    kernel::pmap_range(paddr,h->length);
+                paddr,sizeof(kernel::sdt_header),PAGE_FLAGS_DATA_RO);
+    kernel::pmap_range(paddr,h->length,PAGE_FLAGS_DATA_RO);
     return h;
 }
 
