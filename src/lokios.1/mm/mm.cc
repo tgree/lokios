@@ -54,3 +54,19 @@ kernel::pmap_range(dma_addr64 paddr, size_t len, uint64_t flags)
         pmap(p,flags);
     return vaddr;
 }
+
+dma_addr64
+kernel::virt_to_phys(void* v)
+{
+    kassert(v != NULL);
+    kassert(((uintptr_t)v & 0xFFFF800000000000UL) == 0xFFFF800000000000UL);
+    return (dma_addr64)v & ~0xFFFF800000000000UL;
+}
+
+void*
+kernel::phys_to_virt(dma_addr64 p)
+{
+    kassert(p != 0);
+    kassert((p & 0xFFFF800000000000UL) == 0);
+    return (void*)(0xFFFF800000000000UL | p);
+}
