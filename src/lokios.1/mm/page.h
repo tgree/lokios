@@ -21,12 +21,6 @@ namespace kernel
 #define GPAGE_OFFSET_MASK   (GPAGE_SIZE-1)
 #define GPAGE_PFN_MASK      ~GPAGE_OFFSET_MASK
 
-    struct page
-    {
-        klink   link;
-        char    data[];
-    };
-
     void* page_alloc();
     inline void* page_zalloc()
     {

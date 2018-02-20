@@ -4,8 +4,15 @@
 #include "k++/vector.h"
 #include <new>
 
-static kernel::spinlock            free_page_lock;
-static kernel::klist<kernel::page> free_page_list;
+struct page
+{
+    kernel::klink   link;
+    char            data[4084];
+};
+KASSERT(sizeof(page) == PAGE_SIZE);
+
+static kernel::spinlock     free_page_lock;
+static kernel::klist<page>  free_page_list;
 
 void*
 kernel::page_alloc()
@@ -37,7 +44,7 @@ kernel::page_free(void* _p)
 // Given a list of regions in some container, add them to the free page list.
 template<typename C>
 static void
-populate_pages(const C& c, kernel::klist<kernel::page>& fpl)
+populate_pages(const C& c, kernel::klist<page>& fpl)
 {
     for (const kernel::region& r : c)
     {
@@ -56,7 +63,7 @@ populate_pages(const C& c, kernel::klist<kernel::page>& fpl)
         {
             void* _p = (void*)(pfn*PAGE_SIZE);
             kernel::kassert(((uintptr_t)_p & PAGE_OFFSET_MASK) == 0);
-            kernel::page* p = new(_p) kernel::page;
+            page* p = new(_p) page;
             fpl.push_back(&p->link);
         }
     }
