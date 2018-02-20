@@ -13,10 +13,11 @@
 #include "page_flags.h"
 #include "kernel/types.h"
 #include "kernel/thread.h"
-#include "kernel/cpu.h"
 
 namespace kernel
 {
+    struct cpu;
+
     struct dma_alp
     {
         dma_addr64  paddr;

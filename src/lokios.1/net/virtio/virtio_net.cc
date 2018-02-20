@@ -11,6 +11,7 @@
  */
 #include "virtio_net.h"
 #include "virtio_interface.h"
+#include "kernel/cpu.h"
 #include "kernel/console.h"
 #include "../eth.h"
 #include "../udp.h"

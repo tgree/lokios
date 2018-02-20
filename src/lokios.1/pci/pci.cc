@@ -1,6 +1,7 @@
 #include "pci.h"
 #include "iocfg.h"
 #include "mcfg.h"
+#include "../cpu.h"
 #include "acpi/tables.h"
 #include "mm/mm.h"
 #include "k++/sort.h"

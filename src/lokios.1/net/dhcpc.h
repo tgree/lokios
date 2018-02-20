@@ -3,6 +3,7 @@
 
 #include "eth.h"
 #include "dhcp.h"
+#include "../schedule.h"
 
 namespace dhcp
 {

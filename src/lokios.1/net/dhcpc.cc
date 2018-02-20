@@ -1,5 +1,6 @@
 #include "dhcpc.h"
 #include "kernel/console.h"
+#include "kernel/cpu.h"
 
 using kernel::_kassert;
 using kernel::console::printf;
