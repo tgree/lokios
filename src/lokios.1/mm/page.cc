@@ -42,6 +42,15 @@ kernel::page_free(void* _p)
     }
 }
 
+size_t
+kernel::page_count_free()
+{
+    with (free_page_lock)
+    {
+        return free_page_list.size();
+    }
+}
+
 // Given a list of regions in some container, add them to the free page list.
 template<typename C>
 static void
@@ -137,13 +146,4 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr)
 
     // Finally, move the page list onto the free page list global.
     free_page_list.append(page_list);
-}
-
-size_t
-kernel::page_count_free()
-{
-    with (free_page_lock)
-    {
-        return free_page_list.size();
-    }
 }
