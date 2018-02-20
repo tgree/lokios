@@ -2,7 +2,7 @@
 #define __KERNEL_X86_H
 
 #include "hdr/compiler.h"
-#include "kernel/kassert.h"
+#include "kernel/types.h"
 
 static inline uint64_t mfcr2()
 {
@@ -11,14 +11,14 @@ static inline uint64_t mfcr2()
     return rc;
 }
 
-static inline uint64_t mfcr3()
+static inline dma_addr64 mfcr3()
 {
     uint64_t rc;
     asm ("mov %%cr3, %0" : "=r"(rc));
     return rc;
 }
 
-static inline void mtcr3(uint64_t val)
+static inline void mtcr3(dma_addr64 val)
 {
     asm ("mov %0, %%cr3" : : "r"(val));
 }
