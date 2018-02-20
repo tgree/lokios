@@ -39,7 +39,6 @@ struct pte_check
 template<size_t N>
 static void check_ptes(uint64_t* cr3, const pte_check (&positions)[N])
 {
-
     for (const pte_check& pos : positions)
     {
         uint64_t* page = cr3;
@@ -263,6 +262,25 @@ class tmock_test
                 {4,0x0000000000001000,0xFFFFFFFFFFFFFFFF,0x300000FFFFFFF081UL},
             };
             check_ptes(pt.cr3,ptes);
+        }
+        TASSERT(page_alloc_count == 4);
+        TASSERT(page_free_count == 4);
+    }
+
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_high_mapping_iterator_works)
+    {
+        {
+            kernel::page_table pt;
+            pt.map_4k_page((void*)0xFFFF800000000000,0x1000,
+                           PAGE_FLAG_WRITEABLE);
+            size_t count = 0;
+            for (auto pte : kernel::page_table_leaf_iterator(pt.cr3))
+            {
+                ++count;
+                TASSERT(pte.vaddr == (void*)0xFFFF800000000000);
+                TASSERT(pte.get_paddr() == 0x1000);
+            }
+            TASSERT(count == 1);
         }
         TASSERT(page_alloc_count == 4);
         TASSERT(page_free_count == 4);
