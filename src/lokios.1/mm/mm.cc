@@ -15,7 +15,7 @@ kernel::init_mm(const e820_map* m)
 {
     // Walk the page tables to find the last mapped address.
     uintptr_t top_addr = 0;
-    for (const auto pte : page_table_leaf_iterator((uint64_t*)mfcr3()))
+    for (const auto pte : page_table_leaf_iterator(mfcr3()))
         top_addr = pte.get_paddr() + pte.get_len();
     printf("End of mapped RAM: 0x%016lX\n",top_addr);
 
@@ -31,8 +31,8 @@ kernel::init_mm(const e820_map* m)
            ((uint64_t)get_sbrk_limit() - (uint64_t)sbrk(0))/1024);
 
     // Set up the zero/trash pages.
-    zero_page_dma  = (dma_addr64)page_zalloc();
-    trash_page_dma = (dma_addr64)page_zalloc();
+    zero_page_dma  = virt_to_phys(page_zalloc());
+    trash_page_dma = virt_to_phys(page_zalloc());
 }
 
 void*

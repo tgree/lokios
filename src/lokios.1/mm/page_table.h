@@ -2,7 +2,7 @@
 #define __KERNEL_PAGE_TABLE_H
 
 #include "page.h"
-#include "page_flags.h"
+#include "mm.h"
 #include "kernel/x86.h"
 
 class tmock_test;
@@ -20,7 +20,7 @@ namespace kernel
 
     public:
         // Activate the table.
-        inline void activate() const {mtcr3((uint64_t)cr3);}
+        inline void activate() const {mtcr3(virt_to_phys(cr3));}
 
         // Map pages if you only know the size dynamically.
         void map_page(void* vaddr, uint64_t paddr, size_t size, uint64_t flags);
@@ -123,6 +123,9 @@ namespace kernel
     {
         page_table_leaf_iterator(uint64_t* cr3):
             page_table_iterator(cr3,PAGE_FLAG_USER_PAGE,PAGE_FLAG_USER_PAGE) {}
+        page_table_leaf_iterator(dma_addr64 cr3):
+            page_table_iterator((uint64_t*)phys_to_virt(cr3),
+                                PAGE_FLAG_USER_PAGE,PAGE_FLAG_USER_PAGE) {}
     };
 
     // This iterator iterates over all of the populated internal nodes in the

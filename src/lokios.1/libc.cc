@@ -42,7 +42,7 @@ void* realloc(void* ptr, size_t size)
     }
 
     // If this was allocated on a page, well we have 4K of space already...
-    kernel::kassert((dma_addr64)ptr >= kernel::get_sbrk());
+    kernel::kassert(ptr >= kernel::phys_to_virt(kernel::get_sbrk()));
     kernel::kassert(size <= PAGE_SIZE);
     return ptr;
 }
@@ -50,7 +50,7 @@ void* realloc(void* ptr, size_t size)
 extern "C"
 void free(void* p) noexcept
 {
-    kernel::kassert((dma_addr64)p >= kernel::get_sbrk());
+    kernel::kassert(p >= kernel::phys_to_virt(kernel::get_sbrk()));
     kernel::page_free(p);
 }
 

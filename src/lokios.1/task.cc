@@ -1,4 +1,5 @@
 #include "task.h"
+#include "mm/mm.h"
 
 kernel::task* kernel::kernel_task;
 
@@ -19,6 +20,6 @@ kernel::init_kernel_task()
     kernel_task = new task;
 
     // Clone the bootloader memory map.
-    for (auto e : kernel::page_table_leaf_iterator((uint64_t*)mfcr3()))
+    for (auto e : kernel::page_table_leaf_iterator(mfcr3()))
         kernel_task->pt.map_page(e.vaddr,e.get_paddr(),e.get_len(),e.pte);
 }

@@ -91,10 +91,11 @@ kernel::thread::operator new(size_t size)
     for (size_t i=0; i<sizeof(tm->stack)/PAGE_SIZE; ++i)
     {
         kernel_task->pt.map_4k_page(tm->stack + i*PAGE_SIZE,
-                                    (uint64_t)page_alloc(),
+                                    virt_to_phys(page_alloc()),
                                     PAGE_FLAGS_DATA);
     }
-    kernel_task->pt.map_4k_page(tm->tls,(uint64_t)page_alloc(),PAGE_FLAGS_DATA);
+    kernel_task->pt.map_4k_page(tm->tls,virt_to_phys(page_alloc()),
+                                PAGE_FLAGS_DATA);
     return tm;
 }
 

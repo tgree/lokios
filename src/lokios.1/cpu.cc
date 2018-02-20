@@ -44,7 +44,7 @@ kernel::cpu::cpu(void (*entry_func)()):
     memset(&tss,0,sizeof(tss));
     tss.iomap_base = sizeof(tss);
     for (size_t i=1; i<nelems(tss.ist); ++i)
-        tss.ist[i] = (uint64_t)page_zalloc() + PAGE_SIZE - 32;
+        tss.ist[i] = virt_to_phys(page_zalloc()) + PAGE_SIZE - 32;
 
     // Initialize the IDT.
     memset(&idt,0,sizeof(idt));
@@ -82,7 +82,7 @@ kernel::cpu::operator new(size_t size)
     for (size_t i=0; i<size/PAGE_SIZE; ++i)
     {
         kernel_task->pt.map_4k_page(region + i*PAGE_SIZE,
-                                    (uint64_t)page_alloc(),
+                                    virt_to_phys(page_alloc()),
                                     PAGE_FLAGS_DATA);
     }
     return region;

@@ -19,6 +19,8 @@
 
 using kernel::console::printf;
 using kernel::_kassert;
+using kernel::virt_to_phys;
+using kernel::phys_to_virt;
 
 virtio_net::dev::dev(const kernel::pci::dev* pd,
     const virtio_net::driver* owner):
@@ -129,14 +131,14 @@ virtio_net::dev::issue_set_mac_address()
 
     // First descriptor contains the set_mac_addr_cmd address.
     descriptor* d = &cq.descriptors[dhead];
-    d->addr       = (dma_addr64)cmd;
+    d->addr       = kernel::virt_to_phys(cmd);
     d->len        = sizeof(*cmd) - 1;
     kassert(d->flags & VIRTQ_DESC_F_NEXT);
     d->flags      = VIRTQ_DESC_F_NEXT;
 
     // Second descriptor is the ack byte that comes back from the device.
     d             = &cq.descriptors[d->next];
-    d->addr       = (dma_addr64)&cmd->ack;
+    d->addr       = kernel::virt_to_phys((void*)&cmd->ack);
     d->len        = 1;
     kassert(!(d->flags & VIRTQ_DESC_F_NEXT));
     d->flags = VIRTQ_DESC_F_WRITE;
@@ -167,7 +169,7 @@ virtio_net::dev::post_tx_frame(eth::tx_op* op)
         kassert(d->flags & VIRTQ_DESC_F_NEXT);
         d->flags = VIRTQ_DESC_F_NEXT;
         d        = &tq.descriptors[d->next];
-        d->addr  = (dma_addr64)op->alps[i].paddr;
+        d->addr  = op->alps[i].paddr;
         d->len   = op->alps[i].len;
     }
 
@@ -199,7 +201,7 @@ virtio_net::dev::post_rx_pages(kernel::klist<eth::rx_page>& pages)
 
         // Fill it out.
         descriptor* d    = &rq.descriptors[dhead];
-        d->addr          = (dma_addr64)p->payload;
+        d->addr          = kernel::virt_to_phys(p->payload);
         d->len           = sizeof(p->payload);
         d->flags         = VIRTQ_DESC_F_WRITE;
 
@@ -276,9 +278,9 @@ virtio_net::dev::handle_timer()
                 vq->init(common_cfg->queue_size,get_queue_notify_addr());
                 kassert(vq->get_free_descriptor_count() == vq->size);
                 common_cfg->queue_msix_vector = vq->index;
-                common_cfg->queue_desc        = (uint64_t)vq->descriptors;
-                common_cfg->queue_avail       = (uint64_t)vq->avail_ring;
-                common_cfg->queue_used        = (uint64_t)vq->used_ring;
+                common_cfg->queue_desc        = virt_to_phys(vq->descriptors);
+                common_cfg->queue_avail       = virt_to_phys(vq->avail_ring);
+                common_cfg->queue_used        = virt_to_phys(vq->used_ring);
                 common_cfg->queue_enable      = 1;
             }
             
@@ -320,7 +322,8 @@ virtio_net::dev::handle_rq_dsr()
                ue->id,ue->len);
 
         auto* d       = &rq.descriptors[ue->id];
-        auto* p       = container_of((uint8_t*)d->addr,eth::rx_page,payload[0]);
+        auto* p       = container_of((uint8_t*)phys_to_virt(d->addr),
+                                     eth::rx_page,payload[0]);
         p->eth_len    = ue->len - sizeof(net_hdr);
         p->eth_offset = sizeof(net_hdr);
         pages.push_back(&p->link);
@@ -372,8 +375,8 @@ virtio_net::dev::handle_cq_completion(uint16_t index)
     {
         case VN_STATE_WAIT_SET_MAC_COMP:
         {
-            auto* cmd =
-                (virtio_net::set_mac_addr_cmd*)cq.descriptors[index].addr;
+            auto* cmd = (virtio_net::set_mac_addr_cmd*)
+                phys_to_virt(cq.descriptors[index].addr);
             kassert(cmd->ack == 0);
             kassert(cq.used_ring->idx == 1);
             printf("virtio_net: set mac address completed\n");

@@ -1,4 +1,5 @@
 #include "../page_table.h"
+#include "../mm.h"
 #include <tmock/tmock.h>
 #include <hdr/compiler.h>
 #include <string.h>
@@ -26,6 +27,18 @@ kernel::page_free(void* p)
 {
     ++page_free_count;
     free(p);
+}
+
+dma_addr64
+kernel::virt_to_phys(void* v)
+{
+    return (dma_addr64)v;
+}
+
+void*
+kernel::phys_to_virt(dma_addr64 p)
+{
+    return (void*)p;
 }
 
 struct pte_check

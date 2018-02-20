@@ -1,4 +1,5 @@
 #include "page_table.h"
+#include "mm.h"
 #include <string.h>
 
 kernel::page_table::page_table()
@@ -9,7 +10,7 @@ kernel::page_table::page_table()
 kernel::page_table::~page_table()
 {
     for (auto pte : page_table_nonleaf_iterator(cr3))
-        page_free((void*)(pte.pte & PAGE_PADDR_MASK));
+        page_free(phys_to_virt(pte.pte & PAGE_PADDR_MASK));
     page_free(cr3);
 }
 
@@ -24,15 +25,15 @@ kernel::page_table::alloc_pte(uint64_t* entries, uint64_t vaddr, size_t level,
 
     if (!(*pte & PAGE_FLAG_PRESENT))
     {
-        uint64_t child = (uint64_t)page_zalloc();
-        *pte = ((depth << 60)     |
-                child             |
-                PAGE_FLAG_PRESENT |
+        auto child = page_zalloc();
+        *pte = ((depth << 60)       |
+                virt_to_phys(child) |
+                PAGE_FLAG_PRESENT   |
                 PAGE_FLAG_WRITEABLE);
     }
 
-    return alloc_pte((uint64_t*)(*pte & PAGE_PADDR_MASK),vaddr << 9,level-1,
-                     depth+1);
+    return alloc_pte((uint64_t*)phys_to_virt(*pte & PAGE_PADDR_MASK),vaddr << 9,
+                     level-1,depth+1);
 }
 
 void
@@ -113,7 +114,8 @@ kernel::page_table_iterator::operator++()
             // This entry maps a child node in the tree.  Recurse into it; we'll
             // yield this current node after finishing the children.
             kassert(++level < nelems(stack));
-            stack[level].entries = (uint64_t*)(pte & PAGE_PADDR_MASK);
+            stack[level].entries =
+                (uint64_t*)phys_to_virt(pte & PAGE_PADDR_MASK);
             stack[level].index   = -1;
             continue;
         }

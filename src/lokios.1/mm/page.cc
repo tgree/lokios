@@ -62,7 +62,7 @@ populate_pages(const C& c, kernel::klist<page>& fpl)
         uint64_t end_pfn   = end/PAGE_SIZE;
         for (size_t pfn = begin_pfn; pfn != end_pfn; ++pfn)
         {
-            void* _p = (void*)(pfn*PAGE_SIZE);
+            void* _p = kernel::phys_to_virt(pfn*PAGE_SIZE);
             kernel::kassert(((uintptr_t)_p & PAGE_OFFSET_MASK) == 0);
             page* p = new(_p) page;
             fpl.push_back(&p->link);
