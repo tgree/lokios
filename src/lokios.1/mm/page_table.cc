@@ -58,11 +58,7 @@ kernel::page_table::map_page(void* _vaddr, uint64_t paddr, uint64_t flags,
         return;
     }
 
-    *pte = ((level << 60)             |
-            paddr                     |
-            (flags & PAGE_USER_FLAGS) |
-            PAGE_FLAG_USER_PAGE       |
-            PAGE_FLAG_PRESENT);
+    *pte = val;
 }
 
 void
