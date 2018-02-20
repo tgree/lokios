@@ -1,4 +1,5 @@
 #include "page.h"
+#include "mm.h"
 #include "sbrk.h"
 #include "../spinlock.h"
 #include "k++/vector.h"
@@ -73,14 +74,14 @@ void
 kernel::page_preinit(const e820_map* m, uint64_t top_addr)
 {
     // Find the initial sbrk position.
-    void* initial_sbrk = sbrk(0);
+    dma_addr64 initial_sbrk = sbrk(0);
 
     // Leave at least 1M of space in sbrk for early libsupc++ malloc() calls.
     // We round this up to a 2M hugepage boundary.
-    uintptr_t sbrk_limit = (uintptr_t)initial_sbrk + 1024*1024;
+    dma_addr64 sbrk_limit = initial_sbrk + 1024*1024;
     sbrk_limit = (sbrk_limit + 0x001FFFFF) & ~0x001FFFFFUL;
     kassert(sbrk_limit < top_addr);
-    set_sbrk_limit((void*)sbrk_limit);
+    set_sbrk_limit(sbrk_limit);
 
     // We need at least another 2M huge page to initially populate the free
     // page list.
@@ -89,8 +90,8 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr)
     // Use sbrk to find to free two 4K pages and move them to the free list.
     // We need these pages for our vector<> objects below. sbrk is initially
     // page-aligned (and if it isn't page_free will catch it and kassert).
-    page_free(sbrk(4096));
-    page_free(sbrk(4096));
+    page_free(phys_to_virt(sbrk(4096)));
+    page_free(phys_to_virt(sbrk(4096)));
 
     // Populate page_list with all the free pages.
     klist<page> page_list;
@@ -131,7 +132,7 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr)
     kassert(free_page_list.size() == 2);
     page_alloc();
     page_alloc();
-    kassert(sbrk(0) == (void*)((char*)initial_sbrk + 8192));
+    kassert(sbrk(0) == initial_sbrk + 8192);
     set_sbrk(initial_sbrk);
 
     // Finally, move the page list onto the free page list global.

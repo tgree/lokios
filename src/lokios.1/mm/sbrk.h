@@ -1,14 +1,15 @@
 #ifndef __KERNEL_SBRK_H
 #define __KERNEL_SBRK_H
 
-#include <stddef.h>
+#include "kernel/types.h"
 
 namespace kernel
 {
-    void* sbrk(size_t n);
-    void* get_sbrk_limit();
-    void set_sbrk(void* pos);
-    void set_sbrk_limit(void* new_lim);
+    dma_addr64 sbrk(size_t n);
+    dma_addr64 get_sbrk();
+    dma_addr64 get_sbrk_limit();
+    void set_sbrk(dma_addr64);
+    void set_sbrk_limit(dma_addr64 new_lim);
     void freeze_sbrk();
 }
 

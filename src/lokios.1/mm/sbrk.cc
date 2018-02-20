@@ -7,31 +7,37 @@
 extern char _sbrk[];
 
 static kernel::spinlock sbrklock;
-static void* _brk = (void*)_sbrk;
-static void* _brklim = (char*)0xFFFFFFFFFFFFFFFF;
+static dma_addr64 _brk = (dma_addr64)_sbrk;
+static dma_addr64 _brklim = 0xFFFFFFFFFFFFFFFF;
 static bool sbrk_frozen = false;
 
-void*
+dma_addr64
 kernel::sbrk(size_t n)
 {
-    void* p;
-    void* new_brk;
+    dma_addr64 p;
+    dma_addr64 new_brk;
 
     if (sbrk_frozen)
-        return NULL;
+        return 0;
 
     n = (n + 15) & ~15;
     with (sbrklock)
     {
         p    = _brk;
-        _brk = new_brk = (char*)p + n;
+        _brk = new_brk = p + n;
     }
     kernel::kassert(new_brk <= _brklim);
     return p;
 }
 
+dma_addr64
+kernel::get_sbrk()
+{
+    return _brk;
+}
+
 void
-kernel::set_sbrk(void* pos)
+kernel::set_sbrk(dma_addr64 pos)
 {
     _brk = pos;
 }
@@ -43,13 +49,13 @@ kernel::freeze_sbrk()
 }
 
 void
-kernel::set_sbrk_limit(void* new_lim)
+kernel::set_sbrk_limit(dma_addr64 new_lim)
 {
     kernel::kassert(new_lim <= _brklim);
     _brklim = new_lim;
 }
 
-void*
+dma_addr64
 kernel::get_sbrk_limit()
 {
     return _brklim;

@@ -3,6 +3,7 @@
 #include "kassert.h"
 #include "mm/sbrk.h"
 #include "mm/page.h"
+#include "mm/mm.h"
 #include <stddef.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -14,7 +15,11 @@ void* malloc(size_t n) noexcept
 {
     if (n <= PAGE_SIZE)
         return kernel::page_alloc();
-    return kernel::sbrk(n);
+
+    dma_addr64 p = kernel::sbrk(n);
+    if (!p)
+        return NULL;
+    return kernel::phys_to_virt(p);
 }
 
 extern "C"
@@ -37,7 +42,7 @@ void* realloc(void* ptr, size_t size)
     }
 
     // If this was allocated on a page, well we have 4K of space already...
-    kernel::kassert(ptr >= kernel::sbrk(0));
+    kernel::kassert((dma_addr64)ptr >= kernel::get_sbrk());
     kernel::kassert(size <= PAGE_SIZE);
     return ptr;
 }
@@ -45,7 +50,7 @@ void* realloc(void* ptr, size_t size)
 extern "C"
 void free(void* p) noexcept
 {
-    kernel::kassert(p >= kernel::sbrk(0));
+    kernel::kassert((dma_addr64)p >= kernel::get_sbrk());
     kernel::page_free(p);
 }
 
