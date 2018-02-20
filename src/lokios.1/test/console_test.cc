@@ -1,7 +1,6 @@
 #include "../vga.h"
 #include "../kernel_args.h"
 #include "../kassert.h"
-#include "mm/sbrk.h"
 #include "tmock/tmock.h"
 
 static uint16_t conbuf[80*25];
@@ -12,12 +11,6 @@ void
 kernel::panic(const char* s) noexcept
 {
     tmock::abort(s);
-}
-
-void*
-kernel::sbrk(size_t n)
-{
-    return malloc(n);
 }
 
 class tmock_test
