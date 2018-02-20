@@ -59,8 +59,7 @@ class tmock_test
 {
     TMOCK_TEST(test_page_table_iterator_all_empty_page_works)
     {
-        uint64_t* p = (uint64_t*)kernel::page_alloc();
-        memset(p,0,PAGE_SIZE);
+        auto p = (uint64_t*)kernel::page_zalloc();
 
         size_t count = 0;
         for (auto pte __UNUSED__ : kernel::page_table_iterator(p,0,0))
@@ -72,8 +71,7 @@ class tmock_test
 
     TMOCK_TEST(test_page_table_present_iterator_empty_page_works)
     {
-        uint64_t* p = (uint64_t*)kernel::page_alloc();
-        memset(p,0,PAGE_SIZE);
+        auto p = (uint64_t*)kernel::page_zalloc();
 
         size_t count = 0;
         for (auto pte __UNUSED__ : kernel::page_table_present_iterator(p))
@@ -85,8 +83,7 @@ class tmock_test
 
     TMOCK_TEST(test_page_table_leaf_iterator_empty_page_works)
     {
-        uint64_t* p = (uint64_t*)kernel::page_alloc();
-        memset(p,0,PAGE_SIZE);
+        auto p = (uint64_t*)kernel::page_zalloc();
 
         size_t count = 0;
         for (auto pte __UNUSED__ : kernel::page_table_leaf_iterator(p))
@@ -98,8 +95,7 @@ class tmock_test
 
     TMOCK_TEST(test_page_table_nonleaf_iterator_empty_page_works)
     {
-        uint64_t* p = (uint64_t*)kernel::page_alloc();
-        memset(p,0,PAGE_SIZE);
+        auto p = (uint64_t*)kernel::page_zalloc();
 
         size_t count = 0;
         for (auto pte __UNUSED__ : kernel::page_table_nonleaf_iterator(p))
