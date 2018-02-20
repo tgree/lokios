@@ -16,8 +16,6 @@
 
 namespace kernel
 {
-    typedef uint64_t dma_addr64;
-
     struct dma_alp
     {
         dma_addr64  paddr;

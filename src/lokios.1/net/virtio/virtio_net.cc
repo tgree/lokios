@@ -128,14 +128,14 @@ virtio_net::dev::issue_set_mac_address()
 
     // First descriptor contains the set_mac_addr_cmd address.
     descriptor* d = &cq.descriptors[dhead];
-    d->addr       = (kernel::dma_addr64)cmd;
+    d->addr       = (dma_addr64)cmd;
     d->len        = sizeof(*cmd) - 1;
     kassert(d->flags & VIRTQ_DESC_F_NEXT);
     d->flags      = VIRTQ_DESC_F_NEXT;
 
     // Second descriptor is the ack byte that comes back from the device.
     d             = &cq.descriptors[d->next];
-    d->addr       = (kernel::dma_addr64)&cmd->ack;
+    d->addr       = (dma_addr64)&cmd->ack;
     d->len        = 1;
     kassert(!(d->flags & VIRTQ_DESC_F_NEXT));
     d->flags = VIRTQ_DESC_F_WRITE;
@@ -166,7 +166,7 @@ virtio_net::dev::post_tx_frame(eth::tx_op* op)
         kassert(d->flags & VIRTQ_DESC_F_NEXT);
         d->flags = VIRTQ_DESC_F_NEXT;
         d        = &tq.descriptors[d->next];
-        d->addr  = (kernel::dma_addr64)op->alps[i].paddr;
+        d->addr  = (dma_addr64)op->alps[i].paddr;
         d->len   = op->alps[i].len;
     }
 
@@ -198,7 +198,7 @@ virtio_net::dev::post_rx_pages(kernel::klist<eth::rx_page>& pages)
 
         // Fill it out.
         descriptor* d    = &rq.descriptors[dhead];
-        d->addr          = (kernel::dma_addr64)p->payload;
+        d->addr          = (dma_addr64)p->payload;
         d->len           = sizeof(p->payload);
         d->flags         = VIRTQ_DESC_F_WRITE;
 

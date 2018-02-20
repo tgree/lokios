@@ -56,7 +56,7 @@ dhcp::client::client(eth::interface* intf):
 
     send_op.cb            = handle_dhcp_client_send_comp_bounce;
     send_op.nalps         = 1;
-    send_op.alps[0].paddr = (kernel::dma_addr64)&packet;
+    send_op.alps[0].paddr = (dma_addr64)&packet;
     send_op.alps[0].len   = sizeof(packet);
 }
 

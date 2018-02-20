@@ -10,10 +10,10 @@ namespace virtio_net
 #define VIRTQ_DESC_F_INDIRECT   (1<<2)
     struct descriptor
     {
-        kernel::dma_addr64  addr;
-        uint32_t            len;
-        uint16_t            flags;
-        uint16_t            next;
+        dma_addr64  addr;
+        uint32_t    len;
+        uint16_t    flags;
+        uint16_t    next;
     };
     KASSERT(sizeof(descriptor) == 16);
 

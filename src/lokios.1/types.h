@@ -94,4 +94,6 @@ typedef be_uint<uint16_t> be_uint16_t;
 typedef le_uint<uint32_t> le_uint32_t;
 typedef le_uint<uint16_t> le_uint16_t;
 
+typedef uint64_t dma_addr64;
+
 #endif /* __KERNEL_TYPES_H */

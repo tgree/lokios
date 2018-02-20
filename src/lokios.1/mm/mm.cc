@@ -7,8 +7,8 @@
 
 using kernel::console::printf;
 
-kernel::dma_addr64 kernel::zero_page_dma;
-kernel::dma_addr64 kernel::trash_page_dma;
+dma_addr64 kernel::zero_page_dma;
+dma_addr64 kernel::trash_page_dma;
 
 void
 kernel::init_mm(const e820_map* m)
