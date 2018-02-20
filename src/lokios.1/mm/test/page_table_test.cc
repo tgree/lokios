@@ -267,7 +267,7 @@ class tmock_test
         TASSERT(page_free_count == 4);
     }
 
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_high_mapping_iterator_works)
+    TMOCK_TEST(test_high_mapping_iterator_works)
     {
         {
             kernel::page_table pt;

@@ -134,7 +134,7 @@ namespace kernel
             if (stack[0].index >= 0x0100)
                 vaddr |= 0xFFFF000000000000;
             for (size_t i=0; i<=level; ++i)
-                vaddr |= (((uint64_t)stack[i].index) << (39 - (level*9)));
+                vaddr |= (((uint64_t)stack[i].index) << (39 - (i*9)));
             return (void*)vaddr;
         }
 
