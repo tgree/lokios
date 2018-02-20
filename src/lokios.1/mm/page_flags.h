@@ -36,6 +36,8 @@
     // Flags to set for a data RAM mapping.
 #define PAGE_FLAGS_DATA \
     (PAGE_FLAG_WRITEABLE | PAGE_FLAG_NOEXEC | PAGE_CACHE_WB)
+#define PAGE_FLAGS_DATA_RO \
+    (PAGE_FLAG_NOEXEC | PAGE_CACHE_WB)
 
     // Flags to set for an IO mapping.
 #define PAGE_FLAGS_IO \
