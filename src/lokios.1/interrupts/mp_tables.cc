@@ -1,5 +1,6 @@
 #include "mp_tables.h"
 #include "../console.h"
+#include "k++/kmath.h"
 #include "k++/checksum.h"
     
 using kernel::console::printf;

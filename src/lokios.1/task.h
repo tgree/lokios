@@ -3,6 +3,7 @@
 
 #include "thread.h"
 #include "spinlock.h"
+#include "mm/page_table.h"
 
 namespace kernel
 {

@@ -6,6 +6,7 @@
 #include "kernel/types.h"
 #include "kernel/kassert.h"
 #include "mm/mm.h"
+#include "mm/page.h"
 #include <stdint.h>
 #include <stddef.h>
 

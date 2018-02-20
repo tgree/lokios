@@ -1,7 +1,7 @@
 #ifndef __KERNEL_THREAD_H
 #define __KERNEL_THREAD_H
 
-#include "mm/page_table.h"
+#include "k++/klist.h"
 #include "hdr/compiler.h"
 
 namespace kernel

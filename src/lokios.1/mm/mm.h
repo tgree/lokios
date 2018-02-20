@@ -10,7 +10,8 @@
 #define __KERNEL_MM_H
 
 #include "e820.h"
-#include "page_table.h"
+#include "page_flags.h"
+#include "kernel/types.h"
 #include "kernel/thread.h"
 #include "kernel/cpu.h"
 

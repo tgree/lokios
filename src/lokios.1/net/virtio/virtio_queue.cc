@@ -1,4 +1,5 @@
 #include "virtio_queue.h"
+#include "mm/page.h"
 
 virtio_net::vqueue::vqueue(size_t index):
     index(index),
