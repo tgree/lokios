@@ -28,7 +28,8 @@ namespace kernel
     extern dma_addr64 trash_page_dma;
 
     // Maps a physical address into the 0xFFFF800000000000 region and returns
-    // the virtual address.  A 2M mapping will be used.
+    // the virtual address.  A 4K mapping will be used although you shouldn't
+    // rely on that behavior.
     void* pmap(dma_addr64 paddr, uint64_t flags = PAGE_FLAGS_DATA);
     void* pmap_range(dma_addr64 paddr, size_t len,
                      uint64_t flags = PAGE_FLAGS_DATA);

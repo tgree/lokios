@@ -38,19 +38,19 @@ kernel::init_mm(const e820_map* m)
 void*
 kernel::pmap(dma_addr64 paddr, uint64_t flags)
 {
-    uint64_t paddr_2m = round_down_pow2(paddr,0x00200000);
-    uint64_t vaddr_2m = 0xFFFF800000000000UL | paddr_2m;
-    kernel_task->pt.map_2m_page((void*)vaddr_2m,paddr_2m,flags);
-    return (void*)(vaddr_2m | (paddr & 0x001FFFFF));
+    uint64_t paddr_4k = round_down_pow2(paddr,PAGE_SIZE);
+    uint64_t vaddr_4k = 0xFFFF800000000000UL | paddr_4k;
+    kernel_task->pt.map_4k_page((void*)vaddr_4k,paddr_4k,flags);
+    return (void*)(vaddr_4k | (paddr & PAGE_OFFSET_MASK));
 }
 
 void*
 kernel::pmap_range(dma_addr64 paddr, size_t len, uint64_t flags)
 {
-    uint64_t start = round_down_pow2(paddr,0x00200000);
-    uint64_t end   = round_up_pow2(paddr + len,0x00200000);
-    void* vaddr    = pmap(paddr);
-    for (uint64_t p = start + 0x00200000; p != end; p += 0x00200000)
+    uint64_t start = round_down_pow2(paddr,PAGE_SIZE);
+    uint64_t end   = round_up_pow2(paddr + len,PAGE_SIZE);
+    void* vaddr    = pmap(paddr,flags);
+    for (uint64_t p = start + PAGE_SIZE; p != end; p += PAGE_SIZE)
         pmap(p,flags);
     return vaddr;
 }
