@@ -2,6 +2,7 @@
 #include "mm.h"
 #include "sbrk.h"
 #include "../spinlock.h"
+#include "../task.h"
 #include "k++/vector.h"
 #include <new>
 
@@ -146,4 +147,51 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr)
 
     // Finally, move the page list onto the free page list global.
     free_page_list.append(page_list);
+}
+
+void
+kernel::page_init(const e820_map* m, uint64_t top_addr)
+{
+    // Build up the list of free regions.
+    vector<region> unusable_regions;
+    vector<region> free_regions;
+    get_e820_regions(m,free_regions,E820_TYPE_RAM_MASK);
+    get_e820_regions(m,unusable_regions,~E820_TYPE_RAM_MASK);
+    regions_remove(free_regions,unusable_regions);
+    region_remove(free_regions,0,top_addr-1);
+
+    // Now we are going to map all of the free RAM into the 0xFFF8000000000000
+    // area.
+    for (auto& r : free_regions)
+    {
+        // Map pages.
+        uint64_t begin_pfn = ceil_div(r.first,PAGE_SIZE);
+        uint64_t end_pfn   = floor_div(r.last+1,PAGE_SIZE);
+        uint64_t rem_pfns  = end_pfn - begin_pfn;
+        for (uint64_t pfn = begin_pfn; rem_pfns;)
+        {
+            uint64_t paddr    = pfn*PAGE_SIZE;
+            uint64_t vaddr    = 0xFFFF800000000000UL | paddr;
+            kassert((paddr & 0xFFFF800000000000UL) == 0);
+
+            size_t npfns;
+            if (!(paddr & HPAGE_OFFSET_MASK) && rem_pfns >= 512)
+            {
+                kernel_task->pt.map_2m_page((void*)vaddr,paddr,PAGE_FLAGS_DATA);
+                npfns = 512;
+            }
+            else
+            {
+                kernel_task->pt.map_4k_page((void*)vaddr,paddr,PAGE_FLAGS_DATA);
+                npfns = 1;
+            }
+
+            page* p = (page*)vaddr;
+            for (size_t i=0; i<npfns; ++i)
+                page_free(p++);
+
+            pfn      += npfns;
+            rem_pfns -= npfns;
+        }
+    }
 }

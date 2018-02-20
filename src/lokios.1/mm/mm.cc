@@ -9,23 +9,19 @@ using kernel::console::printf;
 
 dma_addr64 kernel::zero_page_dma;
 dma_addr64 kernel::trash_page_dma;
+static uintptr_t top_addr;
 
 void
-kernel::init_mm(const e820_map* m)
+kernel::preinit_mm(const e820_map* m)
 {
     // Walk the page tables to find the last mapped address.
-    uintptr_t top_addr = 0;
     for (const auto pte : page_table_leaf_iterator(mfcr3()))
         top_addr = pte.get_paddr() + pte.get_len();
-    printf("End of mapped RAM: 0x%016lX\n",top_addr);
+    printf("End of bootloader-mapped RAM: 0x%016lX\n",top_addr);
 
     // Pre-initialize the page list.
     page_preinit(m,top_addr);
     
-    // Print out the page stats.
-    size_t free_pages = page_count_free();
-    printf("Free mapped RAM: %zuMB (%zu 4K pages)\n",free_pages/256,free_pages);
-
     // Print out the sbrk stats.
     printf("  Free sbrk RAM: %luK\n",
            ((uint64_t)get_sbrk_limit() - (uint64_t)sbrk(0))/1024);
@@ -33,6 +29,18 @@ kernel::init_mm(const e820_map* m)
     // Set up the zero/trash pages.
     zero_page_dma  = virt_to_phys(page_zalloc());
     trash_page_dma = virt_to_phys(page_zalloc());
+}
+
+void
+kernel::init_mm(const e820_map* m)
+{
+    // Post-init the remaining usable pages.
+    page_init(m,top_addr);
+
+    // Print out the page stats.
+    size_t free_pages = page_count_free();
+    printf("Free mapped RAM: %zuMB (%zu 4K pages)\n",free_pages/256,free_pages);
+
 }
 
 void*

@@ -46,6 +46,7 @@ namespace kernel
     };
 
     void page_preinit(const e820_map* m, uintptr_t top_addr);
+    void page_init(const e820_map* m, uintptr_t top_addr);
 }
 
 #endif /* __KERNEL_PAGE_H */

@@ -63,11 +63,11 @@ init_bsp()
     kernel::init_serial_console(0x3F8,kernel::N81_115200);
 
     // Initialize the memory map.
-    kernel::init_mm(kernel::kargs->e820_base);
+    kernel::preinit_mm(kernel::kargs->e820_base);
 
     // Register exception handling support.  This is going to require the use
-    // of malloc() which is why we can't set up exceptions before init_mm() is
-    // called.
+    // of malloc() which is why we can't set up exceptions before preinit_mm()
+    // is called.
     __register_frame(_eh_frame_begin);
 
     // Initialize globals.
@@ -81,6 +81,9 @@ init_bsp()
     // kernel threads.  The main thread 
     kernel::init_kernel_task();
     kernel::kernel_task->pt.activate();
+
+    // Finish initializing memory.
+    kernel::init_mm(kernel::kargs->e820_base);
 
     // Create the CPU and thread-switch it to the init_bsp_stage2() routine.
     // We need the CPU struct early because it providers the GDT/TSS/IDT that

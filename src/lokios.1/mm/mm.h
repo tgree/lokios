@@ -56,6 +56,7 @@ namespace kernel
     dma_addr64 virt_to_phys(void* v);
     void* phys_to_virt(dma_addr64 p);
 
+    void preinit_mm(const e820_map* m);
     void init_mm(const e820_map* m);
 }
 
