@@ -20,6 +20,6 @@ qemu-system-x86_64 -drive file=bin/lokios.mbr,format=raw -nographic -device isa-
 
 # Typical build/test cycle
 
-make -j && qemu-system-x86_64 -drive file=bin/lokios.mbr,format=raw -smp 2 -nographic -device isa-debug-exit -device virtio-net-pci,netdev=net0,disable-legacy=on,disable-modern=off -netdev user,id=net0
+make -j && qemu-system-x86_64 -drive file=bin/lokios.mbr,format=raw -smp 2 -nographic -device isa-debug-exit -device virtio-net-pci,netdev=net0,disable-legacy=on,disable-modern=off,vectors=4 -netdev user,id=net0 -object filter-dump,id=dump0,netdev=net0,file=net0dump.pcap
 
 An exit code of 3 indicates that the kernel successful ran and exited.  Any other exit code indicates a problem.
