@@ -11,10 +11,10 @@ SECTIONS
     .text :
     {
         *lokios.1/entry.o(.text)
-        *crtbegin.o(.text)
+        *crtbeginS.o(.text)
         *lokios.1/init.o(.text)
         *(.text)
-        *crtend.o(.text)
+        *crtendS.o(.text)
     }
 
     .init :
