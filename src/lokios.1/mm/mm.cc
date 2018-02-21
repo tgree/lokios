@@ -40,7 +40,6 @@ kernel::init_mm(const e820_map* m)
     // Print out the page stats.
     size_t free_pages = page_count_free();
     printf("Free mapped RAM: %zuMB (%zu 4K pages)\n",free_pages/256,free_pages);
-
 }
 
 void*
