@@ -43,7 +43,7 @@ kernel::thread::thread(void (*fn)(), bool enable_interrupts)
     tcb.rflags      = 0x2 | (enable_interrupts ? 0x200 : 0);
     tcb.cs          = 8;
     tcb.ss          = 0;
-    tcb.stack_guard = 0xA1B2C3D4E5F60718;
+    tcb.stack_guard = ~0xA1B2C3D4E5F60718;
     tcb.rip         = (uint64_t)(bounce_fn)&kernel::thread::bounce;
     tcb.rsp         = (uint64_t)stack + sizeof(stack) - 56;
     tcb.rax         = 0x4E4F4E4F4E4F4E4F;

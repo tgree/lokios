@@ -75,9 +75,17 @@ _into_long_mode:
     mov     %rsp, %rax
     xor     %edx, %edx
     wrmsr
+    mov     $0xC0000101, %ecx
+    wrmsr
     mov     %rax, 0(%rax)
 
+    # Initialize the stack guard.  Since we are building with -mcmodel-kernel,
+    # the stack stomp protecter looks for the stack guard value in %gs:0x28
+    # instead of %fs:0x28 like it does for userspace programs.
+    mov     $0xA1B2C3D4E5F60718, %rax
+    mov     %rax, %gs:0x28
+
     # Jump into the kernel.
-    xor     %rax, %rax
-    mov     %esi, %eax
+    mov      %esi, %eax
+    or       $0xFFFFFFFFC0000000, %rax
     jmp     *%rax
