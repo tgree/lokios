@@ -19,6 +19,8 @@ namespace kernel
                              size_t level, uint64_t offset_mask);
 
     public:
+        size_t page_count;
+
         // Activate the table.
         inline void activate() const {mtcr3(virt_to_phys(cr3));}
 
