@@ -4,14 +4,21 @@
 
 kernel::page_table::page_table()
 {
+    page_count = 1;
     cr3 = (uint64_t*)page_zalloc();
 }
 
 kernel::page_table::~page_table()
 {
     for (auto pte : page_table_nonleaf_iterator(cr3))
+    {
         page_free(phys_to_virt(pte.pte & PAGE_PADDR_MASK));
+        --page_count;
+    }
+    --page_count;
     page_free(cr3);
+
+    kassert(page_count == 0);
 }
 
 uint64_t*
@@ -25,6 +32,7 @@ kernel::page_table::alloc_pte(uint64_t* entries, uint64_t vaddr, size_t level,
 
     if (!(*pte & PAGE_FLAG_PRESENT))
     {
+        ++page_count;
         auto child = page_zalloc();
         *pte = ((depth << 60)       |
                 virt_to_phys(child) |
