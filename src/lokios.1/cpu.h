@@ -50,8 +50,9 @@ namespace kernel
         const size_t        cpu_number;                             // 16
         int8_t              apic_id;                                // 24
         const uint8_t       flags;                                  // 25
-        uint8_t             rsrv[6];                                // 32
-        thread*             schedule_thread;                        // 40
+        uint8_t             rsrv[6];                                // 26
+        thread*             schedule_thread;                        // 32
+        uint64_t            stack_guard;                            // 40
         klist<work_entry>   free_msix_interrupts;                   // 48
         struct scheduler    scheduler;                              // 128
 
@@ -107,6 +108,7 @@ namespace kernel
     KASSERT(sizeof(cpu) < 65536);
     KASSERT(offsetof(cpu,cpu_addr) == 0);
     KASSERT(offsetof(cpu,jiffies) == 8);
+    KASSERT(offsetof(cpu,stack_guard) == 0x28);
     KASSERT(offsetof(cpu,scheduler) == 128);
     KASSERT(offsetof(cpu,msix_entries) == 4096);
 

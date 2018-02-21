@@ -77,7 +77,13 @@ _into_long_mode:
     mov     %rsp, %rdx
     shr     $32, %rdx
     wrmsr
+    mov     $0xC0000101, %ecx
+    wrmsr
     mov     %rax, 0(%rax)
+
+    # Initialize the stack guard.
+    mov     $0xA1B2C3D4E5F60718, %rax
+    mov     %rax, %fs:0x28
 
     # Jump into the kernel.
     mov      %esi, %eax

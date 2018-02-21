@@ -21,6 +21,7 @@ kernel::cpu::cpu(void (*entry_func)()):
     jiffies(0),
     cpu_number(cpus.size()),
     flags(cpu_number == 0 ? CPU_FLAG_BSP : 0),
+    stack_guard(0xA1B2C3D4E5F60718),
     gdt{0x0000000000000000,     // Unused/reserved.
         0x00209A0000000000,     // Code descriptor
         0x0000920000000000,     // Data descriptor

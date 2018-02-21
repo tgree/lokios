@@ -122,7 +122,6 @@ init_bsp_stage2()
     // Init local CPU stuff.
     kernel::init_lapic_cpu_interrupts();
     kernel::init_cpu_interrupts();
-    printf("...\n");
     kernel::lapic_enable_nmi();
     kernel::test_lapic();
     kernel::init_lapic_periodic();
