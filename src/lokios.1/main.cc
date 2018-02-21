@@ -1,6 +1,7 @@
 #include "kernel_args.h"
 #include "console.h"
 #include "cpu.h"
+#include "task.h"
 #include "cxx_exception.h"
 #include "kassert.h"
 #include "schedule.h"
@@ -30,8 +31,9 @@ static void
 kernel_ticker(kernel::timer_entry* wqe)
 {
     kernel::get_current_cpu()->scheduler.schedule_timer(wqe,TICKER_10MS_TICKS);
-    printf("Ticker: %lu ticks  Free pages: %zu\n",
-           ++ticks,kernel::page_count_free());
+    printf("Ticker: %lu ticks  Free pages: %zu  PT Used Pages: %zu\n",
+           ++ticks,kernel::page_count_free(),
+           kernel::kernel_task->pt.page_count);
 }
 
 void
