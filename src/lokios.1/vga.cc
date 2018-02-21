@@ -1,21 +1,23 @@
 #include "vga.h"
-#include "kernel_args.h"
+#include "mm/mm.h"
 #include <new>
 
 static kernel::vga_console* vga;
 static uint64_t _vga[(sizeof(*vga) + sizeof(uint64_t) - 1)/sizeof(uint64_t)];
+static uint16_t* vga_base;
 
 void
-kernel::init_vga_console()
+kernel::init_vga_console(dma_addr64 _vga_base)
 {
-    vga = new(_vga) vga_console((uint16_t*)kernel::kargs->vga_base);
+    vga_base = (uint16_t*)phys_to_virt(_vga_base);
+    vga = new(_vga) vga_console(vga_base);
     kernel::console::register_console(vga);
 }
 
 void
 kernel::vga_write(uint8_t x, uint8_t y, const char* s, uint16_t cflags) noexcept
 {
-    uint16_t* addr = &((uint16_t*)kernel::kargs->vga_base)[y*80 + x];
+    uint16_t* addr = &vga_base[y*80 + x];
     while (*s)
         *addr++ = cflags | *s++;
 }
@@ -23,7 +25,7 @@ kernel::vga_write(uint8_t x, uint8_t y, const char* s, uint16_t cflags) noexcept
 void
 kernel::vga_set_flags(uint16_t _cflags) noexcept
 {
-    uint64_t* addr  = (uint64_t*)kernel::kargs->vga_base;
+    uint64_t* addr  = (uint64_t*)vga_base;
     uint64_t cflags = ((uint64_t)_cflags << 48) |
                       ((uint64_t)_cflags << 32) |
                       ((uint64_t)_cflags << 16) |

@@ -67,13 +67,15 @@ _into_long_mode:
     # Switch to the new stack.
     xor     %rsp, %rsp
     movl    $_kernel_stack, %esp
+    or      $0xFFFFFFFFC0000000, %rsp
 
     # Allocate some space at the top of the stack for a temporary TLS area
     # until kernel_task gets spawned.  We move this into MSR_FS_BASE.
     mov     $0xC0000100, %ecx
-    sub     $64, %sp
+    sub     $64, %rsp
     mov     %rsp, %rax
-    xor     %edx, %edx
+    mov     %rsp, %rdx
+    shr     $32, %rdx
     wrmsr
     mov     %rax, 0(%rax)
 

@@ -21,5 +21,9 @@ kernel::init_kernel_task()
 
     // Clone the bootloader memory map.
     for (auto e : kernel::page_table_leaf_iterator(mfcr3()))
+    {
+        if ((uintptr_t)e.vaddr < 0xFFFF800000000000)
+            continue;
         kernel_task->pt.map_page(e.vaddr,e.get_paddr(),e.get_len(),e.pte);
+    }
 }

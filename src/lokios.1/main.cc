@@ -14,8 +14,6 @@
 
 using kernel::console::printf;
 
-const kernel::kernel_args* kernel::kargs;
-
 __thread uint64_t tls_signature = 0x135724683579468A;
 
 static void

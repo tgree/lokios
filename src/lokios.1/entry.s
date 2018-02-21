@@ -26,7 +26,7 @@
 #   RSP - set to the bootloader temporary stack
 _bsp_entry:
     # Populate kernel::args.
-    mov     %rdi, _ZN6kernel5kargsE
+    mov     %rdi, kargs
 
     # Enable SSE since the stupid compiler is generating %xmm register
     # references and I can't turn it off because then stdint.h doesn't work.

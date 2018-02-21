@@ -71,9 +71,15 @@ kernel::virt_to_phys(void* v)
 }
 
 void*
+kernel::phys_to_virt_maybe_0(dma_addr64 p)
+{
+    kassert((p & 0xFFFF800000000000UL) == 0);
+    return (void*)(0xFFFF800000000000UL | p);
+}
+
+void*
 kernel::phys_to_virt(dma_addr64 p)
 {
     kassert(p != 0);
-    kassert((p & 0xFFFF800000000000UL) == 0);
-    return (void*)(0xFFFF800000000000UL | p);
+    return phys_to_virt_maybe_0(p);
 }
