@@ -20,7 +20,7 @@ I386_32_CFLAGS := -O1 -m32 -march=pentium -Wall -Werror
 ASFLAGS := -march=core2 --64
 KERN_CXXFLAGS := -O2 -march=core2 -m64 -std=gnu++17 -Wall -Werror \
                  -Wno-invalid-offsetof -Wno-multichar -Wno-pmf-conversions \
-		 -ggdb -I$(abspath $(SRC_DIR)) -I$(INCLUDE_DIR)
+		 -ggdb -mcmodel=large -I$(abspath $(SRC_DIR)) -I$(INCLUDE_DIR)
 TEST_CXXFLAGS := -O2 -march=core2 -m64 -std=gnu++17 -Wall -Werror \
                  -Wno-invalid-offsetof -Wno-multichar -ggdb \
                  -I$(abspath $(SRC_DIR)) -I$(INCLUDE_DIR)

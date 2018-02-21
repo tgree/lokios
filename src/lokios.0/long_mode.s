@@ -78,6 +78,6 @@ _into_long_mode:
     mov     %rax, 0(%rax)
 
     # Jump into the kernel.
-    xor     %rax, %rax
-    mov     %esi, %eax
+    mov      %esi, %eax
+    or       $0xFFFFFFFFC0000000, %rax
     jmp     *%rax
