@@ -3,6 +3,7 @@
 #include "serial.h"
 #include "task.h"
 #include "cpu.h"
+#include "cmos.h"
 #include "pmtimer.h"
 #include "schedule.h"
 #include "platform/platform.h"
@@ -110,6 +111,7 @@ init_bsp_stage2()
     // Init more stuff.
     kernel::init_acpi_tables(e820_base);
     kernel::init_mp_tables();
+    kernel::init_cmos();
     kernel::pmtimer::init();
     kernel::init_interrupts();
     kernel::init_pic();
