@@ -1,0 +1,10 @@
+libsupc++ build instructions:
+
+cd /usr/src/gcc-7
+tar xJf gcc-7.2.0.tar.xz
+cd gcc-7.2.0/libstdc++-v3/libsupc++
+sudo ln ../../libiberty/cp-demangle.c
+sudo ln ../../libiberty/cp-demangle.h
+g++ -std=gnu++17 -mcmodel=kernel -O3 -Wno-unused-result -I/usr/src/gcc-7/gcc-7.2.0/libgcc -I/usr/src/gcc-7/gcc-7.2.0/include -c *.cc
+gcc -mcmodel=kernel -I/usr/src/gcc-7/gcc-7.2.0/libgcc -I/usr/src/gcc-7/gcc-7.2.0/include -O3 -DHAVE_STRING_H -DHAVE_DECL_BASENAME -DHAVE_STDLIB_H -DIN_GLIBCPP_V3 -c *.c
+ar rc libsupc++.a *.o

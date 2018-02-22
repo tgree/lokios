@@ -11,3 +11,4 @@ bin
 tests
 timestamp.s
 tags
+libsupc++

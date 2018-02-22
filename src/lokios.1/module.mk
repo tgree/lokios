@@ -2,7 +2,7 @@ SUBMODULES := mm acpi interrupts pci platform k++ test net
 
 CRTBEGIN_OBJ := $(shell $(CC) $(CFLAGS) -print-file-name=crtbeginS.o)
 CRTEND_OBJ   := $(shell $(CC) $(CFLAGS) -print-file-name=crtendS.o)
-LSUPCXX_OBJ  := $(shell $(CC) $(CFLAGS) -print-file-name=libsupc++.a)
+LSUPCXX_OBJ  := /home/greent7/src/libsupc++/libsupc++.a
 LGCC_EH_OBJ  := $(shell $(CC) $(CFLAGS) -print-file-name=libgcc_eh.a)
 
 LOKIOS_1_CXX_SRC := $(wildcard $(MODULE_SRC_DIR)/*.cc)
@@ -19,7 +19,7 @@ $(MODULE_BUILD_DIR)/lokios.1.elf: LDM  := $(MODULE_BUILD_DIR)/lokios.1.map
 $(MODULE_BUILD_DIR)/lokios.1.elf: LDLD := $(MODULE_SRC_DIR)/lokios.1.ld
 $(MODULE_BUILD_DIR)/lokios.1.elf: $(LOKIOS_1_OBJ) $(LOKIOS_1_LIB:%=$(LIB_DIR)/%) $(MODULE_SRC_DIR)/lokios.1.ld $(MODULE_MK)
 	@echo Linking $@...
-	@ld -melf_x86_64 -Map=$(LDM) -T $(LDLD) $(LOKIOS_1_DRIVERS:%=--require-defined=%_driver) -o $@ \
+	ld -melf_x86_64 -Map=$(LDM) -T $(LDLD) $(LOKIOS_1_DRIVERS:%=--require-defined=%_driver) -o $@ \
 	    	$(CRTBEGIN_OBJ) \
 		$(LOKIOS_1_OBJ) \
 		-\(             \
