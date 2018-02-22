@@ -21,6 +21,7 @@ RUN apt-get update -y                                   \
     qemu                                                \
     software-properties-common                          \
     sudo                                                \
+    systemtap-sdt-dev                                   \
     tig                                                 \
     tmux                                                \
     vim                                                 \
@@ -29,6 +30,7 @@ RUN apt-get update -y                                   \
  && apt-get install -y                                  \
     g++-7                                               \
     gcc-7                                               \
+    gcc-7-source                                        \
  && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 --slave /usr/bin/g++ g++ /usr/bin/g++-7 \
  && update-alternatives --config gcc
 
