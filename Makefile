@@ -1,4 +1,4 @@
-MODULES      := tmock lokios.1 lokios.0
+MODULES      := tmock libsupc++ lokios.1 lokios.0
 ALL_TESTS    :=
 
 TESTS_DIR    := tests
@@ -21,6 +21,7 @@ ASFLAGS := -march=core2 --64
 KERN_CXXFLAGS := -O2 -march=core2 -m64 -std=gnu++17 -Wall -Werror \
                  -Wno-invalid-offsetof -Wno-multichar -Wno-pmf-conversions \
 		 -ggdb -I$(abspath $(SRC_DIR)) -I$(INCLUDE_DIR)
+KERN_CCFLAGS  := -O2 -march=core2 -m64 -Werror -ggdb
 TEST_CXXFLAGS := -O2 -march=core2 -m64 -std=gnu++17 -Wall -Werror \
                  -Wno-invalid-offsetof -Wno-multichar -ggdb \
                  -I$(abspath $(SRC_DIR)) -I$(INCLUDE_DIR)
