@@ -59,7 +59,7 @@ void
 init_bsp()
 {
     // Initialize the console as early as we can.
-    kernel::init_vga_console();
+    kernel::init_vga_console(kernel::kargs->vga_base);
     kernel::init_serial_console(0x3F8,kernel::N81_115200);
 
     // Initialize the memory map.

@@ -1,16 +1,20 @@
 #include "../vga.h"
-#include "../kernel_args.h"
 #include "../kassert.h"
+#include "../mm/mm.h"
 #include "tmock/tmock.h"
 
 static uint16_t conbuf[80*25];
-static const kernel::kernel_args args = {0,(uintptr_t)conbuf};
-const kernel::kernel_args* kernel::kargs = &args;
 
 void
 kernel::panic(const char* s) noexcept
 {
     tmock::abort(s);
+}
+
+void*
+kernel::phys_to_virt(dma_addr64 p)
+{
+    return (void*)p;
 }
 
 class tmock_test
@@ -32,6 +36,6 @@ class tmock_test
 int
 main(int argc, const char* argv[])
 {
-    kernel::init_vga_console();
+    kernel::init_vga_console((dma_addr64)conbuf);
     return tmock::run_tests(argc,argv);
 }

@@ -2,13 +2,14 @@
 #define __KERNEL_ARGS_H
 
 #include "mm/e820.h"
+#include "types.h"
 
 namespace kernel
 {
     struct kernel_args
     {
         const e820_map* e820_base;
-        uint64_t        vga_base;
+        dma_addr64      vga_base;
     };
 
     extern const kernel_args* kargs;
