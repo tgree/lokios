@@ -1,20 +1,22 @@
 #include "mp_tables.h"
 #include "../console.h"
+#include "mm/mm.h"
 #include "k++/kmath.h"
 #include "k++/checksum.h"
     
 using kernel::console::printf;
 
 static const kernel::mpfp_struct*
-mpfp_search(const void* _base, size_t len)
+mpfp_search(dma_addr64 _base, size_t len)
 {
-    const uint32_t* end = (const uint32_t*)((uintptr_t)_base + len);
-    end = kernel::min(end,(const uint32_t*)0x00100000);
-    const uint32_t* start = kernel::round_up_pow2((const uint32_t*)_base,16);
+    dma_addr64 end = _base + len;
+    end = kernel::min(end,(dma_addr64)0x00100000);
+    dma_addr64 start = kernel::round_up_pow2(_base,16);
     while (start < end)
     {
-        if (*start == MPFP_SIG)
-            return (const kernel::mpfp_struct*)start;
+        uint32_t* v = (uint32_t*)kernel::phys_to_virt_maybe_0(start);
+        if (*v == MPFP_SIG)
+            return (const kernel::mpfp_struct*)v;
         start += 4;
     }
     return NULL;
@@ -27,22 +29,19 @@ kernel::init_mp_tables()
 
     // Start with the BIOS EBDA area.
     if (mpfp == NULL)
-    {
-        const void* ebdap = (const void*)(uintptr_t)*(uint16_t*)0x40E;
-        mpfp = mpfp_search(ebdap,1024);
-    }
+        mpfp = mpfp_search(phys_read<uint16_t>(0x40E),1024);
 
     // Try the last 1KB of system base memory.
     if (mpfp == NULL)
     {
-        uint16_t base_mem_size_kb_minus_1 = *(uint16_t*)0x413;
+        uint16_t base_mem_size_kb_minus_1 = phys_read<uint16_t>(0x413);
         uintptr_t base_mem_size_minus_1024 = base_mem_size_kb_minus_1*1024;
-        mpfp = mpfp_search((const void*)base_mem_size_minus_1024,1024);
+        mpfp = mpfp_search(base_mem_size_minus_1024,1024);
     }
 
     // Try the BIOS ROM area.
     if (mpfp == NULL)
-        mpfp = mpfp_search((const void*)0xF0000,0x10000);
+        mpfp = mpfp_search(0xF0000,0x10000);
 
     if (mpfp)
     {
