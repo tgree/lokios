@@ -11,8 +11,6 @@ namespace kernel
         const e820_map* e820_base;
         dma_addr64      vga_base;
     };
-
-    extern const kernel_args* kargs;
 }
 
 #endif /* __KERNEL_ARGS_H */

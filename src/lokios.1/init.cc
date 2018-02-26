@@ -37,6 +37,7 @@ extern void kernel_main(kernel::work_entry* wqe);
 static void init_bsp_stage2();
 static void init_ap_stage2();
 
+const kernel::kernel_args* kargs;
 static void
 init_globals()
 {
@@ -59,11 +60,11 @@ void
 init_bsp()
 {
     // Initialize the console as early as we can.
-    kernel::init_vga_console(kernel::kargs->vga_base);
+    kernel::init_vga_console(kargs->vga_base);
     kernel::init_serial_console(0x3F8,kernel::N81_115200);
 
     // Initialize the memory map.
-    kernel::preinit_mm(kernel::kargs->e820_base);
+    kernel::preinit_mm(kargs->e820_base);
 
     // Register exception handling support.  This is going to require the use
     // of malloc() which is why we can't set up exceptions before preinit_mm()
@@ -83,7 +84,7 @@ init_bsp()
     kernel::kernel_task->pt.activate();
 
     // Finish initializing memory.
-    kernel::init_mm(kernel::kargs->e820_base);
+    kernel::init_mm(kargs->e820_base);
 
     // Create the CPU and thread-switch it to the init_bsp_stage2() routine.
     // We need the CPU struct early because it providers the GDT/TSS/IDT that
@@ -101,7 +102,7 @@ init_bsp_stage2()
     kernel::get_current_cpu()->scheduler.schedule_local_work(wqe);
 
     // Init more stuff.
-    kernel::init_acpi_tables(kernel::kargs->e820_base);
+    kernel::init_acpi_tables(kargs->e820_base);
     kernel::init_mp_tables();
     kernel::pmtimer::init();
     kernel::init_interrupts();
