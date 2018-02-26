@@ -10,15 +10,16 @@ using kernel::console::printf;
 kernel::vector<const kernel::sdt_header*> kernel::acpi_sdts;
 
 static kernel::rsdp_table*
-rsdp_search(const void* _base, size_t len)
+rsdp_search(dma_addr64 _base, size_t len)
 {
-    const uint64_t* end = (const uint64_t*)((uintptr_t)_base + len);
-    end = kernel::min(end,(const uint64_t*)0x00100000);
-    const uint64_t* start = kernel::round_up_pow2((const uint64_t*)_base,16);
+    dma_addr64 end = _base + len;
+    end = kernel::min(end,(dma_addr64)0x00100000);
+    dma_addr64 start = kernel::round_up_pow2(_base,16);
     while (start < end)
     {
-        if (*start == RDSP_SIG)
-            return (kernel::rsdp_table*)start;
+        uint64_t* v = (uint64_t*)kernel::phys_to_virt_maybe_0(start);
+        if (*v == RDSP_SIG)
+            return (kernel::rsdp_table*)v;
         start += 2;
     }
     return NULL;
@@ -67,10 +68,7 @@ kernel::init_acpi_tables(const e820_map* m)
 
     // Start with the BIOS EBDA area.
     if (rsdp == NULL)
-    {
-        const void* ebdap = (const void*)(uintptr_t)*(uint16_t*)0x40E;
-        rsdp = rsdp_search(ebdap,1024);
-    }
+        rsdp = rsdp_search(phys_read<uint16_t>(0x40E),1024);
 
     // Now try any E820 regions.
     if (rsdp == NULL)
@@ -82,7 +80,7 @@ kernel::init_acpi_tables(const e820_map* m)
             if (e.base >= 0x00100000)
                 continue;
 
-            rsdp = rsdp_search((const void*)e.base,e.len);
+            rsdp = rsdp_search(e.base,e.len);
             if (rsdp)
                 break;
         }
