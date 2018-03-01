@@ -1,5 +1,6 @@
 TESTS := char_stream_test \
 	 klist_test       \
+	 obj_list_test    \
 	 sort_test        \
 	 heap_test        \
 	 region_set_test  \
@@ -12,6 +13,9 @@ char_stream_test.objs := \
 
 klist_test.objs := \
     	$(MODULE_TBUILD_DIR)/klist_test.o
+
+obj_list_test.objs := \
+    	$(MODULE_TBUILD_DIR)/obj_list_test.o
 
 sort_test.objs := \
     	$(MODULE_TBUILD_DIR)/sort_test.o
