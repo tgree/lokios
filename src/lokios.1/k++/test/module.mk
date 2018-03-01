@@ -8,7 +8,8 @@ TESTS := char_stream_test \
 	 delegate_test    \
 	 hash_test        \
 	 hash_table_test  \
-	 ring_test
+	 ring_test        \
+	 obj_list_test
 
 char_stream_test.objs := \
 	$(MODULE_TBUILD_DIR)/char_stream_test.o \
@@ -56,4 +57,9 @@ hash_table_test.objs := \
 
 ring_test.objs := \
     	$(MODULE_TBUILD_DIR)/ring_test.o \
+	$(BUILD_TO_DIR)/lokios.1/kern/mock/fkassert.o
+
+obj_list_test.objs := \
+    	$(MODULE_TBUILD_DIR)/obj_list_test.o \
+	$(BUILD_TO_DIR)/lokios.1/mm/mock/fpage.o \
 	$(BUILD_TO_DIR)/lokios.1/kern/mock/fkassert.o
