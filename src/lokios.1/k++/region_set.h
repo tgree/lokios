@@ -62,10 +62,8 @@ namespace kernel
                 // Sadly this invalidates our iterator because we may need to
                 // grow the container.
                 region front = {i->first,intersection.first - 1};
-                size_t pos   = i - c.begin();
                 i->first = intersection.last + 1;
-                c.insert(i,front);
-                i = c.begin() + pos + 2;
+                i = c.insert(i,front) + 2;
             }
             else if (intersection.first == i->first &&
                      intersection.last < i->last)
