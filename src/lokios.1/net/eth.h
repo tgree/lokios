@@ -127,6 +127,16 @@ namespace eth
         interface(const eth::addr& hw_mac, size_t tx_qlen, size_t rx_qlen);
         virtual ~interface();
     };
+
+    struct net_traits
+    {
+        typedef eth::addr       addr_type;
+        typedef eth::header     header_type;
+        typedef eth::interface  interface_type;
+        typedef eth::tx_op      tx_op_type;
+
+        static constexpr const uint16_t arp_hw_type = 1;
+    };
 }
 
 #endif /* __KERNEL_NET_ETH_H */
