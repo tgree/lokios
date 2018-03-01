@@ -61,6 +61,12 @@ namespace ipv4
             s = (s >> 16) + (s & 0xFFFF);
         return ~s;
     }
+
+    struct net_traits
+    {
+        typedef ipv4::addr      addr_type;
+        typedef ipv4::header    header_type;
+    };
 }
 
 #endif /* __KERNEL_NET_IP_H */
