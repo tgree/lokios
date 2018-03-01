@@ -92,11 +92,12 @@ namespace kernel
             return *t;
         }
 
-        void insert(const iterator pos, const T& val)
+        iterator insert(const iterator pos, const T& val)
         {
             _make_slot(pos);
             new((void*)pos) T(val);
             ++_size;
+            return pos;
         }
 
         iterator erase(iterator pos)
