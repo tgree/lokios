@@ -118,6 +118,17 @@ namespace kernel
             };
         };
 
+        inline void insert_before(kdlink_leaks* before)
+        {
+            // Insert this before before.
+            kassert(nextu == KLINK_NOT_IN_USE);
+            kassert(prevu == KLINK_NOT_IN_USE);
+            next               = before;
+            prev               = before->prev;
+            before->prev->next = this;
+            before->prev       = this;
+        }
+
         inline void unlink()
         {
             prev->next = next;
@@ -179,12 +190,7 @@ namespace kernel
 
         inline void push_back(kdlink_leaks* l)
         {
-            kassert(l->nextu == KLINK_NOT_IN_USE);
-            kassert(l->prevu == KLINK_NOT_IN_USE);
-            l->next             = &sentinel;
-            l->prev             = sentinel.prev;
-            sentinel.prev->next = l;
-            sentinel.prev       = l;
+            l->insert_before(&sentinel);
         }
 
         inline void pop_front()
