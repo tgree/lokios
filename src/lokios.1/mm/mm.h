@@ -5,6 +5,7 @@
 //
 //      0xFFFFFFFFnnnn0000 - 0xFFFFFFFFFFFFFFFF: thread space for tid nnnn
 //      0xFFFFFFFEnnnn0000 - 0xFFFFFFFEFFFFFFFF: cpu space for cpu nnnn
+//      0xFFFF900000000000 - 0xFFFF900040000000: metapage table
 //      0xFFFF800000000000 - 0xFFFF8FFFFFFFFFFF: used to map all RAM
 #ifndef __KERNEL_MM_H
 #define __KERNEL_MM_H

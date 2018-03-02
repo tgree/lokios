@@ -109,7 +109,7 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr)
     // page list.
     kassert(sbrk_limit + 2*1024*1024 <= top_addr);
 
-    // Use sbrk to find to free two 4K pages and move them to the free list.
+    // Use sbrk to find two free 4K pages and move them to the free list.
     // We need these pages for our vector<> objects below. sbrk is initially
     // page-aligned (and if it isn't page_add will catch it and kassert).
     page_add(phys_to_virt(sbrk(4096)));

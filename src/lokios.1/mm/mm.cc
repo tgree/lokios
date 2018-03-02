@@ -14,7 +14,8 @@ static uintptr_t top_addr;
 void
 kernel::preinit_mm(const e820_map* m)
 {
-    // Walk the page tables to find the last mapped address.
+    // Walk the page tables to find the last mapped address.  This defines the
+    // end of the early page pool.
     for (const auto pte : page_table_leaf_iterator(mfcr3()))
         top_addr = pte.get_paddr() + pte.get_len();
     printf("End of bootloader-mapped RAM: 0x%016lX\n",top_addr);
