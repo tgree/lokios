@@ -26,7 +26,7 @@ _enter_long_mode:
     # Set CR3 to point at the first level page table we defined in the linker
     # file.  This page table identity-maps the first 8M of RAM.
     xor     %eax, %eax
-    lea     _page_table, %ax
+    lea     _pg_tab, %ax
     mov     %eax, %cr3
 
     # Set EFER.LME and EFER.NXE.

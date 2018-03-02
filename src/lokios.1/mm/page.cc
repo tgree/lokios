@@ -164,6 +164,7 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr)
 void
 kernel::page_init(const e820_map* m, uint64_t top_addr)
 {
+#if 0
     // Build up the list of free regions.
     vector<region> unusable_regions;
     vector<region> free_regions;
@@ -212,4 +213,5 @@ kernel::page_init(const e820_map* m, uint64_t top_addr)
             rem_pfns -= npfns;
         }
     }
+#endif
 }

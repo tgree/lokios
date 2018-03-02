@@ -1,5 +1,6 @@
 #include "mm.h"
 #include "page_table.h"
+#include "metapage.h"
 #include "sbrk.h"
 #include "../x86.h"
 #include "../console.h"
@@ -37,6 +38,7 @@ kernel::init_mm(const e820_map* m)
 {
     // Post-init the remaining usable pages.
     page_init(m,top_addr);
+    metapage_init(m,top_addr);
 
     // Print out the page stats.
     size_t free_pages = page_count_free();

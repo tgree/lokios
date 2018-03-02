@@ -92,6 +92,17 @@ namespace kernel
         for (auto& e : c2)
             region_remove(c,e);
     }
+
+    template<typename C>
+    bool regions_contains(C& c, uint64_t addr)
+    {
+        for (auto& r : c)
+        {
+            if (r.first <= addr && addr <= r.last)
+                return true;
+        }
+        return false;
+    }
 }
 
 inline bool operator==(const kernel::region& l,

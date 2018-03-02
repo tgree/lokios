@@ -15,7 +15,8 @@ klist_test.objs := \
     	$(MODULE_TBUILD_DIR)/klist_test.o
 
 obj_list_test.objs := \
-    	$(MODULE_TBUILD_DIR)/obj_list_test.o
+    	$(MODULE_TBUILD_DIR)/obj_list_test.o \
+	$(PARENT_TBUILD_DIR)/allocator.o
 
 sort_test.objs := \
     	$(MODULE_TBUILD_DIR)/sort_test.o

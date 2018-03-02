@@ -1,12 +1,12 @@
 #ifndef __KERNEL_OBJECT_LIST_H
 #define __KERNEL_OBJECT_LIST_H
 
+#include "allocator.h"
 #include "klist.h"
-#include <utility>
 
 namespace kernel
 {
-    template<typename T>
+    template<typename T, typename Allocator = kernel::std_new_allocator>
     struct obj_list
     {
         struct node
@@ -17,6 +17,7 @@ namespace kernel
             template<typename ...Args>
             node(Args&& ...args):obj(std::forward<Args>(args)...) {}
         };
+        constexpr static size_t node_size = sizeof(node);
 
         struct iterator
         {
@@ -56,6 +57,7 @@ namespace kernel
         };
 
         kdlist<node> objs;
+        Allocator& allocator;
 
         constexpr iterator begin()
         {
@@ -74,7 +76,8 @@ namespace kernel
         template<typename ...Args>
         inline iterator emplace(iterator pos, Args&& ...args)
         {
-            node* n = new node(std::forward<Args>(args)...);
+            node* n = allocator.template alloc<node,Args...>(
+                        std::forward<Args>(args)...);
             n->link.insert_before(pos.n);
             return iterator(&n->link);
         }
@@ -99,7 +102,7 @@ namespace kernel
         {
             node* n = (node*)pos.n;
             n->link.unlink();
-            delete n;
+            allocator.free(n);
         }
 
         inline void pop_front()
@@ -113,6 +116,9 @@ namespace kernel
             while (!empty())
                 pop_front();
         }
+
+        obj_list():allocator(Allocator::default_allocator) {}
+        obj_list(Allocator& allocator):allocator(allocator) {}
     };
 }
 

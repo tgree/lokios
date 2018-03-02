@@ -8,6 +8,7 @@ namespace kernel
 {
     struct task;
 
+#define MAX_THREAD_ID   0xBFFF
     typedef uint16_t thread_id;
 
     struct fxsave_area
