@@ -10,11 +10,15 @@
 #include "interrupts/lapic.h"
 #include <new>
 
+#define cpu_printf(fmt,...) printf("CPU%zu " fmt,c->cpu_number,##__VA_ARGS__)
+
 using kernel::console::printf;
 
 extern "C" void _thread_jump(kernel::thread* t) __attribute__((noreturn));
 
 kernel::vector<kernel::cpu*> kernel::cpus;
+static const char* cpu_flag_names[] =
+    {"bsp","vmx","rdrand","1g","fxsave","sse"};
 
 kernel::cpu::cpu(void (*entry_func)()):
     cpu_addr(this),
@@ -22,6 +26,8 @@ kernel::cpu::cpu(void (*entry_func)()):
     cpu_number(cpus.size()),
     flags(cpu_number == 0 ? CPU_FLAG_BSP : 0),
     stack_guard(0xA1B2C3D4E5F60718),
+    max_basic_cpuid(cpuid(0).eax),
+    max_extended_cpuid(cpuid(0x80000000).eax),
     gdt{0x0000000000000000,     // Unused/reserved.
         0x00209A0000000000,     // Code descriptor
         0x0000920000000000,     // Data descriptor
@@ -102,26 +108,49 @@ kernel::init_this_cpu(void (*entry_func)())
     cpu* c = new cpu(entry_func);
     c->claim_current_cpu();
 
+    // Selector limit info.
+    cpu_printf("Max Basic CPUID Selector: 0x%08X\n",c->max_basic_cpuid);
+    cpu_printf("Max Extnd CPUID Selector: 0x%08X\n",c->max_extended_cpuid);
+
     // Fill in some cpuid feature flags.
-    printf("CPU%zu Max Basic CPUID Selector: 0x%08X\n",
-           c->cpu_number,cpuid(0).eax);
-    printf("CPU%zu Max Extnd CPUID Selector: 0x%08X\n",
-           c->cpu_number,cpuid(0x80000000).eax);
-    char brand[49];
-    for (size_t i=0; i<3; ++i)
-        cpuid(0x80000002+i,0,brand + 16*i);
-    brand[48] = '\0';
-    printf("CPU%zu CPU Brand: %s\n",c->cpu_number,brand);
+    if (c->max_basic_cpuid >= 1)
+    {
+        auto r = cpuid(1);
+        c->flags |= (r.ecx & (1<<5)) ? CPU_FLAG_VMX : 0;
+        c->flags |= (r.ecx & (1<<30)) ? CPU_FLAG_RDRAND : 0;
+        c->flags |= (r.edx & (1<<24)) ? CPU_FLAG_FXSAVE : 0;
+        c->flags |= (r.edx & (1<<25)) ? CPU_FLAG_SSE : 0;
+        c->initial_apic_id = (r.ebx >> 24);
+        cpu_printf("Initial APIC ID: %u\n",c->initial_apic_id);
+    }
+    if (c->max_extended_cpuid >= 0x80000001)
+    {
+        auto r = cpuid(0x80000001);
+        c->flags |= (r.edx & (1<<26)) ? CPU_FLAG_PAGESIZE_1G : 0;
+    }
+    if (c->max_extended_cpuid >= 0x80000004)
+    {
+        cpuid(0x80000002,0,c->cpuid_brand +  0);
+        cpuid(0x80000003,0,c->cpuid_brand + 16);
+        cpuid(0x80000004,0,c->cpuid_brand + 32);
+        c->cpuid_brand[48] = '\0';
+        cpu_printf("CPU Brand: %s\n",c->cpuid_brand);
+    }
+    else
+        c->cpuid_brand[0] = '\0';
 
-    // Check for FXSAVE/FXRSTOR support.
-    auto cpuid1 = cpuid(1);
-    printf("CPU%zu CPUID 1: 0x%08X:0x%08X:0x%08X:0x%08X\n",
-           c->cpu_number,cpuid1.eax,cpuid1.ebx,cpuid1.ecx,cpuid1.edx);
-    kassert(cpuid1.edx & (1 << 25));    // SSE availability.
-    kassert(cpuid1.edx & (1 << 24));    // FXSAVE/FXRSTOR availability.
+    // Print cpu flags.
+    cpu_printf("Flags:");
+    for (unsigned int i=0; i<nelems(cpu_flag_names); ++i)
+    {
+        if (c->flags & (1<<i))
+            printf(" %s",cpu_flag_names[i]);
+    }
+    printf("\n");
 
-    // APIC info.
-    printf("CPU%zu Initial APIC ID: %u\n",c->cpu_number,cpuid1.ebx >> 24);
+    // Required flags.
+    kassert(c->flags & CPU_FLAG_SSE);
+    kassert(c->flags & CPU_FLAG_FXSAVE);
 
     // Start executing.
     _thread_jump(c->schedule_thread);

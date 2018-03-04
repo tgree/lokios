@@ -41,7 +41,12 @@ namespace kernel
 #define TSS_DESC_1(base,limit) \
     (((base) >> 32) & 0x00000000FFFFFFFF)
 
-#define CPU_FLAG_BSP    0x01
+#define CPU_FLAG_BSP            (1<<0)
+#define CPU_FLAG_VMX            (1<<1)
+#define CPU_FLAG_RDRAND         (1<<2)
+#define CPU_FLAG_PAGESIZE_1G    (1<<3)
+#define CPU_FLAG_FXSAVE         (1<<4)
+#define CPU_FLAG_SSE            (1<<5)
     struct cpu
     {
         // Page boundary.
@@ -49,11 +54,18 @@ namespace kernel
         volatile uint64_t   jiffies;                                // 8
         const size_t        cpu_number;                             // 16
         int8_t              apic_id;                                // 24
-        const uint8_t       flags;                                  // 25
-        uint8_t             rsrv[6];                                // 26
+        int8_t              initial_apic_id;                        // 25
+        uint8_t             flags;                                  // 26
+        uint8_t             rsrv[5];                                // 27
         thread*             schedule_thread;                        // 32
         uint64_t            stack_guard;                            // 40
         klist<work_entry>   free_msix_interrupts;                   // 48
+
+        const uint32_t      max_basic_cpuid;                        // 56
+        const uint32_t      max_extended_cpuid;                     // 60
+        char                cpuid_brand[49];                        // 64
+        uint8_t             rsrv2[7];                               // 121
+
         struct scheduler    scheduler;                              // 128
 
         // Page boundary
