@@ -35,6 +35,9 @@ namespace kernel
         inline void map_4k_page(void* vaddr, uint64_t paddr, uint64_t flags)
             {map_page(vaddr,paddr,flags,3,PAGE_OFFSET_MASK);}
 
+        // Translate a page by walking the page table.
+        dma_addr64 xlate(const void* vaddr) const;
+
         // Create a blank table.
         page_table();
         ~page_table();

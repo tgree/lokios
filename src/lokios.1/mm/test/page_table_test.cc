@@ -68,6 +68,12 @@ class tmock_test
             }
             uint64_t pte = page[index];
             tmock::assert_equiv(pte & pos.mask,pos.val);
+
+            if (pos.val & PAGE_FLAG_USER_PAGE)
+            {
+                tmock::assert_equiv(pt.xlate((void*)(pos.vaddr + 1234)),
+                                    (pos.val & PAGE_PADDR_MASK) + 1234);
+            }
         }
     }
 

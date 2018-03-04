@@ -78,6 +78,39 @@ kernel::page_table::map_page(void* vaddr, uint64_t paddr, size_t size,
     map_page(vaddr,paddr,flags,level,size-1);
 }
 
+dma_addr64
+kernel::page_table::xlate(const void* _vaddr) const
+{
+    dma_addr64 paddr = 0;
+    const uintptr_t vaddr  = (uintptr_t)_vaddr;
+    kassert((vaddr & 0xFFFF800000000000UL) == 0 ||
+            (vaddr & 0xFFFF800000000000UL) == 0xFFFF800000000000);
+
+    uint64_t* page = cr3;
+    size_t shift   = 39;
+    for (;;)
+    {
+        size_t index = ((vaddr >> shift) & 0x1FF);
+        uint64_t pte = page[index];
+        kassert(pte & PAGE_FLAG_PRESENT);
+
+        paddr = (pte & PAGE_PADDR_MASK);
+        if (pte & PAGE_FLAG_USER_PAGE)
+            break;
+
+        shift -= 9;
+        page   = (uint64_t*)phys_to_virt(paddr);
+    }
+
+    if (paddr & 0x0000800000000000)
+        paddr |= 0xFFFF000000000000;
+    uint64_t low_mask = ((1 << shift) - 1);
+    kassert(!(paddr & low_mask));
+    paddr |= (vaddr & low_mask);
+
+    return paddr;
+}
+
 void
 kernel::page_table_iterator::operator++()
 {
