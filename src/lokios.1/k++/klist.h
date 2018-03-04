@@ -49,6 +49,14 @@ namespace kernel
             return n;
         }
 
+        inline void push_front(klink* l)
+        {
+            kassert(l->nextu == KLINK_NOT_IN_USE);
+            l->next = head;
+            head    = l;
+            tail    = tail ?: l;
+        }
+
         inline void push_back(klink* l)
         {
             kassert(l->nextu == KLINK_NOT_IN_USE);

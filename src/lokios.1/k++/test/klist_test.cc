@@ -53,6 +53,24 @@ class tmock_test
         kl.tail = (kernel::klink*)12345;
     }
 
+    TMOCK_TEST(test_klist_push_front_works)
+    {
+        klinked_object o1(1);
+        klinked_object o2(2);
+        klinked_object o3(3);
+        klinked_object o4(4);
+        klinked_object o5(5);
+        kernel::klist<klinked_object> kl;
+
+        kl.push_front(&o3.link);
+        kl.push_front(&o1.link);
+        kl.push_front(&o4.link);
+
+        tmock::assert_equiv(kl.size(),3U);
+
+        kl.pop_all();
+    }
+
     TMOCK_TEST(test_klist_push_back_works)
     {
         klinked_object o1(1);
@@ -67,6 +85,30 @@ class tmock_test
         kl.push_back(&o4.link);
 
         tmock::assert_equiv(kl.size(),3U);
+
+        kl.pop_all();
+    }
+
+    TMOCK_TEST(test_klist_rbfl_push_front_works)
+    {
+        klinked_object o1(1);
+        klinked_object o2(2);
+        klinked_object o3(3);
+        klinked_object o4(4);
+        klinked_object o5(5);
+        kernel::klist<klinked_object> kl;
+
+        kl.push_front(&o3.link);
+        kl.push_front(&o1.link);
+        kl.push_front(&o4.link);
+        kl.push_front(&o2.link);
+        kl.push_front(&o5.link);
+
+        static int vals[] = {5,2,4,1,3};
+        int* vp = vals;
+        for (klinked_object& o : klist_elems(kl,link))
+            tmock::assert_equiv(o.val,*vp++);
+        kernel::kassert(vp == &vals[5]);
 
         kl.pop_all();
     }
