@@ -3,6 +3,7 @@
 #include "sbrk.h"
 #include "../spinlock.h"
 #include "../task.h"
+#include "../cpu.h"
 #include "k++/vector.h"
 #include <new>
 
@@ -162,6 +163,7 @@ kernel::page_init(const e820_map* m, uint64_t top_addr)
 
     // Now we are going to map all of the free RAM into the 0xFFF8000000000000
     // area.
+    bool gp = (get_current_cpu()->flags & CPU_FLAG_PAGESIZE_1G);
     for (auto& r : free_regions)
     {
         // Map pages.
@@ -175,7 +177,12 @@ kernel::page_init(const e820_map* m, uint64_t top_addr)
             kassert((paddr & 0xFFFF800000000000UL) == 0);
 
             size_t npfns;
-            if (!(paddr & HPAGE_OFFSET_MASK) && rem_pfns >= 512)
+            if (gp && !(paddr & GPAGE_OFFSET_MASK) && rem_pfns >= 512*512)
+            {
+                kernel_task->pt.map_1g_page((void*)vaddr,paddr,PAGE_FLAGS_DATA);
+                npfns = 512*512;
+            }
+            else if (!(paddr & HPAGE_OFFSET_MASK) && rem_pfns >= 512)
             {
                 kernel_task->pt.map_2m_page((void*)vaddr,paddr,PAGE_FLAGS_DATA);
                 npfns = 512;
