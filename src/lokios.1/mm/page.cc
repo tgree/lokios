@@ -44,6 +44,17 @@ kernel::page_free(void* _p)
     }
 }
 
+static void
+page_add(void* _p)
+{
+    kernel::kassert(((uintptr_t)_p & PAGE_OFFSET_MASK) == 0);
+    page* p = new(_p) page;
+    with (free_page_lock)
+    {
+        free_page_list.push_back(&p->link);
+    }
+}
+
 size_t
 kernel::page_count_free()
 {
@@ -100,9 +111,9 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr)
 
     // Use sbrk to find to free two 4K pages and move them to the free list.
     // We need these pages for our vector<> objects below. sbrk is initially
-    // page-aligned (and if it isn't page_free will catch it and kassert).
-    page_free(phys_to_virt(sbrk(4096)));
-    page_free(phys_to_virt(sbrk(4096)));
+    // page-aligned (and if it isn't page_add will catch it and kassert).
+    page_add(phys_to_virt(sbrk(4096)));
+    page_add(phys_to_virt(sbrk(4096)));
 
     // Populate page_list with all the free pages.
     klist<page> page_list;
@@ -195,7 +206,7 @@ kernel::page_init(const e820_map* m, uint64_t top_addr)
 
             page* p = (page*)vaddr;
             for (size_t i=0; i<npfns; ++i)
-                page_free(p++);
+                page_add(p++);
 
             pfn      += npfns;
             rem_pfns -= npfns;
