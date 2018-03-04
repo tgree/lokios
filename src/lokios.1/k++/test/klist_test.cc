@@ -71,7 +71,7 @@ class tmock_test
         kl.pop_all();
     }
 
-    TMOCK_TEST(test_klist_rbfl_works)
+    TMOCK_TEST(test_klist_rbfl_push_back_works)
     {
         klinked_object o1(1);
         klinked_object o2(2);
