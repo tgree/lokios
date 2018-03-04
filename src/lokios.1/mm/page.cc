@@ -40,7 +40,7 @@ kernel::page_free(void* _p)
     page* p = new(_p) page;
     with (free_page_lock)
     {
-        free_page_list.push_back(&p->link); // TODO: We need klist.push_front!
+        free_page_list.push_front(&p->link);
     }
 }
 
