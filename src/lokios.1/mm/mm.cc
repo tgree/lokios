@@ -83,3 +83,9 @@ kernel::phys_to_virt(dma_addr64 p)
     kassert(p != 0);
     return phys_to_virt_maybe_0(p);
 }
+
+dma_addr64
+kernel::xlate(const void* v)
+{
+    return kernel_task->pt.xlate(v);
+}

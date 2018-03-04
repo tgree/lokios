@@ -53,9 +53,15 @@ namespace kernel
         return (cpu*)(0xFFFFFFFE00000000 | ((uint64_t)n << 16));
     }
 
+    // These work to convert between virtual and physical addresses in the
+    // 0xFFFF800000000000 region.  They don't work anywhere else!
     dma_addr64 virt_to_phys(const void* v);
     void* phys_to_virt_maybe_0(dma_addr64 p);
     void* phys_to_virt(dma_addr64 p);
+
+    // This converts a virtual address to a physical one by looking it up in
+    // the page table.
+    dma_addr64 xlate(const void* v);
 
     template<typename T>
     T inline phys_read(dma_addr64 p)
