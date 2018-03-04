@@ -49,27 +49,28 @@ struct pte_check
     uint64_t    val;
 };
 
-template<size_t N>
-static void check_ptes(uint64_t* cr3, const pte_check (&positions)[N])
-{
-    for (const pte_check& pos : positions)
-    {
-        uint64_t* page = cr3;
-        uint64_t vaddr = pos.vaddr;
-        size_t index   = ((vaddr >> 39) & 0x1FF);
-        for (size_t i = 0; i != pos.levels - 1; ++i)
-        {
-            page    = (uint64_t*)(page[index] & PAGE_PADDR_MASK);
-            vaddr <<= 9;
-            index   = ((vaddr >> 39) & 0x1FF);
-        }
-        uint64_t pte = page[index];
-        tmock::assert_equiv(pte & pos.mask,pos.val);
-    }
-}
-
 class tmock_test
 {
+    template<size_t N>
+    static void check_ptes(const kernel::page_table& pt,
+        const pte_check (&positions)[N])
+    {
+        for (const pte_check& pos : positions)
+        {
+            uint64_t* page = pt.cr3;
+            uint64_t vaddr = pos.vaddr;
+            size_t index   = ((vaddr >> 39) & 0x1FF);
+            for (size_t i = 0; i != pos.levels - 1; ++i)
+            {
+                page    = (uint64_t*)(page[index] & PAGE_PADDR_MASK);
+                vaddr <<= 9;
+                index   = ((vaddr >> 39) & 0x1FF);
+            }
+            uint64_t pte = page[index];
+            tmock::assert_equiv(pte & pos.mask,pos.val);
+        }
+    }
+
     TMOCK_TEST(test_page_table_iterator_all_empty_page_works)
     {
         auto p = (uint64_t*)kernel::page_zalloc();
@@ -192,7 +193,7 @@ class tmock_test
                 {3,0x0000123456789000,~PAGE_PADDR_MASK,  0x2000000000000003UL},
                 {4,0x0000123456789000,0xFFFFFFFFFFFFFFFF,0x300000ABCDEFF081UL},
             };
-            check_ptes(pt.cr3,ptes);
+            check_ptes(pt,ptes);
         }
         TASSERT(page_alloc_count == 4);
         TASSERT(page_free_count == 4);
@@ -211,7 +212,7 @@ class tmock_test
                 {2,0x00002468ACE00000,~PAGE_PADDR_MASK,  0x1000000000000003UL},
                 {3,0x00002468ACE00000,0xFFFFFFFFFFFFFFFF,0x200000ABCDE00081UL},
             };
-            check_ptes(pt.cr3,ptes);
+            check_ptes(pt,ptes);
         }
         TASSERT(page_alloc_count == 3);
         TASSERT(page_free_count == 3);
@@ -230,7 +231,7 @@ class tmock_test
                 {1,0x00000000C0000000,~PAGE_PADDR_MASK,  0x0000000000000003UL},
                 {2,0x00000000C0000000,0xFFFFFFFFFFFFFFFF,0x1000000140000083UL},
             };
-            check_ptes(pt.cr3,ptes);
+            check_ptes(pt,ptes);
         }
         TASSERT(page_alloc_count == 2);
         TASSERT(page_free_count == 2);
@@ -270,7 +271,7 @@ class tmock_test
                 {4,0x0000000000000000,0xFFFFFFFFFFFFFFFF,0x3000000000001081UL},
                 {4,0x0000000000001000,0xFFFFFFFFFFFFFFFF,0x300000FFFFFFF081UL},
             };
-            check_ptes(pt.cr3,ptes);
+            check_ptes(pt,ptes);
         }
         TASSERT(page_alloc_count == 4);
         TASSERT(page_free_count == 4);
