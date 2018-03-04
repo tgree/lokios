@@ -90,11 +90,8 @@ init_bsp()
     kernel::init_kernel_task();
     kernel::kernel_task->pt.activate();
 
-    // Finish initializing memory.
-    kernel::init_mm(e820_base);
-
     // Create the CPU and thread-switch it to the init_bsp_stage2() routine.
-    // We need the CPU struct early because it providers the GDT/TSS/IDT that
+    // We need the CPU struct early because it provides the GDT/TSS/IDT that
     // we need for things like interrupts to work.
     kernel::init_this_cpu(init_bsp_stage2);
     kernel::panic("bsp: init_this_cpu() returned!");
@@ -109,6 +106,7 @@ init_bsp_stage2()
     kernel::get_current_cpu()->scheduler.schedule_local_work(wqe);
 
     // Init more stuff.
+    kernel::init_mm(e820_base);
     kernel::init_acpi_tables(e820_base);
     kernel::init_mp_tables();
     kernel::init_cmos();
