@@ -53,7 +53,7 @@ namespace kernel
         return (cpu*)(0xFFFFFFFE00000000 | ((uint64_t)n << 16));
     }
 
-    dma_addr64 virt_to_phys(void* v);
+    dma_addr64 virt_to_phys(const void* v);
     void* phys_to_virt_maybe_0(dma_addr64 p);
     void* phys_to_virt(dma_addr64 p);
 

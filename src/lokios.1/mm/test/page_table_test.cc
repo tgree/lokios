@@ -30,7 +30,7 @@ kernel::page_free(void* p)
 }
 
 dma_addr64
-kernel::virt_to_phys(void* v)
+kernel::virt_to_phys(const void* v)
 {
     return (dma_addr64)v;
 }

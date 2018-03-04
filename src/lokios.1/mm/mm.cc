@@ -63,7 +63,7 @@ kernel::pmap_range(dma_addr64 paddr, size_t len, uint64_t flags)
 }
 
 dma_addr64
-kernel::virt_to_phys(void* v)
+kernel::virt_to_phys(const void* v)
 {
     kassert(v != NULL);
     kassert(((uintptr_t)v & 0xFFFF800000000000UL) == 0xFFFF800000000000UL);
