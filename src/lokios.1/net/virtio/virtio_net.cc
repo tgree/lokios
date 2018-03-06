@@ -16,6 +16,7 @@
 #include "../eth.h"
 #include "../udp.h"
 #include "../dhcp.h"
+#include <initializer_list>
 
 using kernel::console::printf;
 using kernel::_kassert;

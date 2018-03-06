@@ -3,7 +3,6 @@
 
 #include <hdr/compiler.h>
 #include <hdr/fileline.h>
-#include <stdint.h>
 
 namespace kernel
 {

@@ -7,7 +7,7 @@ LIBSUPCXX_OBJ := $(LIBSUPCXX_SRC:$(GCC_LIBSUPCXX_SRCS_DIR)/%.cc=$(MODULE_BUILD_D
 $(MODULE_BUILD_DIR)/%.o: $(GCC_LIBSUPCXX_SRCS_DIR)/%.cc
 	@echo Compiling $^...
 	@mkdir -p $(dir $@)
-	@$(CXX) $(KERN_CXXFLAGS) -Wno-unused-result \
+	@$(CXX) $(BASE_KERN_CXXFLAGS) -Wno-unused-result \
 	        -I$(GCC_SRCS_DIR)/libgcc -I$(GCC_SRCS_DIR)/include \
 		-c $^ -o $@
 

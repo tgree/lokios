@@ -18,9 +18,14 @@ I386_16_ASFLAGS := -march=core2 --32
 I386_32_CFLAGS := -O1 -m32 -march=pentium -Wall -Werror
 
 ASFLAGS := -march=core2 --64
-KERN_CXXFLAGS := -O2 -march=core2 -m64 -std=gnu++17 -Wall -Werror \
+BASE_KERN_CXXFLAGS := -O2 -march=core2 -m64 -std=gnu++17 -Wall -Werror \
                  -Wno-invalid-offsetof -Wno-multichar -Wno-pmf-conversions \
-		 -ggdb -mcmodel=kernel -I$(abspath $(SRC_DIR)) -I$(INCLUDE_DIR)
+		 -ggdb -mcmodel=kernel
+KERN_CXXFLAGS := $(BASE_KERN_CXXFLAGS) \
+		 -mno-sse \
+		 -I$(abspath $(SRC_DIR))/libstd \
+		 -I$(abspath $(SRC_DIR)) \
+		 -I$(INCLUDE_DIR)
 KERN_CCFLAGS  := -O2 -march=core2 -m64 -Werror -ggdb -mcmodel=kernel
 TEST_CXXFLAGS := -O2 -march=core2 -m64 -std=gnu++17 -Wall -Werror \
                  -Wno-invalid-offsetof -Wno-multichar -ggdb \
@@ -100,12 +105,12 @@ clean:
 $(BUILD_O_DIR)/%.o: $(SRC_DIR)/%.cc | headers
 	@echo Compiling $(SRC_DIR)/$*.cc...
 	@mkdir -p $(dir $@)
-	@$(CXX) -MMD -MP -MF $(BUILD_O_DIR)/$*.d -c $(KERN_CXXFLAGS) $(SRC_DIR)/$*.cc -o $@
+	$(CXX) -MMD -MP -MF $(BUILD_O_DIR)/$*.d -c $(KERN_CXXFLAGS) $(SRC_DIR)/$*.cc -o $@
 
 $(BUILD_TO_DIR)/%.o: $(SRC_DIR)/%.cc | headers
 	@echo Compiling $(SRC_DIR)/$*.cc...
 	@mkdir -p $(dir $@)
-	@$(CXX) -MMD -MP -MF $(BUILD_TO_DIR)/$*.d -c $(TEST_CXXFLAGS) $(SRC_DIR)/$*.cc -o $@
+	$(CXX) -MMD -MP -MF $(BUILD_TO_DIR)/$*.d -c $(TEST_CXXFLAGS) $(SRC_DIR)/$*.cc -o $@
 
 $(BUILD_O_DIR)/%.o: $(SRC_DIR)/%.s
 	@echo Assembling $^...

@@ -4,6 +4,7 @@
 #include "kernel_iterator.h"
 #include "kernel/kassert.h"
 #include <hdr/container_of.h>
+#include <stdint.h>
 #include <stddef.h>
 #include <type_traits>
 

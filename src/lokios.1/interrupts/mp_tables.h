@@ -2,6 +2,7 @@
 #define __KERNEL_INTERRUPTS_MP_TABLES_H
 
 #include "../kassert.h"
+#include <stdint.h>
 
 namespace kernel
 {

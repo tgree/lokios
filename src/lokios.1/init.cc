@@ -42,6 +42,11 @@ static void init_ap_stage2();
 const kernel::kernel_args* kargs;
 static const kernel::e820_map* e820_base;
 
+int foo(float f)
+{
+    return 1.0 + f;
+}
+
 static void
 init_globals()
 {

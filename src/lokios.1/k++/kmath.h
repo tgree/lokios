@@ -2,6 +2,7 @@
 #define __KERNEL_MATH_H
 
 #include "kernel/kassert.h"
+#include <stdint.h>
 #include <stddef.h>
 
 namespace kernel
