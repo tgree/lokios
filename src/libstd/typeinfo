@@ -1,0 +1,31 @@
+#ifndef _TYPEINFO
+#define _TYPEINFO
+
+namespace __cxxabiv1
+{
+    class __class_type_info;
+}
+  
+namespace std
+{
+    struct type_info
+    {
+        virtual ~type_info();
+
+        const char* name() const noexcept
+        { return __name[0] == '*' ? __name + 1 : __name; }
+
+    protected:
+        const char *__name;
+        explicit type_info(const char *__n): __name(__n) { }
+
+    private:
+        type_info& operator=(const type_info&);
+        type_info(const type_info&);
+    };
+
+    class bad_cast;
+    class bad_typeid;
+}
+
+#endif /* _TYPEINFO */

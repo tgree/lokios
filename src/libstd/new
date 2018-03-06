@@ -1,0 +1,27 @@
+#ifndef __NEW_H__
+#define __NEW_H__
+
+#include <stddef.h>
+
+namespace std
+{
+    enum class align_val_t : std::size_t {};
+    struct nothrow_t { explicit nothrow_t() = default; };
+}
+
+void* operator new  ( std::size_t count );
+void* operator new[]( std::size_t count );
+void* operator new  ( std::size_t count, std::align_val_t al);
+void* operator new  ( std::size_t count, std::align_val_t al);
+
+void* operator new  ( std::size_t count, const std::nothrow_t& tag);
+void* operator new  ( std::size_t count, const std::nothrow_t& tag);
+void* operator new  ( std::size_t count,
+                      std::align_val_t al, const std::nothrow_t&);
+void* operator new  ( std::size_t count,
+                      std::align_val_t al, const std::nothrow_t&);
+
+void* operator new  ( std::size_t count, void* ptr );
+void* operator new  ( std::size_t count, void* ptr );
+
+#endif /* __NEW_H__ */

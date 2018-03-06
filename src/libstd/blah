@@ -1,0 +1,13 @@
+#ifndef __EXCEPTION_H
+#define __EXCEPTION_H
+
+#include <stddef.h>
+
+namespace std
+{
+    struct exception
+    {
+    };
+}
+
+#endif /* __EXCEPTION_H */
