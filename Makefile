@@ -1,4 +1,4 @@
-MODULES      := tmock libsupc++ lokios.1 lokios.0
+MODULES      := tmock libsupc++ libgcc_eh lokios.1 lokios.0
 ALL_TESTS    :=
 
 TESTS_DIR    := tests
@@ -20,10 +20,14 @@ I386_32_CFLAGS := -O1 -m32 -march=pentium -Wall -Werror
 ASFLAGS := -march=core2 --64
 BASE_KERN_CXXFLAGS := -O2 -march=core2 -m64 -std=gnu++17 -Wall -Werror \
                  -Wno-invalid-offsetof -Wno-multichar -Wno-pmf-conversions \
-		 -ggdb -mcmodel=kernel
-KERN_CXXFLAGS := $(BASE_KERN_CXXFLAGS) \
+		 -ggdb -mcmodel=kernel --sysroot=/home/greent7/sysroot \
 		 -mno-sse \
-		 -I$(abspath $(SRC_DIR))/libstd \
+		 -isystem =/usr/include/c++/7 \
+                 -isystem =/usr/include/x86_64-linux-gnu/c++/7 \
+                 -isystem =/usr/include/c++/7/backward \
+                 -isystem =/usr/lib/gcc/x86_64-linux-gnu/7/include \
+                 -isystem =/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed
+KERN_CXXFLAGS := $(BASE_KERN_CXXFLAGS) \
 		 -I$(abspath $(SRC_DIR)) \
 		 -I$(INCLUDE_DIR)
 KERN_CCFLAGS  := -O2 -march=core2 -m64 -Werror -ggdb -mcmodel=kernel

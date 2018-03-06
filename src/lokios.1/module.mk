@@ -10,7 +10,7 @@ LOKIOS_1_OBJ := $(LOKIOS_1_CXX_SRC:$(MODULE_SRC_DIR)/%.cc=$(MODULE_BUILD_DIR)/%.
                 $(LOKIOS_1_ASM_SRC:$(MODULE_SRC_DIR)/%.s=$(MODULE_BUILD_DIR)/%.o)
 LOKIOS_1_DRIVERS := e1000 virtio_net
 LOKIOS_1_LIB := mm.a acpi.a interrupts.a pci.a platform.a k++.a net.a \
-                libsupc++.a $(LOKIOS_1_DRIVERS:%=%.a)
+                libsupc++.a libgcc_eh.a $(LOKIOS_1_DRIVERS:%=%.a)
 
 -include $(LOKIOS_1_OBJ:.o=.d)
 
