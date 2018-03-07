@@ -22,4 +22,4 @@ $(MODULE_BUILD_DIR)/cp-demangle.o: $(GCC_SRCS_DIR)/libiberty/cp-demangle.c
 $(LIB_DIR)/libsupc++.a: $(LIBSUPCXX_OBJ) $(MODULE_MK)
 	@echo Archiving $@...
 	@mkdir -p $(LIB_DIR)
-	@$(AR) $(ARFLAGS) $@ $(LIBSUPCXX_OBJ)
+	$(AR) $(ARFLAGS) $@ $(LIBSUPCXX_OBJ)
