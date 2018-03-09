@@ -196,6 +196,11 @@ namespace kernel
             return n;
         }
 
+        inline void push_front(kdlink_leaks* l)
+        {
+            l->insert_before(first_link());
+        }
+
         inline void push_back(kdlink_leaks* l)
         {
             l->insert_before(&sentinel);
