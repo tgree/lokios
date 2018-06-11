@@ -110,6 +110,15 @@ namespace kernel
     {
         return (!v ? 0 : (is_pow2(v) ? v : (2ULL << ulog2(v))));
     }
+    KASSERT(ceil_pow2(0U) == 0);
+    KASSERT(ceil_pow2(1U) == 1);
+    KASSERT(ceil_pow2(2U) == 2);
+    KASSERT(ceil_pow2(3U) == 4);
+    KASSERT(ceil_pow2(4U) == 4);
+    KASSERT(ceil_pow2(5U) == 8);
+    KASSERT(ceil_pow2(7U) == 8);
+    KASSERT(ceil_pow2(8U) == 8);
+    KASSERT(ceil_pow2(9U) == 16);
 
     template<typename T>
     constexpr T ceil_div(T num, T denom)
