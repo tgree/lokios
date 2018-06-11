@@ -73,6 +73,17 @@ namespace kernel
     KASSERT(round_to_nearest_multiple(12401,100) == 12400);
 
     template<typename T>
+    constexpr T round_down_to_nearest_multiple(T v, T base)
+    {
+        return (T)((v/base)*base);
+    }
+    KASSERT(round_down_to_nearest_multiple(12300,100) == 12300);
+    KASSERT(round_down_to_nearest_multiple(12301,100) == 12300);
+    KASSERT(round_down_to_nearest_multiple(12345,100) == 12300);
+    KASSERT(round_down_to_nearest_multiple(12399,100) == 12300);
+    KASSERT(round_down_to_nearest_multiple(12400,100) == 12400);
+
+    template<typename T>
     constexpr T round_up_to_nearest_multiple(T v, T base)
     {
         return (T)(((v + (base - 1))/base)*base);
