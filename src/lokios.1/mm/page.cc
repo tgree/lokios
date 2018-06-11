@@ -172,7 +172,7 @@ kernel::page_init(const e820_map* m, uint64_t top_addr)
     regions_remove(free_regions,unusable_regions);
     region_remove(free_regions,0,top_addr-1);
 
-    // Now we are going to map all of the free RAM into the 0xFFF8000000000000
+    // Now we are going to map all of the free RAM into the 0xFFFF800000000000
     // area.
     bool gp = (get_current_cpu()->flags & CPU_FLAG_PAGESIZE_1G);
     for (auto& r : free_regions)
