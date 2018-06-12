@@ -7,6 +7,10 @@
 #       ESI - kernel address to jump to
 .global  _enter_long_mode
 _enter_long_mode:
+    # Ensure interrupts are disabled.  After we muck with these registers BIOS
+    # interrupts will not work properly.
+    cli
+
     # Set the PAT MSR to: 
     #   WB WT WC UC WB WT WC UC
     # Note that this makes the PTE PAT bit into a "don't care" bit.
