@@ -384,10 +384,10 @@ _pxe_shutdown_ops_cmd:
     .zero   10
 _pxe_shutdown_ops:
     .short  0x0021  # TFTP Close
-    .short  0x0007  # UNDI Close
+#   .short  0x0007  # UNDI Close        # DELL doesn't like this one error 0x6A
     .short  0x0005  # UNDI Shutdown
     .short  0x0076  # Stop Base
-    .short  0x0070  # Unload Stack
+#   .short  0x0070  # Unload Stack      # DELL doesn't like this one error 0x01
     .short  0x0002  # UNDI Cleanup
 #   .short  0x0015  # Stop UNDI
 _pxe_shutdown_num_ops:
