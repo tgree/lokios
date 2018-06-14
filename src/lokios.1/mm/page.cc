@@ -105,9 +105,8 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr)
     kassert(sbrk_limit < top_addr);
     set_sbrk_limit(sbrk_limit);
 
-    // We need at least another 2M huge page to initially populate the free
-    // page list.
-    kassert(sbrk_limit + 2*1024*1024 <= top_addr);
+    // We need 8K to back our vector<> objects.
+    kassert(sbrk_limit + 2*4096 <= top_addr);
 
     // Use sbrk to find to free two 4K pages and move them to the free list.
     // We need these pages for our vector<> objects below. sbrk is initially
