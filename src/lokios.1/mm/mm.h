@@ -1,11 +1,28 @@
 // Kernel Memory Map
 // =================
-// We define the upper half of the address range for all kernel space.  The
-// address space is divided up as follows (from high to low addresses):
+// We define the upper half of the virtual address range for all kernel space.
+// The kernel address space is divided up as follows (from high to low
+// addresses):
 //
-//      0xFFFFFFFFnnnn0000 - 0xFFFFFFFFFFFFFFFF: thread space for tid nnnn
+//      0xFFFFFFFFC0000000 - 0xFFFFFFFFC0800000: kernel
+//      0xFFFFFFFFnnnn0000 - 0xFFFFFFFFBFFFFFFF: thread space for tid nnnn
 //      0xFFFFFFFEnnnn0000 - 0xFFFFFFFEFFFFFFFF: cpu space for cpu nnnn
 //      0xFFFF800000000000 - 0xFFFF8FFFFFFFFFFF: used to map all RAM
+//
+//
+// Bootloader Memory Map
+// =====================
+// Upon boot, the lokios.0.ld provides a page table defined in the .ld file.
+// This page table provides the following mappings:
+//
+//      Virtual Start        Virtual End        Physical Start     Len
+//      ------------------   ------------------ ------------------ ---
+//      0xFFFFFFFFC0000000 - 0xFFFFFFFFC7FFFFFF 0x0000000000000000 8M
+//      0xFFFF800000000000 - 0xFFFF800007FFFFFF 0x0000000000000000 8M
+//      0x0000000000000000 - 0x0000000007FFFFFF 0x0000000000000000 8M
+//
+// Upon entry to lokios.1, we'll clone the upper-half mappings into the kernel
+// page table and discard the mapping that starts at address 0.
 #ifndef __KERNEL_MM_H
 #define __KERNEL_MM_H
 
