@@ -2,7 +2,6 @@
 #define __KERNEL_PAGE_H
 
 #include "e820.h"
-#include "k++/klist.h"
 #include "kernel/types.h"
 #include <string.h>
 
