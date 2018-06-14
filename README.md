@@ -18,6 +18,8 @@ qemu comes preinstalled in the docker image, so you can just test your changes i
 
 qemu-system-x86_64 -drive file=bin/lokios.mbr,format=raw -nographic -device isa-debug-exit -smp 2
 
+To exit qemu: Type Ctrl-A A X.
+
 # Typical build/test cycle
 
 make -j && qemu-system-x86_64 -drive file=bin/lokios.mbr,format=raw -smp 2 -nographic -device isa-debug-exit -device virtio-net-pci,netdev=net0,disable-legacy=on,disable-modern=off,vectors=4 -netdev user,id=net0 -object filter-dump,id=dump0,netdev=net0,file=net0dump.pcap
