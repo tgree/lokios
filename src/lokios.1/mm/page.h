@@ -44,6 +44,14 @@ namespace kernel
         inline page_zraii():page_raii(page_zalloc()) {}
     };
 
+    struct page_allocator
+    {
+        constexpr static size_t len   = PAGE_SIZE;
+        constexpr static bool movable = true;
+        inline void* alloc()       {return kernel::page_alloc();}
+        inline void  free(void* p) {kernel::page_free(p);}
+    };
+
     void page_preinit(const e820_map* m, uintptr_t top_addr);
     void page_init(const e820_map* m, uintptr_t top_addr);
 }
