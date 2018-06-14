@@ -109,11 +109,11 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr)
     kassert(sbrk_limit + 2*4096 <= top_addr);
 
     // Parse the usable RAM regions out of the E820 map.
-    sbrk_vector<region> usable_regions(4096);
+    sbrk_vector<region> usable_regions;
     get_e820_regions(m,usable_regions,E820_TYPE_RAM_MASK);
 
     // Parse the unusable regions out of the E820 map.
-    sbrk_vector<region> unusable_regions(4096);
+    sbrk_vector<region> unusable_regions;
     get_e820_regions(m,unusable_regions,~E820_TYPE_RAM_MASK);
 
     // Remove all unusable regions in case BIOS gave us overlap.

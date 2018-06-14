@@ -2,6 +2,7 @@
 #define __KERNEL_VECTOR_BASE_H
 
 #include "kernel/kassert.h"
+#include "kmath.h"
 #include <stddef.h>
 #include <unistd.h>
 #include <utility>
@@ -9,12 +10,13 @@
 
 namespace kernel
 {
-    template<typename T>
+    template<typename T, typename Allocator>
     struct vector_base
     {
         typedef T   value_type;
         typedef T*  iterator;
 
+        Allocator       _allocator;
         T*              _elems;
         size_t          _size;
         const size_t    _capacity;
@@ -118,36 +120,46 @@ namespace kernel
         inline iterator end()               {return _elems + _size;}
         inline const iterator end() const   {return _elems + _size;}
 
-        constexpr vector_base(void* _elems, size_t _capacity):
-            _elems((T*)_elems),
+        inline vector_base(size_t size):
+            _elems((T*)_allocator.alloc()),
             _size(0),
-            _capacity(_capacity)
-        {
-        }
-
-        inline vector_base(void* _elems, size_t _capacity, size_t size):
-            _elems((T*)_elems),
-            _size(0),
-            _capacity(_capacity)
+            _capacity(_allocator.len/sizeof(T))
         {
             while (size--)
                 emplace_back();
         }
 
-        inline vector_base(void* _elems, size_t _capacity,
-            const vector_base& other):
-                _elems((T*)_elems),
-                _size(0),
-                _capacity(_capacity)
+        inline vector_base():
+            _elems((T*)_allocator.alloc()),
+            _size(0),
+            _capacity(_allocator.len/sizeof(T))
+        {
+        }
+
+        inline vector_base(const vector_base& other):
+            _elems((T*)_allocator.alloc()),
+            _size(0),
+            _capacity(_allocator.len/sizeof(T))
         {
             for (const T& e : other)
                 push_back(e);
+        }
+
+        inline vector_base(vector_base&& other):
+            _elems(other._elems),
+            _size(other._size),
+            _capacity(other._capacity)
+        {
+            kassert(_allocator.movable);
+            other._elems    = (T*)_allocator.alloc();
+            other._size     = 0;
         }
 
         inline ~vector_base()
         {
             for (size_t i = size(); i != 0; --i)
                 _elems[i-1].~T();
+            _allocator.free(_elems);
         }
     };
 }

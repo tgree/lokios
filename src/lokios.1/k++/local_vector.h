@@ -2,28 +2,15 @@
 #define __KERNEL_LOCAL_VECTOR_H
 
 #include "vector_base.h"
+#include "allocator.h"
 #include "../mm/sbrk.h"
 
 namespace kernel
 {
     template<typename T>
-    struct local_vector : public vector_base<T>
-    {
-        constexpr local_vector(T* _elems, size_t _capacity):
-            vector_base<T>(_elems,_capacity) {}
-        inline local_vector(T* _elems, size_t _capacity, size_t _size):
-            vector_base<T>(_elems,_capacity,_size) {}
-    };
-
+    using local_vector = vector_base<T,static_allocator<4096>>;
     template<typename T>
-    struct sbrk_vector : public local_vector<T>
-    {
-        inline sbrk_vector(size_t bytelen):
-            local_vector<T>((T*)phys_to_virt(sbrk(bytelen)),
-                            bytelen/sizeof(T))
-        {
-        }
-    };
+    using sbrk_vector = vector_base<T,sbrk_allocator<4096>>;
 }
 
 #endif /* __KERNEL_LOCAL_VECTOR_H */
