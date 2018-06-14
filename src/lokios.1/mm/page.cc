@@ -95,6 +95,9 @@ populate_pages(const C& c, kernel::klist<page>& fpl)
 void
 kernel::page_preinit(const e820_map* m, uint64_t top_addr)
 {
+    // Initialize all of the pages mapped by the bootloader.  This will be the
+    // first 8M of memory, mapped in the 0xFFFF800000000000 region.
+
     // Find the initial sbrk position.
     dma_addr64 initial_sbrk = sbrk(0);
 
@@ -119,7 +122,7 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr)
     // Remove all unusable regions in case BIOS gave us overlap.
     regions_remove(usable_regions,unusable_regions);
 
-    // Remove everything above the top address.
+    // Remove everything above the top bootloader address.
     region_remove(usable_regions,top_addr,0xFFFFFFFFFFFFFFFF);
 
     // Remove everything below the sbrk limit.  This includes all of the
@@ -147,7 +150,12 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr)
 void
 kernel::page_init(const e820_map* m, uint64_t top_addr)
 {
-    // Build up the list of free regions.
+    // Map all of the remaining pages not initially mapped by the bootloader.
+    // This will be all pages past the first 8M of memory, mapped in the
+    // 0xFFFF800000000000 region.
+
+    // Build up the list of free regions, removing everything below the top
+    // bootloader address.
     vector<region> unusable_regions;
     vector<region> free_regions;
     get_e820_regions(m,free_regions,E820_TYPE_RAM_MASK);
