@@ -2,7 +2,7 @@
 #define __KERNEL_VECTOR_BASE_H
 
 #include "kernel/kassert.h"
-#include "kmath.h"
+#include "allocator.h"
 #include <stddef.h>
 #include <unistd.h>
 #include <utility>
@@ -16,10 +16,11 @@ namespace kernel
         typedef T   value_type;
         typedef T*  iterator;
 
-        Allocator       _allocator;
-        T*              _elems;
-        size_t          _size;
-        const size_t    _capacity;
+        Allocator               _allocator;
+        raii_block<Allocator>   _block;
+        T*                      _elems;
+        size_t                  _size;
+        const size_t            _capacity;
 
         inline size_t size() const     {return _size;}
         inline bool   empty() const    {return size() == 0;}
@@ -121,7 +122,8 @@ namespace kernel
         inline const iterator end() const   {return _elems + _size;}
 
         inline vector_base(size_t size):
-            _elems((T*)_allocator.alloc()),
+            _block(_allocator),
+            _elems((T*)_block.addr),
             _size(0),
             _capacity(_allocator.len/sizeof(T))
         {
@@ -130,14 +132,16 @@ namespace kernel
         }
 
         inline vector_base():
-            _elems((T*)_allocator.alloc()),
+            _block(_allocator),
+            _elems((T*)_block.addr),
             _size(0),
             _capacity(_allocator.len/sizeof(T))
         {
         }
 
         inline vector_base(const vector_base& other):
-            _elems((T*)_allocator.alloc()),
+            _block(_allocator),
+            _elems((T*)_block.addr),
             _size(0),
             _capacity(_allocator.len/sizeof(T))
         {
@@ -146,12 +150,13 @@ namespace kernel
         }
 
         inline vector_base(vector_base&& other):
-            _elems(other._elems),
+            _block(std::move(other._block)),
+            _elems((T*)_block.addr),
             _size(other._size),
             _capacity(other._capacity)
         {
             kassert(_allocator.movable);
-            other._elems    = (T*)_allocator.alloc();
+            other._elems    = (T*)other._block.addr;
             other._size     = 0;
         }
 
@@ -159,7 +164,6 @@ namespace kernel
         {
             for (size_t i = size(); i != 0; --i)
                 _elems[i-1].~T();
-            _allocator.free(_elems);
         }
     };
 }
