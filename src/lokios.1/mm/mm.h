@@ -23,6 +23,18 @@
 //
 // Upon entry to lokios.1, we'll clone the upper-half mappings into the kernel
 // page table and discard the mapping that starts at address 0.
+//
+//
+// Kernel 0xFFFF800000000000 RAM Layout
+// ====================================
+// This region is used to map all of physical RAM.  To facilitate booting, we
+// do have a bit of a static layout:
+//
+//      Virtual Start        Virtual End        Description
+//      ------------------   ------------------ ----------------
+//      0xFFFF800000000000 - 0xFFFF8000001FFFFF 2M of low memory
+//      0xFFFF800000200000 - 0xFFFF8.. + _sbrk  start of sbrk area
+//      0xFFFF800000800000 - end of RAM         buddy allocator pages
 #ifndef __KERNEL_MM_H
 #define __KERNEL_MM_H
 
