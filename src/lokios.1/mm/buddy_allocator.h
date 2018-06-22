@@ -60,6 +60,7 @@ namespace kernel
         kernel::kdlist_leaks<bpage>     order_list[BUDDY_ALLOCATOR_MAX_ORDER];
         const size_t                    first_ppfn;
         const size_t                    last_ppfn;
+        size_t                          nfree_pages;
 
         inline bool toggle_inuse_ppfn_bit(size_t ppfn, size_t order)
         {
@@ -87,6 +88,7 @@ namespace kernel
             kassert(ppfn <= last_ppfn);
 
             order_list[order].push_front(&bp->link);
+            nfree_pages += (1<<order);
             if (!toggle_inuse_ppfn_bit(ppfn,order))
                 return;
 
@@ -97,6 +99,7 @@ namespace kernel
             second->~bpage();
 
             first->link.unlink();
+            nfree_pages -= (2<<order);
             free_page(first,order+1);
         }
 
@@ -134,12 +137,14 @@ namespace kernel
                 // buddy pages will be allocated at this point, toggle should
                 // return false.
                 paddr             = alloc_pages(order+1);
+                nfree_pages      += (2<<order);
                 dma_addr64 bpaddr = (paddr ^ (1 << (order+12)));
                 bpage* bbp        = new(phys_to_virt(bpaddr)) bpage;
                 order_list[order].push_front(&bbp->link);
                 kassert(!toggle_inuse_paddr_bit(paddr,order));
             }
 
+            nfree_pages -= (1<<order);
             return paddr;
         }
         
@@ -148,7 +153,8 @@ namespace kernel
             inuse_bitmask((uint8_t*)inuse_bitmask),
             virt_base((bpage*)phys_to_virt_maybe_0(params.B)),
             first_ppfn(dma_base/PAGE_SIZE),
-            last_ppfn((dma_base + len - 1)/PAGE_SIZE)
+            last_ppfn((dma_base + len - 1)/PAGE_SIZE),
+            nfree_pages(0)
         {
             kassert(params.M <= BUDDY_ALLOCATOR_MAX_ORDER);
             memset(inuse_bitmask,0xFF,params.get_inuse_bitmask_size());

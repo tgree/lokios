@@ -149,16 +149,20 @@ class tmock_test
 
         buddy_allocator ba(d,3*PAGE_SIZE,inuse_bitmask);
 
+        tmock::assert_equiv(ba.nfree_pages,0UL);
         ba.free_pages(d + 0*PAGE_SIZE,0);
+        tmock::assert_equiv(ba.nfree_pages,1UL);
         tmock::assert_equiv(ba.order_list[0].size(),1UL);
         kassert((void*)ba.order_list[0].first_link() == p);
 
         ba.free_pages(d + 1*PAGE_SIZE,0);
+        tmock::assert_equiv(ba.nfree_pages,2UL);
         tmock::assert_equiv(ba.order_list[0].size(),0UL);
         tmock::assert_equiv(ba.order_list[1].size(),1UL);
         kassert((void*)ba.order_list[1].first_link() == p);
 
         ba.free_pages(d + 2*PAGE_SIZE,0);
+        tmock::assert_equiv(ba.nfree_pages,3UL);
         tmock::assert_equiv(ba.order_list[0].size(),1UL);
         tmock::assert_equiv(ba.order_list[1].size(),1UL);
         kassert((void*)ba.order_list[0].first_link() ==
@@ -199,14 +203,21 @@ class tmock_test
         dma_addr64 d = kernel::virt_to_phys(p);
 
         buddy_allocator ba(d,3*PAGE_SIZE,inuse_bitmask);
+        kassert(ba.nfree_pages == 0);
         ba.free_pages(d + 0*PAGE_SIZE,0);
+        kassert(ba.nfree_pages == 1);
         ba.free_pages(d + 1*PAGE_SIZE,0);
+        kassert(ba.nfree_pages == 2);
         ba.free_pages(d + 2*PAGE_SIZE,0);
+        kassert(ba.nfree_pages == 3);
 
         dma_addr64 addrs[3];
         addrs[0] = ba.alloc_pages(0);
+        kassert(ba.nfree_pages == 2);
         addrs[1] = ba.alloc_pages(0);
+        kassert(ba.nfree_pages == 1);
         addrs[2] = ba.alloc_pages(0);
+        kassert(ba.nfree_pages == 0);
         kassert(addrs[0] == d + 2*PAGE_SIZE);
         kassert(addrs[1] == d + 0*PAGE_SIZE);
         kassert(addrs[2] == d + 1*PAGE_SIZE);
@@ -214,11 +225,16 @@ class tmock_test
         kassert(ba.order_list[1].empty());
 
         ba.free_pages(addrs[0],0);
+        kassert(ba.nfree_pages == 1);
         ba.free_pages(addrs[1],0);
+        kassert(ba.nfree_pages == 2);
         ba.free_pages(addrs[2],0);
+        kassert(ba.nfree_pages == 3);
 
         addrs[0] = ba.alloc_pages(0);
+        kassert(ba.nfree_pages == 2);
         addrs[1] = ba.alloc_pages(1);
+        kassert(ba.nfree_pages == 0);
         kassert(addrs[0] == d + 2*PAGE_SIZE);
         kassert(addrs[1] == d + 0*PAGE_SIZE);
         kassert(ba.order_list[0].empty());
@@ -254,13 +270,18 @@ class tmock_test
         buddy_allocator ba(d,8*PAGE_SIZE,inuse_bitmask);
         kassert(ba.params.get_inuse_bitmask_size() == 1);
         for (size_t i=0; i<8; ++i)
+        {
+            kassert(ba.nfree_pages == i);
             ba.free_pages(d + i*PAGE_SIZE,0);
+            kassert(ba.nfree_pages == i+1);
+        }
         kassert(ba.order_list[0].empty());
         kassert(ba.order_list[1].empty());
         kassert(ba.order_list[2].empty());
         kassert(ba.order_list[3].size() == 1);
 
         kassert(ba.alloc_pages(0) == d + 0*PAGE_SIZE);
+        kassert(ba.nfree_pages == 7);
         memset((void*)(d + 0*PAGE_SIZE),0,PAGE_SIZE);
         kassert(ba.order_list[0].size() == 1);
         kassert(ba.order_list[1].size() == 1);
@@ -268,32 +289,40 @@ class tmock_test
         kassert(ba.order_list[3].empty());
 
         ba.free_pages(d,0);
+        kassert(ba.nfree_pages == 8);
         kassert(ba.order_list[0].empty());
         kassert(ba.order_list[1].empty());
         kassert(ba.order_list[2].empty());
         kassert(ba.order_list[3].size() == 1);
 
         kassert(ba.alloc_pages(0) == d + 0*PAGE_SIZE);
+        kassert(ba.nfree_pages == 7);
         memset((void*)(d + 0*PAGE_SIZE),0,PAGE_SIZE);
         kassert(ba.alloc_pages(0) == d + 1*PAGE_SIZE);
+        kassert(ba.nfree_pages == 6);
         memset((void*)(d + 1*PAGE_SIZE),0,PAGE_SIZE);
         ba.free_pages(d,0);
+        kassert(ba.nfree_pages == 7);
         kassert(ba.order_list[0].size() == 1);
         kassert(ba.order_list[1].size() == 1);
         kassert(ba.order_list[2].size() == 1);
         kassert(ba.order_list[3].empty());
 
         ba.free_pages(d + 1*PAGE_SIZE,0);
+        kassert(ba.nfree_pages == 8);
         kassert(ba.order_list[0].empty());
         kassert(ba.order_list[1].empty());
         kassert(ba.order_list[2].empty());
         kassert(ba.order_list[3].size() == 1);
 
         kassert(ba.alloc_pages(0) == d + 0*PAGE_SIZE);
+        kassert(ba.nfree_pages == 7);
         memset((void*)(d + 0*PAGE_SIZE),0,PAGE_SIZE);
         kassert(ba.alloc_pages(0) == d + 1*PAGE_SIZE);
+        kassert(ba.nfree_pages == 6);
         memset((void*)(d + 1*PAGE_SIZE),0,PAGE_SIZE);
         kassert(ba.alloc_pages(0) == d + 2*PAGE_SIZE);
+        kassert(ba.nfree_pages == 5);
         memset((void*)(d + 2*PAGE_SIZE),0,PAGE_SIZE);
         kassert(ba.order_list[0].size() == 1);
         kassert(ba.order_list[1].empty());
@@ -301,24 +330,28 @@ class tmock_test
         kassert(ba.order_list[3].empty());
 
         ba.free_pages(d + 1*PAGE_SIZE,0);
+        kassert(ba.nfree_pages == 6);
         kassert(ba.order_list[0].size() == 2);
         kassert(ba.order_list[1].empty());
         kassert(ba.order_list[2].size() == 1);
         kassert(ba.order_list[3].empty());
 
         ba.free_pages(d,0);
+        kassert(ba.nfree_pages == 7);
         kassert(ba.order_list[0].size() == 1);
         kassert(ba.order_list[1].size() == 1);
         kassert(ba.order_list[2].size() == 1);
         kassert(ba.order_list[3].empty());
 
         ba.free_pages(d + 2*PAGE_SIZE,0);
+        kassert(ba.nfree_pages == 8);
         kassert(ba.order_list[0].empty());
         kassert(ba.order_list[1].empty());
         kassert(ba.order_list[2].empty());
         kassert(ba.order_list[3].size() == 1);
 
         kassert(ba.alloc_pages(1) == d + 0*PAGE_SIZE);
+        kassert(ba.nfree_pages == 6);
         memset((void*)(d + 0*PAGE_SIZE),0,2*PAGE_SIZE);
         kassert(ba.order_list[0].empty());
         kassert(ba.order_list[1].size() == 1);
@@ -326,12 +359,14 @@ class tmock_test
         kassert(ba.order_list[3].empty());
 
         ba.free_pages(d + 0*PAGE_SIZE,1);
+        kassert(ba.nfree_pages == 8);
         kassert(ba.order_list[0].empty());
         kassert(ba.order_list[1].empty());
         kassert(ba.order_list[2].empty());
         kassert(ba.order_list[3].size() == 1);
 
         kassert(ba.alloc_pages(2) == d + 0*PAGE_SIZE);
+        kassert(ba.nfree_pages == 4);
         memset((void*)(d + 0*PAGE_SIZE),0,4*PAGE_SIZE);
         kassert(ba.order_list[0].empty());
         kassert(ba.order_list[1].empty());
@@ -339,12 +374,14 @@ class tmock_test
         kassert(ba.order_list[3].empty());
 
         ba.free_pages(d + 0*PAGE_SIZE,2);
+        kassert(ba.nfree_pages == 8);
         kassert(ba.order_list[0].empty());
         kassert(ba.order_list[1].empty());
         kassert(ba.order_list[2].empty());
         kassert(ba.order_list[3].size() == 1);
 
         kassert(ba.alloc_pages(3) == d + 0*PAGE_SIZE);
+        kassert(ba.nfree_pages == 0);
         memset((void*)(d + 0*PAGE_SIZE),0,8*PAGE_SIZE);
         kassert(ba.order_list[0].empty());
         kassert(ba.order_list[1].empty());
@@ -352,6 +389,7 @@ class tmock_test
         kassert(ba.order_list[3].empty());
 
         ba.free_pages(d + 0*PAGE_SIZE,3);
+        kassert(ba.nfree_pages == 8);
         kassert(ba.order_list[0].empty());
         kassert(ba.order_list[1].empty());
         kassert(ba.order_list[2].empty());
