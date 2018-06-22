@@ -18,7 +18,7 @@ kernel::sbrk(size_t n)
     if (sbrk_frozen)
         return 0;
 
-    n = (n + 15) & ~15;
+    n = round_up_pow2(n,16);
     with (sbrklock)
     {
         p    = _brk;
