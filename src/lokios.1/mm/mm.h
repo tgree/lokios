@@ -31,6 +31,8 @@
 #include "kernel/types.h"
 #include "kernel/thread.h"
 
+#define KERNEL_SBRK_END 0x00800000
+
 namespace kernel
 {
     struct cpu;

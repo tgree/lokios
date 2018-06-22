@@ -6,7 +6,7 @@ extern char _sbrk[];
 
 static kernel::spinlock sbrklock;
 static dma_addr64 _brk = (dma_addr64)_sbrk;
-static dma_addr64 _brklim = 0xFFFFFFFFFFFFFFFF;
+static dma_addr64 _brklim = KERNEL_SBRK_END;
 static bool sbrk_frozen = false;
 
 dma_addr64
