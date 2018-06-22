@@ -79,6 +79,7 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr)
     // Populate the buddy allocator.
     uint64_t begin_pfn = ceil_div(usable_regions[0].first,PAGE_SIZE);
     uint64_t end_pfn   = floor_div(usable_regions[0].last+1,PAGE_SIZE);
+    kassert(begin_pfn < end_pfn);
     for (uint64_t pfn = begin_pfn; pfn != end_pfn; ++pfn)
         buddy_pages->free_pages(pfn*PAGE_SIZE,0);
 }
@@ -103,9 +104,12 @@ kernel::page_init(const e820_map* m, uint64_t top_addr)
     bool gp = (get_current_cpu()->flags & CPU_FLAG_PAGESIZE_1G);
     for (auto& r : free_regions)
     {
-        // Map pages.
         uint64_t begin_pfn = ceil_div(r.first,PAGE_SIZE);
         uint64_t end_pfn   = floor_div(r.last+1,PAGE_SIZE);
+        if (begin_pfn > end_pfn)
+            continue;
+
+        // Map pages.
         uint64_t rem_pfns  = end_pfn - begin_pfn;
         for (uint64_t pfn = begin_pfn; rem_pfns;)
         {
