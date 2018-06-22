@@ -2,8 +2,6 @@
 #include "kernel/spinlock.h"
 #include "kernel/kassert.h"
 
-#define SBRK_MAX_LEN    1024*1024
-
 extern char _sbrk[];
 
 static kernel::spinlock sbrklock;
