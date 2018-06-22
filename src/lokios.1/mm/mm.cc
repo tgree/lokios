@@ -24,7 +24,7 @@ kernel::preinit_mm(const e820_map* m)
     
     // Print out the sbrk stats.
     printf("  Free sbrk RAM: %luK\n",
-           ((uint64_t)get_sbrk_limit() - (uint64_t)sbrk(0))/1024);
+           ((uint64_t)get_sbrk_limit() - (uint64_t)get_sbrk())/1024);
 
     // Set up the zero/trash pages.
     zero_page_dma  = virt_to_phys(page_zalloc());
