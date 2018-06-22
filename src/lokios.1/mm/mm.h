@@ -17,9 +17,9 @@
 //
 //      Virtual Start        Virtual End        Physical Start     Len
 //      ------------------   ------------------ ------------------ ---
-//      0xFFFFFFFFC0000000 - 0xFFFFFFFFC7FFFFFF 0x0000000000000000 8M
-//      0xFFFF800000000000 - 0xFFFF800007FFFFFF 0x0000000000000000 8M
-//      0x0000000000000000 - 0x0000000007FFFFFF 0x0000000000000000 8M
+//      0xFFFFFFFFC0000000 - 0xFFFFFFFFCFFFFFFF 0x0000000000000000 16M
+//      0xFFFF800000000000 - 0xFFFF80000FFFFFFF 0x0000000000000000 16M
+//      0x0000000000000000 - 0x000000000FFFFFFF 0x0000000000000000 16M
 //
 // Upon entry to lokios.1, we'll clone the upper-half mappings into the kernel
 // page table and discard the mapping that starts at address 0.
