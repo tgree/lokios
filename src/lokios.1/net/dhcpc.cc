@@ -290,7 +290,7 @@ dhcp::client::process_request_reply()
     // TODO: ARP this address to make sure it's unused.
     kernel::cpu::schedule_timer_sec(&lease_timer_wqe,lease);
     kernel::cpu::schedule_timer_sec(&t2_wqe,t2);
-    kernel::cpu::schedule_timer_sec(&t1_wqe,2);
+    kernel::cpu::schedule_timer_sec(&t1_wqe,t1);
     TRANSITION(DHCP_BOUND_WAIT_TIMEOUT);
     intf->handle_dhcp_success();
 }
