@@ -1,3 +1,8 @@
+/*
+ * Implements the DHCP client-side protocol.  Useful reference:
+ *
+ * http://www.tcpipguide.com/free/t_DHCPGeneralOperationandClientFiniteStateMachine.htm
+ */
 #include "dhcpc.h"
 #include "kernel/console.h"
 #include "kernel/cpu.h"
@@ -179,6 +184,7 @@ dhcp::client::start_selecting()
     packet.iphdr.header_checksum = ipv4::csum(&packet.iphdr);
     packet.msg.format_discover(++xid,intf->hw_mac);
 
+    // TODO: we need to arm a retry timer; our packet could be lost.
     TRANSITION(DHCP_SELECTING_WAIT_RX_RESP_TX_COMP);
     intf->post_tx_frame(&send_op);
 }
@@ -202,6 +208,7 @@ dhcp::client::start_requesting()
     packet.iphdr.header_checksum = ipv4::csum(&packet.iphdr);
     packet.msg.format_request(xid,intf->hw_mac,requested_addr,server_ip);
 
+    // TODO: we need to arm a retry timer; our packet could be lost.
     TRANSITION(DHCP_REQUESTING_WAIT_RX_RESP_TX_COMP);
     intf->post_tx_frame(&send_op);
 }
@@ -224,6 +231,7 @@ dhcp::client::start_renewing()
     packet.msg.format_request(++xid,intf->hw_mac,requested_addr,
                               ipv4::addr{0,0,0,0},requested_addr);
 
+    // TODO: we need to arm a retry timer; our packet could be lost.
     TRANSITION(DHCP_RENEWING_WAIT_RX_RESP_TX_COMP);
     intf->post_tx_frame(&send_op);
 }
@@ -247,6 +255,7 @@ dhcp::client::start_rebinding()
     packet.msg.format_request(++xid,intf->hw_mac,requested_addr,
                               ipv4::addr{0,0,0,0},requested_addr);
 
+    // TODO: we need to arm a retry timer; our packet could be lost.
     TRANSITION(DHCP_REBINDING_WAIT_RX_RESP_TX_COMP);
     intf->post_tx_frame(&send_op);
 }
