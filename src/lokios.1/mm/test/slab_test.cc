@@ -107,7 +107,7 @@ class tmock_test
         test_slab_many_zallocs_and_frees(16);
     }
 
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_slab20_many_zallocs_and_frees)
+    TMOCK_TEST(test_slab20_many_zallocs_and_frees)
     {
         test_slab_many_zallocs_and_frees(20);
     }

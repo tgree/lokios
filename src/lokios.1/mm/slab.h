@@ -106,7 +106,7 @@ namespace kernel
         {
             slab_page* p = page_from_elem(e);
             kassert(p->footer.slab == this);
-            kassert((uintptr_t)p % elem_size == 0);
+            kassert(((uintptr_t)e - (uintptr_t)p) % elem_size == 0);
             --p->footer.usage_count;
 
             free_elem* fe = new(e) free_elem;
