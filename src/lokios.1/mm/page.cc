@@ -1,37 +1,25 @@
 #include "page.h"
 #include "buddy_allocator.h"
-#include "../spinlock.h"
 #include "../task.h"
 #include "../cpu.h"
 #include "k++/local_vector.h"
-#include "k++/deferred_global.h"
-
-static kernel::spinlock                                 buddy_pages_lock;
-static kernel::deferred_global<kernel::buddy_allocator> buddy_pages;
 
 void*
 kernel::page_alloc()
 {
-    with (buddy_pages_lock)
-    {
-        return phys_to_virt(buddy_pages->alloc_pages(0));
-    }
+    return buddy_alloc(0);
 }
 
 void
 kernel::page_free(void* p)
 {
-    kassert(((uintptr_t)p & PAGE_OFFSET_MASK) == 0);
-    with (buddy_pages_lock)
-    {
-        buddy_pages->free_pages(virt_to_phys(p),0);
-    }
+    buddy_free(p,0);
 }
 
 size_t
 kernel::page_count_free()
 {
-    return buddy_pages->nfree_pages;
+    return buddy_count_free();
 }
 
 void
@@ -70,18 +58,13 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr)
     kassert(usable_regions[0].first == (uintptr_t)get_sbrk_limit());
     kassert(usable_regions[0].last == top_addr - 1);
 
-    // Reserve memory for the buddy allocator bitmap.
-    size_t len  = last_dma - first_dma;
-    auto params = buddy_allocator_params(first_dma,len);
-    void* bitmap = phys_to_virt(sbrk(params.get_inuse_bitmask_size()));
-    buddy_pages.init(first_dma,len,bitmap);
-
-    // Populate the buddy allocator.
+    // Initialize and populate the buddy allocator.
     uint64_t begin_pfn = ceil_div(usable_regions[0].first,PAGE_SIZE);
     uint64_t end_pfn   = floor_div(usable_regions[0].last+1,PAGE_SIZE);
     kassert(begin_pfn < end_pfn);
+    buddy_init(first_dma,last_dma - first_dma);
     for (uint64_t pfn = begin_pfn; pfn != end_pfn; ++pfn)
-        buddy_pages->free_pages(pfn*PAGE_SIZE,0);
+        buddy_free(phys_to_virt(pfn*PAGE_SIZE),0);
 }
 
 void
@@ -133,7 +116,7 @@ kernel::page_init(const e820_map* m, uint64_t top_addr)
                 kernel_task->pt.map_4k_page((void*)vaddr,paddr,PAGE_FLAGS_DATA);
                 npfns = 1;
             }
-            buddy_pages->free_pages(paddr,ulog2(npfns));
+            buddy_free(phys_to_virt(paddr),ulog2(npfns));
 
             pfn      += npfns;
             rem_pfns -= npfns;

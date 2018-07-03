@@ -160,6 +160,18 @@ namespace kernel
             memset(inuse_bitmask,0xFF,params.get_inuse_bitmask_size());
         }
     };
+
+    void* buddy_alloc(size_t order);
+    inline void* buddy_zalloc(size_t order)
+    {
+        void* p = buddy_alloc(order);
+        memset(p,0,1<<(order+12));
+        return p;
+    }
+    void buddy_free(void* p, size_t order);
+    size_t buddy_count_free();
+
+    void buddy_init(dma_addr64 dma_base, size_t len);
 }
 
 #endif /* __MM_BUDDY_ALLOCATOR_H */
