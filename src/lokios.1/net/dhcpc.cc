@@ -517,7 +517,7 @@ dhcp::client::handle_rx_dhcp_nak(const dhcp::message* m)
 }
 
 void
-dhcp::client::handle_t1_expiry()
+dhcp::client::handle_t1_expiry(kernel::timer_entry*)
 {
     switch (state)
     {
@@ -551,7 +551,7 @@ dhcp::client::handle_t1_expiry()
 }
 
 void
-dhcp::client::handle_t2_expiry()
+dhcp::client::handle_t2_expiry(kernel::timer_entry*)
 {
     switch (state)
     {
@@ -591,7 +591,7 @@ dhcp::client::handle_t2_expiry()
 }
 
 void
-dhcp::client::handle_lease_expiry()
+dhcp::client::handle_lease_expiry(kernel::timer_entry*)
 {
     switch (state)
     {

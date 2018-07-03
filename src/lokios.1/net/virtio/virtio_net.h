@@ -153,12 +153,12 @@ namespace virtio_net
         void        post_tx_frame(eth::tx_op* op);
         void        post_rx_pages(kernel::klist<eth::rx_page>& pages);
             
-        void        handle_timer();
-        void        handle_rq_dsr();
-        void        handle_tq_dsr();
-        void        handle_cq_dsr();
+        void        handle_timer(kernel::timer_entry*);
+        void        handle_rq_dsr(kernel::work_entry*);
+        void        handle_tq_dsr(kernel::work_entry*);
+        void        handle_cq_dsr(kernel::work_entry*);
         void        handle_cq_completion(uint16_t index);
-        void        handle_config_change_dsr();
+        void        handle_config_change_dsr(kernel::work_entry*);
 
         dev(const kernel::pci::dev* pd, const virtio_net::driver* owner);
     };

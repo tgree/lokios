@@ -106,9 +106,9 @@ namespace dhcp
         void    handle_rx_dhcp_offer(const  dhcp::eth_message* m);
         void    handle_rx_dhcp_ack(const dhcp::message* m);
         void    handle_rx_dhcp_nak(const dhcp::message* m);
-        void    handle_t1_expiry();
-        void    handle_t2_expiry();
-        void    handle_lease_expiry();
+        void    handle_t1_expiry(kernel::timer_entry*);
+        void    handle_t2_expiry(kernel::timer_entry*);
+        void    handle_lease_expiry(kernel::timer_entry*);
 
         // Constructor.
         client(eth::interface* intf);

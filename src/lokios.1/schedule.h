@@ -96,24 +96,24 @@ namespace kernel
 
     // Delegation of work to a member function.  For this to work you must
     // populate wqe->args[0] with a T*.
-    template<typename T, void (T::*Handler)(), typename WQE>
+    template<typename T, typename WQE, void (T::*Handler)(WQE*)>
     struct _work_delegate
     {
         static void handler(WQE* wqe)
         {
-            (((T*)wqe->args[0])->*Handler)();
+            (((T*)wqe->args[0])->*Handler)(wqe);
         }
     };
 #define work_delegate(fn) \
     kernel::_work_delegate< \
         std::remove_reference_t<decltype(*this)>, \
-        &std::remove_reference_t<decltype(*this)>::fn, \
-        kernel::work_entry>::handler
+        kernel::work_entry, \
+        &std::remove_reference_t<decltype(*this)>::fn>::handler
 #define timer_delegate(fn) \
     kernel::_work_delegate< \
         std::remove_reference_t<decltype(*this)>, \
-        &std::remove_reference_t<decltype(*this)>::fn, \
-        kernel::timer_entry>::handler
+        kernel::timer_entry, \
+        &std::remove_reference_t<decltype(*this)>::fn>::handler
 
     // These will allocate/free WQEs off a locked, shared internal slab.  Use
     // of these is optional, you can define WQE objects anywhere.
