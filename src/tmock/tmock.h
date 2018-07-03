@@ -1,6 +1,7 @@
 #ifndef __TMOCK_H
 #define __TMOCK_H
 
+#include "texpectation.h"
 #include <hdr/fileline.h>
 #include <stdint.h>
 #include <stdio.h>

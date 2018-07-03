@@ -45,6 +45,7 @@ run_one_test(const char* name)
             continue;
 
         tci->fn();
+        tmock::cleanup_expectations();
         return 0;
     }
 
