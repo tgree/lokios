@@ -7,12 +7,6 @@ using kernel::round_down_pow2;
 using kernel::ulog2;
 using kernel::ceil_pow2;
 
-void
-kernel::panic(const char* s) noexcept
-{
-    tmock::abort(s);
-}
-
 class tmock_Test
 {
     TMOCK_TEST(test_round_up_pow2)

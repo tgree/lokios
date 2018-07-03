@@ -100,12 +100,6 @@ static uint64_t sorted[] = {
 };
 KASSERT(kernel::nelems(sorted) == kernel::nelems(unsorted));
 
-void
-kernel::panic(const char* s) noexcept
-{
-    tmock::abort(s);
-}
-
 class tmock_test
 {
     TMOCK_TEST(test_some_integers)

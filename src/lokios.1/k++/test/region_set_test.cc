@@ -3,12 +3,6 @@
 #include <vector>
 
 void
-kernel::panic(const char* s) noexcept
-{
-    tmock::abort(s);
-}
-
-void
 dump_region_vector(const std::vector<kernel::region>& v)
 {
     for (const auto& r : v)

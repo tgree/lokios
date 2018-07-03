@@ -41,12 +41,6 @@ static void run_fmt_tests(T (&tests)[N])
         test_random_string(tc.fmt,tc.value);
 }
 
-void
-kernel::panic(const char* s) noexcept
-{
-    tmock::abort(s);
-}
-
 class tmock_test
 {
     TMOCK_TEST(test_fixed_string_stream)

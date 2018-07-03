@@ -17,12 +17,6 @@ struct kdlinked_object
     constexpr kdlinked_object(int val):val(val) {}
 };
 
-void
-kernel::panic(const char* s) noexcept
-{
-    tmock::abort(s);
-}
-
 class tmock_test
 {
     TMOCK_TEST(test_unused_klink_works)

@@ -51,12 +51,6 @@ static uint64_t unsorted[] = {
 
 using kernel::_kassert;
 
-void
-kernel::panic(const char* s) noexcept
-{
-    tmock::abort(s);
-}
-
 class tmock_test
 {
     TMOCK_TEST(test_max_heap_insert)

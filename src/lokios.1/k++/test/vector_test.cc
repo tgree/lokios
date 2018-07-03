@@ -31,26 +31,6 @@ struct default_constructible_entry : public entry
     constexpr default_constructible_entry():entry(1,2,"three") {}
 };
 
-void
-kernel::panic(const char* s) noexcept
-{
-    tmock::abort(s);
-}
-
-void*
-kernel::page_alloc()
-{
-    void* p;
-    kassert(posix_memalign(&p,PAGE_SIZE,PAGE_SIZE) == 0);
-    return p;
-}
-
-void
-kernel::page_free(void* p)
-{
-    free(p);
-}
-
 class tmock_test
 {
     TMOCK_TEST(test_subscript_operator)
