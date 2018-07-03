@@ -5,18 +5,6 @@
 
 static uint16_t conbuf[80*25];
 
-void
-kernel::panic(const char* s) noexcept
-{
-    tmock::abort(s);
-}
-
-void*
-kernel::phys_to_virt(dma_addr64 p)
-{
-    return (void*)p;
-}
-
 class tmock_test
 {
     TMOCK_TEST(test_screen_initialized)

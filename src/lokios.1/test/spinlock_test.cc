@@ -4,12 +4,6 @@
 using kernel::spinlock;
 using kernel::_kassert;
 
-void
-kernel::panic(const char* s) noexcept
-{
-    tmock::abort(s);
-}
-
 class tmock_test
 {
     TMOCK_TEST(test_create_destroy_works)
