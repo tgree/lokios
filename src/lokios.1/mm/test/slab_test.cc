@@ -5,30 +5,8 @@
 
 using kernel::_kassert;
 
-static size_t page_alloc_count;
-static size_t page_free_count;
-
-void
-kernel::panic(const char* s) noexcept
-{
-    tmock::abort(s);
-}
-
-void*
-kernel::page_alloc()
-{
-    void* p;
-    kassert(posix_memalign(&p,PAGE_SIZE,PAGE_SIZE) == 0);
-    ++page_alloc_count;
-    return p;
-}
-
-void
-kernel::page_free(void* p)
-{
-    ++page_free_count;
-    free(p);
-}
+extern size_t page_alloc_count;
+extern size_t page_free_count;
 
 class tmock_test
 {

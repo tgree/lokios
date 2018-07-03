@@ -4,42 +4,8 @@
 #include <hdr/compiler.h>
 #include <string.h>
 
-static size_t page_alloc_count;
-static size_t page_free_count;
-
-void
-kernel::panic(const char* s) noexcept
-{
-    tmock::abort(s);
-}
-
-void*
-kernel::page_alloc()
-{
-    void* p;
-    kernel::kassert(posix_memalign(&p,PAGE_SIZE,PAGE_SIZE) == 0);
-    ++page_alloc_count;
-    return p;
-}
-
-void
-kernel::page_free(void* p)
-{
-    ++page_free_count;
-    free(p);
-}
-
-dma_addr64
-kernel::virt_to_phys(const void* v)
-{
-    return (dma_addr64)v;
-}
-
-void*
-kernel::phys_to_virt(dma_addr64 p)
-{
-    return (void*)p;
-}
+extern size_t page_alloc_count;
+extern size_t page_free_count;
 
 struct pte_check
 {

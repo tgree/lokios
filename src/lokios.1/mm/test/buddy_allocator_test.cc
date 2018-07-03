@@ -5,31 +5,6 @@ using kernel::_kassert;
 using kernel::buddy_allocator;
 using kernel::buddy_allocator_params;
 
-void
-kernel::panic(const char* s) noexcept
-{
-    tmock::abort(s);
-}
-
-void*
-kernel::phys_to_virt_maybe_0(dma_addr64 p)
-{
-    return (void*)p;
-}
-
-void*
-kernel::phys_to_virt(dma_addr64 p)
-{
-    kassert(p != 0);
-    return phys_to_virt_maybe_0(p);
-}
-
-dma_addr64
-kernel::virt_to_phys(const void* p)
-{
-    return (dma_addr64)p;
-}
-
 class tmock_test
 {
     TMOCK_TEST(test_base4_len3_params)
