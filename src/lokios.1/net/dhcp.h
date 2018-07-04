@@ -35,10 +35,22 @@ namespace dhcp
         uint8_t     options[308];
 
         void    format_discover(uint32_t xid, const eth::addr& src_mac);
+        void    format_offer(uint32_t xid, const eth::addr& client_mac,
+                             const ipv4::addr& ci_addr,
+                             const ipv4::addr& yi_addr,
+                             const ipv4::addr& si_addr,
+                             const ipv4::addr& gi_addr);
         void    format_request(uint32_t xid, const eth::addr& src_mac,
                                const ipv4::addr& req_addr,
                                const ipv4::addr& server_id,
                                const ipv4::addr& ci_addr = ipv4::addr{0,0,0,0});
+        void    format_ack(uint32_t xid, const eth::addr& client_mac,
+                           const ipv4::addr& ci_addr,
+                           const ipv4::addr& yi_addr,
+                           const ipv4::addr& si_addr,
+                           const ipv4::addr& gi_addr,
+                           const ipv4::addr& subnet_mask,
+                           const ipv4::addr& dns_addr, uint32_t lease_time);
 
         const option* find_option(uint8_t tag) const;
         template<typename O>
@@ -66,6 +78,26 @@ namespace dhcp
         inline void append_requested_ip(const ipv4::addr& req_addr)
         {
             append_option(50,sizeof(req_addr.v),req_addr.v);
+        }
+
+        inline void append_subnet_mask(const ipv4::addr& subnet_mask)
+        {
+            append_option(1,sizeof(subnet_mask.v),subnet_mask.v);
+        }
+        
+        inline void append_router_ip(const ipv4::addr& router_ip)
+        {
+            append_option(3,sizeof(router_ip.v),router_ip.v);
+        }
+
+        inline void append_dns_ip(const ipv4::addr& dns_addr)
+        {
+            append_option(6,sizeof(dns_addr.v),dns_addr.v);
+        }
+
+        inline void append_lease(be_uint32_t t)
+        {
+            append_option(51,sizeof(t),&t);
         }
 
         inline void append_server_id(const ipv4::addr& server_id)
