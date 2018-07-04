@@ -24,7 +24,7 @@ KERN_CXXFLAGS := -O2 -march=core2 -m64 -std=gnu++17 -Wall -Werror \
 KERN_CCFLAGS  := -O2 -march=core2 -m64 -Werror -ggdb -mcmodel=kernel
 TEST_CXXFLAGS := -O2 -march=core2 -m64 -std=gnu++17 -Wall -Werror \
                  -Wno-invalid-offsetof -Wno-multichar -ggdb \
-                 -I$(abspath $(SRC_DIR)) -I$(INCLUDE_DIR)
+                 -I$(abspath $(SRC_DIR)) -I$(INCLUDE_DIR) -DBUILDING_UNITTEST
 
 ARFLAGS := rc
 
