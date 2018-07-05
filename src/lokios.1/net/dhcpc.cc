@@ -572,10 +572,6 @@ dhcp::client::handle_t2_expiry(kernel::timer_entry*)
             TRANSITION(DHCP_RENEWING_WAIT_RX_RESP_TX_COMP_T2_EXPIRED);
         break;
 
-        case DHCP_RENEWING_WAIT_TX_COMP:
-            TRANSITION(DHCP_RENEWING_WAIT_TX_COMP_T2_EXPIRED);
-        break;
-
         case DHCP_INIT:
         case DHCP_SELECTING_WAIT_RX_RESP_TX_COMP:
         case DHCP_SELECTING_WAIT_RX_RESP:
@@ -585,6 +581,7 @@ dhcp::client::handle_t2_expiry(kernel::timer_entry*)
         case DHCP_REQUESTING_WAIT_TX_COMP:
         case DHCP_DECLINED_WAIT_TX_COMP:
         case DHCP_BOUND_WAIT_TIMEOUT:
+        case DHCP_RENEWING_WAIT_TX_COMP:
         case DHCP_RENEWING_WAIT_RX_RESP_TX_COMP_T2_EXPIRED:
         case DHCP_RENEWING_WAIT_TX_COMP_T2_EXPIRED:
         case DHCP_RENEWING_WAIT_RX_RESP_TX_COMP_LEASE_EXPIRED:
