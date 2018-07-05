@@ -399,7 +399,7 @@ dhcp::client::handle_rx_dhcp(eth::rx_page* p) try
     if (resp->msg.xid != xid)
         return;
 
-    printf("rx msg src ip %u.%u.%u.%u dst ip %u.%u.%u.%u\n",
+    printf("dhcp: rx msg src ip %u.%u.%u.%u dst ip %u.%u.%u.%u\n",
            resp->iphdr.src_ip[0],resp->iphdr.src_ip[1],
            resp->iphdr.src_ip[2],resp->iphdr.src_ip[3],
            resp->iphdr.dst_ip[0],resp->iphdr.dst_ip[1],
