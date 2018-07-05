@@ -15,8 +15,15 @@ namespace dhcp
     struct client;
 }
 
+namespace arp
+{
+    template<typename hw_traits, typename proto_traits> struct service;
+}
+
 namespace eth
 {
+    struct net_traits;
+
     // MAC address.
     struct addr
     {
@@ -102,6 +109,9 @@ namespace eth
         // DHCP client service.
         dhcp::client*           dhcpc;
 
+        // ARP service.
+        arp::service<eth::net_traits,ipv4::net_traits>* arpc_ipv4;
+
         // Activate the interface.
                 void    activate();
                 void    refill_rx_pages();
@@ -123,6 +133,7 @@ namespace eth
                 void    handle_rx_pages(kernel::klist<rx_page>& pages);
                 void    handle_rx_ipv4_frame(rx_page* p);
                 void    handle_rx_ipv4_udp_frame(rx_page* p);
+                void    handle_rx_arp_frame(rx_page* p);
 
         interface(const eth::addr& hw_mac, size_t tx_qlen, size_t rx_qlen);
         virtual ~interface();

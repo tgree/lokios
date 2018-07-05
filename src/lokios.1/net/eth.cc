@@ -1,6 +1,7 @@
 #include "eth.h"
 #include "dhcp.h"
 #include "dhcpc.h"
+#include "arp.h"
 #include "kernel/console.h"
 
 #define DUMP_GOOD_PACKETS 0
@@ -22,6 +23,7 @@ eth::interface::interface(const eth::addr& hw_mac, size_t tx_qlen,
         rx_posted_count(0)
 {
     dhcpc = new dhcp::client(this);
+    arpc_ipv4 = new arp::service<eth::net_traits,ipv4::net_traits>(this);
 }
 
 eth::interface::~interface()
@@ -100,6 +102,7 @@ eth::interface::handle_rx_pages(kernel::klist<rx_page>& pages)
         else switch (h->ether_type)
         {
             case 0x0800:    handle_rx_ipv4_frame(p);    break;
+            case 0x0806:    handle_rx_arp_frame(p);     break;
             default:        delete p;                   break;
         }
     }
@@ -128,5 +131,17 @@ eth::interface::handle_rx_ipv4_udp_frame(rx_page* p)
     auto* uh  = (udp::header*)(iph+1);
     if (uh->src_port == 67 && uh->dst_port == 68)
         dhcpc->handle_rx_dhcp(p);
+    delete p;
+}
+
+void
+eth::interface::handle_rx_arp_frame(rx_page* p)
+{
+    auto* h  = (eth::header*)(p->payload + p->eth_offset);
+    auto* sp = (arp::short_payload*)(h+1);
+    switch (sp->ptype)
+    {
+        case 0x0800:    arpc_ipv4->handle_rx_frame(p);  break;
+    }
     delete p;
 }
