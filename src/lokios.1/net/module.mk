@@ -1,4 +1,4 @@
-SUBMODULES := e1000 virtio
+SUBMODULES := e1000 virtio test
 
 NET_SRC := $(wildcard $(MODULE_SRC_DIR)/*.cc)
 NET_OBJ := $(NET_SRC:$(MODULE_SRC_DIR)/%.cc=$(MODULE_BUILD_DIR)/%.o)
