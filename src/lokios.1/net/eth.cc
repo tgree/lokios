@@ -97,7 +97,7 @@ eth::interface::handle_rx_pages(kernel::klist<rx_page>& pages)
         auto* h = (eth::header*)(p->payload + p->eth_offset);
         if (h->dst_mac != hw_mac && h->dst_mac != eth::broadcast_addr)
             delete p;
-        else switch (h->ethertype)
+        else switch (h->ether_type)
         {
             case 0x0800:    handle_rx_ipv4_frame(p);    break;
             default:        delete p;                   break;

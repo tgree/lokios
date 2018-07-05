@@ -56,7 +56,7 @@ namespace eth
 
         eth::addr   dst_mac;
         eth::addr   src_mac;
-        be_uint16_t ethertype;
+        be_uint16_t ether_type;
     } __PACKED__;
     KASSERT(sizeof(header) == 14);
 
