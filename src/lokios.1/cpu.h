@@ -16,11 +16,15 @@ namespace kernel
     struct work_entry;
     struct cpu;
 
+#ifndef BUILDING_UNITTEST
     static inline cpu* get_current_cpu()
     {
         // The cpu* is stored in the GS_BASE MSR.
         return (cpu*)rdmsr(IA32_GS_BASE);
     }
+#else
+    cpu* get_current_cpu();
+#endif
 
     struct tss64
     {
