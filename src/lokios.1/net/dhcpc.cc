@@ -4,6 +4,7 @@
  * http://www.tcpipguide.com/free/t_DHCPGeneralOperationandClientFiniteStateMachine.htm
  */
 #include "dhcpc.h"
+#include "arp.h"
 #include "kernel/console.h"
 #include "kernel/cpu.h"
 
@@ -38,10 +39,12 @@ dhcp::client::client(eth::interface* intf):
     intf(intf),
     xid(0x21324354)
 {
+    arp_cqe.fn               = work_delegate(handle_arp_completion);
     t1_wqe.fn                = timer_delegate(handle_t1_expiry);
     t2_wqe.fn                = timer_delegate(handle_t2_expiry);
     lease_timer_wqe.fn       = timer_delegate(handle_lease_expiry);
     rx_dropped_timer.fn      = timer_delegate(handle_rx_expiry);
+    arp_cqe.args[0]          = (uintptr_t)this;
     t1_wqe.args[0]           = (uintptr_t)this;
     t2_wqe.args[0]           = (uintptr_t)this;
     lease_timer_wqe.args[0]  = (uintptr_t)this;
@@ -95,6 +98,7 @@ dhcp::client::TRANSITION_WAIT_RX_RESP()
         case DHCP_SELECTING_WAIT_TX_COMP:
         case DHCP_REQUESTING_WAIT_RX_RESP:
         case DHCP_REQUESTING_WAIT_TX_COMP:
+        case DHCP_REQUESTING_WAIT_ARP_COMP:
         case DHCP_DECLINED_WAIT_TX_COMP:
         case DHCP_BOUND_WAIT_TIMEOUT:
         case DHCP_RENEWING_WAIT_RX_RESP:
@@ -151,6 +155,7 @@ dhcp::client::TRANSITION_WAIT_TX_COMP()
         case DHCP_SELECTING_WAIT_TX_COMP:
         case DHCP_REQUESTING_WAIT_RX_RESP:
         case DHCP_REQUESTING_WAIT_TX_COMP:
+        case DHCP_REQUESTING_WAIT_ARP_COMP:
         case DHCP_DECLINED_WAIT_TX_COMP:
         case DHCP_BOUND_WAIT_TIMEOUT:
         case DHCP_RENEWING_WAIT_RX_RESP:
@@ -291,13 +296,11 @@ dhcp::client::process_request_reply()
         return;
     }
 
-    // Okay, we got an ACK so the server is leasing us this address.
-    // TODO: ARP this address to make sure it's unused.
-    kernel::cpu::schedule_timer_sec(&lease_timer_wqe,lease);
-    kernel::cpu::schedule_timer_sec(&t2_wqe,t2);
-    kernel::cpu::schedule_timer_sec(&t1_wqe,t1);
-    TRANSITION(DHCP_BOUND_WAIT_TIMEOUT);
-    intf->handle_dhcp_success();
+    // Okay, we got a DHCPACK so the server is leasing us this address.
+    arp_attempt = 1;
+    intf->arpc_ipv4->enqueue_lookup(requested_addr,&arp_eth_addr,&arp_cqe,
+                                    ARP_TIMEOUT_MS);
+    TRANSITION(DHCP_REQUESTING_WAIT_ARP_COMP);
 }
 
 void
@@ -342,6 +345,7 @@ dhcp::client::handle_tx_send_comp()
         case DHCP_INIT:
         case DHCP_SELECTING_WAIT_RX_RESP:
         case DHCP_REQUESTING_WAIT_RX_RESP:
+        case DHCP_REQUESTING_WAIT_ARP_COMP:
         case DHCP_BOUND_WAIT_TIMEOUT:
         case DHCP_RENEWING_WAIT_RX_RESP:
         case DHCP_REBINDING_WAIT_RX_RESP:
@@ -373,6 +377,7 @@ dhcp::client::handle_rx_expiry(kernel::timer_entry*)
         case DHCP_SELECTING_WAIT_TX_COMP:
         case DHCP_REQUESTING_WAIT_RX_RESP_TX_COMP:
         case DHCP_REQUESTING_WAIT_TX_COMP:
+        case DHCP_REQUESTING_WAIT_ARP_COMP:
         case DHCP_DECLINED_WAIT_TX_COMP:
         case DHCP_BOUND_WAIT_TIMEOUT:
         case DHCP_RENEWING_WAIT_RX_RESP_TX_COMP:
@@ -448,6 +453,7 @@ dhcp::client::handle_rx_dhcp_offer(const dhcp::eth_message* m)
         case DHCP_REQUESTING_WAIT_RX_RESP_TX_COMP:
         case DHCP_REQUESTING_WAIT_RX_RESP:
         case DHCP_REQUESTING_WAIT_TX_COMP:
+        case DHCP_REQUESTING_WAIT_ARP_COMP:
         case DHCP_DECLINED_WAIT_TX_COMP:
         case DHCP_BOUND_WAIT_TIMEOUT:
         case DHCP_RENEWING_WAIT_RX_RESP_TX_COMP:
@@ -514,6 +520,7 @@ dhcp::client::handle_rx_dhcp_ack(const dhcp::message* m)
         case DHCP_SELECTING_WAIT_RX_RESP:
         case DHCP_SELECTING_WAIT_TX_COMP:
         case DHCP_REQUESTING_WAIT_TX_COMP:
+        case DHCP_REQUESTING_WAIT_ARP_COMP:
         case DHCP_DECLINED_WAIT_TX_COMP:
         case DHCP_BOUND_WAIT_TIMEOUT:
         case DHCP_RENEWING_WAIT_TX_COMP:
@@ -558,6 +565,7 @@ dhcp::client::handle_rx_dhcp_nak(const dhcp::message* m)
         case DHCP_SELECTING_WAIT_RX_RESP:
         case DHCP_SELECTING_WAIT_TX_COMP:
         case DHCP_REQUESTING_WAIT_TX_COMP:
+        case DHCP_REQUESTING_WAIT_ARP_COMP:
         case DHCP_DECLINED_WAIT_TX_COMP:
         case DHCP_BOUND_WAIT_TIMEOUT:
         case DHCP_RENEWING_WAIT_TX_COMP:
@@ -567,6 +575,37 @@ dhcp::client::handle_rx_dhcp_nak(const dhcp::message* m)
         case DHCP_REBINDING_WAIT_TX_COMP_LEASE_EXPIRED:
             printf("spurious DHCPNAK received\n");
         break;
+    }
+}
+
+void
+dhcp::client::handle_arp_completion(kernel::work_entry* wqe)
+{
+    kassert(state == DHCP_REQUESTING_WAIT_ARP_COMP);
+    if (!wqe->args[1])
+    {
+        // The ARP request completed successfully.  This means some other
+        // device on the network is using out address.  We should send a
+        // DHCPDECLINE at this point.
+        // TODO: DHCPDECLINE.
+        kernel::panic("duplicate address detected!");
+    }
+    else if (++arp_attempt <= ARP_RETRY_ATTEMPTS)
+    {
+        // The ARP request timed out indicating nobody was there.  We do a few
+        // retries to handle lost packets on the network.
+        intf->arpc_ipv4->enqueue_lookup(requested_addr,&arp_eth_addr,&arp_cqe,
+                                        ARP_TIMEOUT_MS);
+    }
+    else
+    {
+        // All ARP requests timed out.  This means nobody else is using out
+        // address, so we enter the bound state.
+        kernel::cpu::schedule_timer_sec(&lease_timer_wqe,lease);
+        kernel::cpu::schedule_timer_sec(&t2_wqe,t2);
+        kernel::cpu::schedule_timer_sec(&t1_wqe,t1);
+        TRANSITION(DHCP_BOUND_WAIT_TIMEOUT);
+        intf->handle_dhcp_success();
     }
 }
 
@@ -586,6 +625,7 @@ dhcp::client::handle_t1_expiry(kernel::timer_entry*)
         case DHCP_REQUESTING_WAIT_RX_RESP_TX_COMP:
         case DHCP_REQUESTING_WAIT_RX_RESP:
         case DHCP_REQUESTING_WAIT_TX_COMP:
+        case DHCP_REQUESTING_WAIT_ARP_COMP:
         case DHCP_DECLINED_WAIT_TX_COMP:
         case DHCP_RENEWING_WAIT_RX_RESP_TX_COMP:
         case DHCP_RENEWING_WAIT_RX_RESP:
@@ -625,6 +665,7 @@ dhcp::client::handle_t2_expiry(kernel::timer_entry*)
         case DHCP_REQUESTING_WAIT_RX_RESP_TX_COMP:
         case DHCP_REQUESTING_WAIT_RX_RESP:
         case DHCP_REQUESTING_WAIT_TX_COMP:
+        case DHCP_REQUESTING_WAIT_ARP_COMP:
         case DHCP_DECLINED_WAIT_TX_COMP:
         case DHCP_BOUND_WAIT_TIMEOUT:
         case DHCP_RENEWING_WAIT_TX_COMP:
@@ -676,6 +717,7 @@ dhcp::client::handle_lease_expiry(kernel::timer_entry*)
         case DHCP_REQUESTING_WAIT_RX_RESP_TX_COMP:
         case DHCP_REQUESTING_WAIT_RX_RESP:
         case DHCP_REQUESTING_WAIT_TX_COMP:
+        case DHCP_REQUESTING_WAIT_ARP_COMP:
         case DHCP_DECLINED_WAIT_TX_COMP:
         case DHCP_BOUND_WAIT_TIMEOUT:
         case DHCP_RENEWING_WAIT_RX_RESP:

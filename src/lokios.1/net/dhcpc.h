@@ -5,6 +5,9 @@
 #include "dhcp.h"
 #include "../schedule.h"
 
+#define ARP_RETRY_ATTEMPTS  5
+#define ARP_TIMEOUT_MS      100
+
 namespace dhcp
 {
     struct client
@@ -26,6 +29,10 @@ namespace dhcp
             DHCP_REQUESTING_WAIT_RX_RESP_TX_COMP,
             DHCP_REQUESTING_WAIT_RX_RESP,
             DHCP_REQUESTING_WAIT_TX_COMP,
+
+            // ARP lookup sent.  We wait for the ARP reply (in the case of a
+            // duplicate address already on the network) or a timeout.
+            DHCP_REQUESTING_WAIT_ARP_COMP,
 
             // DHCPDECLINE sent.  We received a DHCPACK but when we went to
             // verify via ARP that the address was available we detected that
@@ -83,6 +90,11 @@ namespace dhcp
         uint32_t            t2;
         uint32_t            t1;
 
+        // ARP stuff.
+        kernel::work_entry  arp_cqe;
+        eth::addr           arp_eth_addr;
+        size_t              arp_attempt;
+
         // The dhcp message we will transmit.
         kernel::timer_entry rx_dropped_timer;
         dhcp::eth_message   packet;
@@ -108,6 +120,7 @@ namespace dhcp
         void    handle_rx_dhcp_offer(const  dhcp::eth_message* m);
         void    handle_rx_dhcp_ack(const dhcp::message* m);
         void    handle_rx_dhcp_nak(const dhcp::message* m);
+        void    handle_arp_completion(kernel::work_entry*);
         void    handle_t1_expiry(kernel::timer_entry*);
         void    handle_t2_expiry(kernel::timer_entry*);
         void    handle_lease_expiry(kernel::timer_entry*);
