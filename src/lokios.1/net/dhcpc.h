@@ -84,6 +84,7 @@ namespace dhcp
         uint32_t            t1;
 
         // The dhcp message we will transmit.
+        kernel::timer_entry rx_dropped_timer;
         dhcp::eth_message   packet;
 
         // Transition helpers.
@@ -102,6 +103,7 @@ namespace dhcp
 
         // Handlers.
         void    handle_tx_send_comp();
+        void    handle_rx_expiry(kernel::timer_entry*);
         void    handle_rx_dhcp(eth::rx_page* p);
         void    handle_rx_dhcp_offer(const  dhcp::eth_message* m);
         void    handle_rx_dhcp_ack(const dhcp::message* m);

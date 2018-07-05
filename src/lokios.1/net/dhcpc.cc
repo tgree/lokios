@@ -38,12 +38,14 @@ dhcp::client::client(eth::interface* intf):
     intf(intf),
     xid(0x21324354)
 {
-    t1_wqe.fn               = timer_delegate(handle_t1_expiry);
-    t2_wqe.fn               = timer_delegate(handle_t2_expiry);
-    lease_timer_wqe.fn      = timer_delegate(handle_lease_expiry);
-    t1_wqe.args[0]          = (uintptr_t)this;
-    t2_wqe.args[0]          = (uintptr_t)this;
-    lease_timer_wqe.args[0] = (uintptr_t)this;
+    t1_wqe.fn                = timer_delegate(handle_t1_expiry);
+    t2_wqe.fn                = timer_delegate(handle_t2_expiry);
+    lease_timer_wqe.fn       = timer_delegate(handle_lease_expiry);
+    rx_dropped_timer.fn      = timer_delegate(handle_rx_expiry);
+    t1_wqe.args[0]           = (uintptr_t)this;
+    t2_wqe.args[0]           = (uintptr_t)this;
+    lease_timer_wqe.args[0]  = (uintptr_t)this;
+    rx_dropped_timer.args[0] = (uintptr_t)this;
 
     packet.llhdr.src_mac          = intf->hw_mac;
     packet.llhdr.ether_type       = 0x0800;
@@ -172,10 +174,13 @@ dhcp::client::start()
 void
 dhcp::client::start_selecting()
 {
-    kassert(state == DHCP_INIT);
-    kassert(!lease_timer_wqe.is_armed());
-    kassert(!t2_wqe.is_armed());
+    kassert(state == DHCP_INIT ||
+            state == DHCP_SELECTING_WAIT_RX_RESP ||
+            state == DHCP_REQUESTING_WAIT_RX_RESP);
     kassert(!t1_wqe.is_armed());
+    kassert(!t2_wqe.is_armed());
+    kassert(!lease_timer_wqe.is_armed());
+    kassert(!rx_dropped_timer.is_armed());
 
     packet.llhdr.dst_mac         = eth::broadcast_addr;
     packet.iphdr.src_ip          = ipv4::addr{0,0,0,0};
@@ -184,7 +189,6 @@ dhcp::client::start_selecting()
     packet.iphdr.header_checksum = ipv4::csum(&packet.iphdr);
     packet.msg.format_discover(++xid,intf->hw_mac);
 
-    // TODO: we need to arm a retry timer; our packet could be lost.
     TRANSITION(DHCP_SELECTING_WAIT_RX_RESP_TX_COMP);
     intf->post_tx_frame(&send_op);
 }
@@ -200,6 +204,7 @@ dhcp::client::start_requesting()
     kassert(!t1_wqe.is_armed());
     kassert(!t2_wqe.is_armed());
     kassert(!lease_timer_wqe.is_armed());
+    kassert(!rx_dropped_timer.is_armed());
 
     packet.llhdr.dst_mac         = eth::broadcast_addr;
     packet.iphdr.src_ip          = ipv4::addr{0,0,0,0};
@@ -208,7 +213,6 @@ dhcp::client::start_requesting()
     packet.iphdr.header_checksum = ipv4::csum(&packet.iphdr);
     packet.msg.format_request(xid,intf->hw_mac,requested_addr,server_ip);
 
-    // TODO: we need to arm a retry timer; our packet could be lost.
     TRANSITION(DHCP_REQUESTING_WAIT_RX_RESP_TX_COMP);
     intf->post_tx_frame(&send_op);
 }
@@ -218,10 +222,12 @@ dhcp::client::start_renewing()
 {
     // The T1 timer has expired in the bound state.  We need to start renewing
     // the lease.
-    kassert(state == DHCP_BOUND_WAIT_TIMEOUT);
+    kassert(state == DHCP_BOUND_WAIT_TIMEOUT ||
+            state == DHCP_RENEWING_WAIT_RX_RESP);
     kassert(!t1_wqe.is_armed());
     kassert(t2_wqe.is_armed());
     kassert(lease_timer_wqe.is_armed());
+    kassert(!rx_dropped_timer.is_armed());
 
     packet.llhdr.dst_mac         = server_mac;
     packet.iphdr.src_ip          = requested_addr;
@@ -231,7 +237,6 @@ dhcp::client::start_renewing()
     packet.msg.format_request(++xid,intf->hw_mac,requested_addr,
                               ipv4::addr{0,0,0,0},requested_addr);
 
-    // TODO: we need to arm a retry timer; our packet could be lost.
     TRANSITION(DHCP_RENEWING_WAIT_RX_RESP_TX_COMP);
     intf->post_tx_frame(&send_op);
 }
@@ -242,7 +247,8 @@ dhcp::client::start_rebinding()
     // The T2 timer has expired in the renewing state.  We need to start
     // rebinding to a different server.
     kassert(state == DHCP_RENEWING_WAIT_RX_RESP ||  
-            state == DHCP_RENEWING_WAIT_RX_RESP_TX_COMP_T2_EXPIRED);
+            state == DHCP_RENEWING_WAIT_RX_RESP_TX_COMP_T2_EXPIRED ||
+            state == DHCP_REBINDING_WAIT_RX_RESP);
     kassert(!t1_wqe.is_armed());
     kassert(!t2_wqe.is_armed());
     kassert(lease_timer_wqe.is_armed());
@@ -255,7 +261,6 @@ dhcp::client::start_rebinding()
     packet.msg.format_request(++xid,intf->hw_mac,requested_addr,
                               ipv4::addr{0,0,0,0},requested_addr);
 
-    // TODO: we need to arm a retry timer; our packet could be lost.
     TRANSITION(DHCP_REBINDING_WAIT_RX_RESP_TX_COMP);
     intf->post_tx_frame(&send_op);
 }
@@ -304,7 +309,7 @@ dhcp::client::handle_tx_send_comp()
         case DHCP_REQUESTING_WAIT_RX_RESP_TX_COMP:
         case DHCP_RENEWING_WAIT_RX_RESP_TX_COMP:
         case DHCP_REBINDING_WAIT_RX_RESP_TX_COMP:
-            // TODO: Start response retry timer.
+            kernel::cpu::schedule_timer_sec(&rx_dropped_timer,1);
             TRANSITION_WAIT_RX_RESP();
         break;
 
@@ -346,6 +351,46 @@ dhcp::client::handle_tx_send_comp()
 }
 
 void
+dhcp::client::handle_rx_expiry(kernel::timer_entry*)
+{
+    switch (state)
+    {
+        case DHCP_SELECTING_WAIT_RX_RESP:
+        case DHCP_REQUESTING_WAIT_RX_RESP:
+            start_selecting();
+        break;
+
+        case DHCP_RENEWING_WAIT_RX_RESP:
+            start_renewing();
+        break;
+
+        case DHCP_REBINDING_WAIT_RX_RESP:
+            start_rebinding();
+        break;
+
+        case DHCP_INIT:
+        case DHCP_SELECTING_WAIT_RX_RESP_TX_COMP:
+        case DHCP_SELECTING_WAIT_TX_COMP:
+        case DHCP_REQUESTING_WAIT_RX_RESP_TX_COMP:
+        case DHCP_REQUESTING_WAIT_TX_COMP:
+        case DHCP_DECLINED_WAIT_TX_COMP:
+        case DHCP_BOUND_WAIT_TIMEOUT:
+        case DHCP_RENEWING_WAIT_RX_RESP_TX_COMP:
+        case DHCP_RENEWING_WAIT_TX_COMP:
+        case DHCP_RENEWING_WAIT_RX_RESP_TX_COMP_T2_EXPIRED:
+        case DHCP_RENEWING_WAIT_RX_RESP_TX_COMP_LEASE_EXPIRED:
+        case DHCP_RENEWING_WAIT_TX_COMP_T2_EXPIRED:
+        case DHCP_RENEWING_WAIT_TX_COMP_LEASE_EXPIRED:
+        case DHCP_REBINDING_WAIT_RX_RESP_TX_COMP:
+        case DHCP_REBINDING_WAIT_TX_COMP:
+        case DHCP_REBINDING_WAIT_RX_RESP_TX_COMP_LEASE_EXPIRED:
+        case DHCP_REBINDING_WAIT_TX_COMP_LEASE_EXPIRED:
+            kernel::panic("unexpected rx drop timeout");
+        break;
+    }
+}
+
+void
 dhcp::client::handle_rx_dhcp(eth::rx_page* p) try
 {
     auto* resp = (dhcp::eth_message*)(p->payload + p->eth_offset);
@@ -381,7 +426,6 @@ catch (dhcp::option_exception& e)
 void
 dhcp::client::handle_rx_dhcp_offer(const dhcp::eth_message* m)
 {
-    // TODO: Cancel response retry timer.
     switch (state)
     {
         case DHCP_SELECTING_WAIT_RX_RESP_TX_COMP:
@@ -392,6 +436,7 @@ dhcp::client::handle_rx_dhcp_offer(const dhcp::eth_message* m)
         break;
 
         case DHCP_SELECTING_WAIT_RX_RESP:
+            kernel::cpu::cancel_timer(&rx_dropped_timer);
             server_mac     = m->llhdr.src_mac;
             requested_addr = m->msg.yiaddr;
             server_ip      = m->msg.get_option<server_id_option>();
@@ -425,7 +470,6 @@ dhcp::client::handle_rx_dhcp_offer(const dhcp::eth_message* m)
 void
 dhcp::client::handle_rx_dhcp_ack(const dhcp::message* m)
 {
-    // TODO: Cancel response timer.
     auto sn_ip  = m->get_option<subnet_mask_option>(ipv4::addr{0,0,0,0});
     auto gw_ip  = m->get_option<router_option>(ipv4::addr{0,0,0,0});
     auto dns_ip = m->get_option<dns_option>(ipv4::addr{0,0,0,0});
@@ -454,6 +498,7 @@ dhcp::client::handle_rx_dhcp_ack(const dhcp::message* m)
         case DHCP_REBINDING_WAIT_RX_RESP:
             kernel::cpu::cancel_timer(&lease_timer_wqe);
         case DHCP_REQUESTING_WAIT_RX_RESP:
+            kernel::cpu::cancel_timer(&rx_dropped_timer);
             requested_addr = m->yiaddr;
             subnet_mask    = sn_ip;
             gw_addr        = gw_ip;
@@ -484,7 +529,6 @@ dhcp::client::handle_rx_dhcp_ack(const dhcp::message* m)
 void
 dhcp::client::handle_rx_dhcp_nak(const dhcp::message* m)
 {
-    // TODO: Cancel response timer.
     switch (state)
     {
         case DHCP_RENEWING_WAIT_RX_RESP_TX_COMP:
@@ -504,6 +548,7 @@ dhcp::client::handle_rx_dhcp_nak(const dhcp::message* m)
         case DHCP_REBINDING_WAIT_RX_RESP:
             kernel::cpu::cancel_timer(&lease_timer_wqe);
         case DHCP_REQUESTING_WAIT_RX_RESP:
+            kernel::cpu::cancel_timer(&rx_dropped_timer);
             requested_addr = ipv4::addr{0,0,0,0};
             process_request_reply();
         break;
@@ -565,6 +610,7 @@ dhcp::client::handle_t2_expiry(kernel::timer_entry*)
     switch (state)
     {
         case DHCP_RENEWING_WAIT_RX_RESP:
+            kernel::cpu::cancel_timer(&rx_dropped_timer);
             start_rebinding();
         break;
 
@@ -618,6 +664,7 @@ dhcp::client::handle_lease_expiry(kernel::timer_entry*)
         break;
 
         case DHCP_REBINDING_WAIT_RX_RESP:
+            kernel::cpu::cancel_timer(&rx_dropped_timer);
             TRANSITION(DHCP_INIT);
             intf->handle_dhcp_failure();
         break;
