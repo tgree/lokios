@@ -178,6 +178,7 @@ virtio_net::dev::post_tx_frame(eth::tx_op* op)
     d->flags = 0;
 
     // Post it to the queue.
+    // TODO: UMMMM RING OVERFLOW
     tq.avail_ring->ring[tq.avail_ring->idx & tq.size_mask] = dhead;
     ++tq.avail_ring->idx;
     if (!tq.avail_ring->flags)
