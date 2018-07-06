@@ -106,6 +106,7 @@ namespace dhcp
         // Start negotiation.
         void    start();
         void    start_selecting();
+        void    start_declining();
         void    start_requesting();
         void    start_renewing();
         void    start_rebinding();

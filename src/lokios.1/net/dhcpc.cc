@@ -199,6 +199,26 @@ dhcp::client::start_selecting()
 }
 
 void
+dhcp::client::start_declining()
+{
+    kassert(state == DHCP_REQUESTING_WAIT_ARP_COMP);
+    kassert(!t1_wqe.is_armed());
+    kassert(!t2_wqe.is_armed());
+    kassert(!lease_timer_wqe.is_armed());
+    kassert(!rx_dropped_timer.is_armed());
+
+    packet.llhdr.dst_mac         = eth::broadcast_addr;
+    packet.iphdr.src_ip          = ipv4::addr{0,0,0,0};
+    packet.iphdr.dst_ip          = ipv4::broadcast_addr;
+    packet.iphdr.header_checksum = 0;
+    packet.iphdr.header_checksum = ipv4::csum(&packet.iphdr);
+    packet.msg.format_decline(xid,intf->hw_mac,requested_addr,server_ip);
+
+    TRANSITION(DHCP_DECLINED_WAIT_TX_COMP);
+    intf->post_tx_frame(&send_op);
+}
+
+void
 dhcp::client::start_requesting()
 {
     // We've extracted requested_addr from DHCPOFFER.yiaddr and server_ip from
@@ -587,8 +607,8 @@ dhcp::client::handle_arp_completion(kernel::work_entry* wqe)
         // The ARP request completed successfully.  This means some other
         // device on the network is using out address.  We should send a
         // DHCPDECLINE at this point.
-        // TODO: DHCPDECLINE.
-        kernel::panic("duplicate address detected!");
+        printf("duplicate address detected!\n");
+        start_declining();
     }
     else if (++arp_attempt <= ARP_RETRY_ATTEMPTS)
     {
