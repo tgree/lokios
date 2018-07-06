@@ -103,10 +103,22 @@ class tmock_test
         run_fmt_tests(int_tests);
     }
 
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_octal_int)
+    TMOCK_TEST(test_fmt_positive_octal_int)
     {
         static fmt_test_case<int> int_tests[] = {
             {12345,"%o"},
+            {2222, "%08o"},
+            {4321, "%-08o"},
+            {98765,"%+o"},
+            {1357, "% o"},
+            {1357, "%+ o"},
+            {11111,"%+8o"},
+            {2222, "% 8o"},
+            {3333, "%+ 8o"},
+            {44444,"%-+8o"},
+            {5555, "%- 8o"},
+            {6666, "%-+ 8o"},
+            {7777, "%+ 1o"},
         };
         run_fmt_tests(int_tests);
     }

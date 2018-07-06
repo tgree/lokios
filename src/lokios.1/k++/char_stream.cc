@@ -135,6 +135,36 @@ void
 kernel::char_stream_base::print_octal(unsigned long long v, unsigned int flags,
     unsigned int width, unsigned int precision)
 {
+    char buf[22];
+    char* ptr = buf + sizeof(buf);
+    size_t digits;
+
+    if (!v)
+    {
+        if (precision == 0 && !(flags & PRINTF_FLAG_OMIT_PRECISION))
+            return;
+        buf[21] = '0';
+        ptr     = buf + 21;
+        digits  = 1;
+    }
+    else
+    {
+        digits = 0;
+        while (v)
+        {
+            *--ptr = '0' + v % 8;
+            v     /= 8;
+            ++digits;
+        }
+    }
+
+    if (flags & (PRINTF_FLAG_POSITIVE_PLUS | PRINTF_FLAG_POSITIVE_BLANK))
+    {
+        if (width)
+            --width;
+    }
+
+    print_field(ptr,digits,flags,width,precision);
 }
 
 void
