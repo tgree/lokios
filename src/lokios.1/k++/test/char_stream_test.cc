@@ -50,12 +50,14 @@ class tmock_test
         tmock::assert_equiv(fs,"Hello, wo");
     }
 
-    TMOCK_TEST(test_fmt_unsigned_int)
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_fmt_unsigned_int)
     {
         static fmt_test_case<unsigned int> uint_tests[] = {
             {12345,     "%u"  },
             {12345,     "%8u" },
             {12345,     "%08u"},
+            {12345,     "%+u" },
+            {12345,     "% u" },
             {12345,     "%08d"},
             {0x2468ABCD,"%08X"},
             {0x12EF,    "%X"  },
