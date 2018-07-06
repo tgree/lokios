@@ -111,6 +111,32 @@ dhcp::message::format_ack(uint32_t _xid, const eth::addr& client_mac,
 }
 
 void
+dhcp::message::format_decline(uint32_t _xid, const eth::addr& src_mac,
+    const ipv4::addr& req_addr, const ipv4::addr& server_id)
+{
+    op                  = 1;
+    htype               = 1;
+    hlen                = 6;
+    hops                = 0;
+    xid                 = _xid;
+    secs                = 0;
+    flags               = 0;
+    ciaddr              = ipv4::addr{0,0,0,0};
+    yiaddr              = ipv4::addr{0,0,0,0};
+    siaddr              = ipv4::addr{0,0,0,0};
+    giaddr              = ipv4::addr{0,0,0,0};
+    *(eth::addr*)chaddr = src_mac;
+
+    magic = DHCP_OPTIONS_MAGIC;
+    options[0] = 0xFF;
+    memset(options+1,0,sizeof(options)-1);
+
+    append_message_type(DHCP_DECLINE);
+    append_requested_ip(req_addr);
+    append_server_id(server_id);
+}
+
+void
 dhcp::message::append_option(uint8_t tag, uint8_t len, const void* data)
 {
     uint8_t* p = options;

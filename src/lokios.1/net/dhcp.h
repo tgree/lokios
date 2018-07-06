@@ -51,6 +51,9 @@ namespace dhcp
                            const ipv4::addr& gi_addr,
                            const ipv4::addr& subnet_mask,
                            const ipv4::addr& dns_addr, uint32_t lease_time);
+        void    format_decline(uint32_t xid, const eth::addr& src_mac,
+                               const ipv4::addr& req_addr,
+                               const ipv4::addr& server_id);
 
         const option* find_option(uint8_t tag) const;
         template<typename O>
