@@ -331,6 +331,9 @@ kernel::char_stream_base::locked_vprintf(const char* fmt, va_list ap)
             case 'x':
             case 'X':
             {
+                flags &= ~PRINTF_FLAG_POSITIVE_PLUS;
+                flags &= ~PRINTF_FLAG_POSITIVE_BLANK;
+
                 unsigned long long v;
                 switch (length_modifier)
                 {
