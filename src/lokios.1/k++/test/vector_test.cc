@@ -43,26 +43,35 @@ class tmock_test
             entry(0,0,"the end"),
         };
         for (const auto& e : entries)
+        {
             v.push_back(e);
+            for (size_t i=0; i<v.size(); ++i)
+            {
+                kassert(v[i].a == entries[i].a);
+                kassert(v[i].b == entries[i].b);
+                kassert(v[i].c == entries[i].c);
+            }
+            for (ssize_t i=1; i<=(ssize_t)v.size(); ++i)
+            {
+                kassert(v[-i].a == entries[v.size()-i].a);
+                kassert(v[-i].b == entries[v.size()-i].b);
+                kassert(v[-i].c == entries[v.size()-i].c);
+            }
+        }
         kassert(v.size() == kernel::nelems(entries));
-        for (size_t i=0; i<v.size(); ++i)
-        {
-            kassert(v[i].a == entries[i].a);
-            kassert(v[i].b == entries[i].b);
-            kassert(v[i].c == entries[i].c);
-        }
-        for (ssize_t i=1; i<=(ssize_t)v.size(); ++i)
-        {
-            kassert(v[-i].a == entries[kernel::nelems(entries)-i].a);
-            kassert(v[-i].b == entries[kernel::nelems(entries)-i].b);
-            kassert(v[-i].c == entries[kernel::nelems(entries)-i].c);
-        }
     }
 
     TMOCK_TEST_EXPECT_FAILURE(test_subscript_operator_bounds_check_empty_vector)
     {
         kernel::vector<entry> v;
         v[0].a = 0;
+    }
+
+    TMOCK_TEST_EXPECT_FAILURE(
+        test_subscript_operator_negative_bounds_check_empty_vector)
+    {
+        kernel::vector<entry> v;
+        v[-1].a = 0;
     }
 
     TMOCK_TEST_EXPECT_FAILURE(test_subscript_operator_bounds_check)
