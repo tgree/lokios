@@ -36,6 +36,7 @@ namespace kernel
             {map_page(vaddr,paddr,flags,3,PAGE_OFFSET_MASK);}
 
         // Translate a page by walking the page table.
+        uint64_t* find_pte(const void* vaddr) const;
         dma_addr64 xlate(const void* vaddr) const;
 
         // Create a blank table.
