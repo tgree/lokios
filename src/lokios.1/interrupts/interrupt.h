@@ -13,6 +13,7 @@ namespace kernel
 #define INTN_LAPIC_SELFTEST 125
 #define INTN_LAPIC_10MS     124
 #define INTN_LAPIC_WAKEUP   123
+#define INTN_LAPIC_TLB      122
 
     typedef tls_tcb* (*interrupt_handler)(uint64_t selector,
                                           uint64_t error_code);

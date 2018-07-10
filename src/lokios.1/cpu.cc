@@ -28,6 +28,7 @@ kernel::cpu::cpu(void (*entry_func)()):
     max_basic_cpuid(cpuid(0).eax),
     max_extended_cpuid(cpuid(0x80000000).eax),
     flags(cpu_number == 0 ? CPU_FLAG_BSP : 0),
+    tlb_shootdown_counter(0),
     gdt{0x0000000000000000,     // Unused/reserved.
         0x00209A0000000000,     // Code descriptor
         0x0000920000000000,     // Data descriptor
