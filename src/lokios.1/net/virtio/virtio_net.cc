@@ -144,10 +144,7 @@ virtio_net::dev::issue_set_mac_address()
     d->flags = VIRTQ_DESC_F_WRITE;
 
     // Post it to the queue.
-    cq.avail_ring->ring[cq.avail_ring->idx & cq.size_mask] = dhead;
-    ++cq.avail_ring->idx;
-    if (!cq.avail_ring->flags)
-        *cq.notify_addr = 2;
+    cq.push(dhead);
 }
 
 void
@@ -179,10 +176,7 @@ virtio_net::dev::post_tx_frame(eth::tx_op* op)
 
     // Post it to the queue.
     TODO("Ring overflow");
-    tq.avail_ring->ring[tq.avail_ring->idx & tq.size_mask] = dhead;
-    ++tq.avail_ring->idx;
-    if (!tq.avail_ring->flags)
-        *tq.notify_addr = tq.index;
+    tq.push(dhead);
 }
 
 void
@@ -208,14 +202,12 @@ virtio_net::dev::post_rx_pages(kernel::klist<eth::rx_page>& pages)
         d->flags         = VIRTQ_DESC_F_WRITE;
 
         // Post it to the queue.
-        rq.avail_ring->ring[(rq.avail_ring->idx+count) & rq.size_mask] = dhead;
+        rq.post(count,dhead);
         ++count;
     }
 
     // Notify the queue.
-    rq.avail_ring->idx += count;
-    if (!rq.avail_ring->flags)
-        *rq.notify_addr = rq.index;
+    rq.notify_posted(count);
 }
 
 void
@@ -317,19 +309,18 @@ virtio_net::dev::handle_rq_dsr(kernel::work_entry*)
     // avail_ring when we posted the receive buffer, i.e. it will be equal to
     // the index of the descriptor at the head of the buffer's chain.
     kernel::klist<eth::rx_page> pages;
-    for (; rq.used_pos < rq.used_ring->idx; ++rq.used_pos)
+    while (!rq.empty())
     {
-        auto* ue = (const used_elem*)&rq.used_ring->ring[rq.used_pos];
-        printf("virtio_net: rq completion descriptor %u len %u\n",
-               ue->id,ue->len);
+        auto ue = rq.pop();
+        printf("virtio_net: rq completion descriptor %u len %u\n",ue.id,ue.len);
 
-        auto* d       = &rq.descriptors[ue->id];
+        auto* d       = &rq.descriptors[ue.id];
         auto* p       = container_of((uint8_t*)phys_to_virt(d->addr),
                                      eth::rx_page,payload[0]);
-        p->eth_len    = ue->len - sizeof(net_hdr);
+        p->eth_len    = ue.len - sizeof(net_hdr);
         p->eth_offset = sizeof(net_hdr);
         pages.push_back(&p->link);
-        rq.free_descriptors(ue->id);
+        rq.free_descriptors(ue.id);
     }
     intf->handle_rx_pages(pages);
 
@@ -343,13 +334,12 @@ virtio_net::dev::handle_tq_dsr(kernel::work_entry*)
     // used_elem struct is equal to the value that we pushed into the
     // avail_ring when we posted the transmit buffer, i.e. it will be equal to
     // the index of the descriptor at the head of the buffer's chain.
-    for (; tq.used_pos < tq.used_ring->idx; ++tq.used_pos)
+    while (!tq.empty())
     {
-        auto* ue = (const used_elem*)&tq.used_ring->ring[tq.used_pos];
-        printf("virtio_net: tq completion descriptor %u len %u\n",
-               ue->id,ue->len);
-        intf->handle_tx_completion(tx_table[ue->id]);
-        tq.free_descriptors(ue->id);
+        auto ue = tq.pop();
+        printf("virtio_net: tq completion descriptor %u len %u\n",ue.id,ue.len);
+        intf->handle_tx_completion(tx_table[ue.id]);
+        tq.free_descriptors(ue.id);
     }
 
     enable_msix_vector(tq.index);
@@ -358,13 +348,12 @@ virtio_net::dev::handle_tq_dsr(kernel::work_entry*)
 void
 virtio_net::dev::handle_cq_dsr(kernel::work_entry*)
 {
-    for (; cq.used_pos < cq.used_ring->idx; ++cq.used_pos)
+    while (!cq.empty())
     {
-        auto* ue = (const used_elem*)&cq.used_ring->ring[cq.used_pos];
-        printf("virtio_net: cq completion descriptor %u len %u\n",
-               ue->id,ue->len);
-        handle_cq_completion(ue->id);
-        cq.free_descriptors(ue->id);
+        auto ue = cq.pop();
+        printf("virtio_net: cq completion descriptor %u len %u\n",ue.id,ue.len);
+        handle_cq_completion(ue.id);
+        cq.free_descriptors(ue.id);
     }
 
     enable_msix_vector(cq.index);
