@@ -13,4 +13,7 @@ typedef __uint128_t uint128_t;
 
 #define __COMPILER_BARRIER__()  asm volatile("":::"memory")
 
+#define DO_PRAGMA(x) _Pragma(#x)
+#define TODO(x) DO_PRAGMA(message("\033[31mTODO: " x "\033[0m"))
+
 #endif /* __LOKIOS_COMPILER_H */
