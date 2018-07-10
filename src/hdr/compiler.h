@@ -11,4 +11,6 @@
 
 typedef __uint128_t uint128_t;
 
+#define __COMPILER_BARRIER__()  asm volatile("":::"memory")
+
 #endif /* __LOKIOS_COMPILER_H */
