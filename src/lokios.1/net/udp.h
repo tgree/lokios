@@ -1,6 +1,7 @@
 #ifndef __KERNEL_NET_UDP_H
 #define __KERNEL_NET_UDP_H
 
+#include "eth.h"
 #include "hdr/compiler.h"
 #include "kernel/kassert.h"
 #include <stdint.h>
@@ -15,6 +16,12 @@ namespace udp
         be_uint16_t checksum;
     } __PACKED__;
     KASSERT(sizeof(header) == 8);
+
+    struct socket
+    {
+        eth::interface* intf;
+        uint16_t        port;
+    };
 
     struct net_traits
     {
