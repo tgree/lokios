@@ -1,7 +1,9 @@
 /*
- * Implements the DHCP client-side protocol.  Useful reference:
+ * Implements the DHCP client-side protocol.  Useful references:
  *
+ * https://tools.ietf.org/pdf/rfc2131.pdf
  * http://www.tcpipguide.com/free/t_DHCPGeneralOperationandClientFiniteStateMachine.htm
+ * https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol
  */
 #include "dhcpc.h"
 #include "arp.h"
