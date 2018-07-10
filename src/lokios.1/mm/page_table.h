@@ -35,6 +35,10 @@ namespace kernel
         inline void map_4k_page(void* vaddr, uint64_t paddr, uint64_t flags)
             {map_page(vaddr,paddr,flags,3,PAGE_OFFSET_MASK);}
 
+        // Unmaps the page containing the specified virtual address (which
+        // doesn't have to be page-aligned).
+        void unmap_page(void* vaddr);
+
         // Translate a page by walking the page table.
         uint64_t* find_pte(const void* vaddr) const;
         dma_addr64 xlate(const void* vaddr) const;
