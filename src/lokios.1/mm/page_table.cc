@@ -1,5 +1,6 @@
 #include "page_table.h"
 #include "mm.h"
+#include "../tlb.h"
 #include <string.h>
 
 kernel::page_table::page_table()
@@ -76,6 +77,18 @@ kernel::page_table::map_page(void* vaddr, uint64_t paddr, size_t size,
     kassert((size & (PAGE_SIZE | HPAGE_SIZE | GPAGE_SIZE)) != 0);
     size_t level = (39 - ulog2(size))/9;
     map_page(vaddr,paddr,flags,level,size-1);
+}
+
+size_t
+kernel::page_table::unmap_page(void* vaddr)
+{
+    uint64_t* pte = find_pte(vaddr);
+    kassert(*pte & PAGE_FLAG_PRESENT);
+    kassert(*pte & PAGE_FLAG_USER_PAGE);
+    size_t level = ((*pte & PAGE_LEVEL_MASK) >> 60);
+    size_t size  = (0x0000008000000000 >> (9*level));
+    *pte = 0;
+    return size;
 }
 
 uint64_t*

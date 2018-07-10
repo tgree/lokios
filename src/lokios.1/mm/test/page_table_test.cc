@@ -171,6 +171,27 @@ class tmock_test
         TASSERT(page_free_count == 4);
     }
 
+    TMOCK_TEST(test_random_unmap_4k_works)
+    {
+        {
+            kernel::page_table pt;
+            pt.map_4k_page((void*)0x0000123456789000,0x000000ABCDEFF000,0);
+            TASSERT(pt.unmap_page((void*)0x0000123456789ABC) == PAGE_SIZE);
+            TASSERT(page_alloc_count == 4);
+            TASSERT(page_free_count == 0);
+
+            pte_check ptes[] = {
+                {1,0x0000123456789000,~PAGE_PADDR_MASK,  0x0000000000000003UL},
+                {2,0x0000123456789000,~PAGE_PADDR_MASK,  0x1000000000000003UL},
+                {3,0x0000123456789000,~PAGE_PADDR_MASK,  0x2000000000000003UL},
+                {4,0x0000123456789000,0xFFFFFFFFFFFFFFFF,0x0000000000000000UL},
+            };
+            check_ptes(pt,ptes);
+        }
+        TASSERT(page_alloc_count == 4);
+        TASSERT(page_free_count == 4);
+    }
+
     TMOCK_TEST(test_random_map_2m_works)
     {
         {
@@ -190,6 +211,26 @@ class tmock_test
         TASSERT(page_free_count == 3);
     }
 
+    TMOCK_TEST(test_random_unmap_2m_works)
+    {
+        {
+            kernel::page_table pt;
+            pt.map_2m_page((void*)0x00002468ACE00000,0x000000ABCDE00000,0);
+            TASSERT(pt.unmap_page((void*)0x00002468ACE13579) == HPAGE_SIZE);
+            TASSERT(page_alloc_count == 3);
+            TASSERT(page_free_count == 0);
+
+            pte_check ptes[] = {
+                {1,0x00002468ACE00000,~PAGE_PADDR_MASK,  0x0000000000000003UL},
+                {2,0x00002468ACE00000,~PAGE_PADDR_MASK,  0x1000000000000003UL},
+                {3,0x00002468ACE00000,0xFFFFFFFFFFFFFFFF,0x0000000000000000UL},
+            };
+            check_ptes(pt,ptes);
+        }
+        TASSERT(page_alloc_count == 3);
+        TASSERT(page_free_count == 3);
+    }
+
     TMOCK_TEST(test_random_map_1g_works)
     {
         {
@@ -202,6 +243,26 @@ class tmock_test
             pte_check ptes[] = {
                 {1,0x00000000C0000000,~PAGE_PADDR_MASK,  0x0000000000000003UL},
                 {2,0x00000000C0000000,0xFFFFFFFFFFFFFFFF,0x1000000140000083UL},
+            };
+            check_ptes(pt,ptes);
+        }
+        TASSERT(page_alloc_count == 2);
+        TASSERT(page_free_count == 2);
+    }
+
+    TMOCK_TEST(test_random_unmap_1g_works)
+    {
+        {
+            kernel::page_table pt;
+            pt.map_1g_page((void*)0x00000000C0000000UL,0x0000000140000000UL,
+                            PAGE_FLAG_WRITEABLE);
+            TASSERT(pt.unmap_page((void*)0x00000000C1234567UL) == GPAGE_SIZE);
+            TASSERT(page_alloc_count == 2);
+            TASSERT(page_free_count == 0);
+
+            pte_check ptes[] = {
+                {1,0x00000000C0000000,~PAGE_PADDR_MASK,  0x0000000000000003UL},
+                {2,0x00000000C0000000,0xFFFFFFFFFFFFFFFF,0x0000000000000000UL},
             };
             check_ptes(pt,ptes);
         }
