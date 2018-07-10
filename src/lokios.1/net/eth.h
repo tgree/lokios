@@ -20,6 +20,11 @@ namespace arp
     template<typename hw_traits, typename proto_traits> struct service;
 }
 
+namespace net
+{
+    struct syslogger;
+}
+
 namespace eth
 {
     struct net_traits;
@@ -111,6 +116,9 @@ namespace eth
 
         // ARP service.
         arp::service<eth::net_traits,ipv4::net_traits>* arpc_ipv4;
+
+        // Syslogger service.
+        net::syslogger* syslogger;
 
         // Activate the interface.
                 void    activate();

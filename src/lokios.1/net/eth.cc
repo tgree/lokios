@@ -2,6 +2,7 @@
 #include "dhcp.h"
 #include "dhcpc.h"
 #include "arp.h"
+#include "syslogger.h"
 #include "kernel/console.h"
 
 #define DUMP_GOOD_PACKETS 0
@@ -24,6 +25,7 @@ eth::interface::interface(const eth::addr& hw_mac, size_t tx_qlen,
 {
     dhcpc = new dhcp::client(this);
     arpc_ipv4 = new arp::service<eth::net_traits,ipv4::net_traits>(this);
+    syslogger = new net::syslogger(this);
 }
 
 eth::interface::~interface()
@@ -72,6 +74,8 @@ eth::interface::handle_dhcp_success()
            dhcpc->dns_addr[2],dhcpc->dns_addr[3],
            dhcpc->lease,dhcpc->t1,dhcpc->t2);
     ip_addr = dhcpc->requested_addr;
+
+    syslogger->start();
 }
 
 void
