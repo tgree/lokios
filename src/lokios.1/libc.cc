@@ -182,9 +182,10 @@ int fputs(const char* s, FILE* stream)
 extern "C"
 int fprintf(FILE* stream, const char* fmt, ...)
 {
-    // TODO: char_stream::printf() doesn't return the number of characters
-    // printed, so we can't return it here either.  I doubt libsupc++ relies on
-    // that value, though...
+    TODO("fprintf() return value not implemented.");
+    // char_stream::printf() doesn't return the number of characters printed,
+    // so we can't return it here either.  I doubt libsupc++ relies on that
+    // value, though...
     kernel::kassert(stream == stderr);
     va_list ap;
     va_start(ap,fmt);

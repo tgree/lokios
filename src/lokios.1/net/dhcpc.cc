@@ -63,7 +63,7 @@ dhcp::client::client(eth::interface* intf):
     packet.uhdr.dst_port          = 67;
     packet.uhdr.len               = sizeof(packet) - sizeof(packet.llhdr) -
                                     sizeof(packet.iphdr);
-    packet.uhdr.checksum          = 0; // TODO: Disabled
+    packet.uhdr.checksum          = 0; TODO("UDP checksum");
 
     send_op.cb            = handle_dhcp_client_send_comp_bounce;
     send_op.nalps         = 1;

@@ -178,7 +178,7 @@ virtio_net::dev::post_tx_frame(eth::tx_op* op)
     d->flags = 0;
 
     // Post it to the queue.
-    // TODO: UMMMM RING OVERFLOW
+    TODO("Ring overflow");
     tq.avail_ring->ring[tq.avail_ring->idx & tq.size_mask] = dhead;
     ++tq.avail_ring->idx;
     if (!tq.avail_ring->flags)
@@ -190,6 +190,7 @@ virtio_net::dev::post_rx_pages(kernel::klist<eth::rx_page>& pages)
 {
     size_t count = 0;
 
+    TODO("Ring overflow");
     while (!pages.empty())
     {
         // Get the rx_op and make it into an rx_frame.
