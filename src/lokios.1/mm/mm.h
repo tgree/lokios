@@ -7,6 +7,9 @@
 //      0xFFFFFFFFC0000000 - 0xFFFFFFFFC0800000: kernel
 //      0xFFFFFFFFnnnn0000 - 0xFFFFFFFFBFFFFFFF: thread space for tid nnnn
 //      0xFFFFFFFEnnnn0000 - 0xFFFFFFFEFFFFFFFF: cpu space for cpu nnnn
+//      0xFFFF9003E0000000 - 0xFFFF900400000000: eth31 space
+//      ...                - ...                 ...
+//      0xFFFF900000000000 - 0xFFF9000020000000: eth0 space
 //      0xFFFF800000000000 - 0xFFFF8FFFFFFFFFFF: used to map all RAM
 //
 //
