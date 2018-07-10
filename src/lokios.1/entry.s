@@ -5,6 +5,7 @@
 # Offsets of struct cpu stuff
 .equiv cpu_cpu_addr_offset,     0
 .equiv cpu_jiffies_offset,      8
+.equiv tlb_shootdown_counter_offset,    124
 .equiv cpu_scheduler_offset,    128
 .equiv cpu_scheduler_local_work_head_offset, (cpu_scheduler_offset + scheduler_local_work_head_offset)
 .equiv cpu_scheduler_local_work_tail_offset, (cpu_scheduler_offset + scheduler_local_work_tail_offset)
@@ -326,6 +327,18 @@ _interrupt_entry_scheduler_wakeup:
     swapgs
     iretq
 
+
+# TLB shootdown.  Our only task is to nuke the TLB and increment the shootdown
+# counter.
+.globl _interrupt_entry_tlb_shootdown
+_interrupt_entry_tlb_shootdown:
+    push    %rbx
+    mov     %cr3, %rbx
+    mov     %rbx, %cr3
+    pop     %rbx
+    incl    %gs:tlb_shootdown_counter_offset
+    jmp     _interrupt_entry_scheduler_wakeup
+    
 
 # MSI-X vector entry.  We need to look at the cpu* to find the work_entry* that
 # is going to handle this interrupt at task level.  Using that information we

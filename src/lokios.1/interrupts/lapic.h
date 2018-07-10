@@ -69,6 +69,7 @@ namespace kernel
     void send_init_ipi(uint8_t target_apic_id);
     void send_sipi_ipi(uint8_t target_apic_id);
     void send_schedule_wakeup_ipi(uint8_t target_apic_id);
+    void send_tlb_shootdown_ipi(uint8_t target_apic_id);
 
     uint8_t get_lapic_id();
 

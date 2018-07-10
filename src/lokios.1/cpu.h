@@ -68,7 +68,7 @@ namespace kernel
         uint8_t             flags;                                  // 121
         int8_t              apic_id;                                // 122
         int8_t              initial_apic_id;                        // 123
-        uint8_t             rsrv2[4];                               // 124
+        volatile uint32_t   tlb_shootdown_counter;                  // 124
 
         struct scheduler    scheduler;                              // 128
 
