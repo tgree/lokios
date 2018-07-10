@@ -20,6 +20,11 @@ namespace arp
     template<typename hw_traits, typename proto_traits> struct service;
 }
 
+namespace net
+{
+    struct syslogger;
+}
+
 namespace eth
 {
     struct net_traits;
@@ -145,6 +150,9 @@ namespace eth
 
         // ARP service.
         arp::service<eth::net_traits,ipv4::net_traits>* arpc_ipv4;
+
+        // Syslogger service.
+        net::syslogger* syslogger;
 
         // Register UDP frame handlers.
         inline  void    register_udp_handler(uint16_t port, void* cookie,
