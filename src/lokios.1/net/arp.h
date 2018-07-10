@@ -1,3 +1,9 @@
+/*
+ * Implements an ARP querier.  Useful references:
+ *
+ * https://en.wikipedia.org/wiki/Address_Resolution_Protocol
+ * https://tools.ietf.org/pdf/rfc826.pdf
+ */
 #ifndef __KERNEL_NET_ARP_H
 #define __KERNEL_NET_ARP_H
 
