@@ -61,6 +61,44 @@ namespace virtio_net
         uint16_t alloc_descriptors(size_t n);
         void free_descriptors(uint16_t index);
         uint16_t get_free_descriptor_count();
+
+        // Push an avail_elem into the ring and notify the hardware.
+        inline void push(uint16_t elem)
+        {
+            avail_ring->ring[avail_ring->idx & size_mask] = elem;
+            __COMPILER_BARRIER__();
+            ++avail_ring->idx;
+            __COMPILER_BARRIER__();
+            if (!avail_ring->flags)
+                *notify_addr = index;
+        }
+
+        // Post an avail_elem into the ring at the specified offset, but defer
+        // hardware notification until notify_posted() is invoked with the
+        // actual count of posted elements.
+        inline void post(uint16_t offset, uint16_t val)
+        {
+            avail_ring->ring[(avail_ring->idx + offset) & size_mask] = val;
+        }
+        inline void notify_posted(uint16_t n)
+        {
+            avail_ring->idx += n;
+            __COMPILER_BARRIER__();
+            if (!avail_ring->flags)
+                *notify_addr = index;
+        }
+
+        // Pops a used_elem from the ring.
+        inline bool empty() const {return used_pos == used_ring->idx;}
+        inline used_elem pop()
+        {
+            kernel::kassert(!empty());
+            volatile used_elem* vue = &used_ring->ring[used_pos & size_mask];
+            used_elem rv = {vue->id,vue->len};
+            __COMPILER_BARRIER__();
+            ++used_pos;
+            return rv;
+        }
         
         vqueue(size_t index);
         ~vqueue();
