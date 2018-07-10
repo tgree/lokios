@@ -57,10 +57,7 @@ namespace kernel
         cpu* const          cpu_addr;                               // 0
         volatile uint64_t   jiffies;                                // 8
         const size_t        cpu_number;                             // 16
-        int8_t              apic_id;                                // 24
-        int8_t              initial_apic_id;                        // 25
-        uint8_t             flags;                                  // 26
-        uint8_t             rsrv[5];                                // 27
+        uint8_t             rsrv[8];                                // 24
         thread*             schedule_thread;                        // 32
         uint64_t            stack_guard;                            // 40
         klist<work_entry>   free_msix_interrupts;                   // 48
@@ -68,7 +65,10 @@ namespace kernel
         const uint32_t      max_basic_cpuid;                        // 56
         const uint32_t      max_extended_cpuid;                     // 60
         char                cpuid_brand[49];                        // 64
-        uint8_t             rsrv2[7];                               // 121
+        uint8_t             flags;                                  // 121
+        int8_t              apic_id;                                // 122
+        int8_t              initial_apic_id;                        // 123
+        uint8_t             rsrv2[4];                               // 124
 
         struct scheduler    scheduler;                              // 128
 
