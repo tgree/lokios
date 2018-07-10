@@ -24,6 +24,7 @@ namespace kernel
 
     public:
         inline operator const char*() const {return base;}
+        inline size_t strlen() {return pos-base;}
 
         inline string_stream(char* base, size_t len):
             base(base),pos(base),end(base+len)
