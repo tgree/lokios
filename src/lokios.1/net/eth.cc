@@ -3,6 +3,7 @@
 #include "dhcpc.h"
 #include "arp.h"
 #include "kernel/console.h"
+#include "kernel/mm/vm.h"
 
 #define DUMP_GOOD_PACKETS 0
 #if DUMP_GOOD_PACKETS
@@ -41,18 +42,23 @@ free_id(size_t id)
 eth::interface::interface(const eth::addr& hw_mac, size_t tx_qlen,
     size_t rx_qlen):
         id(alloc_id()),
+        intf_mem((interface_mem*)(MM_ETH_BEGIN + id*MM_ETH_STRIDE)),
         hw_mac(hw_mac),
         ip_addr{0,0,0,0},
         tx_qlen(tx_qlen),
         rx_qlen(rx_qlen),
         rx_posted_count(0)
 {
+    kernel::vmmap(intf_mem,sizeof(*intf_mem));
+    memset(intf_mem,0,sizeof(*intf_mem));
+
     dhcpc = new dhcp::client(this);
     arpc_ipv4 = new arp::service<eth::net_traits,ipv4::net_traits>(this);
 }
 
 eth::interface::~interface()
 {
+    kernel::vmunmap(intf_mem,sizeof(*intf_mem));
     free_id(id);
 }
 

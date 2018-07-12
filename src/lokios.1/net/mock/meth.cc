@@ -23,6 +23,7 @@ free_id(size_t id)
 eth::interface::interface(const eth::addr& hw_mac, size_t tx_qlen,
     size_t rx_qlen):
 	id(alloc_id()),
+        intf_mem((eth::interface_mem*)malloc(sizeof(*intf_mem))),
         hw_mac(hw_mac),
         ip_addr{0,0,0,0},
         tx_qlen(tx_qlen),

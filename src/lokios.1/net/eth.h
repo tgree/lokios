@@ -92,11 +92,19 @@ namespace eth
     };
     KASSERT(sizeof(rx_page) == PAGE_SIZE);
 
+    // Data structure that gets mapped at the interface's reserved vaddr.
+    struct interface_mem
+    {
+    };
+
     // Ethernet interface.
     struct interface
     {
         // The ethX id number.
         const size_t        id;
+
+        // Interface memory.
+        interface_mem*      intf_mem;
 
         // MAC address that was assigned by hardware.
         const eth::addr     hw_mac;
