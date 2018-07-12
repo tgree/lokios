@@ -45,6 +45,24 @@ namespace kernel
         return sizeof(v)*8 - __builtin_clzll(v) - 1;
     }
 
+    constexpr int ffs(unsigned int v)
+    {
+        return __builtin_ffs(v) - 1;
+    }
+
+    constexpr int ffs(unsigned long v)
+    {
+        return __builtin_ffsl(v) - 1;
+    }
+
+    constexpr int ffs(unsigned long long v)
+    {
+        return __builtin_ffsll(v) - 1;
+    }
+    KASSERT(ffs(0x12345678U) == 3);
+    KASSERT(ffs(0x12345678UL) == 3);
+    KASSERT(ffs(0x1234567800000000ULL) == 35);
+
     template<typename T>
     constexpr T round_up_pow2(T v, uint64_t p2)
     {
