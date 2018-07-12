@@ -58,8 +58,7 @@ kernel::pmap_range(dma_addr64 paddr, size_t len, uint64_t flags)
 {
     uint64_t start = round_down_pow2(paddr,PAGE_SIZE);
     uint64_t end   = round_up_pow2(paddr + len,PAGE_SIZE);
-    for (uint64_t p = start; p != end; p += PAGE_SIZE)
-        pmap(p,flags);
+    mmap(phys_to_virt(start),start,end-start,flags);
     return phys_to_virt(paddr);
 }
 
