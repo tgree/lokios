@@ -74,6 +74,10 @@ namespace kernel
         return pmap_range(paddr,len,flags);
     }
 
+    // Maps a physical range into the specified virtual address.
+    void mmap(void* vaddr, dma_addr64 paddr, size_t len,
+              uint64_t flags = PAGE_FLAGS_DATA);
+
     inline thread* get_thread_region(thread_id id)
     {
         return (thread*)(0xFFFFFFFF00000000 | ((uint64_t)id << 16));
