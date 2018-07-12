@@ -95,6 +95,9 @@ namespace eth
     // Ethernet interface.
     struct interface
     {
+        // The ethX id number.
+        const size_t        id;
+
         // MAC address that was assigned by hardware.
         const eth::addr     hw_mac;
 

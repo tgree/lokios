@@ -14,8 +14,33 @@
 using kernel::console::printf;
 using kernel::_kassert;
 
+static kernel::spinlock ids_lock;
+static uint32_t free_ids = 0xFFFFFFFF;
+
+static size_t
+alloc_id()
+{
+    with (ids_lock)
+    {
+        kassert(free_ids != 0);
+        size_t id = kernel::ffs(free_ids);
+        free_ids &= ~(1<<id);
+        return id;
+    }
+}
+
+static void
+free_id(size_t id)
+{
+    with (ids_lock)
+    {
+        free_ids |= (1<<id);
+    }
+}
+
 eth::interface::interface(const eth::addr& hw_mac, size_t tx_qlen,
     size_t rx_qlen):
+        id(alloc_id()),
         hw_mac(hw_mac),
         ip_addr{0,0,0,0},
         tx_qlen(tx_qlen),
@@ -28,6 +53,7 @@ eth::interface::interface(const eth::addr& hw_mac, size_t tx_qlen,
 
 eth::interface::~interface()
 {
+    free_id(id);
 }
 
 void
