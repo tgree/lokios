@@ -57,6 +57,7 @@ prepare_rx_message(eth::rx_page* p)
     m->llhdr.ether_type = 0x0800;
     m->iphdr.src_ip     = SERVER_IP;
     m->iphdr.dst_ip     = CLIENT_IP;
+    m->uhdr.src_port    = 67;
 
     return m;
 }
@@ -68,7 +69,7 @@ rx_offer()
     auto* m = prepare_rx_message(&p);
     m->msg.format_offer(intf.dhcpc->xid,intf.hw_mac,ipv4::addr{0,0,0,0},
                         CLIENT_IP,SERVER_IP,GW_IP);
-    intf.dhcpc->handle_rx_dhcp(&p);
+    intf.dhcpc->handle_rx_dhcp(&intf,&p);
 }
 
 static void
@@ -78,7 +79,7 @@ rx_ack()
     auto* m = prepare_rx_message(&p);
     m->msg.format_ack(intf.dhcpc->xid,intf.hw_mac,ipv4::addr{0,0,0,0},
                       CLIENT_IP,SERVER_IP,GW_IP,SUBNET_MASK,DNS_IP,LEASE_TIME);
-    intf.dhcpc->handle_rx_dhcp(&p);
+    intf.dhcpc->handle_rx_dhcp(&intf,&p);
 }
 
 static void

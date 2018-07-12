@@ -71,6 +71,8 @@ dhcp::client::client(eth::interface* intf):
     send_op.nalps         = 1;
     send_op.alps[0].paddr = kernel::virt_to_phys(&packet);
     send_op.alps[0].len   = sizeof(packet);
+
+    intf->register_udp_handler(68,this,frame_delegate(handle_rx_dhcp));
 }
 
 void
@@ -418,9 +420,11 @@ dhcp::client::handle_rx_expiry(kernel::timer_entry*)
 }
 
 void
-dhcp::client::handle_rx_dhcp(eth::rx_page* p) try
+dhcp::client::handle_rx_dhcp(eth::interface*, eth::rx_page* p) try
 {
     auto* resp = (dhcp::eth_message*)(p->payload + p->eth_offset);
+    if (resp->uhdr.src_port != 67)
+        return;
     if (*(eth::addr*)resp->msg.chaddr != intf->hw_mac)
         return;
     if (resp->msg.xid != xid)
