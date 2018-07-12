@@ -92,9 +92,32 @@ namespace eth
     };
     KASSERT(sizeof(rx_page) == PAGE_SIZE);
 
+    // Handler for inbound frames.
+    struct interface;
+    typedef void (*frame_handler)(interface* intf, void* cookie, rx_page* p);
+
+    // Method delegate for inbound frames.
+    template<typename T, void (T::*Handler)(interface* intf, rx_page*)>
+    struct _frame_delegate
+    {
+        static void handler(interface* intf, void* cookie, rx_page* p)
+        {
+            (((T*)cookie)->*Handler)(intf,p);
+        }
+    };
+#define frame_delegate(fn) \
+    eth::_frame_delegate< \
+        std::remove_reference_t<decltype(*this)>, \
+        &std::remove_reference_t<decltype(*this)>::fn>::handler
+
     // Data structure that gets mapped at the interface's reserved vaddr.
     struct interface_mem
     {
+        struct
+        {
+            void*           cookie;
+            frame_handler   handler;
+        } udp_frame_handlers[65536];
     };
 
     // Ethernet interface.
@@ -122,6 +145,22 @@ namespace eth
 
         // ARP service.
         arp::service<eth::net_traits,ipv4::net_traits>* arpc_ipv4;
+
+        // Register UDP frame handlers.
+        inline  void    register_udp_handler(uint16_t port, void* cookie,
+                                             frame_handler handler)
+        {
+            auto* ufh = &intf_mem->udp_frame_handlers[port];
+            kernel::kassert(!ufh->handler);
+            ufh->cookie  = cookie;
+            ufh->handler = handler;
+        }
+        inline  void    deregister_udp_handler(uint16_t port)
+        {
+            auto* ufh = &intf_mem->udp_frame_handlers[port];
+            kernel::kassert(ufh->handler);
+            ufh->handler = NULL;
+        }
 
         // Activate the interface.
                 void    activate();

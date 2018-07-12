@@ -161,6 +161,9 @@ eth::interface::handle_rx_ipv4_udp_frame(rx_page* p)
     auto* h   = (eth::header*)(p->payload + p->eth_offset);
     auto* iph = (ipv4::header*)(h+1);
     auto* uh  = (udp::header*)(iph+1);
+    auto* ufh = &intf_mem->udp_frame_handlers[uh->dst_port];
+    if (ufh->handler)
+        (*ufh->handler)(this,ufh->cookie,p);
     if (uh->src_port == 67 && uh->dst_port == 68)
         dhcpc->handle_rx_dhcp(p);
     delete p;
