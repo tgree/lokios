@@ -4,6 +4,7 @@
 #include "../x86.h"
 #include "../console.h"
 #include "../task.h"
+#include "../cpu.h"
 
 using kernel::console::printf;
 
@@ -60,6 +61,42 @@ kernel::pmap_range(dma_addr64 paddr, size_t len, uint64_t flags)
     for (uint64_t p = start + PAGE_SIZE; p != end; p += PAGE_SIZE)
         pmap(p,flags);
     return vaddr;
+}
+
+void
+kernel::mmap(void* _vaddr, dma_addr64 paddr, size_t len, uint64_t flags)
+{
+    uintptr_t vaddr = (uintptr_t)_vaddr;
+    kassert((vaddr & PAGE_OFFSET_MASK) == 0);
+    kassert((len & PAGE_OFFSET_MASK) == 0);
+
+    bool gp = (get_current_cpu()->flags & CPU_FLAG_PAGESIZE_1G);
+    size_t rem_pfns = len/PAGE_SIZE;
+    while (rem_pfns)
+    {
+        size_t npfns;
+        if (gp && rem_pfns >= 512*512 &&
+            !(paddr & GPAGE_OFFSET_MASK) && !(vaddr & GPAGE_OFFSET_MASK))
+        {
+            kernel_task->pt.map_1g_page((void*)vaddr,paddr,flags);
+            npfns = 512*512;
+        }
+        else if(rem_pfns >= 512 &&
+                !(paddr & HPAGE_OFFSET_MASK) && !(vaddr & HPAGE_OFFSET_MASK))
+        {
+            kernel_task->pt.map_2m_page((void*)vaddr,paddr,flags);
+            npfns = 512;
+        }
+        else
+        {
+            kernel_task->pt.map_4k_page((void*)vaddr,paddr,flags);
+            npfns = 1;
+        }
+        
+        vaddr    += PAGE_SIZE*npfns;
+        paddr    += PAGE_SIZE*npfns;
+        rem_pfns -= npfns;
+    }
 }
 
 dma_addr64
