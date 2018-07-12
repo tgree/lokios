@@ -5,6 +5,7 @@
 #include "../console.h"
 #include "../task.h"
 #include "../cpu.h"
+#include "../tlb.h"
 
 using kernel::console::printf;
 
@@ -97,6 +98,22 @@ kernel::mmap(void* _vaddr, dma_addr64 paddr, size_t len, uint64_t flags)
         paddr    += PAGE_SIZE*npfns;
         rem_pfns -= npfns;
     }
+}
+
+void
+kernel::munmap(void* _vaddr, size_t len)
+{
+    uintptr_t vaddr = (uintptr_t)_vaddr;
+    kassert((len & PAGE_OFFSET_MASK) == 0);
+    kassert((vaddr & PAGE_OFFSET_MASK) == 0);
+    while (len)
+    {
+        size_t s = kernel_task->pt.unmap_page((void*)vaddr);
+        kassert(s <= len);
+        len   -= s;
+        vaddr += s;
+    }
+    kernel::tlb_shootdown();
 }
 
 dma_addr64

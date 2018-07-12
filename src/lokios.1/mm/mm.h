@@ -77,6 +77,7 @@ namespace kernel
     // Maps a physical range into the specified virtual address.
     void mmap(void* vaddr, dma_addr64 paddr, size_t len,
               uint64_t flags = PAGE_FLAGS_DATA);
+    void munmap(void* vaddr, size_t len);
 
     inline thread* get_thread_region(thread_id id)
     {
