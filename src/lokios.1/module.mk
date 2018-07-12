@@ -8,7 +8,7 @@ LOKIOS_1_CXX_SRC := $(wildcard $(MODULE_SRC_DIR)/*.cc)
 LOKIOS_1_ASM_SRC := $(wildcard $(MODULE_SRC_DIR)/*.s)
 LOKIOS_1_OBJ := $(LOKIOS_1_CXX_SRC:$(MODULE_SRC_DIR)/%.cc=$(MODULE_BUILD_DIR)/%.o) \
                 $(LOKIOS_1_ASM_SRC:$(MODULE_SRC_DIR)/%.s=$(MODULE_BUILD_DIR)/%.o)
-LOKIOS_1_DRIVERS := e1000 virtio_net
+LOKIOS_1_DRIVERS := e1000 virtio_net bcm57762
 LOKIOS_1_CONSTRUCTORS :=
 LOKIOS_1_LIB := mm.a acpi.a interrupts.a pci.a platform.a k++.a net.a \
                 net_phys.a libsupc++.a $(LOKIOS_1_DRIVERS:%=%.a)
