@@ -9,16 +9,10 @@ virtio_net::vqueue::vqueue(size_t index):
     used_pos(0),
     notify_addr(NULL)
 {
-    descriptors = (descriptor*)kernel::page_zalloc();
-    avail_ring  = (available_ring*)kernel::page_zalloc();
-    used_ring   = (struct used_ring*)kernel::page_zalloc();
 }
 
 virtio_net::vqueue::~vqueue()
 {
-    kernel::page_free(used_ring);
-    kernel::page_free(avail_ring);
-    kernel::page_free(descriptors);
 }
 
 void

@@ -117,6 +117,11 @@ namespace virtio_net
         driver();
     };
 
+    struct dma_block
+    {
+
+    };
+
     struct dev : public kernel::pci::dev
     {
         enum
@@ -136,9 +141,9 @@ namespace virtio_net
         eth::addr                   mac;
         kernel::timer_entry         timer_wqe;
         
-        vqueue                      rq;
-        vqueue                      tq;
-        vqueue                      cq;
+        vqueue*                     rq;
+        vqueue*                     tq;
+        vqueue*                     cq;
 
         eth::tx_op*                 tx_table[256];
 

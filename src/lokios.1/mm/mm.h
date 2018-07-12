@@ -48,6 +48,11 @@
 
 #define KERNEL_SBRK_END 0x00800000
 
+#define MM_ETH_BEGIN    0xFFFF900000000000
+#define MM_ETH_END      0xFFFF900400000000
+#define MM_ETH_COUNT    32
+#define MM_ETH_STRIDE   (MM_ETH_END - MM_ETH_BEGIN)/MM_ETH_COUNT
+
 namespace kernel
 {
     struct cpu;

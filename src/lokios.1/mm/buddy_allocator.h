@@ -171,6 +171,16 @@ namespace kernel
     void buddy_free(void* p, size_t order);
     size_t buddy_count_free();
 
+    struct buddy_block
+    {
+        const size_t    order;
+        void* const     addr;
+
+        inline buddy_block(size_t order):
+            order(order),addr(buddy_alloc(order)) {}
+        inline ~buddy_block() {buddy_free(addr,order);}
+    };
+
     void buddy_init(dma_addr64 dma_base, size_t len);
 }
 

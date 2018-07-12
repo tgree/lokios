@@ -7,6 +7,7 @@
 #include "kernel/kassert.h"
 #include "mm/mm.h"
 #include "mm/page.h"
+#include "mm/buddy_allocator.h"
 #include <stdint.h>
 #include <stddef.h>
 
@@ -100,6 +101,10 @@ namespace eth
     // Ethernet interface.
     struct interface
     {
+        // The ethX id number.
+        const size_t        id;
+        kernel::buddy_block mem_block;
+
         // MAC address that was assigned by hardware.
         const eth::addr     hw_mac;
 

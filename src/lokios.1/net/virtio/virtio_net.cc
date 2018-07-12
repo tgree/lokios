@@ -27,7 +27,6 @@ virtio_net::dev::dev(const kernel::pci::dev* pd,
         kernel::pci::dev(pd,owner),
         state(VN_STATE_IDLE),
         intf(NULL),
-        rq(0),
         tq(1),
         cq(2)
 {
@@ -192,22 +191,22 @@ virtio_net::dev::post_rx_pages(kernel::klist<eth::rx_page>& pages)
         pages.pop_front();
 
         // Allocate the descriptor.
-        uint16_t dhead = rq.alloc_descriptors(1);
+        uint16_t dhead = rq->alloc_descriptors(1);
         kassert(dhead != 0xFFFF);
 
         // Fill it out.
-        descriptor* d    = &rq.descriptors[dhead];
+        descriptor* d    = &rq->descriptors[dhead];
         d->addr          = kernel::virt_to_phys(p->payload);
         d->len           = sizeof(p->payload);
         d->flags         = VIRTQ_DESC_F_WRITE;
 
         // Post it to the queue.
-        rq.post(count,dhead);
+        rq->post(count,dhead);
         ++count;
     }
 
     // Notify the queue.
-    rq.notify_posted(count);
+    rq->notify_posted(count);
 }
 
 void

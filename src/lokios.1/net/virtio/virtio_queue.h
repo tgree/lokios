@@ -3,6 +3,8 @@
 
 #include "mm/mm.h"
 
+#define VIRTIO_MAX_SIZE 32768
+
 namespace virtio_net
 {
 #define VIRTQ_DESC_F_NEXT       (1<<0)
@@ -22,7 +24,7 @@ namespace virtio_net
     {
         volatile uint16_t    flags;
         volatile uint16_t    idx;
-        volatile uint16_t    ring[];
+        volatile uint16_t    ring[VIRTIO_MAX_SIZE];
     };
 
     struct used_elem
@@ -36,21 +38,22 @@ namespace virtio_net
     {
         volatile uint16_t    flags;
         volatile uint16_t    idx;
-        volatile used_elem   ring[];
+        volatile used_elem   ring[VIRTIO_MAX_SIZE];
     };
 
     struct vqueue
     {
-        const size_t                index;
-        uint16_t                    size;
-        uint16_t                    size_mask;
-        uint16_t                    free_descriptors_head;
-        uint16_t                    used_pos;
+        const size_t            index;
+        uint16_t                size;
+        uint16_t                size_mask;
+        uint16_t                free_descriptors_head;
+        uint16_t                used_pos;
+        uint16_t*               notify_addr;
+        uint64_t                rsrv;
 
-        struct descriptor*          descriptors;
-        struct used_ring*           used_ring;
-        struct available_ring*      avail_ring;
-        uint16_t*                   notify_addr;
+        struct descriptor       descriptors[VIRTIO_MAX_SIZE] __ALIGNED__(16);
+        struct used_ring        used_ring __ALIGNED__(4);
+        struct available_ring   avail_ring __ALIGNED__(2);
 
         // Initialize the queue to the given size.
         void init(size_t size, uint16_t* notify_addr);
