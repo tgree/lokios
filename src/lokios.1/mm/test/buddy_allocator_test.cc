@@ -216,7 +216,7 @@ class tmock_test
         kassert(ba.order_list[1].empty());
     }
 
-    TMOCK_TEST_EXPECT_FAILURE(test_len3_4mod8_alloc_pages_oom_fails)
+    TMOCK_TEST(test_len3_4mod8_alloc_pages_oom_fails)
     {
         uint8_t inuse_bitmask[1] = {0};
 
@@ -231,7 +231,14 @@ class tmock_test
         ba.alloc_pages(0);
         ba.alloc_pages(0);
         ba.alloc_pages(0);
-        ba.alloc_pages(0);
+        try
+        {
+            ba.alloc_pages(0);
+            tmock::abort("didn't throw buddy_allocator_oom_exception");
+        }
+        catch (kernel::buddy_allocator_oom_exception&)
+        {
+        }
     }
 
     TMOCK_TEST(test_len8_0mod8_alloc_pages)

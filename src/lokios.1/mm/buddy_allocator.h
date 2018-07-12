@@ -3,6 +3,7 @@
 
 #include "page.h"
 #include "mm.h"
+#include "../cxx_exception.h"
 #include <new>
 
 #define BUDDY_ALLOCATOR_MAX_ORDER   32
@@ -43,6 +44,12 @@ namespace kernel
             M(k - 12 + (E == (B + 2*L)))
         {
         }
+    };
+
+    struct buddy_allocator_oom_exception : public kernel::message_exception
+    {
+        constexpr buddy_allocator_oom_exception():
+            kernel::message_exception("buddy allocator oom") {}
     };
 
     struct buddy_allocator
@@ -129,7 +136,7 @@ namespace kernel
                 paddr = virt_to_phys(bp);
                 kassert(toggle_inuse_paddr_bit(paddr,order));
             }
-            else
+            else if(order < params.M)
             {
                 // The free list is empty.  Split a higher-order page.  After
                 // this operation, we'll return one of the split pages and
@@ -143,6 +150,8 @@ namespace kernel
                 order_list[order].push_front(&bbp->link);
                 kassert(!toggle_inuse_paddr_bit(paddr,order));
             }
+            else
+                throw buddy_allocator_oom_exception();
 
             nfree_pages -= (1<<order);
             return paddr;
