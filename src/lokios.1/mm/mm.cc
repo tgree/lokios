@@ -48,9 +48,9 @@ void*
 kernel::pmap(dma_addr64 paddr, uint64_t flags)
 {
     uint64_t paddr_4k = round_down_pow2(paddr,PAGE_SIZE);
-    uint64_t vaddr_4k = 0xFFFF800000000000UL | paddr_4k;
-    kernel_task->pt.map_4k_page((void*)vaddr_4k,paddr_4k,flags);
-    return (void*)(vaddr_4k | (paddr & PAGE_OFFSET_MASK));
+    void* vaddr_4k    = phys_to_virt_maybe_0(paddr_4k);
+    kernel_task->pt.map_4k_page(vaddr_4k,paddr_4k,flags);
+    return phys_to_virt_maybe_0(paddr);
 }
 
 void*
@@ -58,10 +58,9 @@ kernel::pmap_range(dma_addr64 paddr, size_t len, uint64_t flags)
 {
     uint64_t start = round_down_pow2(paddr,PAGE_SIZE);
     uint64_t end   = round_up_pow2(paddr + len,PAGE_SIZE);
-    void* vaddr    = pmap(paddr,flags);
-    for (uint64_t p = start + PAGE_SIZE; p != end; p += PAGE_SIZE)
+    for (uint64_t p = start; p != end; p += PAGE_SIZE)
         pmap(p,flags);
-    return vaddr;
+    return phys_to_virt(paddr);
 }
 
 void
