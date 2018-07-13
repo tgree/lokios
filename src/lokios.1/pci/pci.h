@@ -99,6 +99,37 @@ namespace kernel::pci
         inline void config_write_64(uint64_t val, uint16_t offset)
             {domain->cfg->config_write_64(val,bus,devfn,offset);}
 
+        inline void config_set_clear_8(uint8_t s, uint8_t c, uint16_t offset)
+        {
+            kassert(!(s & c));
+            uint8_t v = config_read_8(offset);
+            config_write_8((v | s) & ~c,offset);
+        }
+        inline void config_set_clear_16(uint16_t s, uint16_t c, uint16_t offset)
+        {
+            kassert(!(s & c));
+            uint16_t v = config_read_16(offset);
+            config_write_16((v | s) & ~c,offset);
+        }
+        inline void config_set_clear_32(uint32_t s, uint32_t c, uint16_t offset)
+        {
+            kassert(!(s & c));
+            uint32_t v = config_read_32(offset);
+            config_write_32((v | s) & ~c,offset);
+        }
+        inline void config_set_8(uint8_t s, uint16_t offset)
+            {config_set_clear_8(s,0,offset);}
+        inline void config_set_16(uint16_t s, uint16_t offset)
+            {config_set_clear_16(s,0,offset);}
+        inline void config_set_32(uint32_t s, uint16_t offset)
+            {config_set_clear_32(s,0,offset);}
+        inline void config_clear_8(uint8_t c, uint16_t offset)
+            {config_set_clear_8(0,c,offset);}
+        inline void config_clear_16(uint16_t c, uint16_t offset)
+            {config_set_clear_16(0,c,offset);}
+        inline void config_clear_32(uint32_t c, uint16_t offset)
+            {config_set_clear_32(0,c,offset);}
+
         inline cap_list_adapter cap_list() {return cap_list_adapter(this);}
         uint8_t find_pci_capability(uint8_t cap_id);
 
