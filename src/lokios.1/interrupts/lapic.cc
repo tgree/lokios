@@ -89,13 +89,18 @@ lapic_measure_ticks(uint64_t interval_ms)
     return ~final_count;
 }
 
+uint64_t tsc_freq;
+
 static uint64_t
 lapic_calibrate(uint64_t calibration_interval_ms)
 {
     // Calculate the frequency (taking into account the divider of 2), rounding
     // to the nearest MHz.
+    uint64_t initial_tsc   = rdtsc();
     uint64_t elapsed_ticks = lapic_measure_ticks(calibration_interval_ms);
+    uint64_t final_tsc     = rdtsc();
     uint64_t freq = ((uint64_t)elapsed_ticks*2*1000/calibration_interval_ms);
+    tsc_freq = (final_tsc - initial_tsc)*1000/calibration_interval_ms;
     return round_to_nearest_multiple(freq,1000000UL);
 }
 
@@ -184,6 +189,7 @@ kernel::init_lapic()
     lapic_periodic_value = lapic_frequency/(2*100);
     printf("LAPIC frequency: %lu Hz\n",lapic_frequency);
     printf("LAPIC periodic:  %u\n",lapic_periodic_value);
+    printf("  TSC frequency: %lu Hz\n",tsc_freq); // 1,696,164,780
 }
 
 void
