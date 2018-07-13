@@ -125,4 +125,12 @@ static inline uint64_t get_rflags()
     return rc;
 }
 
+static inline uint64_t rdtsc()
+{
+    uint64_t lsw;
+    uint64_t msw;
+    asm volatile("rdtsc" : "=a"(lsw), "=d"(msw));
+    return (msw << 32) | lsw;
+}
+
 #endif /* __KERNEL_X86_H */
