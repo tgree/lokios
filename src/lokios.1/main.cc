@@ -10,7 +10,7 @@
 #include "acpi/tables.h"
 #include <typeinfo>
 
-#define TICKER_10MS_TICKS   999
+#define TICKER_10MS_TICKS   9999
 
 using kernel::console::printf;
 
