@@ -460,7 +460,7 @@ kernel::init_cpu_interrupts()
     // queue and then we can finally set the real vectors we want in those
     // slots.
     cpu* c = get_current_cpu();
-    for (size_t i=0; i<nelems(c->idt); ++i)
+    for (size_t i=0; i<NELEMS(c->idt); ++i)
         c->register_exception_vector(i,_interrupt_entry_noop);
 
     // Enable interrupts.  This is going to trigger any pending external
@@ -737,7 +737,7 @@ kernel::init_cpu_interrupts()
 void
 kernel::register_handler(uint64_t selector, interrupt_handler handler)
 {
-    kassert(selector < nelems(_interrupt_handlers));
+    kassert(selector < NELEMS(_interrupt_handlers));
     kassert(_interrupt_handlers[selector] == undefined_interrupt_entry);
     _interrupt_handlers[selector] = handler;
 }
@@ -745,7 +745,7 @@ kernel::register_handler(uint64_t selector, interrupt_handler handler)
 void
 kernel::unregister_handler(uint64_t selector)
 {
-    kassert(selector < nelems(_interrupt_handlers));
+    kassert(selector < NELEMS(_interrupt_handlers));
     kassert(_interrupt_handlers[selector] != undefined_interrupt_entry);
     _interrupt_handlers[selector] = undefined_interrupt_entry;
 }

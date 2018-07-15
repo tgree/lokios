@@ -51,7 +51,7 @@ kernel::cpu::cpu(void (*entry_func)()):
     // Initialize the TSS.
     memset(&tss,0,sizeof(tss));
     tss.iomap_base = sizeof(tss);
-    for (size_t i=1; i<nelems(tss.ist); ++i)
+    for (size_t i=1; i<NELEMS(tss.ist); ++i)
         tss.ist[i] = (uint64_t)page_zalloc() + PAGE_SIZE - 32;
 
     // Initialize the IDT.
@@ -142,7 +142,7 @@ kernel::init_this_cpu(void (*entry_func)())
 
     // Print cpu flags.
     cpu_printf("Flags:");
-    for (unsigned int i=0; i<nelems(cpu_flag_names); ++i)
+    for (unsigned int i=0; i<NELEMS(cpu_flag_names); ++i)
     {
         if (c->flags & (1<<i))
             printf(" %s",cpu_flag_names[i]);

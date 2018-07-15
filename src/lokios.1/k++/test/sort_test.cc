@@ -98,26 +98,26 @@ static uint64_t sorted[] = {
     17990232158220747954U, 18021793853434783484U, 18059244139052326149U,
     18314874294901963553U, 18329021337179044916U,
 };
-KASSERT(kernel::nelems(sorted) == kernel::nelems(unsorted));
+KASSERT(NELEMS(sorted) == NELEMS(unsorted));
 
 class tmock_test
 {
     TMOCK_TEST(test_some_integers)
     {
         kernel::sort::quicksort(unsorted);
-        for (size_t i=0; i < kernel::nelems(unsorted); ++i)
+        for (size_t i=0; i < NELEMS(unsorted); ++i)
             kassert(unsorted[i] == sorted[i]);
     }
 
     TMOCK_TEST(test_some_integers_flex_array)
     {
-        uint64_t _unsorted[kernel::nelems(unsorted)];
-        for (size_t i=0; i<kernel::nelems(unsorted); ++i)
-            _unsorted[i] = unsorted[kernel::nelems(unsorted) - 1 - i];
-        kassert(kernel::nelems(_unsorted) == kernel::nelems(unsorted));
+        uint64_t _unsorted[NELEMS(unsorted)];
+        for (size_t i=0; i<NELEMS(unsorted); ++i)
+            _unsorted[i] = unsorted[NELEMS(unsorted) - 1 - i];
+        kassert(NELEMS(_unsorted) == NELEMS(unsorted));
 
         kernel::sort::quicksort(_unsorted);
-        for (size_t i=0; i < kernel::nelems(_unsorted); ++i)
+        for (size_t i=0; i < NELEMS(_unsorted); ++i)
             kassert(_unsorted[i] == sorted[i]);
     }
 
@@ -130,7 +130,7 @@ class tmock_test
     TMOCK_TEST(test_parent_iter)
     {
         auto begin = kernel::begin(unsorted);
-        for (size_t i = 1; i < kernel::nelems(unsorted); ++i)
+        for (size_t i = 1; i < NELEMS(unsorted); ++i)
         {
             auto pos                 = begin + i;
             auto parent              = heap_sort::parent_iter(begin,pos);
@@ -143,18 +143,18 @@ class tmock_test
     {
         auto begin = kernel::begin(unsorted);
         auto end   = kernel::end(unsorted);
-        for (size_t i = 0; i < kernel::nelems(unsorted); ++i)
+        for (size_t i = 0; i < NELEMS(unsorted); ++i)
         {
             auto pos = begin + i;
             kassert(heap_sort::has_left_child(begin,end,pos)
-                    == ((2*i + 1) < kernel::nelems(unsorted)));
+                    == ((2*i + 1) < NELEMS(unsorted)));
         }
     }
 
     TMOCK_TEST(test_left_child_iter)
     {
         auto begin = kernel::begin(unsorted);
-        for (size_t i = 0; i < kernel::nelems(unsorted); ++i)
+        for (size_t i = 0; i < NELEMS(unsorted); ++i)
         {
             auto pos                 = begin + i;
             auto left_child          = heap_sort::left_child_iter(begin,pos);
@@ -167,18 +167,18 @@ class tmock_test
     {
         auto begin = kernel::begin(unsorted);
         auto end   = kernel::end(unsorted);
-        for (size_t i = 0; i < kernel::nelems(unsorted); ++i)
+        for (size_t i = 0; i < NELEMS(unsorted); ++i)
         {
             auto pos = begin + i;
             kassert(heap_sort::has_right_child(begin,end,pos)
-                    == ((2*i + 2) < kernel::nelems(unsorted)));
+                    == ((2*i + 2) < NELEMS(unsorted)));
         }
     }
 
     TMOCK_TEST(test_right_child_iter)
     {
         auto begin = kernel::begin(unsorted);
-        for (size_t i = 0; i < kernel::nelems(unsorted); ++i)
+        for (size_t i = 0; i < NELEMS(unsorted); ++i)
         {
             auto pos                 = begin + i;
             auto right_child         = heap_sort::right_child_iter(begin,pos);
@@ -225,7 +225,7 @@ class tmock_test
     TMOCK_TEST(test_heapsort)
     {
         kernel::sort::heapsort(unsorted);
-        for (size_t i=0; i < kernel::nelems(unsorted); ++i)
+        for (size_t i=0; i < NELEMS(unsorted); ++i)
             kassert(unsorted[i] == sorted[i]);
     }
 

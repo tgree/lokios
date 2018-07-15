@@ -150,7 +150,7 @@ dhcp::message::append_option(uint8_t tag, uint8_t len, const void* data)
         else
             p += 2 + p[1];
     }
-    kassert(p + 3 + len <= options + kernel::nelems(options));
+    kassert(p + 3 + len <= options + NELEMS(options));
 
     p[0]       = tag;
     p[1]       = len;

@@ -30,7 +30,7 @@ void
 kernel::init_irq_routing()
 {
     // Start with an identity-map.
-    for (size_t i=0; i<nelems(irq_routes); ++i)
+    for (size_t i=0; i<NELEMS(irq_routes); ++i)
     {
         ioapic* ioa = find_ioapic_for_acpi_interrupt(i);
         if (!ioa)

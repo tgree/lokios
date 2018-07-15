@@ -176,7 +176,7 @@ kernel::page_table_iterator::operator++()
 
             // This entry maps a child node in the tree.  Recurse into it; we'll
             // yield this current node after finishing the children.
-            kassert(++level < nelems(stack));
+            kassert(++level < NELEMS(stack));
             stack[level].entries =
                 (uint64_t*)phys_to_virt(pte & PAGE_PADDR_MASK);
             stack[level].index   = -1;

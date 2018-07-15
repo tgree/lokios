@@ -58,7 +58,7 @@ class tmock_test
                 kassert(v[-i].c == entries[v.size()-i].c);
             }
         }
-        kassert(v.size() == kernel::nelems(entries));
+        kassert(v.size() == NELEMS(entries));
     }
 
     TMOCK_TEST_EXPECT_FAILURE(test_subscript_operator_bounds_check_empty_vector)

@@ -68,9 +68,9 @@ kernel::scheduler::schedule_timer(timer_entry* wqe, uint64_t dt)
     kassert(get_current_cpu() == container_of(this,cpu,scheduler));
     kassert(dt != 0);
     wqe->texpiry = tbase + current_slot + dt + 1;
-    if (dt < kernel::nelems(wheel->slots) - 1)
+    if (dt < NELEMS(wheel->slots) - 1)
     {
-        size_t slot = wqe->texpiry % kernel::nelems(wheel->slots);
+        size_t slot = wqe->texpiry % NELEMS(wheel->slots);
         wheel->slots[slot].push_back(&wqe->link);
         wqe->pos = -1;
     }
@@ -124,10 +124,10 @@ kernel::scheduler::workloop()
         // including the new current slot.
         while (c->jiffies != tbase + current_slot)
         {
-            if (++current_slot == kernel::nelems(wheel->slots))
+            if (++current_slot == NELEMS(wheel->slots))
             {
                 current_slot = 0;
-                tbase       += kernel::nelems(wheel->slots);
+                tbase       += NELEMS(wheel->slots);
             }
             tq.append(wheel->slots[current_slot]);
         }

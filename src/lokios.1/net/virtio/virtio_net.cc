@@ -153,7 +153,7 @@ virtio_net::dev::post_tx_frame(eth::tx_op* op)
     // Allocate some descriptors.
     uint16_t dhead = tq.alloc_descriptors(op->nalps + 1);
     TODO("Ring overflow");
-    kassert(dhead < kernel::nelems(tx_table));
+    kassert(dhead < NELEMS(tx_table));
     tx_table[dhead] = op;
 
     // First descriptor is 12-bytes of zeroes.

@@ -18,11 +18,7 @@ namespace kernel
         return (l < r ? r : l);
     }
 
-    template<typename T, size_t N>
-    constexpr size_t nelems(const T (&)[N])
-    {
-        return N;
-    }
+#define NELEMS(a)           (sizeof(a)/sizeof(a[0]))
 
     template<typename T>
     constexpr bool is_pow2(T v)
