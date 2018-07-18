@@ -130,6 +130,25 @@ namespace kernel::pci
         inline void config_clear_32(uint32_t c, uint16_t offset)
             {config_set_clear_32(0,c,offset);}
 
+        inline uint32_t config_extract_32(uint8_t low, uint8_t high,
+                                          uint16_t offset)
+        {
+            kassert(low <= high);
+            kassert(high < 32);
+            uint32_t mask = ((1 << (high+1)) - 1) ^ ((1 << low) - 1);
+            return (config_read_32(offset) & mask) >> low;
+        }
+        inline void config_insert_32(uint32_t val, uint8_t low, uint8_t high,
+                                     uint16_t offset)
+        {
+            kassert(low <= high);
+            kassert(high < 32);
+            val <<= low;
+            uint32_t mask = ((1 << (high+1)) - 1) ^ ((1 << low) - 1);
+            kassert(!(val & ~mask));
+            config_write_32((config_read_32(offset) & ~mask) | val,offset);
+        }
+
         inline cap_list_adapter cap_list() {return cap_list_adapter(this);}
         uint8_t find_pci_capability(uint8_t cap_id);
 
