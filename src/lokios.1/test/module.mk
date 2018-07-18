@@ -6,7 +6,8 @@ console_test.objs := \
 	$(PARENT_TBUILD_DIR)/console.o \
 	$(PARENT_TBUILD_DIR)/vga.o \
 	$(PARENT_TBUILD_DIR)/mm/mock/fmm.o \
-	$(PARENT_TBUILD_DIR)/mock/fkassert.o
+	$(PARENT_TBUILD_DIR)/mock/fkassert.o \
+	$(PARENT_TBUILD_DIR)/mock/ftime.o
 
 console_test.libs := \
 	$(LIB_DIR)/k++.a

@@ -1,4 +1,5 @@
 #include "console.h"
+#include "time.h"
 
 static kernel::klist_leaks<kernel::kconsole> consoles;
 
@@ -11,11 +12,13 @@ kernel::console::register_console(kconsole* kc)
 void
 kernel::console::vprintf(const char* fmt, va_list ap)
 {
+    uint64_t jiffies = get_jiffies();
+
     for (auto& kc : klist_elems(consoles,kc_link))
     {
         va_list ap2;
         va_copy(ap2,ap);
-        kc.vprintf(fmt,ap2);
+        kc.jvprintf(jiffies,fmt,ap2);
         va_end(ap2);
     }
 }
