@@ -8,6 +8,7 @@
 #include "mm/page.h"
 #include "mm/mm.h"
 #include "interrupts/lapic.h"
+#include "k++/string_stream.h"
 #include <new>
 
 #define cpu_printf(fmt,...) printf("CPU%zu " fmt,c->cpu_number,##__VA_ARGS__)
@@ -141,13 +142,14 @@ kernel::init_this_cpu(void (*entry_func)())
         c->cpuid_brand[0] = '\0';
 
     // Print cpu flags.
-    cpu_printf("Flags:");
+    fixed_string_stream<512> fss;
+    fss.printf("Flags:");
     for (unsigned int i=0; i<NELEMS(cpu_flag_names); ++i)
     {
         if (c->flags & (1<<i))
-            printf(" %s",cpu_flag_names[i]);
+            fss.printf(" %s",cpu_flag_names[i]);
     }
-    printf("\n");
+    cpu_printf("%s\n",fss.storage);
 
     // Required flags.
     kassert(c->flags & CPU_FLAG_SSE);
