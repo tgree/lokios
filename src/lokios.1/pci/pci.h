@@ -162,6 +162,7 @@ namespace kernel::pci
         kernel::work_entry* alloc_msix_vector(size_t vec,
                                               kernel::work_handler handler);
         void enable_msix_vector(size_t vec);
+        void dump_msix_table();
 
         dev(pci::domain* domain, uint8_t bus, uint8_t devfn):
             domain(domain),

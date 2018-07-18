@@ -5,6 +5,9 @@
 #include "acpi/tables.h"
 #include "mm/mm.h"
 #include "k++/sort.h"
+#include "kernel/console.h"
+
+using kernel::console::printf;
 
 kernel::vector<kernel::pci::domain> kernel::pci::domains;
 static kernel::klist<kernel::pci::driver> drivers;
@@ -90,6 +93,20 @@ kernel::pci::dev::enable_msix_vector(size_t vec)
     kassert(msix_table != 0);
     kassert(vec < msix_nvecs);
     msix_table[vec].vector_control = 0;
+}
+
+void
+kernel::pci::dev::dump_msix_table()
+{
+    for (size_t i=0; i<msix_nvecs; ++i)
+    {
+        printf("msix %zu: 0x%08X%08X 0x%08X 0x%08X\n",
+               i,
+               msix_table[i].msg_addr_high,
+               msix_table[i].msg_addr_low,
+               msix_table[i].msg_data,
+               msix_table[i].vector_control);
+    }
 }
 
 void
