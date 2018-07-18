@@ -1,30 +1,19 @@
 #include "phy.h"
 #include "kernel/console.h"
-#include "kernel/pmtimer.h"
+#include "kernel/cpu.h"
 #include "kernel/x86.h"
 
 #define intf_dbg(fmt,...) \
     kernel::console::printf("eth%zu: " fmt,intf->id,##__VA_ARGS__)
 
+using kernel::_kassert;
+
 static kernel::klist<eth::phy_driver> drivers;
-extern uint64_t tsc_freq;
 
-eth::phy_driver::phy_driver(const char* name):
-    name(name)
+static eth::phy*
+alloc_phy(eth::interface* intf, uint32_t phy_id)
 {
-    drivers.push_back(&link);
-}
-
-eth::phy*
-eth::phy_driver::probe(eth::interface* intf)
-{
-    uint32_t phy_id_msb = intf->phy_read_16(2);
-    uint32_t phy_id_lsb = intf->phy_read_16(3);
-    uint32_t phy_id     = ((phy_id_msb << 10) & 0x03FFFC00) |
-                          ((phy_id_lsb << 16) & 0xFC000000) |
-                          ((phy_id_lsb <<  0) & 0x000003FF);
-
-    phy_driver* driver = NULL;
+    eth::phy_driver* driver = NULL;
     uint64_t best_score = 0;
     for (auto& drv : klist_elems(drivers,link))
     {
@@ -48,6 +37,145 @@ eth::phy_driver::probe(eth::interface* intf)
     return phy;
 }
 
+struct phy_prober : public eth::phy_state_machine
+{
+    enum
+    {
+        WAIT_READ_ID_MSB,
+        WAIT_READ_ID_LSB,
+    } state;
+    uint32_t phy_id;
+
+    void handle_phy_success(kernel::work_entry* wqe)
+    {
+        switch (state)
+        {
+            case WAIT_READ_ID_MSB:
+                phy_id = ((wqe->args[2] << 10) & 0x03FFFC00);
+                state = WAIT_READ_ID_LSB;
+                intf->issue_phy_read_16(3,&phy_wqe);
+            break;
+
+            case WAIT_READ_ID_LSB:
+                phy_id |= ((wqe->args[2] << 16) & 0xFC000000) |
+                          ((wqe->args[2] <<  0) & 0x000003FF);
+                intf->phy = alloc_phy(intf,phy_id);
+                complete();
+            break;
+        }
+    }
+
+    phy_prober(eth::interface* intf, kernel::work_entry* cqe):
+        phy_state_machine(intf,cqe),
+        state(WAIT_READ_ID_MSB)
+    {
+        intf->issue_phy_read_16(2,&phy_wqe);
+    }
+};
+
+struct phy_resetter : public eth::phy_state_machine
+{
+    enum
+    {
+        WAIT_RESET_WRITE_DONE,
+        WAIT_RESET_READ_DONE,
+        WAIT_RESET_TIMEOUT,
+    } state;
+    kernel::timer_entry timer_wqe;
+    size_t              timer_retries;
+
+    void handle_phy_success(kernel::work_entry* wqe)
+    {
+        switch (state)
+        {
+            case WAIT_RESET_WRITE_DONE:
+                intf->issue_phy_read_16(0,&phy_wqe);
+                state = WAIT_RESET_READ_DONE;
+            break;
+
+            case WAIT_RESET_READ_DONE:
+                if (!(wqe->args[2] & 0x8000))
+                    complete();
+                else if (--timer_retries)
+                {
+                    kernel::cpu::schedule_timer(&timer_wqe,1);
+                    state = WAIT_RESET_TIMEOUT;
+                }
+                else
+                {
+                    cqe->args[1] = -1;
+                    complete();
+                }
+            break;
+
+            case WAIT_RESET_TIMEOUT:
+                kernel::panic("unexpected PHY success while waiting on timer");
+            break;
+        }
+    }
+
+    void handle_timeout(kernel::timer_entry* wqe)
+    {
+        kassert(state == WAIT_RESET_TIMEOUT);
+        intf->issue_phy_read_16(0,&phy_wqe);
+        state = WAIT_RESET_READ_DONE;
+    }
+
+    phy_resetter(eth::interface* intf, kernel::work_entry* cqe):
+        phy_state_machine(intf,cqe),
+        state(WAIT_RESET_WRITE_DONE)
+    {
+        timer_wqe.fn      = timer_delegate(handle_timeout);
+        timer_wqe.args[0] = (uintptr_t)this;
+        timer_retries     = 10;
+        intf->issue_phy_write_16(0x8000,0,&phy_wqe);
+    }
+};
+
+struct phy_start_autonegotiator : public eth::phy_state_machine
+{
+    enum
+    {
+        WAIT_READ_MII_CONTROL,
+        WAIT_WRITE_MII_CONTROL,
+    } state;
+
+    void handle_phy_success(kernel::work_entry* wqe)
+    {
+        switch (state)
+        {
+            case WAIT_READ_MII_CONTROL:
+                intf->issue_phy_write_16(wqe->args[2] | (1<<12) | (1<<9),0,wqe);
+                state = WAIT_WRITE_MII_CONTROL;
+            break;
+
+            case WAIT_WRITE_MII_CONTROL:
+                complete();
+            break;
+        }
+    }
+
+    phy_start_autonegotiator(eth::interface* intf, kernel::work_entry* cqe):
+        phy_state_machine(intf,cqe),
+        state(WAIT_READ_MII_CONTROL)
+    {
+        intf->issue_phy_read_16(0,&phy_wqe);
+    }
+};
+
+eth::phy_driver::phy_driver(const char* name):
+    name(name)
+{
+    drivers.push_back(&link);
+}
+
+void
+eth::phy_driver::issue_probe(eth::interface* intf, kernel::work_entry* cqe)
+{
+    new phy_prober(intf,cqe);
+}
+
+
 eth::phy::phy(eth::interface* intf, eth::phy_driver* owner):
     intf(intf),
     owner(owner)
@@ -59,39 +187,13 @@ eth::phy::~phy()
 }
 
 void
-eth::phy::dump_regs()
+eth::phy::issue_reset(kernel::work_entry* cqe)
 {
-    uint16_t regs[32];
-    for (size_t i=0; i<32; ++i)
-        regs[i] = phy_read_16(i);
-
-    intf_dbg("             0    1    2    3    4    5    6    7\n");
-    intf_dbg("phy regs: %04X %04X %04X %04X %04X %04X %04X %04X\n",
-             regs[0],regs[1],regs[2],regs[3],
-             regs[4],regs[5],regs[6],regs[7]);
-    intf_dbg("phy regs: %04X %04X %04X %04X %04X %04X %04X %04X\n",
-             regs[8],regs[9],regs[10],regs[11],
-             regs[12],regs[13],regs[14],regs[15]);
-    intf_dbg("phy regs: %04X %04X %04X %04X %04X %04X %04X %04X\n",
-             regs[16],regs[17],regs[18],regs[19],
-             regs[20],regs[21],regs[22],regs[23]);
-    intf_dbg("phy regs: %04X %04X %04X %04X %04X %04X %04X %04X\n",
-             regs[24],regs[25],regs[26],regs[27],
-             regs[28],regs[29],regs[30],regs[31]);
+    new phy_resetter(intf,cqe);
 }
 
 void
-eth::phy::reset()
+eth::phy::issue_start_autonegotiation(kernel::work_entry* cqe)
 {
-    // TODO: Timeouts!  This should really become async.
-    phy_write_16(0x8000,0x00);
-    while (phy_read_16(0x00) & 0x8000)
-        kernel::pmtimer::wait_us(10);
-    kernel::pmtimer::wait_us(40);
-}
-
-void
-eth::phy::start_autonegotiation()
-{
-    phy_set_16((1<<12) | (1<<9),0x00);
+    new phy_start_autonegotiator(intf,cqe);
 }

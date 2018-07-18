@@ -20,7 +20,7 @@ namespace eth
         const char* const       name;
         kernel::klist<eth::phy> phys;
 
-        static eth::phy*  probe(interface* intf);
+        static void       issue_probe(interface* intf, kernel::work_entry* cqe);
 
         virtual uint64_t  score(interface* intf, uint32_t phy_id) = 0;
         virtual eth::phy* alloc(interface* intf, uint32_t phy_id) = 0;
@@ -67,13 +67,9 @@ namespace eth
         }
     };
 
+    // Flags for get_link_mode.
 #define PHY_LM_LINK_UP      0x00000001
 #define PHY_LM_DUPLEX_FULL  0x00000002
-    struct link_mode
-    {
-        uint32_t    speed;
-        uint32_t    flags;
-    };
 
     // Ethernet PHY.
     struct phy
@@ -82,45 +78,51 @@ namespace eth
         eth::interface* const   intf;
         phy_driver* const       owner;
 
-        // Register helpers.
-        inline uint16_t phy_read_16(uint8_t o)
-            {return intf->phy_read_16(o);}
-        inline void phy_write_16(uint16_t v, uint8_t o)
-            {intf->phy_write_16(v,0);}
-        inline void phy_set_clear_16(uint16_t s, uint16_t c, uint8_t offset)
-        {
-            kernel::kassert(!(s & c));
-            phy_write_16((phy_read_16(offset) | s) & ~c,offset);
-        }
-        inline void phy_set_16(uint16_t s, uint8_t offset)
-        {
-            phy_set_clear_16(s,0,offset);
-        }
-        inline void phy_clear_16(uint16_t c, uint8_t offset)
-        {
-            phy_set_clear_16(0,c,offset);
-        }
-        inline void phy_insert_32(uint16_t val, uint8_t low, uint8_t high,
-                                  uint8_t offset)
-        {
-            kernel::kassert(low <= high);
-            kernel::kassert(high < 16);
-            val <<= low;
-            uint16_t mask = ((1 << (high+1)) - 1) ^ ((1 << low) - 1);
-            kernel::kassert(!(val & ~mask));
-            phy_write_16((phy_read_16(offset) & ~mask) | val,offset);
-        }
-
-        // Required methods.
-        virtual const link_mode get_link_mode() = 0;
-
         // PHY methods.
-        void    dump_regs();
-        void    reset();
-        void    start_autonegotiation();
+        //  All method return an error code in args[1].
+        //  get_link_mode returns speed in args[2] and flags in args[3].
+                void issue_reset(kernel::work_entry* wqe);
+                void issue_start_autonegotiation(kernel::work_entry* wqe);
+        virtual void issue_get_link_mode(kernel::work_entry* wqe) = 0;
 
         phy(eth::interface* intf, phy_driver* owner);
         virtual ~phy();
+    };
+
+    // Helper base class for PHY drivers that need to perform transactions.
+    struct phy_state_machine
+    {
+        eth::interface*     intf;
+        kernel::work_entry  phy_wqe;
+        kernel::work_entry* cqe;
+
+        void complete()
+        {
+            cqe->fn(cqe);
+            delete this;
+        }
+
+        void handle_phy_completion(kernel::work_entry* wqe)
+        {
+            cqe->args[1] = wqe->args[1];
+            if (wqe->args[1])
+                complete();
+            else
+                handle_phy_success(wqe);
+        }
+
+        virtual void handle_phy_success(kernel::work_entry* wqe) = 0;
+
+        phy_state_machine(eth::interface* intf, kernel::work_entry* cqe):
+            intf(intf),
+            cqe(cqe)
+        {
+            phy_wqe.fn      = work_delegate(handle_phy_completion);
+            phy_wqe.args[0] = (uintptr_t)this;
+        }
+        virtual ~phy_state_machine()
+        {
+        }
     };
 }
 

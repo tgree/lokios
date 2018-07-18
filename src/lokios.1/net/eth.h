@@ -3,6 +3,7 @@
 
 #include "ip.h"
 #include "hdr/compiler.h"
+#include "kernel/schedule.h"
 #include "kernel/types.h"
 #include "kernel/kassert.h"
 #include "mm/mm.h"
@@ -156,10 +157,12 @@ namespace eth
         // ARP service.
         arp::service<eth::net_traits,ipv4::net_traits>* arpc_ipv4;
 
-        // Access the PHY.
-                eth::phy*   probe_phy();
-        virtual uint16_t    phy_read_16(uint8_t offset) = 0;
-        virtual void        phy_write_16(uint16_t v, uint8_t offset) = 0;
+        // Access the PHY.  These are asynchronous and result in callbacks.
+                void        issue_probe_phy(kernel::work_entry* cqe);
+        virtual void        issue_phy_read_16(uint8_t offset,
+                                kernel::work_entry* cqe) = 0;
+        virtual void        issue_phy_write_16(uint16_t v, uint8_t offset,
+                                kernel::work_entry* cqe) = 0;
 
         // Register UDP frame handlers.
         inline  void    register_udp_handler(uint16_t port, void* cookie,

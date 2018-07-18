@@ -8,14 +8,15 @@ namespace eth
 {
     struct finterface : public interface
     {
-        virtual uint16_t phy_read_16(uint8_t offset)
+        virtual void issue_phy_read_16(uint8_t offset, kernel::work_entry* cqe)
         {
-            return (uint16_t)mock("eth::interface::phy_read_16",offset);
+            mock("eth::interface::issue_phy_read_16",offset,cqe);
         }
 
-        virtual void phy_write_16(uint16_t v, uint8_t offset)
+        virtual void issue_phy_write_16(uint16_t v, uint8_t offset,
+                                        kernel::work_entry* cqe)
         {
-            mock("eth::interface::phy_write_16",v,offset);
+            mock("eth::interface::issue_phy_write_16",v,offset,cqe);
         }
 
         virtual void post_tx_frame(eth::tx_op* op)

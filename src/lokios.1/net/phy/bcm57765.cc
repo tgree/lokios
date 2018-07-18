@@ -18,33 +18,57 @@
 
 using kernel::_kassert;
 
-static const eth::link_mode link_mode_table[] = {
+struct link_mode
+{
+    uint32_t    speed;
+    uint32_t    flags;
+};
+
+static const link_mode link_mode_table[] = {
     {0,     0},
-    {10,    0},
-    {10,    PHY_LM_DUPLEX_FULL},
-    {100,   0},
-    {100,   0},
-    {100,   PHY_LM_DUPLEX_FULL},
-    {1000,  0},
-    {1000,  PHY_LM_DUPLEX_FULL},
+    {10,    PHY_LM_LINK_UP},
+    {10,    PHY_LM_LINK_UP | PHY_LM_DUPLEX_FULL},
+    {100,   PHY_LM_LINK_UP},
+    {100,   PHY_LM_LINK_UP},
+    {100,   PHY_LM_LINK_UP | PHY_LM_DUPLEX_FULL},
+    {1000,  PHY_LM_LINK_UP},
+    {1000,  PHY_LM_LINK_UP | PHY_LM_DUPLEX_FULL},
 };
 
 struct bcm57765 : public eth::phy
 {
-    virtual const eth::link_mode get_link_mode()
-    {
-        uint32_t aux_status = phy_read_16(0x19);
-        if (!(aux_status & (1<<2)))
-            return eth::link_mode{0,0};
+    kernel::work_entry  lm_wqe;
+    kernel::work_entry* lm_cqe;
 
-        eth::link_mode lm = link_mode_table[(aux_status >> 8) & 7];
-        lm.flags |= PHY_LM_LINK_UP;
-        return lm;
+    virtual void issue_get_link_mode(kernel::work_entry* cqe)
+    {
+        lm_cqe = cqe;
+        intf->issue_phy_read_16(0x19,&lm_wqe);
+    }
+
+    void handle_phy_completion(kernel::work_entry* wqe)
+    {
+        lm_cqe->args[1] = wqe->args[1];
+        if (!lm_cqe->args[1])
+        {
+            uint32_t aux_status = wqe->args[2];
+            const link_mode* lm;
+            if (!(aux_status & (1<<2)))
+                lm = &link_mode_table[0];
+            else
+                lm = &link_mode_table[(aux_status >> 8) & 7];
+
+            lm_cqe->args[2] = lm->speed;
+            lm_cqe->args[3] = lm->flags;
+        }
+        lm_cqe->fn(lm_cqe);
     }
 
     bcm57765(eth::interface* intf, eth::phy_driver* owner):
         eth::phy(intf,owner)
     {
+        lm_wqe.fn      = work_delegate(handle_phy_completion);
+        lm_wqe.args[0] = (uintptr_t)this;
     }
 };
 

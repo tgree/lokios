@@ -61,17 +61,65 @@ namespace bcm57762
 
     struct dev : public kernel::pci::dev
     {
+        enum dev_state
+        {
+            WAIT_RESETTING_NVRAM_LOCK,
+            WAIT_RESETTING_CORE_CLOCK,
+            WAIT_RESETTING_BOOTCODE_DONE,
+            WAIT_RESETTING_COALESCING_STOP,
+            WAIT_RESETTING_DMA_READY,
+            WAIT_RESETTING_GML_READY,
+            WAIT_RESETTING_WDMA_READY,
+            WAIT_RESETTING_RDMA_READY,
+            WAIT_RESETTING_TXMAC_READY,
+            WAIT_RESETTING_RXMAC_READY,
+            WAIT_RESETTING_FORCED_INTERRUPT,
+
+            WAIT_PHY_PROBE_DONE,
+            WAIT_PHY_RESET_DONE,
+            WAIT_PHY_START_AUTONEG_DONE,
+            WAIT_PHY_LINK_NOTIFICATION,
+
+            READY_LINK_DOWN,
+            WAIT_LINK_UP_GET_MODE_DONE,
+            WAIT_LINK_UP_GET_MODE_DONE_RETRY,
+            WAIT_LINK_DOWN_GET_MODE_DONE,
+            READY_LINK_UP,
+            
+            WAIT_DEAD,
+        } state;
+        size_t                  timer_retries;
+        kernel::timer_entry     timer_wqe;
+        kernel::work_entry      phy_probe_wqe;
+        kernel::work_entry      phy_reset_wqe;
+        kernel::work_entry      phy_an_wqe;
+        kernel::work_entry      phy_lm_wqe;
+
         registers*              regs;
         mem_block*              mem;
         bcm57762::interface*    intf;
         uint16_t                tx_bd_producer_index;
         eth::addr               mac;
+        kernel::work_entry*     phy_cqe;
+        bool                    phy_autopoll;
 
-        void    mem_read(void* dst, uint32_t addr, size_t len);
-        void    mem_write(uint32_t addr, const void* src, size_t len);
-
+        // Synchronous register accessors.
+        void        mem_read(void* dst, uint32_t addr, size_t len);
+        void        mem_write(uint32_t addr, const void* src, size_t len);
         uint32_t    reg_read_32(uint32_t offset);
         void        reg_write_32(uint32_t val, uint32_t offset);
+
+        // Async PHY register accessors.  These go via some sort of serial
+        // interface and we get interrupt completions when the accesses
+        // complete.  An error code will be populated in args[1] and the
+        // transferred data will be populated in cqe->args[2].
+        void    issue_phy_read_16(uint8_t offset, kernel::work_entry* cqe);
+        void    issue_phy_write_16(uint16_t v, uint8_t offset,
+                                   kernel::work_entry* cqe);
+        void    begin_phy_transaction(uint32_t v);
+        void    complete_phy_transaction();
+
+        // Register field helpers.
         inline void reg_set_clear_32(uint32_t s, uint32_t c, uint32_t offset)
         {
             kernel::kassert(!(s & c));
@@ -79,9 +127,13 @@ namespace bcm57762
             reg_write_32((v | s) & ~c,offset);
         }
         inline void reg_set_32(uint32_t s, uint16_t offset)
-            {reg_set_clear_32(s,0,offset);}
+        {
+            reg_set_clear_32(s,0,offset);
+        }
         inline void reg_clear_32(uint32_t c, uint16_t offset)
-            {reg_set_clear_32(0,c,offset);}
+        {
+            reg_set_clear_32(0,c,offset);
+        }
         inline void reg_insert_32(uint32_t val, uint8_t low, uint8_t high,
                                   uint16_t offset)
         {
@@ -93,15 +145,19 @@ namespace bcm57762
             reg_write_32((reg_read_32(offset) & ~mask) | val,offset);
         }
 
-        uint16_t    phy_read_16(uint8_t offset);
-        void        phy_write_16(uint16_t v, uint8_t offset);
-
-        // Interrupt handling.
-        void    mask_inta_interrupts();
-        void    handle_vec0_dsr(kernel::work_entry*);
-
         // Actions.
         void    issue_reset();
+
+        // Handlers.
+        void    handle_vec0_dsr(kernel::work_entry*);
+        void    handle_timer(kernel::timer_entry*);
+        void    handle_link_up();
+        void    handle_link_down();
+        void    handle_phy_completion();
+        void    handle_phy_probe_complete(kernel::work_entry*);
+        void    handle_phy_reset_complete(kernel::work_entry*);
+        void    handle_phy_start_autoneg_complete(kernel::work_entry*);
+        void    handle_phy_get_link_mode_complete(kernel::work_entry*);
 
         dev(const kernel::pci::dev* pd, const bcm57762::driver* owner);
         virtual ~dev();
@@ -111,8 +167,10 @@ namespace bcm57762
     {
         bcm57762::dev*  dev;
 
-        virtual uint16_t    phy_read_16(uint8_t offset);
-        virtual void        phy_write_16(uint16_t v, uint8_t offset);
+        virtual void    issue_phy_read_16(uint8_t offset,
+                                          kernel::work_entry* cqe);
+        virtual void    issue_phy_write_16(uint16_t v, uint8_t offset,
+                                           kernel::work_entry* cqe);
 
         virtual void    post_tx_frame(eth::tx_op* op);
         virtual void    post_rx_pages(kernel::klist<eth::rx_page>& pages);

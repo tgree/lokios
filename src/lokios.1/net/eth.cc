@@ -70,10 +70,10 @@ eth::interface::~interface()
     free_id(id);
 }
 
-eth::phy*
-eth::interface::probe_phy()
+void
+eth::interface::issue_probe_phy(kernel::work_entry* cqe)
 {
-    return eth::phy_driver::probe(this);
+    eth::phy_driver::issue_probe(this,cqe);
 }
 
 void
