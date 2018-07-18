@@ -22,6 +22,7 @@ namespace arp
 
 namespace eth
 {
+    struct phy;
     struct net_traits;
 
     // MAC address.
@@ -146,6 +147,9 @@ namespace eth
         const size_t        rx_qlen;
         size_t              rx_posted_count;
 
+        // PHY, if present.
+        eth::phy*           phy;
+
         // DHCP client service.
         dhcp::client*           dhcpc;
 
@@ -153,6 +157,7 @@ namespace eth
         arp::service<eth::net_traits,ipv4::net_traits>* arpc_ipv4;
 
         // Access the PHY.
+                eth::phy*   probe_phy();
         virtual uint16_t    phy_read_16(uint8_t offset) = 0;
         virtual void        phy_write_16(uint16_t v, uint8_t offset) = 0;
 

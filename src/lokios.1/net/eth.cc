@@ -2,6 +2,7 @@
 #include "dhcp.h"
 #include "dhcpc.h"
 #include "arp.h"
+#include "phy/phy.h"
 #include "kernel/console.h"
 #include "kernel/mm/vm.h"
 
@@ -50,7 +51,8 @@ eth::interface::interface(const eth::addr& hw_mac, size_t tx_qlen,
         ip_addr{0,0,0,0},
         tx_qlen(tx_qlen),
         rx_qlen(rx_qlen),
-        rx_posted_count(0)
+        rx_posted_count(0),
+        phy(NULL)
 {
     intf_dbg("creating interface with MAC %02X:%02X:%02X:%02X:%02X:%02X\n",
              hw_mac[0],hw_mac[1],hw_mac[2],hw_mac[3],hw_mac[4],hw_mac[5]);
@@ -66,6 +68,12 @@ eth::interface::~interface()
 {
     kernel::vmunmap(intf_mem,sizeof(*intf_mem));
     free_id(id);
+}
+
+eth::phy*
+eth::interface::probe_phy()
+{
+    return eth::phy_driver::probe(this);
 }
 
 void
