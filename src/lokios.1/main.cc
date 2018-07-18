@@ -24,14 +24,12 @@ kernel_hello(kernel::work_entry* wqe)
 }
 
 static kernel::timer_entry one_sec_wqe;
-static uint64_t ticks = 0;
 static void
 kernel_ticker(kernel::timer_entry* wqe)
 {
     kernel::get_current_cpu()->scheduler.schedule_timer(wqe,TICKER_10MS_TICKS);
-    printf("Ticker: %lu ticks  Free pages: %zu  PT Used Pages: %zu\n",
-           ++ticks,kernel::page_count_free(),
-           kernel::kernel_task->pt.page_count);
+    printf("Free pages: %zu  PT Used Pages: %zu\n",
+           kernel::page_count_free(),kernel::kernel_task->pt.page_count);
 }
 
 void
