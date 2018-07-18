@@ -12,6 +12,9 @@
 #define dump_good_page(p)
 #endif
 
+#define intf_dbg(fmt,...) \
+    kernel::console::printf("eth%zu: " fmt,id,##__VA_ARGS__)
+
 using kernel::console::printf;
 using kernel::_kassert;
 
@@ -49,6 +52,9 @@ eth::interface::interface(const eth::addr& hw_mac, size_t tx_qlen,
         rx_qlen(rx_qlen),
         rx_posted_count(0)
 {
+    intf_dbg("creating interface with MAC %02X:%02X:%02X:%02X:%02X:%02X\n",
+             hw_mac[0],hw_mac[1],hw_mac[2],hw_mac[3],hw_mac[4],hw_mac[5]);
+
     kernel::vmmap(intf_mem,sizeof(*intf_mem));
     memset(intf_mem,0,sizeof(*intf_mem));
 
