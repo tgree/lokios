@@ -11,6 +11,9 @@ namespace virtio_net
     {
         virtio_net::dev*    vdev;
 
+        virtual uint16_t    phy_read_16(uint8_t offset);
+        virtual void        phy_write_16(uint16_t v, uint8_t offset);
+
         virtual void    post_tx_frame(eth::tx_op* op);
         virtual void    post_rx_pages(kernel::klist<eth::rx_page>& pages);
 

@@ -15,6 +15,18 @@ virtio_net::interface::~interface()
     kernel::panic("So mean.");
 }
 
+uint16_t
+virtio_net::interface::phy_read_16(uint8_t offset)
+{
+    kernel::panic("virtio_net doesn't implement phy_read_16!");
+}
+
+void
+virtio_net::interface::phy_write_16(uint16_t v, uint8_t offset)
+{
+    kernel::panic("virtio_net doesn't implement phy_write_16!");
+}
+
 void
 virtio_net::interface::post_tx_frame(eth::tx_op* op)
 {

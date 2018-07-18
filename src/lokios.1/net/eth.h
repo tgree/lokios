@@ -152,6 +152,10 @@ namespace eth
         // ARP service.
         arp::service<eth::net_traits,ipv4::net_traits>* arpc_ipv4;
 
+        // Access the PHY.
+        virtual uint16_t    phy_read_16(uint8_t offset) = 0;
+        virtual void        phy_write_16(uint16_t v, uint8_t offset) = 0;
+
         // Register UDP frame handlers.
         inline  void    register_udp_handler(uint16_t port, void* cookie,
                                              frame_handler handler)
