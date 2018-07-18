@@ -75,7 +75,8 @@ kernel::pci::dev::alloc_msix_vector(size_t vec,
     cpu* c                  = get_current_cpu();
     kernel::work_entry* wqe = c->alloc_msix_interrupt();
     msix_entry* me          = &msix_table[vec];
-    me->msg_addr            = 0xFEE00000;
+    me->msg_addr_high       = 0;
+    me->msg_addr_low        = 0xFEE00000;
     me->msg_data            = wqe - c->msix_entries;
     wqe->fn                 = handler;
     wqe->args[0]            = (uintptr_t)this;

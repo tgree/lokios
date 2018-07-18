@@ -11,9 +11,10 @@ namespace kernel::pci
 
     struct msix_entry
     {
-        uint64_t    msg_addr;
-        uint32_t    msg_data;
-        uint32_t    vector_control;
+        volatile uint32_t    msg_addr_low;
+        volatile uint32_t    msg_addr_high;
+        volatile uint32_t    msg_data;
+        volatile uint32_t    vector_control;
     };
     KASSERT(sizeof(msix_entry) == 16);
 
