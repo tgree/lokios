@@ -2,6 +2,12 @@
 #include "mm/mm.h"
 #include <new>
 
+#define CONSOLE_HEIGHT  25
+#define CONSOLE_WIDTH   80
+
+#define SCREEN_HEIGHT   25
+#define SCREEN_WIDTH    80
+
 static kernel::vga_console* vga;
 static uint64_t _vga[(sizeof(*vga) + sizeof(uint64_t) - 1)/sizeof(uint64_t)];
 static uint16_t* vga_base;
@@ -17,7 +23,7 @@ kernel::init_vga_console(dma_addr64 _vga_base)
 void
 kernel::vga_write(uint8_t x, uint8_t y, const char* s, uint16_t cflags) noexcept
 {
-    uint16_t* addr = &vga_base[y*80 + x];
+    uint16_t* addr = &vga_base[y*SCREEN_WIDTH + x];
     while (*s)
         *addr++ = cflags | *s++;
 }
@@ -52,19 +58,24 @@ kernel::vga_console::vga_console(uint16_t* base):
 void
 kernel::vga_console::scroll()
 {
-    uint64_t* src = (uint64_t*)&base[80];
-    uint64_t* dst = (uint64_t*)base;
-    for (unsigned int i=0; i<480; ++i)
-        *dst++ = *src++;
-    for (unsigned int i=480; i<500; ++i)
-        *dst++ = 0x1F201F201F201F20;
+    for (size_t y=0; y<CONSOLE_HEIGHT-1; ++y)
+    {
+        uint16_t* src = (uint16_t*)&base[(y+1)*SCREEN_WIDTH];
+        uint16_t* dst = (uint16_t*)&base[y*SCREEN_WIDTH];
+        for (size_t x=0; x<CONSOLE_WIDTH; ++x)
+            *dst++ = *src++;
+    }
+
+    uint16_t* dst = &base[(CONSOLE_HEIGHT-1)*SCREEN_WIDTH];
+    for (size_t x=0; x<CONSOLE_WIDTH; ++x)
+        *dst++ = 0x1F20;
 }
 
 void
 kernel::vga_console::putnewline()
 {
     x = 0;
-    if (++y == 25)
+    if (++y == CONSOLE_HEIGHT)
     {
         --y;
         scroll();
@@ -78,8 +89,8 @@ kernel::vga_console::_putc(char c)
         putnewline();
     else
     {
-        base[y*80 + x] = 0x1F00 | (uint16_t)c;
-        if (++x == 80)
+        base[y*SCREEN_WIDTH + x] = 0x1F00 | (uint16_t)c;
+        if (++x == CONSOLE_WIDTH)
             putnewline();
     }
 }
