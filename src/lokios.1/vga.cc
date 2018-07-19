@@ -3,7 +3,7 @@
 #include <new>
 
 #define CONSOLE_HEIGHT  25
-#define CONSOLE_WIDTH   80
+#define CONSOLE_WIDTH   79
 
 #define SCREEN_HEIGHT   25
 #define SCREEN_WIDTH    80

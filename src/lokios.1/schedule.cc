@@ -4,6 +4,7 @@
 #include "task.h"
 #include "console.h"
 #include "pmtimer.h"
+#include "vga.h"
 #include "mm/slab.h"
 #include "interrupts/lapic.h"
 
@@ -93,6 +94,7 @@ kernel::scheduler::workloop()
     cpu* c = get_current_cpu();
     kassert(container_of(this,cpu,scheduler) == c);
 
+    const char num[2] = {(char)('0' + c->cpu_number),'\0'};
     for (;;)
     {
         // This list of work we are going to do this iteration.
@@ -106,6 +108,10 @@ kernel::scheduler::workloop()
                local_work.empty() &&
                c->jiffies == tbase + current_slot)
         {
+            // Mark the CPU status as green to indicate we are in low-power
+            // mode.
+            kernel::vga_write(79,c->cpu_number,num,0x2F00);
+
             // sti; hlt; is an atomic sequence even though it is two
             // instructions.  We enable interrupts while the CPU is halted; an
             // interrupt is what's going to cause the hlt instruction to
@@ -113,6 +119,9 @@ kernel::scheduler::workloop()
             // check for work.
             asm ("sti; hlt; cli;");
         }
+
+        // Mark the CPU status as red to indicate we are consuming power.
+        kernel::vga_write(79,c->cpu_number,num,0x2F00);
 
         // Build the list of work we are going to do.  The local_work queue can
         // be modified by a device interrupt on the local CPU, so we need to
