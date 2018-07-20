@@ -159,6 +159,7 @@ namespace eth
                 void    handle_tx_completion(eth::tx_op* op);
                 void    handle_rx_pages(kernel::klist<rx_page>& pages);
                 void    handle_rx_ipv4_frame(rx_page* p);
+                void    handle_rx_ipv4_tcp_frame(rx_page* p);
                 void    handle_rx_ipv4_udp_frame(rx_page* p);
                 void    handle_rx_arp_frame(rx_page* p);
 

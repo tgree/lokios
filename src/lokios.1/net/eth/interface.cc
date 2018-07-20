@@ -4,6 +4,7 @@
 #include "net/arp/arp.h"
 #include "net/dhcp/dhcp.h"
 #include "net/dhcp/dhcpc.h"
+#include "net/tcp/traits.h"
 #include "kernel/console.h"
 #include "kernel/mm/vm.h"
 
@@ -176,9 +177,20 @@ eth::interface::handle_rx_ipv4_frame(rx_page* p)
         delete p;
     else switch (iph->proto)
     {
-        case 0x11:  handle_rx_ipv4_udp_frame(p);    break;
-        default:    delete p;                       break;
+        case tcp::net_traits::ip_proto: handle_rx_ipv4_tcp_frame(p);    break;
+        case udp::net_traits::ip_proto: handle_rx_ipv4_udp_frame(p);    break;
+
+        default:
+            delete p;
+        break;
     }
+}
+
+void
+eth::interface::handle_rx_ipv4_tcp_frame(rx_page* p)
+{
+    intf_dbg("ipv4 tcp frame received\n");
+    delete p;
 }
 
 void
