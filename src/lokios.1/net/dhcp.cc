@@ -76,6 +76,9 @@ dhcp::message::format_request(uint32_t _xid, const eth::addr& src_mac,
     append_requested_ip(req_addr);
     if (server_id != ipv4::addr{0,0,0,0})
         append_server_id(server_id);
+
+    uint8_t param_req_list[] = {1,3,6,15};
+    append_option(55,sizeof(param_req_list),param_req_list);
 }
 
 void
