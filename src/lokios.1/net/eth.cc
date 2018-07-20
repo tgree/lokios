@@ -82,6 +82,9 @@ eth::interface::activate()
 void
 eth::interface::refill_rx_pages()
 {
+    if (rx_posted_count == rx_qlen)
+        return;
+
     kernel::klist<eth::rx_page> pages;
     size_t n = rx_qlen - rx_posted_count;
     for (size_t i=0; i<n; ++i)
