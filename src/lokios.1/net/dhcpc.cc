@@ -66,6 +66,7 @@ dhcp::client::client(eth::interface* intf):
     packet.uhdr.len               = sizeof(packet) - sizeof(packet.llhdr) -
                                     sizeof(packet.iphdr);
     packet.uhdr.checksum          = 0; TODO("UDP checksum");
+    memset(&packet.msg.sname,0,sizeof(packet.msg.sname));
 
     send_op.cb            = handle_dhcp_client_send_comp_bounce;
     send_op.nalps         = 1;
