@@ -80,7 +80,11 @@ namespace eth
 
         // PHY methods.
         //  All method return an error code in args[1].
-        //  get_link_mode returns speed in args[2] and flags in args[3].
+        //  get_link_mode return args:
+        //      args[2] - speed
+        //      args[3] - flags
+        //      args[4] - local advertised autonegotiate params
+        //      args[5] - remove advertised autonegotiate params
                 void issue_reset(kernel::work_entry* wqe);
                 void issue_start_autonegotiation(kernel::work_entry* wqe);
         virtual void issue_get_link_mode(kernel::work_entry* wqe) = 0;
