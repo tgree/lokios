@@ -440,9 +440,9 @@ bcm57762::dev::handle_timer(kernel::timer_entry*)
             // Host_Stack_Up bit in the General Mode Control Register.
             reg_set_32((1<<16),0x6800);
 
-            // Step 23: configure TCP/UDP checksum offloading.  We disable it
-            // so that we are consistent with the virtio_net driver for now.
-            reg_set_32((1<<20) | (1<<23),0x6800);
+            // Step 23: configure TCP/UDP checksum offloading to include the
+            // pseudo-header automatically for us.
+            reg_clear_32((1<<20) | (1<<23),0x6800);
 
             // Step 24: config MAC Mbuf memory pool watermarks.  We use the
             // values recommended in the Broadcom doc.
