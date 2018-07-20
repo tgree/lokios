@@ -59,7 +59,7 @@ dhcp::client::client(eth::interface* intf):
     packet.iphdr.total_len        = sizeof(packet) - sizeof(packet.llhdr);
     packet.iphdr.identification   = 0;
     packet.iphdr.flags_fragoffset = 0x4000;
-    packet.iphdr.ttl              = 1;
+    packet.iphdr.ttl              = 64;
     packet.iphdr.proto            = udp::net_traits::ip_proto;
     packet.uhdr.src_port          = 68;
     packet.uhdr.dst_port          = 67;
