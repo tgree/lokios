@@ -46,11 +46,12 @@ namespace bcm57762
     {
         msix_sv_rss_status_block    status_block;
         uint8_t                     rsrv[4064];
-        uint8_t                     rsrv2[4096];
+        eth::rx_page*               rx_page_table[512];
         send_bd                     send_bds[512];
         receive_bd                  recv_bds[512];
         receive_bd                  return_bds[512];
-        uint8_t                     rsrv3[16384];
+        eth::tx_op*                 tx_op_table[512];
+        uint8_t                     rsrv3[12288];
     } __PACKED__;
     KASSERT(sizeof(mem_block) == 65536);
     KASSERT(kernel::is_pow2(sizeof(mem_block)));
@@ -99,6 +100,9 @@ namespace bcm57762
         mem_block*              mem;
         bcm57762::interface*    intf;
         uint16_t                tx_bd_producer_index;
+        uint16_t                tx_bd_consumer_index;
+        uint16_t                rx_bd_producer_index;
+        uint16_t                rx_bd_consumer_index;
         eth::addr               mac;
         kernel::work_entry*     phy_cqe;
         bool                    phy_autopoll;
@@ -158,6 +162,10 @@ namespace bcm57762
         void    handle_phy_reset_complete(kernel::work_entry*);
         void    handle_phy_start_autoneg_complete(kernel::work_entry*);
         void    handle_phy_get_link_mode_complete(kernel::work_entry*);
+
+        // Interface API.
+        void    post_tx_frame(eth::tx_op* op);
+        void    post_rx_pages(kernel::klist<eth::rx_page>& pages);
 
         dev(const kernel::pci::dev* pd, const bcm57762::driver* owner);
         virtual ~dev();

@@ -79,6 +79,7 @@ bcm57762::dev::dev(const kernel::pci::dev* pd, const bcm57762::driver* owner):
     // Map everything.
     regs = (registers*)map_bar(0,sizeof(registers));
     mem  = (mem_block*)kernel::buddy_alloc(kernel::ulog2(sizeof(mem_block)));
+    memset(mem->rx_page_table,0,sizeof(mem->rx_page_table));
 
     // Reset.
     issue_reset();
@@ -307,6 +308,40 @@ bcm57762::dev::handle_vec0_dsr(kernel::work_entry*)
             handle_link_down();
     }
 
+    // Handle received packets.
+    if (rx_bd_consumer_index != mem->status_block.rx_return_ring_0_prod_index)
+    {
+        kernel::klist<eth::rx_page> pages;
+        while (rx_bd_consumer_index !=
+               mem->status_block.rx_return_ring_0_prod_index)
+        {
+            receive_bd* rbd = &mem->return_bds[rx_bd_consumer_index];
+            eth::rx_page* p = mem->rx_page_table[rbd->index];
+            kassert(p != NULL);
+
+            p->eth_offset = 0;
+            p->eth_len    = rbd->len - 4; // Remove the Ethernet checksum
+            pages.push_back(&p->link);
+
+            mem->rx_page_table[rbd->index] = NULL;
+            rx_bd_consumer_index = (rx_bd_consumer_index + 1) %
+                                        NELEMS(mem->return_bds);
+        }
+        intf->handle_rx_pages(pages);
+    }
+
+    // Handle transmitted packets.
+    while (tx_bd_consumer_index !=
+           mem->status_block.tx_bd_consumer_index)
+    {
+        auto* op = mem->tx_op_table[tx_bd_consumer_index];
+        mem->tx_op_table[tx_bd_consumer_index] = NULL;
+        tx_bd_consumer_index = (tx_bd_consumer_index + 1) %
+                                    NELEMS(mem->send_bds);
+        if (op)
+            intf->handle_tx_completion(op);
+    }
+
     reg_write_32((tag << 24),0x204);
     enable_msix_vector(0);
 }
@@ -434,6 +469,7 @@ bcm57762::dev::handle_timer(kernel::timer_entry*)
             // Host_Send_BDs bit in the General Mode Control register.
             memset(mem->send_bds,0,sizeof(mem->send_bds));
             tx_bd_producer_index = 0;
+            tx_bd_consumer_index = 0;
             reg_set_32((1<<17),0x6800);
 
             // Step 22: indicate driver is ready to receive traffic.  Set the
@@ -509,6 +545,8 @@ bcm57762::dev::handle_timer(kernel::timer_entry*)
             // Step 37: initialize the Receive Producer Ring mailbox registers
             // (plural?).
             // TODO: We already initialized this in step 31... WTF?
+            rx_bd_producer_index = 0;
+            rx_bd_consumer_index = 0;
             reg_write_32(0,0x26C);
 
             // Step 38: configure the MAC unicast address.  On my Thunderbolt
@@ -718,16 +756,7 @@ bcm57762::dev::handle_timer(kernel::timer_entry*)
 
             // Step 75: replenish the receive BD producer ring with the receive
             // BDs.
-            for (size_t i=0; i<128; ++i)
-            {
-                void* p = kernel::page_alloc();
-                memset(p,0xEE,PAGE_SIZE);
-                mem->recv_bds[i].host_addr = kernel::virt_to_phys(p);
-                mem->recv_bds[i].len       = PAGE_SIZE;
-                mem->recv_bds[i].index     = i;
-                mem->recv_bds[i].opaque    = 0x11111111;
-            }
-            reg_write_32(128,0x26C);
+            // Note: We defer this until post_rx_pages.
             
             // Step 76: enable the transmit MAC by setting the Enable bit and
             // the Enable_Bad_TxMBUF_Lockup_fix bit in the Transmit MAC Mode
@@ -1059,6 +1088,8 @@ bcm57762::dev::handle_phy_get_link_mode_complete(kernel::work_entry* wqe)
                      (wqe->args[3] & PHY_LM_DUPLEX_FULL) ? "full" : "half",
                      wqe->args[4],wqe->args[5]);
             TRANSITION(READY_LINK_UP);
+
+            intf->activate();
         break;
 
         case WAIT_LINK_DOWN_GET_MODE_DONE:
@@ -1069,6 +1100,62 @@ bcm57762::dev::handle_phy_get_link_mode_complete(kernel::work_entry* wqe)
             abort();
         break;
     }
+}
+
+void
+bcm57762::dev::post_tx_frame(eth::tx_op* op)
+{
+    send_bd* bd;
+    eth::tx_op** opp;
+
+    kassert(op->nalps > 0);
+    for (size_t i=0; i<op->nalps; ++i)
+    {
+        bd = &mem->send_bds[tx_bd_producer_index % NELEMS(mem->send_bds)];
+        opp = &mem->tx_op_table[tx_bd_producer_index % NELEMS(mem->send_bds)];
+
+        bd->host_addr = op->alps[i].paddr;
+        bd->len       = op->alps[i].len;
+        bd->flags     = (1<<0); // TODO: It'd be nice to to IP csum offload too
+        bd->rsrv      = 0;
+        bd->vlan_tag  = 0;
+
+        *opp = NULL;
+        ++tx_bd_producer_index;
+    }
+    bd->flags = (bd->flags | (1<<2) | (1<<7));
+    *opp = op;
+
+    reg_write_32(tx_bd_producer_index % NELEMS(mem->send_bds),0x304);
+}
+
+void
+bcm57762::dev::post_rx_pages(kernel::klist<eth::rx_page>& pages)
+{
+    receive_bd* bd;
+
+    kassert(!pages.empty());
+    while (!pages.empty())
+    {
+        // Get the next page to post.
+        auto* p = klist_front(pages,link);
+        pages.pop_front();
+
+        // Populate the descriptor.
+        bd = &mem->recv_bds[rx_bd_producer_index % NELEMS(mem->recv_bds)];
+        bd->host_addr = kernel::virt_to_phys(p->payload);
+        bd->len       = sizeof(p->payload);
+        bd->index     = rx_bd_producer_index % NELEMS(mem->recv_bds);
+        bd->opaque    = 0x11111111;
+
+        // Update the rx table.
+        kassert(!mem->rx_page_table[bd->index]);
+        mem->rx_page_table[bd->index] = p;
+
+        ++rx_bd_producer_index;
+    }
+
+    reg_write_32(rx_bd_producer_index % NELEMS(mem->recv_bds),0x26C);
 }
 
 bcm57762::interface::interface(bcm57762::dev* dev):
@@ -1098,11 +1185,11 @@ bcm57762::interface::issue_phy_write_16(uint16_t v, uint8_t offset,
 void
 bcm57762::interface::post_tx_frame(eth::tx_op* op)
 {
-    kernel::panic("Not implemented");
+    dev->post_tx_frame(op);
 }
 
 void
 bcm57762::interface::post_rx_pages(kernel::klist<eth::rx_page>& pages)
 {
-    kernel::panic("Not implemented");
+    dev->post_rx_pages(pages);
 }
