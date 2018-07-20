@@ -1053,9 +1053,10 @@ bcm57762::dev::handle_phy_get_link_mode_complete(kernel::work_entry* wqe)
                 return;
             }
 
-            dev_dbg("link up at %lu Mbit %s duplex\n",
+            dev_dbg("link up at %lu Mbit %s duplex adv 0x%08lX lpa 0x%08lX\n",
                      wqe->args[2],
-                     (wqe->args[3] & PHY_LM_DUPLEX_FULL) ? "full" : "half");
+                     (wqe->args[3] & PHY_LM_DUPLEX_FULL) ? "full" : "half",
+                     wqe->args[4],wqe->args[5]);
             TRANSITION(READY_LINK_UP);
         break;
 
