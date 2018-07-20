@@ -5,6 +5,7 @@ TESTS := char_stream_test \
 	 region_set_test  \
 	 vector_test      \
 	 kmath_test       \
+	 delegate_test
 
 char_stream_test.objs := \
 	$(MODULE_TBUILD_DIR)/char_stream_test.o \
@@ -35,3 +36,6 @@ vector_test.objs := \
 kmath_test.objs := \
     	$(MODULE_TBUILD_DIR)/kmath_test.o \
 	$(BUILD_TO_DIR)/lokios.1/mock/fkassert.o
+
+delegate_test.objs := \
+    	$(MODULE_TBUILD_DIR)/delegate_test.o
