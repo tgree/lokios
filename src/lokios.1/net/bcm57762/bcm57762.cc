@@ -41,7 +41,7 @@
 #include "kernel/mm/buddy_allocator.h"
 #include <stdlib.h>
 
-#define intf_dbg(fmt,...) \
+#define dev_dbg(fmt,...) \
     kernel::console::printf("bcm57762 %04X:%u.%u: " fmt, \
         bus,(devfn>>3),(devfn&7),##__VA_ARGS__)
 
@@ -49,7 +49,7 @@
 #define TRANSITION(s) \
     do { \
         if (DEBUG_TRANSITIONS) \
-            intf_dbg("-> " #s "\n"); \
+            dev_dbg("-> " #s "\n"); \
         state = (s); \
     } while(0)
 #define QTRANSITION(s) state = (s)
@@ -62,7 +62,7 @@ bcm57762::dev::dev(const kernel::pci::dev* pd, const bcm57762::driver* owner):
     kernel::pci::dev(pd,owner),
     phy_cqe(NULL)
 {
-    intf_dbg("Product ID and ASIC rev: 0x%08X\n",config_read_32(0xFC));
+    dev_dbg("Product ID and ASIC rev: 0x%08X\n",config_read_32(0xFC));
 
     // Set up work entries.
     timer_wqe.fn          = timer_delegate(handle_timer);
@@ -327,7 +327,7 @@ bcm57762::dev::handle_timer(kernel::timer_entry*)
             {
                 if (!--timer_retries)
                 {
-                    intf_dbg("failed to acquire NVRAM lock");
+                    dev_dbg("failed to acquire NVRAM lock");
                     TRANSITION(WAIT_DEAD);
                 }
                 else
@@ -396,7 +396,7 @@ bcm57762::dev::handle_timer(kernel::timer_entry*)
             {
                 if (!--timer_retries)
                 {
-                    intf_dbg("bootcode failed to complete reset");
+                    dev_dbg("bootcode failed to complete reset");
                     TRANSITION(WAIT_DEAD);
                 }
                 else
@@ -594,7 +594,7 @@ bcm57762::dev::handle_timer(kernel::timer_entry*)
             {
                 if (!--timer_retries)
                 {
-                    intf_dbg("host coalescing failed to stop");
+                    dev_dbg("host coalescing failed to stop");
                     TRANSITION(WAIT_DEAD);
                 }
                 else
@@ -820,7 +820,7 @@ bcm57762::dev::handle_timer(kernel::timer_entry*)
         case WAIT_LINK_DOWN_GET_MODE_DONE:
         case READY_LINK_UP:
         case WAIT_DEAD:
-            intf_dbg("unexpected timer expiry in state %d\n",state);
+            dev_dbg("unexpected timer expiry in state %d\n",state);
             abort();
         break;
     }
@@ -863,7 +863,7 @@ bcm57762::dev::handle_link_up()
         case WAIT_RESETTING_RXMAC_READY:
         case WAIT_PHY_PROBE_DONE:
         case WAIT_DEAD:
-            intf_dbg("unexpected link up notification in state %d\n",state);
+            dev_dbg("unexpected link up notification in state %d\n",state);
             abort();
         break;
     }
@@ -883,7 +883,7 @@ bcm57762::dev::handle_link_down()
 
         case WAIT_PHY_LINK_NOTIFICATION:
         case READY_LINK_UP:
-            intf_dbg("link down\n");
+            dev_dbg("link down\n");
             TRANSITION(READY_LINK_DOWN);
         break;
 
@@ -905,7 +905,7 @@ bcm57762::dev::handle_link_down()
         case WAIT_RESETTING_RXMAC_READY:
         case WAIT_PHY_PROBE_DONE:
         case WAIT_DEAD:
-            intf_dbg("unexpected link down notification in state %d\n",state);
+            dev_dbg("unexpected link down notification in state %d\n",state);
             abort();
         break;
     }
@@ -940,7 +940,7 @@ bcm57762::dev::handle_phy_completion()
         case READY_LINK_UP:
         case READY_LINK_DOWN:
         case WAIT_DEAD:
-            intf_dbg("spurious bcm57762 interrupt in state %d\n",state);
+            dev_dbg("spurious bcm57762 interrupt in state %d\n",state);
             abort();
         break;
     }
@@ -952,7 +952,7 @@ bcm57762::dev::handle_phy_probe_complete(kernel::work_entry* wqe)
     kassert(state == WAIT_PHY_PROBE_DONE);
     if (wqe->args[1])
     {
-        intf_dbg("error 0x%08lX probing PHY\n",wqe->args[1]);
+        dev_dbg("error 0x%08lX probing PHY\n",wqe->args[1]);
         TRANSITION(WAIT_DEAD);
         return;
     }
@@ -967,7 +967,7 @@ bcm57762::dev::handle_phy_reset_complete(kernel::work_entry* wqe)
     kassert(state == WAIT_PHY_RESET_DONE);
     if (wqe->args[1])
     {
-        intf_dbg("error 0x%08lX resetting PHY\n",wqe->args[1]);
+        dev_dbg("error 0x%08lX resetting PHY\n",wqe->args[1]);
         TRANSITION(WAIT_DEAD);
         return;
     }
@@ -982,7 +982,7 @@ bcm57762::dev::handle_phy_start_autoneg_complete(kernel::work_entry* wqe)
     kassert(state == WAIT_PHY_START_AUTONEG_DONE);
     if (wqe->args[1])
     {
-        intf_dbg("error 0x%08lX enabling autopolling\n",wqe->args[1]);
+        dev_dbg("error 0x%08lX enabling autopolling\n",wqe->args[1]);
         TRANSITION(WAIT_DEAD);
         return;
     }
@@ -1007,7 +1007,7 @@ bcm57762::dev::handle_phy_get_link_mode_complete(kernel::work_entry* wqe)
         case WAIT_LINK_DOWN_GET_MODE_DONE:
             if (wqe->args[1])
             {
-                intf_dbg("error 0x%08lX getting link mode\n",wqe->args[1]);
+                dev_dbg("error 0x%08lX getting link mode\n",wqe->args[1]);
                 TRANSITION(WAIT_DEAD);
                 return;
             }
@@ -1031,7 +1031,7 @@ bcm57762::dev::handle_phy_get_link_mode_complete(kernel::work_entry* wqe)
         case READY_LINK_DOWN:
         case READY_LINK_UP:
         case WAIT_DEAD:
-            intf_dbg("unexpected get link mode completion in state %d\n",state);
+            dev_dbg("unexpected get link mode completion in state %d\n",state);
             abort();
         break;
     }
@@ -1048,12 +1048,12 @@ bcm57762::dev::handle_phy_get_link_mode_complete(kernel::work_entry* wqe)
             {
                 // The MAC thinks it's up, the PHY thinks it's down.  Eventually
                 // the MAC will catch up on its next autopoll cycle.
-                intf_dbg("link down\n");
+                dev_dbg("link down\n");
                 TRANSITION(READY_LINK_DOWN);
                 return;
             }
 
-            intf_dbg("link up at %lu Mbit %s duplex\n",
+            dev_dbg("link up at %lu Mbit %s duplex\n",
                      wqe->args[2],
                      (wqe->args[3] & PHY_LM_DUPLEX_FULL) ? "full" : "half");
             TRANSITION(READY_LINK_UP);
