@@ -103,6 +103,9 @@ namespace dhcp
         void    TRANSITION_WAIT_RX_RESP();
         void    TRANSITION_WAIT_TX_COMP();
 
+        // Post the currently-formatted packet.
+        void    post_packet();
+
         // Start negotiation.
         void    start();
         void    start_selecting();

@@ -176,6 +176,14 @@ dhcp::client::TRANSITION_WAIT_TX_COMP()
 }
 
 void
+dhcp::client::post_packet()
+{
+    packet.iphdr.header_checksum = 0;
+    packet.iphdr.header_checksum = ipv4::csum(&packet.iphdr);
+    intf->post_tx_frame(&send_op);
+}
+
+void
 dhcp::client::start()
 {
     start_selecting();
@@ -195,12 +203,10 @@ dhcp::client::start_selecting()
     packet.llhdr.dst_mac         = eth::broadcast_addr;
     packet.iphdr.src_ip          = ipv4::addr{0,0,0,0};
     packet.iphdr.dst_ip          = ipv4::broadcast_addr;
-    packet.iphdr.header_checksum = 0;
-    packet.iphdr.header_checksum = ipv4::csum(&packet.iphdr);
     packet.msg.format_discover(++xid,intf->hw_mac);
 
     TRANSITION(DHCP_SELECTING_WAIT_RX_RESP_TX_COMP);
-    intf->post_tx_frame(&send_op);
+    post_packet();
 }
 
 void
@@ -215,12 +221,10 @@ dhcp::client::start_declining()
     packet.llhdr.dst_mac         = eth::broadcast_addr;
     packet.iphdr.src_ip          = ipv4::addr{0,0,0,0};
     packet.iphdr.dst_ip          = ipv4::broadcast_addr;
-    packet.iphdr.header_checksum = 0;
-    packet.iphdr.header_checksum = ipv4::csum(&packet.iphdr);
     packet.msg.format_decline(xid,intf->hw_mac,requested_addr,server_ip);
 
     TRANSITION(DHCP_DECLINED_WAIT_TX_COMP);
-    intf->post_tx_frame(&send_op);
+    post_packet();
 }
 
 void
@@ -239,12 +243,10 @@ dhcp::client::start_requesting()
     packet.llhdr.dst_mac         = eth::broadcast_addr;
     packet.iphdr.src_ip          = ipv4::addr{0,0,0,0};
     packet.iphdr.dst_ip          = ipv4::broadcast_addr;
-    packet.iphdr.header_checksum = 0;
-    packet.iphdr.header_checksum = ipv4::csum(&packet.iphdr);
     packet.msg.format_request(xid,intf->hw_mac,requested_addr,server_ip);
 
     TRANSITION(DHCP_REQUESTING_WAIT_RX_RESP_TX_COMP);
-    intf->post_tx_frame(&send_op);
+    post_packet();
 }
 
 void
@@ -262,13 +264,11 @@ dhcp::client::start_renewing()
     packet.llhdr.dst_mac         = server_mac;
     packet.iphdr.src_ip          = requested_addr;
     packet.iphdr.dst_ip          = server_ip;
-    packet.iphdr.header_checksum = 0;
-    packet.iphdr.header_checksum = ipv4::csum(&packet.iphdr);
     packet.msg.format_request(++xid,intf->hw_mac,requested_addr,
                               ipv4::addr{0,0,0,0},requested_addr);
 
     TRANSITION(DHCP_RENEWING_WAIT_RX_RESP_TX_COMP);
-    intf->post_tx_frame(&send_op);
+    post_packet();
 }
 
 void
@@ -286,13 +286,11 @@ dhcp::client::start_rebinding()
     packet.llhdr.dst_mac         = eth::broadcast_addr;
     packet.iphdr.src_ip          = ipv4::addr{0,0,0,0};
     packet.iphdr.dst_ip          = ipv4::broadcast_addr;
-    packet.iphdr.header_checksum = 0;
-    packet.iphdr.header_checksum = ipv4::csum(&packet.iphdr);
     packet.msg.format_request(++xid,intf->hw_mac,requested_addr,
                               ipv4::addr{0,0,0,0},requested_addr);
 
     TRANSITION(DHCP_REBINDING_WAIT_RX_RESP_TX_COMP);
-    intf->post_tx_frame(&send_op);
+    post_packet();
 }
 
 void
