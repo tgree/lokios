@@ -98,7 +98,14 @@ namespace eth
 
         void complete()
         {
-            cqe->fn(cqe);
+            auto* _cqe = cqe;
+            cqe = NULL;
+            _cqe->fn(_cqe);
+        }
+
+        void complete_and_delete()
+        {
+            complete();
             delete this;
         }
 

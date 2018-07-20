@@ -60,7 +60,7 @@ struct phy_prober : public eth::phy_state_machine
                 phy_id |= ((wqe->args[2] << 16) & 0xFC000000) |
                           ((wqe->args[2] <<  0) & 0x000003FF);
                 intf->phy = alloc_phy(intf,phy_id);
-                complete();
+                complete_and_delete();
             break;
         }
     }
@@ -95,7 +95,7 @@ struct phy_resetter : public eth::phy_state_machine
 
             case WAIT_RESET_READ_DONE:
                 if (!(wqe->args[2] & 0x8000))
-                    complete();
+                    complete_and_delete();
                 else if (--timer_retries)
                 {
                     kernel::cpu::schedule_timer(&timer_wqe,1);
@@ -104,7 +104,7 @@ struct phy_resetter : public eth::phy_state_machine
                 else
                 {
                     cqe->args[1] = -1;
-                    complete();
+                    complete_and_delete();
                 }
             break;
 
@@ -150,7 +150,7 @@ struct phy_start_autonegotiator : public eth::phy_state_machine
             break;
 
             case WAIT_WRITE_MII_CONTROL:
-                complete();
+                complete_and_delete();
             break;
         }
     }
