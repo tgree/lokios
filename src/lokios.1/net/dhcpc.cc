@@ -186,7 +186,10 @@ dhcp::client::post_packet()
 void
 dhcp::client::start()
 {
-    start_selecting();
+    // TODO: Instead of ignoring this in other states, we should probably ARP
+    // our former address to make sure no one else has taken it.
+    if (state == DHCP_INIT)
+        start_selecting();
 }
 
 void
