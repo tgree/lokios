@@ -83,6 +83,12 @@ namespace eth
     // frame (some drivers may require driver-specific headers preceding the
     // Ethernet part) and the length of the Ethernet frame (not including any
     // driver-specific headers).
+    //
+    // Note: the eth_len field is the length of the entire Ethernet frame.  The
+    // minimum payload size for the Ethernet frame's payload field is 46 (or 42,
+    // if 802.1Q tagging is enabled), so the payload field will be padded on
+    // the send side for short packets.  In other words, the eth_len field is
+    // an upper bound on the usable payload, but not a tight upper bound.
     struct rx_page
     {
         kernel::klink   link;
