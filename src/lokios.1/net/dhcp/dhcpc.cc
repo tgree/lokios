@@ -6,7 +6,7 @@
  * https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol
  */
 #include "dhcpc.h"
-#include "arp.h"
+#include "net/arp.h"
 #include "kernel/console.h"
 #include "kernel/cpu.h"
 

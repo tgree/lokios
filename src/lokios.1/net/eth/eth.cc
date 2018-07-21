@@ -1,8 +1,8 @@
 #include "eth.h"
 #include "phy/phy.h"
-#include "net/dhcp.h"
-#include "net/dhcpc.h"
 #include "net/arp.h"
+#include "net/dhcp/dhcp.h"
+#include "net/dhcp/dhcpc.h"
 #include "kernel/console.h"
 #include "kernel/mm/vm.h"
 

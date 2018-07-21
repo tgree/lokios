@@ -2,7 +2,7 @@
 #define __KERNEL_NET_DHCPC_H
 
 #include "dhcp.h"
-#include "../schedule.h"
+#include "kernel/schedule.h"
 
 #define ARP_RETRY_ATTEMPTS  5
 #define ARP_TIMEOUT_MS      100

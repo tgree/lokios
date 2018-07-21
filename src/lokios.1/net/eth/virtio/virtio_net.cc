@@ -15,7 +15,6 @@
 #include "kernel/console.h"
 #include "../eth.h"
 #include "net/udp.h"
-#include "net/dhcp.h"
 
 using kernel::console::printf;
 using kernel::_kassert;

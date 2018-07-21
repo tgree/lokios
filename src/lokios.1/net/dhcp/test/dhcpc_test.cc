@@ -1,8 +1,8 @@
 #include "../dhcpc.h"
-#include "../arp.h"
 #include "finterface.h"
-#include "../../mock/fschedule.h"
-#include "../../mock/fconsole.h"
+#include "net/arp.h"
+#include "kernel/mock/fschedule.h"
+#include "kernel/mock/fconsole.h"
 
 #define ASSERT_STATE(s) TASSERT(intf.dhcpc->state == dhcp::client::s);
 #define SERVER_MAC      eth::addr{0x11,0x12,0x13,0x14,0x15,0x16}

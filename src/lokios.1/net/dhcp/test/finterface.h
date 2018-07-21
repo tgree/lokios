@@ -1,7 +1,7 @@
 #ifndef __NET_TEST_FINTERFACE_H
 #define __NET_TEST_FINTERFACE_H
 
-#include "../eth/eth.h"
+#include "net/eth/eth.h"
 #include <tmock/tmock.h>
 
 namespace eth
