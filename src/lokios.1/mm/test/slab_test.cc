@@ -8,6 +8,14 @@ using kernel::_kassert;
 extern size_t page_alloc_count;
 extern size_t page_free_count;
 
+struct test_slab_elem
+{
+    int a;
+    char b;
+
+    test_slab_elem(int a, char b):a(a),b(b) {}
+};
+
 class tmock_test
 {
     TMOCK_TEST(test_empty_slab_works)
@@ -22,6 +30,21 @@ class tmock_test
             kassert(page_alloc_count == 0);
             void* e = s._alloc();
             kassert(e != NULL);
+            kassert(page_alloc_count == 1);
+            kassert(page_free_count  == 0);
+        }
+        kassert(page_free_count == 1);
+    }
+
+    TMOCK_TEST(test_single_constructed_alloc_works)
+    {
+        {
+            kernel::slab s(sizeof(test_slab_elem));
+            kassert(page_alloc_count == 0);
+            test_slab_elem* e = s.alloc<test_slab_elem>(1,2);
+            kassert(e != NULL);
+            kassert(e->a == 1);
+            kassert(e->b == 2);
             kassert(page_alloc_count == 1);
             kassert(page_free_count  == 0);
         }
