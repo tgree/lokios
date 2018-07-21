@@ -14,7 +14,7 @@
 #include "kernel/cpu.h"
 #include "kernel/console.h"
 #include "../eth.h"
-#include "net/udp.h"
+#include "net/udp/udp.h"
 
 using kernel::console::printf;
 using kernel::_kassert;

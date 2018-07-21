@@ -2,7 +2,7 @@
 #define __KERNEL_NET_DHCP_H
 
 #include "dhcp_option.h"
-#include "net/udp.h"
+#include "net/udp/udp.h"
 #include "net/eth/eth.h"
 
 namespace dhcp
