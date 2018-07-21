@@ -1,6 +1,6 @@
 #include "eth.h"
 #include "phy/phy.h"
-#include "net/arp.h"
+#include "net/arp/arp.h"
 #include "net/dhcp/dhcp.h"
 #include "net/dhcp/dhcpc.h"
 #include "kernel/console.h"

@@ -1,4 +1,4 @@
-SUBMODULES := eth dhcp test
+SUBMODULES := eth arp dhcp
 HEADERS += $(MODULE_SRC_DIR)
 
 NET_SRC := $(wildcard $(MODULE_SRC_DIR)/*.cc)

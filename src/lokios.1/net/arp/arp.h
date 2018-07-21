@@ -7,9 +7,9 @@
 #ifndef __KERNEL_NET_ARP_H
 #define __KERNEL_NET_ARP_H
 
-#include "../schedule.h"
-#include "../cpu.h"
-#include "eth/eth.h"
+#include "net/eth/eth.h"
+#include "kernel/schedule.h"
+#include "kernel/cpu.h"
 #include "mm/slab.h"
 
 #include <kernel/console.h>
