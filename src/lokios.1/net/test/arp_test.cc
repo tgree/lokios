@@ -1,5 +1,5 @@
 #include "../arp.h"
-#include "../eth.h"
+#include "net/eth/eth.h"
 #include <tmock/tmock.h>
 
 typedef arp::frame<eth::net_traits,ipv4::net_traits> ipv4_arp_frame;

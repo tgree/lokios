@@ -1,4 +1,4 @@
-SUBMODULES := phy e1000 virtio bcm57762 test
+SUBMODULES := eth test
 HEADERS += $(MODULE_SRC_DIR)
 
 NET_SRC := $(wildcard $(MODULE_SRC_DIR)/*.cc)

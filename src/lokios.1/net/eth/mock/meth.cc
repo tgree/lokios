@@ -1,6 +1,6 @@
 #include "../eth.h"
-#include "../dhcpc.h"
-#include "../arp.h"
+#include "net/dhcpc.h"
+#include "net/arp.h"
 #include <tmock/tmock.h>
 
 static uint32_t free_ids = 0xFFFFFFFF;

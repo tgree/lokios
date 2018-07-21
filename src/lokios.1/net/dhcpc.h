@@ -1,7 +1,6 @@
 #ifndef __KERNEL_NET_DHCPC_H
 #define __KERNEL_NET_DHCPC_H
 
-#include "eth.h"
 #include "dhcp.h"
 #include "../schedule.h"
 

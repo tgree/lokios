@@ -1,5 +1,5 @@
-#ifndef __KERNEL_NET_PHY_PHY_H
-#define __KERNEL_NET_PHY_PHY_H
+#ifndef __KERNEL_NET_ETH_PHY_PHY_H
+#define __KERNEL_NET_ETH_PHY_PHY_H
 
 #include "../eth.h"
 
@@ -137,4 +137,4 @@ namespace eth
     };
 }
 
-#endif /* __KERNEL_NET_PHY_H */
+#endif /* __KERNEL_NET_ETH_PHY_PHY_H */
