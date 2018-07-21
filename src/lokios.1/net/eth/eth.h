@@ -1,7 +1,7 @@
 #ifndef __KERNEL_NET_ETH_H
 #define __KERNEL_NET_ETH_H
 
-#include "net/ip.h"
+#include "net/ip/ip.h"
 #include "hdr/compiler.h"
 #include "kernel/schedule.h"
 #include "kernel/types.h"

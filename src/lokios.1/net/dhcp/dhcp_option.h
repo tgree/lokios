@@ -1,7 +1,7 @@
 #ifndef __KERNEL_NET_DHCP_OPTION_H
 #define __KERNEL_NET_DHCP_OPTION_H
 
-#include "net/ip.h"
+#include "net/ip/ip.h"
 #include "kernel/cxx_exception.h"
 #include "kernel/libc.h"
 #include <stdint.h>
