@@ -1,4 +1,5 @@
 #include "phy.h"
+#include "net/eth/interface.h"
 
 // Flags set in the tg3 driver:
 //  57765_PLUS

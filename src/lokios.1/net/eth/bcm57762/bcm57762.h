@@ -3,7 +3,7 @@
 
 #include "ring.h"
 #include "pci_driver.h"
-#include "../eth.h"
+#include "net/eth/interface.h"
 
 namespace bcm57762
 {

@@ -7,10 +7,11 @@
 #ifndef __KERNEL_NET_ARP_H
 #define __KERNEL_NET_ARP_H
 
-#include "net/eth/eth.h"
+#include "net/eth/interface.h"
 #include "kernel/schedule.h"
 #include "kernel/cpu.h"
 #include "mm/slab.h"
+#include "mm/mm.h"
 
 #include <kernel/console.h>
 

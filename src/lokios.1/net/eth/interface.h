@@ -1,15 +1,13 @@
-#ifndef __KERNEL_NET_ETH_H
-#define __KERNEL_NET_ETH_H
+#ifndef __KERNEL_NET_ETH_INTERFACE_H
+#define __KERNEL_NET_ETH_INTERFACE_H
 
+#include "addr.h"
 #include "net/ip/ip.h"
-#include "hdr/compiler.h"
 #include "kernel/schedule.h"
 #include "kernel/types.h"
 #include "kernel/kassert.h"
 #include "mm/mm.h"
 #include "mm/page.h"
-#include <stdint.h>
-#include <stddef.h>
 
 namespace dhcp
 {
@@ -25,49 +23,6 @@ namespace eth
 {
     struct phy;
     struct net_traits;
-
-    // MAC address.
-    struct addr
-    {
-        uint8_t v[6];
-
-        void operator=(uint64_t _v)
-        {
-            v[0] = (_v >> 40);
-            v[1] = (_v >> 32);
-            v[2] = (_v >> 24);
-            v[3] = (_v >> 16);
-            v[4] = (_v >>  8);
-            v[5] = (_v >>  0);
-        }
-        uint8_t operator[](size_t i) const {return v[i];}
-    };
-    constexpr bool operator==(const addr& lhs, const addr& rhs)
-    {
-        return lhs.v[0] == rhs.v[0] &&
-               lhs.v[1] == rhs.v[1] &&
-               lhs.v[2] == rhs.v[2] &&
-               lhs.v[3] == rhs.v[3] &&
-               lhs.v[4] == rhs.v[4] &&
-               lhs.v[5] == rhs.v[5];
-    }
-    constexpr bool operator!=(const addr& lhs, const addr& rhs)
-    {
-        return !(lhs == rhs);
-    }
-
-    constexpr const addr broadcast_addr{0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
-
-    // Ethernet frame header.
-    struct header
-    {
-        typedef eth::addr addr_type;
-
-        eth::addr   dst_mac;
-        eth::addr   src_mac;
-        be_uint16_t ether_type;
-    } __PACKED__;
-    KASSERT(sizeof(header) == 14);
 
     // Transmit parameter block.
     struct tx_op
@@ -206,16 +161,6 @@ namespace eth
         interface(const eth::addr& hw_mac, size_t tx_qlen, size_t rx_qlen);
         virtual ~interface();
     };
-
-    struct net_traits
-    {
-        typedef eth::addr       addr_type;
-        typedef eth::header     header_type;
-        typedef eth::interface  interface_type;
-        typedef eth::tx_op      tx_op_type;
-
-        static constexpr const uint16_t arp_hw_type = 1;
-    };
 }
 
-#endif /* __KERNEL_NET_ETH_H */
+#endif /* __KERNEL_NET_ETH_INTERFACE_H */

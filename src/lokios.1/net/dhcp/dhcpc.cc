@@ -7,6 +7,7 @@
  */
 #include "dhcpc.h"
 #include "net/arp/arp.h"
+#include "net/eth/traits.h"
 #include "kernel/console.h"
 #include "kernel/cpu.h"
 

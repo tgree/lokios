@@ -1,7 +1,7 @@
 #ifndef __KERNEL_NET_VIRTIO_INTERFACE_H
 #define __KERNEL_NET_VIRTIO_INTERFACE_H
 
-#include "../eth.h"
+#include "net/eth/interface.h"
 
 namespace virtio_net
 {

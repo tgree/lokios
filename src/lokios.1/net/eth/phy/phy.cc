@@ -1,4 +1,5 @@
 #include "phy.h"
+#include "net/eth/interface.h"
 #include "kernel/console.h"
 #include "kernel/cpu.h"
 #include "kernel/x86.h"

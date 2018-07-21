@@ -1,11 +1,12 @@
 #ifndef __KERNEL_NET_ETH_PHY_PHY_H
 #define __KERNEL_NET_ETH_PHY_PHY_H
 
-#include "../eth.h"
+#include "kernel/schedule.h"
 
 namespace eth
 {
     struct phy;
+    struct interface;
 
     // Ethernet PHY driver.  When we talk about phy_ids here, we mean the
     // concatenation:

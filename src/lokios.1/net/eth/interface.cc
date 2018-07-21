@@ -1,4 +1,5 @@
-#include "eth.h"
+#include "interface.h"
+#include "traits.h"
 #include "phy/phy.h"
 #include "net/arp/arp.h"
 #include "net/dhcp/dhcp.h"

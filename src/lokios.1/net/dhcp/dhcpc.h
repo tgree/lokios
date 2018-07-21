@@ -2,6 +2,7 @@
 #define __KERNEL_NET_DHCPC_H
 
 #include "dhcp.h"
+#include "net/eth/interface.h"
 #include "kernel/schedule.h"
 
 #define ARP_RETRY_ATTEMPTS  5

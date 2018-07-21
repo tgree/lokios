@@ -1,6 +1,7 @@
 #include "../dhcpc.h"
 #include "finterface.h"
 #include "net/arp/arp.h"
+#include "net/eth/traits.h"
 #include "kernel/mock/fschedule.h"
 #include "kernel/mock/fconsole.h"
 

@@ -13,7 +13,6 @@
 #include "virtio_interface.h"
 #include "kernel/cpu.h"
 #include "kernel/console.h"
-#include "../eth.h"
 #include "net/udp/udp.h"
 
 using kernel::console::printf;

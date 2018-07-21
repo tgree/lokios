@@ -3,7 +3,7 @@
 
 #include "dhcp_option.h"
 #include "net/udp/udp.h"
-#include "net/eth/eth.h"
+#include "net/eth/header.h"
 
 namespace dhcp
 {

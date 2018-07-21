@@ -2,7 +2,7 @@
 #define __KERNEL_NET_VIRTIO_NET_H
 
 #include "virtio_queue.h"
-#include "../eth.h"
+#include "net/eth/interface.h"
 #include "pci/pci.h"
 #include "mm/mm.h"
 
