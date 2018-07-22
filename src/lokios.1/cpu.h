@@ -51,6 +51,7 @@ namespace kernel
 #define CPU_FLAG_PAGESIZE_1G    (1<<3)
 #define CPU_FLAG_FXSAVE         (1<<4)
 #define CPU_FLAG_SSE            (1<<5)
+#define CPU_FLAG_POPCNT         (1<<6)
     struct cpu
     {
         // Page boundary.

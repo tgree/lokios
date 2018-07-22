@@ -19,7 +19,7 @@ extern "C" void _thread_jump(kernel::thread* t) __attribute__((noreturn));
 
 kernel::vector<kernel::cpu*> kernel::cpus;
 static const char* cpu_flag_names[] =
-    {"bsp","vmx","rdrand","1g","fxsave","sse"};
+    {"bsp","vmx","rdrand","1g","fxsave","sse","popcnt"};
 
 kernel::cpu::cpu(void (*entry_func)()):
     cpu_addr(this),
@@ -122,6 +122,7 @@ kernel::init_this_cpu(void (*entry_func)())
         c->flags |= (r.ecx & (1<<30)) ? CPU_FLAG_RDRAND : 0;
         c->flags |= (r.edx & (1<<24)) ? CPU_FLAG_FXSAVE : 0;
         c->flags |= (r.edx & (1<<25)) ? CPU_FLAG_SSE : 0;
+        c->flags |= (r.ecx & (1<<23)) ? CPU_FLAG_POPCNT : 0;
         c->initial_apic_id = (r.ebx >> 24);
         cpu_printf("Initial APIC ID: %u\n",c->initial_apic_id);
     }
