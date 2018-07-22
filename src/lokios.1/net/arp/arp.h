@@ -106,7 +106,6 @@ namespace arp
 
         void handle_lookup_send_comp()
         {
-            kernel::console::printf("arp: lookup tx send completion\n");
             switch (state)
             {
                 case WAIT_POST:
@@ -240,7 +239,6 @@ namespace arp
 
         void handle_rx_frame(eth::rx_page* p)
         {
-            kernel::console::printf("arp: handle rx frame\n");
             auto* f = (arp_frame*)(p->payload + p->eth_offset);
             if (f->msg.oper == 2)
                 handle_rx_reply_frame(p);
