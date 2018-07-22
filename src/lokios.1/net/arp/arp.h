@@ -194,11 +194,55 @@ namespace arp
     };
 
     template<typename hw_traits, typename proto_traits>
+    struct reply_op
+    {
+        typedef typename hw_traits::tx_op_type  _tx_op;
+
+        arp::service<hw_traits,proto_traits>*   service;
+        _tx_op                                  tx_op;
+        arp::frame<hw_traits,proto_traits>      frame;
+
+        static void send_cb(_tx_op* top)
+        {
+            auto* op = container_of(top,reply_op,tx_op);
+            op->handle_reply_send_comp();
+        }
+
+        void post()
+        {
+            service->intf->post_tx_frame(&tx_op);
+        }
+
+        void handle_reply_send_comp()
+        {
+            service->handle_reply_send_comp(this);
+        }
+
+        reply_op(typeof(service) service, typeof(frame)* req):
+            service(service)
+        {
+            memcpy(&frame,req,sizeof(frame));
+            frame.hdr.dst_mac   = req->hdr.src_mac;
+            frame.hdr.src_mac   = service->intf->hw_mac;
+            frame.msg.sha       = service->intf->hw_mac;
+            frame.msg.spa       = service->intf->ip_addr;
+            frame.msg.tha       = req->msg.sha;
+            frame.msg.tpa       = req->msg.spa;
+            frame.msg.oper      = 2;
+            tx_op.cb            = send_cb;
+            tx_op.nalps         = 1;
+            tx_op.alps[0].paddr = kernel::virt_to_phys(&frame);
+            tx_op.alps[0].len   = sizeof(frame);
+        }
+    };
+
+    template<typename hw_traits, typename proto_traits>
     struct service
     {
         typedef frame<hw_traits,proto_traits>       arp_frame;
         typedef entry<hw_traits,proto_traits>       arp_entry;
         typedef lookup_op<hw_traits,proto_traits>   arp_lookup_op;
+        typedef reply_op<hw_traits,proto_traits>    arp_reply_op;
         typedef typename arp_lookup_op::_tx_op      arp_tx_op;
         typedef typename proto_traits::addr_type    arp_proto_addr;
         typedef typename hw_traits::addr_type       arp_hw_addr;
@@ -207,6 +251,7 @@ namespace arp
         arp_interface* const            intf;
         kernel::slab                    arp_lookup_ops_slab;
         kernel::kdlist<arp_lookup_op>   arp_lookup_ops;
+        kernel::slab                    arp_reply_ops_slab;
         kernel::slab                    arp_entries_slab;
         kernel::kdlist<arp_entry>       arp_entries;
 
@@ -244,6 +289,8 @@ namespace arp
             {
                 if (f->msg.oper == 2)
                     handle_rx_reply_frame(p);
+                else
+                    handle_rx_request_frame(p);
             }
         }
 
@@ -263,9 +310,23 @@ namespace arp
             }
         }
 
+        void handle_rx_request_frame(eth::rx_page* p)
+        {
+            kernel::console::printf("arp: handle rx request frame\n");
+            auto* f          = (arp_frame*)(p->payload + p->eth_offset);
+            arp_reply_op* op = arp_reply_ops_slab.alloc<arp_reply_op>(this,f);
+            op->post();
+        }
+
+        void handle_reply_send_comp(arp_reply_op* op)
+        {
+            arp_reply_ops_slab.free(op);
+        }
+
         service(arp_interface* intf):
             intf(intf),
             arp_lookup_ops_slab(sizeof(arp_lookup_op)),
+            arp_reply_ops_slab(sizeof(arp_reply_op)),
             arp_entries_slab(sizeof(arp_entry))
         {
         }
