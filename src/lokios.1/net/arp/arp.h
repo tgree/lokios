@@ -77,6 +77,7 @@ namespace arp
 
         enum op_state_type
         {
+            WAIT_POST,
             WAIT_RX_RESP_TX_COMP,
             WAIT_RX_RESP,
             WAIT_TX_COMP,
@@ -89,6 +90,108 @@ namespace arp
         uint64_t                                timeout_ms;
         _hw_addr*                               tha;
         arp::frame<hw_traits,proto_traits>      frame;
+
+        static void send_cb(_tx_op* top)
+        {
+            auto* op = container_of(top,lookup_op,tx_op);
+            op->handle_lookup_send_comp();
+        }
+
+        void post()
+        {
+            kernel::kassert(state == WAIT_POST);
+            state = WAIT_RX_RESP_TX_COMP;
+            service->intf->post_tx_frame(&tx_op);
+        }
+
+        void handle_lookup_send_comp()
+        {
+            kernel::console::printf("arp: lookup tx send completion\n");
+            switch (state)
+            {
+                case WAIT_POST:
+                    kernel::panic("send completion without posting!");
+                break;
+
+                case WAIT_RX_RESP_TX_COMP:
+                    state = WAIT_RX_RESP;
+                    kernel::cpu::schedule_timer_ms(&timeout_cqe,timeout_ms);
+                break;
+
+                case WAIT_RX_RESP:
+                    kernel::panic("duplicate send completion");
+                break;
+
+                case WAIT_TX_COMP:
+                    service->complete_lookup(this,0);
+                break;
+            }
+        }
+
+        void handle_rx_reply_tha(_hw_addr _tha)
+        {
+            switch (state)
+            {
+                case WAIT_RX_RESP_TX_COMP:
+                    *tha  = _tha;
+                    state = WAIT_TX_COMP;
+                break;
+
+                case WAIT_RX_RESP:
+                    kernel::cpu::cancel_timer(&timeout_cqe);
+                    *tha = _tha;
+                    service->complete_lookup(this,0);
+                break;
+
+                case WAIT_POST:
+                case WAIT_TX_COMP:
+                break;
+            }
+        }
+
+        void handle_lookup_timeout(kernel::timer_entry* timeout_cqe)
+        {
+            switch (state)
+            {
+                case WAIT_POST:
+                case WAIT_RX_RESP_TX_COMP:
+                case WAIT_TX_COMP:
+                    kernel::panic("timeout without arming!");
+                break;
+
+                case WAIT_RX_RESP:
+                    service->complete_lookup(this,1);
+                break;
+            }
+        }
+
+        lookup_op(typeof(service) service, _proto_addr tpa, _hw_addr* tha,
+                  kernel::work_entry* cqe, size_t timeout_ms):
+            state(WAIT_POST),
+            service(service),
+            cqe(cqe),
+            timeout_ms(timeout_ms),
+            tha(tha)
+        {
+            timeout_cqe.fn       = timer_delegate(handle_lookup_timeout);
+            timeout_cqe.args[0]  = (uintptr_t)this;
+            frame.hdr.dst_mac    = eth::broadcast_addr;
+            frame.hdr.src_mac    = service->intf->hw_mac;
+            frame.hdr.ether_type = 0x0806;
+            frame.msg.htype      = hw_traits::arp_hw_type;
+            frame.msg.ptype      = proto_traits::ether_type;
+            frame.msg.hlen       = sizeof(frame.msg.sha);
+            frame.msg.plen       = sizeof(frame.msg.spa);
+            frame.msg.oper       = 1;
+            frame.msg.sha        = service->intf->hw_mac;
+            frame.msg.spa        = service->intf->ip_addr;
+            frame.msg.tha        = eth::addr{0,0,0,0,0,0};
+            frame.msg.tpa        = tpa;
+            tx_op.cb             = send_cb;
+            tx_op.nalps          = 1;
+            tx_op.alps[0].paddr  = kernel::virt_to_phys(&frame);
+            tx_op.alps[0].len    = sizeof(frame);
+        }
     };
 
     template<typename hw_traits, typename proto_traits>
@@ -126,78 +229,13 @@ namespace arp
             arp_lookup_ops_slab.free(op);
         }
 
-        static void lookup_cb(arp_tx_op* tx_op)
-        {
-            auto* op = container_of(tx_op,arp_lookup_op,tx_op);
-            op->service->handle_lookup_tx_send_comp(op);
-        }
-
         void enqueue_lookup(arp_proto_addr tpa, arp_hw_addr* tha,
                             kernel::work_entry* cqe, size_t timeout_ms)
         {
-            arp_lookup_op* op = arp_lookup_ops_slab.alloc<arp_lookup_op>();
-            op->state         = arp_lookup_op::WAIT_RX_RESP_TX_COMP;
-            op->service              = this;
-            op->cqe                  = cqe;
-            op->timeout_cqe.fn       = timer_delegate(handle_lookup_timeout);
-            op->timeout_cqe.args[0]  = (uintptr_t)this;
-            op->timeout_ms           = timeout_ms;
-            op->tha                  = tha;
-            op->frame.hdr.dst_mac    = eth::broadcast_addr;
-            op->frame.hdr.src_mac    = intf->hw_mac;
-            op->frame.hdr.ether_type = 0x0806;
-            op->frame.msg.htype      = hw_traits::arp_hw_type;
-            op->frame.msg.ptype      = proto_traits::ether_type;
-            op->frame.msg.hlen       = sizeof(op->frame.msg.sha);
-            op->frame.msg.plen       = sizeof(op->frame.msg.spa);
-            op->frame.msg.oper       = 1;
-            op->frame.msg.sha        = intf->hw_mac;
-            op->frame.msg.spa        = intf->ip_addr;
-            op->frame.msg.tha        = eth::addr{0,0,0,0,0,0};
-            op->frame.msg.tpa        = tpa;
-            op->tx_op.cb             = lookup_cb;
-            op->tx_op.nalps          = 1;
-            op->tx_op.alps[0].paddr  = kernel::virt_to_phys(&op->frame);
-            op->tx_op.alps[0].len    = sizeof(op->frame);
+            arp_lookup_op* op = arp_lookup_ops_slab.alloc<arp_lookup_op>(
+                    this,tpa,tha,cqe,timeout_ms);
             arp_lookup_ops.push_back(&op->link);
-            intf->post_tx_frame(&op->tx_op);
-        }
-
-        void handle_lookup_tx_send_comp(arp_lookup_op* op)
-        {
-            kernel::console::printf("arp: lookup tx send completion\n");
-            switch (op->state)
-            {
-                case arp_lookup_op::WAIT_RX_RESP_TX_COMP:
-                    op->state = arp_lookup_op::WAIT_RX_RESP;
-                    kernel::cpu::schedule_timer_ms(&op->timeout_cqe,
-                                                   op->timeout_ms);
-                break;
-
-                case arp_lookup_op::WAIT_RX_RESP:
-                    kernel::panic("duplicate send completion");
-                break;
-
-                case arp_lookup_op::WAIT_TX_COMP:
-                    complete_lookup(op,0);
-                break;
-            }
-        }
-
-        void handle_lookup_timeout(kernel::timer_entry* timeout_cqe)
-        {
-            auto* op = container_of(timeout_cqe,arp_lookup_op,timeout_cqe);
-            switch (op->state)
-            {
-                case arp_lookup_op::WAIT_RX_RESP_TX_COMP:
-                case arp_lookup_op::WAIT_TX_COMP:
-                    kernel::panic("timeout without arming!");
-                break;
-
-                case arp_lookup_op::WAIT_RX_RESP:
-                    complete_lookup(op,1);
-                break;
-            }
+            op->post();
         }
 
         void handle_rx_frame(eth::rx_page* p)
@@ -211,27 +249,10 @@ namespace arp
         void handle_rx_reply_frame(eth::rx_page* p)
         {
             kernel::console::printf("arp: handle rx reply frame\n");
-            auto* f = (arp_frame*)(p->payload + p->eth_offset);
+            auto* f           = (arp_frame*)(p->payload + p->eth_offset);
             arp_lookup_op* op = find_lookup(f->msg.spa);
             if (op)
-            {
-                switch (op->state)
-                {
-                    case arp_lookup_op::WAIT_RX_RESP_TX_COMP:
-                        *op->tha = f->msg.tha;
-                        op->state = arp_lookup_op::WAIT_TX_COMP;
-                    break;
-
-                    case arp_lookup_op::WAIT_RX_RESP:
-                        kernel::cpu::cancel_timer(&op->timeout_cqe);
-                        *op->tha = f->msg.tha;
-                        complete_lookup(op,0);
-                    break;
-
-                    case arp_lookup_op::WAIT_TX_COMP:
-                    break;
-                }
-            }
+                op->handle_rx_reply_tha(f->msg.tha);
             else
             {
                 kernel::console::printf("arp: couldn't find lookup op for "
