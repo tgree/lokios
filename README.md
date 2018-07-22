@@ -14,14 +14,16 @@ make -j5
 
 # Running integration/smoke test under qemu
 
-qemu comes preinstalled in the docker image, so you can just test your changes immediately from the command line.
+qemu comes preinstalled in the docker image, so you can just test your changes immediately from the command line.  By specifying an 'iTST' ACPI table entry we can also tell the kernel to exit after initialization steps are complete.
 
-qemu-system-x86_64 -drive file=bin/lokios.mbr,format=raw -nographic -device isa-debug-exit -smp 2
+qemu-system-x86_64 -drive file=bin/lokios.mbr,format=raw -nographic -device isa-debug-exit -smp 2 -acpitable sig=iTST,data=/dev/null
 
-To exit qemu: Type Ctrl-A A X.
+An exit code of 3 indicates that the kernel successful ran and exited.  Any other exit code indicates a problem.
 
 # Typical build/test cycle
 
-make -j && qemu-system-x86_64 -drive file=bin/lokios.mbr,format=raw -smp 2 -nographic -device isa-debug-exit -device virtio-net-pci,netdev=net0,disable-legacy=on,disable-modern=off,vectors=4 -netdev user,id=net0 -object filter-dump,id=dump0,netdev=net0,file=net0dump.pcap
+This version of the qemu invocation sets up TCP forwarding on localhost port 12345 into guest port 12345.  This can be used to initiate a TCP connection from the docker container to the lokios kernel for testing purposes (say, by using the telnet tool):
 
-An exit code of 3 indicates that the kernel successful ran and exited.  Any other exit code indicates a problem.
+make -j && qemu-system-x86_64 -drive file=bin/lokios.mbr,format=raw -smp 4 -nographic -device isa-debug-exit -device virtio-net-pci,netdev=net0,disable-legacy=on,disable-modern=off,vectors=4 -netdev user,id=net0,hostfwd=tcp::12345-:12345 -object filter-dump,id=dump0,netdev=net0,file=net0dump.pcap -m 64M
+
+To exit qemu: Type Ctrl-A A X.
