@@ -240,8 +240,11 @@ namespace arp
         void handle_rx_frame(eth::rx_page* p)
         {
             auto* f = (arp_frame*)(p->payload + p->eth_offset);
-            if (f->msg.oper == 2)
-                handle_rx_reply_frame(p);
+            if (f->msg.tpa == intf->ip_addr)
+            {
+                if (f->msg.oper == 2)
+                    handle_rx_reply_frame(p);
+            }
         }
 
         void handle_rx_reply_frame(eth::rx_page* p)
