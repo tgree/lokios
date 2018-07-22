@@ -1024,6 +1024,10 @@ bcm57762::dev::handle_phy_start_autoneg_complete(kernel::work_entry* wqe)
     // the interrupts.
     reg_set_32((1<<4),0x454);
     reg_read_32(0x454);
+
+    // Notify the eth layer that the interface is now active.  The link may not
+    // be up or anything, but we can start posting packets if we like.
+    intf->activate();
     TRANSITION(WAIT_PHY_LINK_NOTIFICATION);
 }
 
@@ -1089,7 +1093,6 @@ bcm57762::dev::handle_phy_get_link_mode_complete(kernel::work_entry* wqe)
                      wqe->args[4],wqe->args[5]);
             TRANSITION(READY_LINK_UP);
 
-            intf->activate();
         break;
 
         case WAIT_LINK_DOWN_GET_MODE_DONE:
