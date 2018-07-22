@@ -913,8 +913,8 @@ bcm57762::dev::handle_link_down()
 
         case WAIT_PHY_LINK_NOTIFICATION:
         case READY_LINK_UP:
-            dev_dbg("link down\n");
             TRANSITION(READY_LINK_DOWN);
+            intf->handle_link_down();
         break;
 
         case WAIT_LINK_UP_GET_MODE_DONE:
@@ -1082,17 +1082,15 @@ bcm57762::dev::handle_phy_get_link_mode_complete(kernel::work_entry* wqe)
             {
                 // The MAC thinks it's up, the PHY thinks it's down.  Eventually
                 // the MAC will catch up on its next autopoll cycle.
-                dev_dbg("link down\n");
                 TRANSITION(READY_LINK_DOWN);
+                intf->handle_link_down();
                 return;
             }
 
-            dev_dbg("link up at %lu Mbit %s duplex adv 0x%08lX lpa 0x%08lX\n",
-                     wqe->args[2],
-                     (wqe->args[3] & PHY_LM_DUPLEX_FULL) ? "full" : "half",
-                     wqe->args[4],wqe->args[5]);
             TRANSITION(READY_LINK_UP);
 
+            intf->handle_link_up(wqe->args[2],
+                                 (wqe->args[3] & PHY_LM_DUPLEX_FULL));
         break;
 
         case WAIT_LINK_DOWN_GET_MODE_DONE:

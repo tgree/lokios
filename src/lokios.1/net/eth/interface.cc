@@ -103,6 +103,19 @@ eth::interface::refill_rx_pages()
 }
 
 void
+eth::interface::handle_link_up(size_t mbit, bool full_duplex)
+{
+    intf_dbg("link up at %lu Mbit %s duplex\n",
+             mbit,full_duplex ? "full" : "half");
+}
+
+void
+eth::interface::handle_link_down()
+{
+    intf_dbg("link down\n");
+}
+
+void
 eth::interface::handle_dhcp_success()
 {
     intf_dbg("DHCP negotiated [IP %u.%u.%u.%u  SN %u.%u.%u.%u  "
