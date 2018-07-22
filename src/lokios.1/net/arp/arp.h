@@ -285,8 +285,19 @@ namespace arp
         void handle_rx_frame(eth::rx_page* p)
         {
             auto* f = (arp_frame*)(p->payload + p->eth_offset);
+
+            // bool merge_flag = false;
+            // if (spa is in translation table)
+            // {
+            //      update sha of the entry;
+            //      merge_flag = false;
+            // }
             if (f->msg.tpa == intf->ip_addr)
             {
+                // if (!merge_flag)
+                // {
+                //      add <spa,sha> to translation table
+                // }
                 if (f->msg.oper == 2)
                     handle_rx_reply_frame(p);
                 else
