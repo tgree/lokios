@@ -61,6 +61,22 @@ namespace kernel
     KASSERT(ffs(0x12345678UL) == 3);
     KASSERT(ffs(0x1234567800000000ULL) == 35);
 
+    constexpr int popcount(unsigned int v)
+    {
+        return __builtin_popcount(v);
+    }
+    constexpr int popcount(unsigned long v)
+    {
+        return __builtin_popcountl(v);
+    }
+    constexpr int popcount(unsigned long long v)
+    {
+        return __builtin_popcountll(v);
+    }
+    KASSERT(popcount(0x11111111U) == 8);
+    KASSERT(popcount(0x33333333UL) == 16);
+    KASSERT(popcount(0x3333333344444444ULL) == 24);
+
     template<typename T>
     constexpr T round_up_pow2(T v, uint64_t p2)
     {
