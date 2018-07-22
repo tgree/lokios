@@ -108,10 +108,8 @@ eth::interface::refill_rx_pages()
 void
 eth::interface::handle_dhcp_success()
 {
-    printf("%02X:%02X:%02X:%02X:%02X:%02X: DHCP negotiated ["
-           "IP %u.%u.%u.%u  SN %u.%u.%u.%u  GW %u.%u.%u.%u  "
-           "DNS %u.%u.%u.%u  Lease %u  T1 %u  T2 %u]\n",
-           hw_mac[0],hw_mac[1],hw_mac[2],hw_mac[3],hw_mac[4],hw_mac[5],
+    intf_dbg("DHCP negotiated [IP %u.%u.%u.%u  SN %u.%u.%u.%u  "
+           "GW %u.%u.%u.%u  DNS %u.%u.%u.%u  Lease %u  T1 %u  T2 %u]\n",
            dhcpc->requested_addr[0],dhcpc->requested_addr[1],
            dhcpc->requested_addr[2],dhcpc->requested_addr[3],
            dhcpc->subnet_mask[0],dhcpc->subnet_mask[1],
