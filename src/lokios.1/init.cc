@@ -17,6 +17,7 @@
 #include "interrupts/pic.h"
 #include "interrupts/ioapic.h"
 #include "interrupts/lapic.h"
+#include "k++/random.h"
 #include <stddef.h>
 
 using kernel::console::printf;
@@ -110,6 +111,7 @@ init_bsp_stage2()
     kernel::init_acpi_tables(e820_base);
     kernel::init_mp_tables();
     kernel::init_cmos();
+    kernel::random_seed(kernel::read_cmos_date_time().val);
     kernel::pmtimer::init();
     kernel::init_interrupts();
     kernel::init_pic();
