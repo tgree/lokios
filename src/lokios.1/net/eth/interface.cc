@@ -24,6 +24,9 @@ using kernel::_kassert;
 static kernel::spinlock ids_lock;
 static uint32_t free_ids = 0xFFFFFFFF;
 
+static kernel::spinlock slab_lock;
+static kernel::slab tcp_slab(sizeof(tcp::listener));
+
 static size_t
 alloc_id()
 {
@@ -76,6 +79,23 @@ void
 eth::interface::issue_probe_phy(kernel::work_entry* cqe)
 {
     eth::phy_driver::issue_probe(this,cqe);
+}
+
+void
+eth::interface::tcp_listen(uint16_t port, tcp::connection_filter f)
+{
+    kassert(!intf_mem->tcp_listeners[port]);
+
+    tcp::listener* l;
+    with (slab_lock)
+    {
+        l = tcp_slab.alloc<tcp::listener>();
+    }
+
+    l->intf                       = this;
+    l->port                       = port;
+    l->filter_delegate            = f;
+    intf_mem->tcp_listeners[port] = l;
 }
 
 void
@@ -189,7 +209,29 @@ eth::interface::handle_rx_ipv4_frame(rx_page* p)
 void
 eth::interface::handle_rx_ipv4_tcp_frame(rx_page* p)
 {
-    intf_dbg("ipv4 tcp frame received\n");
+    auto* h           = (eth::header*)(p->payload + p->eth_offset);
+    auto* iph         = (ipv4::header*)(h+1);
+    auto* th          = (tcp::header*)(iph+1);
+    uint16_t dst_port = th->dst_port;
+
+    auto* l = intf_mem->tcp_listeners[th->dst_port];
+    if (!l)
+    {
+        intf_dbg("ipv4 tcp frame received and dropped on port %u\n",dst_port);
+        delete p;
+        return;
+    }
+
+    int err = l->filter_delegate(th);
+    if (err)
+    {
+        intf_dbg("ipv4 tcp frame received and rejected on port %u with err "
+                 "%d\n",dst_port,err);
+        delete p;
+        return;
+    }
+
+    intf_dbg("ipv4 tcp frame accepted on port %u\n",dst_port);
     delete p;
 }
 

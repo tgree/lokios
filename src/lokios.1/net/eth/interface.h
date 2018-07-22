@@ -3,6 +3,7 @@
 
 #include "addr.h"
 #include "net/ip/ip.h"
+#include "net/tcp/socket.h"
 #include "kernel/schedule.h"
 #include "kernel/types.h"
 #include "kernel/kassert.h"
@@ -81,6 +82,8 @@ namespace eth
             void*           cookie;
             frame_handler   handler;
         } udp_frame_handlers[65536];
+
+        tcp::listener*      tcp_listeners[65536];
     };
 
     // Ethernet interface.
@@ -134,6 +137,11 @@ namespace eth
             kernel::kassert(ufh->handler);
             ufh->handler = NULL;
         }
+
+        // TCP.
+                void    tcp_listen(uint16_t port, tcp::connection_filter f);
+                int     tcp_filter(const tcp::header* syn);
+        
 
         // Activate the interface.
                 void    activate();
