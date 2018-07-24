@@ -66,11 +66,10 @@ dhcp::client::client(eth::interface* intf):
     packet.uhdr.dst_port          = 67;
     packet.uhdr.len               = sizeof(packet) - sizeof(packet.llhdr) -
                                     sizeof(packet.iphdr);
-    packet.uhdr.checksum          = 0; TODO("UDP checksum");
     memset(&packet.msg.sname,0,sizeof(packet.msg.sname));
 
     send_op.cb            = handle_dhcp_client_send_comp_bounce;
-    send_op.flags         = 0;
+    send_op.flags         = NTX_FLAG_INSERT_IP_CSUM | NTX_FLAG_INSERT_UDP_CSUM;
     send_op.nalps         = 1;
     send_op.alps[0].paddr = kernel::virt_to_phys(&packet);
     send_op.alps[0].len   = sizeof(packet);
@@ -181,7 +180,7 @@ void
 dhcp::client::post_packet()
 {
     packet.iphdr.header_checksum = 0;
-    packet.iphdr.header_checksum = ipv4::csum(&packet.iphdr);
+    packet.uhdr.checksum         = 0;
     intf->post_tx_frame(&send_op);
 }
 
