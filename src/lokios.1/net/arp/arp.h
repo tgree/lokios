@@ -58,6 +58,7 @@ namespace arp
         typedef typename hw_traits::addr_type       _hw_addr;
         typedef typename proto_traits::addr_type    _proto_addr;
 
+        kernel::kdlink      link;
         _hw_addr            hw_addr;
         _proto_addr         proto_addr;
         kernel::timer_entry expiry_wqe;
@@ -255,6 +256,24 @@ namespace arp
         kernel::slab                    arp_entries_slab;
         kernel::kdlist<arp_entry>       arp_entries;
 
+        arp_entry* find_entry(arp_proto_addr tpa)
+        {
+            for (auto& e : klist_elems(arp_entries,link))
+            {
+                if (e.proto_addr == tpa)
+                    return &e;
+            }
+            return NULL;
+        }
+
+        void add_entry(arp_proto_addr pa, arp_hw_addr ha)
+        {
+            auto* e       = arp_entries_slab.alloc<arp_entry>();
+            e->hw_addr    = ha;
+            e->proto_addr = pa;
+            arp_entries.push_back(&e->link);
+        }
+
         arp_lookup_op* find_lookup(arp_proto_addr tpa)
         {
             for (auto& op : klist_elems(arp_lookup_ops,link))
@@ -285,19 +304,13 @@ namespace arp
         void handle_rx_frame(eth::rx_page* p)
         {
             auto* f = (arp_frame*)(p->payload + p->eth_offset);
-
-            // bool merge_flag = false;
-            // if (spa is in translation table)
-            // {
-            //      update sha of the entry;
-            //      merge_flag = false;
-            // }
+            auto* e = find_entry(f->msg.spa);
+            if (e)
+                e->hw_addr = f->msg.sha;
             if (f->msg.tpa == intf->ip_addr)
             {
-                // if (!merge_flag)
-                // {
-                //      add <spa,sha> to translation table
-                // }
+                if (!e)
+                    add_entry(f->msg.spa,f->msg.sha);
                 if (f->msg.oper == 2)
                     handle_rx_reply_frame(p);
                 else
