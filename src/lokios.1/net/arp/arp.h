@@ -7,7 +7,7 @@
 #ifndef __KERNEL_NET_ARP_H
 #define __KERNEL_NET_ARP_H
 
-#include "net/eth/interface.h"
+#include "net/net.h"
 #include "kernel/schedule.h"
 #include "kernel/cpu.h"
 #include "mm/slab.h"
@@ -154,7 +154,7 @@ namespace arp
             {
                 timeout_cqe.fn         = timer_delegate(handle_lookup_timeout);
                 timeout_cqe.args[0]    = (uintptr_t)this;
-                frame.llhdr.dst_mac    = eth::broadcast_addr;
+                frame.llhdr.dst_mac    = hw_traits::broadcast_addr;
                 frame.llhdr.src_mac    = serv->intf->hw_mac;
                 frame.llhdr.ether_type = 0x0806;
                 frame.hdr.htype        = hw_traits::arp_hw_type;
@@ -164,7 +164,7 @@ namespace arp
                 frame.hdr.oper         = 1;
                 frame.sha              = serv->intf->hw_mac;
                 frame.spa              = serv->intf->ip_addr;
-                frame.tha              = eth::addr{0,0,0,0,0,0};
+                frame.tha              = hw_traits::zero_addr;
                 frame.tpa              = tpa;
                 op.cb                  = send_cb;
                 op.nalps               = 1;
