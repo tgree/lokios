@@ -70,6 +70,7 @@ dhcp::client::client(eth::interface* intf):
     memset(&packet.msg.sname,0,sizeof(packet.msg.sname));
 
     send_op.cb            = handle_dhcp_client_send_comp_bounce;
+    send_op.flags         = 0;
     send_op.nalps         = 1;
     send_op.alps[0].paddr = kernel::virt_to_phys(&packet);
     send_op.alps[0].len   = sizeof(packet);
