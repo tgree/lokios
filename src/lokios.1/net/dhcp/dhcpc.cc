@@ -54,7 +54,7 @@ dhcp::client::client(eth::interface* intf):
     rx_dropped_timer.args[0] = (uintptr_t)this;
 
     packet.llhdr.src_mac          = intf->hw_mac;
-    packet.llhdr.ether_type       = 0x0800;
+    packet.llhdr.ether_type       = ipv4::net_traits::ether_type;
     packet.iphdr.version_ihl      = 0x45;
     packet.iphdr.dscp_ecn         = 0;
     packet.iphdr.total_len        = sizeof(packet) - sizeof(packet.llhdr);
