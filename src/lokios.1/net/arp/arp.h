@@ -65,13 +65,13 @@ namespace arp
                 WAIT_TX_COMP,
             } state;
 
-            arp::service<hw_traits,proto_traits>*   service;
-            tx_op                                   op;
-            kernel::work_entry*                     cqe;
-            kernel::timer_entry                     timeout_cqe;
-            uint64_t                                timeout_ms;
-            hw_addr*                                tha;
-            arp_frame                               frame;
+            service*            serv;
+            tx_op               op;
+            kernel::work_entry* cqe;
+            kernel::timer_entry timeout_cqe;
+            uint64_t            timeout_ms;
+            hw_addr*            tha;
+            arp_frame           frame;
 
             static void send_cb(tx_op* top)
             {
@@ -82,7 +82,7 @@ namespace arp
             {
                 kernel::kassert(state == WAIT_POST);
                 state = WAIT_RX_RESP_TX_COMP;
-                service->intf->post_tx_frame(&op);
+                serv->intf->post_tx_frame(&op);
             }
 
             void handle_lookup_send_comp()
@@ -103,7 +103,7 @@ namespace arp
                     break;
 
                     case WAIT_TX_COMP:
-                        service->complete_lookup(this,0);
+                        serv->complete_lookup(this,0);
                     break;
                 }
             }
@@ -120,7 +120,7 @@ namespace arp
                     case WAIT_RX_RESP:
                         kernel::cpu::cancel_timer(&timeout_cqe);
                         *tha = _tha;
-                        service->complete_lookup(this,0);
+                        serv->complete_lookup(this,0);
                     break;
 
                     case WAIT_POST:
@@ -140,15 +140,15 @@ namespace arp
                     break;
 
                     case WAIT_RX_RESP:
-                        service->complete_lookup(this,1);
+                        serv->complete_lookup(this,1);
                     break;
                 }
             }
 
-            lookup_op(typeof(service) service, proto_addr tpa, hw_addr* tha,
+            lookup_op(service* serv, proto_addr tpa, hw_addr* tha,
                       kernel::work_entry* cqe, size_t timeout_ms):
                 state(WAIT_POST),
-                service(service),
+                serv(serv),
                 cqe(cqe),
                 timeout_ms(timeout_ms),
                 tha(tha)
@@ -156,15 +156,15 @@ namespace arp
                 timeout_cqe.fn         = timer_delegate(handle_lookup_timeout);
                 timeout_cqe.args[0]    = (uintptr_t)this;
                 frame.llhdr.dst_mac    = eth::broadcast_addr;
-                frame.llhdr.src_mac    = service->intf->hw_mac;
+                frame.llhdr.src_mac    = serv->intf->hw_mac;
                 frame.llhdr.ether_type = 0x0806;
                 frame.hdr.htype        = hw_traits::arp_hw_type;
                 frame.hdr.ptype        = proto_traits::ether_type;
                 frame.hdr.hlen         = sizeof(frame.sha);
                 frame.hdr.plen         = sizeof(frame.spa);
                 frame.hdr.oper         = 1;
-                frame.sha              = service->intf->hw_mac;
-                frame.spa              = service->intf->ip_addr;
+                frame.sha              = serv->intf->hw_mac;
+                frame.spa              = serv->intf->ip_addr;
                 frame.tha              = eth::addr{0,0,0,0,0,0};
                 frame.tpa              = tpa;
                 op.cb                  = send_cb;
@@ -176,9 +176,9 @@ namespace arp
 
         struct reply_op
         {
-            arp::service<hw_traits,proto_traits>*   service;
-            tx_op                                   op;
-            arp_frame                               frame;
+            service*    serv;
+            tx_op       op;
+            arp_frame   frame;
 
             static void send_cb(tx_op* top)
             {
@@ -187,23 +187,23 @@ namespace arp
 
             void post()
             {
-                service->intf->post_tx_frame(&op);
+                serv->intf->post_tx_frame(&op);
             }
 
             void handle_reply_send_comp()
             {
-                service->handle_reply_send_comp(this);
+                serv->handle_reply_send_comp(this);
             }
 
-            reply_op(typeof(service) service, typeof(frame)* req):
-                service(service)
+            reply_op(service* serv, typeof(frame)* req):
+                serv(serv)
             {
                 memcpy(&frame,req,sizeof(frame));
                 frame.llhdr.dst_mac = req->llhdr.src_mac;
-                frame.llhdr.src_mac = service->intf->hw_mac;
+                frame.llhdr.src_mac = serv->intf->hw_mac;
                 frame.hdr.oper      = 2;
-                frame.sha           = service->intf->hw_mac;
-                frame.spa           = service->intf->ip_addr;
+                frame.sha           = serv->intf->hw_mac;
+                frame.spa           = serv->intf->ip_addr;
                 frame.tha           = req->sha;
                 frame.tpa           = req->spa;
                 op.cb               = send_cb;
