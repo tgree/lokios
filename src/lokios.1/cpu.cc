@@ -155,6 +155,7 @@ kernel::init_this_cpu(void (*entry_func)())
     // Required flags.
     kassert(c->flags & CPU_FLAG_SSE);
     kassert(c->flags & CPU_FLAG_FXSAVE);
+    kassert(c->flags & CPU_FLAG_POPCNT);
 
     // Start executing.
     _thread_jump(c->schedule_thread);

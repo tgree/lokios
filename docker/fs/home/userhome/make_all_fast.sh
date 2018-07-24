@@ -7,7 +7,7 @@
 make clean
 while true; do
     make -j || break
-    qemu-system-x86_64 -drive file=bin/lokios.mbr,format=raw -nographic -device isa-debug-exit -smp 2 -acpitable sig=iTST,data=/dev/null
+    qemu-system-x86_64 -cpu qemu64,+popcnt -drive file=bin/lokios.mbr,format=raw -nographic -device isa-debug-exit -smp 2 -acpitable sig=iTST,data=/dev/null
     if [ $? -ne 3 ]
     then
         echo "-----Integration test failure-----"
