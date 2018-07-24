@@ -29,27 +29,27 @@ namespace arp
     template<typename hw_traits, typename proto_traits>
     struct service
     {
-        typedef typename proto_traits::addr_type    arp_proto_addr;
-        typedef typename hw_traits::addr_type       arp_hw_addr;
-        typedef typename hw_traits::interface_type  arp_interface;
-        typedef typename hw_traits::tx_op_type      arp_tx_op;
+        typedef typename proto_traits::addr_type    proto_addr;
+        typedef typename hw_traits::addr_type       hw_addr;
+        typedef typename hw_traits::interface_type  interface;
+        typedef typename hw_traits::tx_op_type      tx_op;
         typedef typename hw_traits::header_type     ll_header_type;
 
         struct arp_frame
         {
             ll_header_type  llhdr;
             arp::header     hdr;
-            arp_hw_addr     sha;
-            arp_proto_addr  spa;
-            arp_hw_addr     tha;
-            arp_proto_addr  tpa;
+            hw_addr         sha;
+            proto_addr      spa;
+            hw_addr         tha;
+            proto_addr      tpa;
         } __PACKED__;
 
         struct entry
         {
             kernel::kdlink      link;
-            arp_hw_addr         hw_addr;
-            arp_proto_addr      proto_addr;
+            hw_addr             ha;
+            proto_addr          pa;
             kernel::timer_entry expiry_wqe;
         };
 
@@ -66,24 +66,23 @@ namespace arp
             } state;
 
             arp::service<hw_traits,proto_traits>*   service;
-            arp_tx_op                               tx_op;
+            tx_op                                   op;
             kernel::work_entry*                     cqe;
             kernel::timer_entry                     timeout_cqe;
             uint64_t                                timeout_ms;
-            arp_hw_addr*                            tha;
+            hw_addr*                                tha;
             arp_frame                               frame;
 
-            static void send_cb(arp_tx_op* top)
+            static void send_cb(tx_op* top)
             {
-                auto* op = container_of(top,lookup_op,tx_op);
-                op->handle_lookup_send_comp();
+                container_of(top,lookup_op,op)->handle_lookup_send_comp();
             }
 
             void post()
             {
                 kernel::kassert(state == WAIT_POST);
                 state = WAIT_RX_RESP_TX_COMP;
-                service->intf->post_tx_frame(&tx_op);
+                service->intf->post_tx_frame(&op);
             }
 
             void handle_lookup_send_comp()
@@ -109,7 +108,7 @@ namespace arp
                 }
             }
 
-            void handle_rx_reply_tha(arp_hw_addr _tha)
+            void handle_rx_reply_tha(hw_addr _tha)
             {
                 switch (state)
                 {
@@ -146,9 +145,8 @@ namespace arp
                 }
             }
 
-            lookup_op(typeof(service) service, arp_proto_addr tpa,
-                      arp_hw_addr* tha, kernel::work_entry* cqe,
-                      size_t timeout_ms):
+            lookup_op(typeof(service) service, proto_addr tpa, hw_addr* tha,
+                      kernel::work_entry* cqe, size_t timeout_ms):
                 state(WAIT_POST),
                 service(service),
                 cqe(cqe),
@@ -169,28 +167,27 @@ namespace arp
                 frame.spa              = service->intf->ip_addr;
                 frame.tha              = eth::addr{0,0,0,0,0,0};
                 frame.tpa              = tpa;
-                tx_op.cb               = send_cb;
-                tx_op.nalps            = 1;
-                tx_op.alps[0].paddr    = kernel::virt_to_phys(&frame);
-                tx_op.alps[0].len      = sizeof(frame);
+                op.cb                  = send_cb;
+                op.nalps               = 1;
+                op.alps[0].paddr       = kernel::virt_to_phys(&frame);
+                op.alps[0].len         = sizeof(frame);
             }
         };
 
         struct reply_op
         {
             arp::service<hw_traits,proto_traits>*   service;
-            arp_tx_op                               tx_op;
+            tx_op                                   op;
             arp_frame                               frame;
 
-            static void send_cb(arp_tx_op* top)
+            static void send_cb(tx_op* top)
             {
-                auto* op = container_of(top,reply_op,tx_op);
-                op->handle_reply_send_comp();
+                container_of(top,reply_op,op)->handle_reply_send_comp();
             }
 
             void post()
             {
-                service->intf->post_tx_frame(&tx_op);
+                service->intf->post_tx_frame(&op);
             }
 
             void handle_reply_send_comp()
@@ -209,39 +206,39 @@ namespace arp
                 frame.spa           = service->intf->ip_addr;
                 frame.tha           = req->sha;
                 frame.tpa           = req->spa;
-                tx_op.cb            = send_cb;
-                tx_op.nalps         = 1;
-                tx_op.alps[0].paddr = kernel::virt_to_phys(&frame);
-                tx_op.alps[0].len   = sizeof(frame);
+                op.cb               = send_cb;
+                op.nalps            = 1;
+                op.alps[0].paddr    = kernel::virt_to_phys(&frame);
+                op.alps[0].len      = sizeof(frame);
             }
         };
 
-        arp_interface* const            intf;
+        interface* const                intf;
         kernel::slab                    arp_lookup_ops_slab;
         kernel::kdlist<lookup_op>       arp_lookup_ops;
         kernel::slab                    arp_reply_ops_slab;
         kernel::slab                    arp_entries_slab;
         kernel::kdlist<entry>           arp_entries;
 
-        entry* find_entry(arp_proto_addr tpa)
+        entry* find_entry(proto_addr tpa)
         {
             for (auto& e : klist_elems(arp_entries,link))
             {
-                if (e.proto_addr == tpa)
+                if (e.pa == tpa)
                     return &e;
             }
             return NULL;
         }
 
-        void add_entry(arp_proto_addr pa, arp_hw_addr ha)
+        void add_entry(proto_addr pa, hw_addr ha)
         {
-            auto* e       = arp_entries_slab.alloc<entry>();
-            e->hw_addr    = ha;
-            e->proto_addr = pa;
+            auto* e  = arp_entries_slab.alloc<entry>();
+            e->ha    = ha;
+            e->pa    = pa;
             arp_entries.push_back(&e->link);
         }
 
-        lookup_op* find_lookup(arp_proto_addr tpa)
+        lookup_op* find_lookup(proto_addr tpa)
         {
             for (auto& op : klist_elems(arp_lookup_ops,link))
             {
@@ -259,7 +256,7 @@ namespace arp
             arp_lookup_ops_slab.free(op);
         }
 
-        void enqueue_lookup(arp_proto_addr tpa, arp_hw_addr* tha,
+        void enqueue_lookup(proto_addr tpa, hw_addr* tha,
                             kernel::work_entry* cqe, size_t timeout_ms)
         {
             lookup_op* op = arp_lookup_ops_slab.alloc<lookup_op>(this,tpa,tha,
@@ -273,7 +270,7 @@ namespace arp
             auto* f = (arp_frame*)(p->payload + p->eth_offset);
             auto* e = find_entry(f->spa);
             if (e)
-                e->hw_addr = f->sha;
+                e->ha = f->sha;
             if (f->tpa == intf->ip_addr)
             {
                 if (!e)
@@ -314,7 +311,7 @@ namespace arp
             arp_reply_ops_slab.free(op);
         }
 
-        service(arp_interface* intf):
+        service(interface* intf):
             intf(intf),
             arp_lookup_ops_slab(sizeof(lookup_op)),
             arp_reply_ops_slab(sizeof(reply_op)),
