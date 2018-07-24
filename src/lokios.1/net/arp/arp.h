@@ -53,18 +53,6 @@ namespace arp
     } __PACKED__;
 
     template<typename hw_traits, typename proto_traits>
-    struct entry
-    {
-        typedef typename hw_traits::addr_type       _hw_addr;
-        typedef typename proto_traits::addr_type    _proto_addr;
-
-        kernel::kdlink      link;
-        _hw_addr            hw_addr;
-        _proto_addr         proto_addr;
-        kernel::timer_entry expiry_wqe;
-    };
-
-    template<typename hw_traits, typename proto_traits>
     struct service;
 
     template<typename hw_traits, typename proto_traits>
@@ -241,7 +229,6 @@ namespace arp
     struct service
     {
         typedef frame<hw_traits,proto_traits>       arp_frame;
-        typedef entry<hw_traits,proto_traits>       arp_entry;
         typedef lookup_op<hw_traits,proto_traits>   arp_lookup_op;
         typedef reply_op<hw_traits,proto_traits>    arp_reply_op;
         typedef typename arp_lookup_op::_tx_op      arp_tx_op;
@@ -249,14 +236,22 @@ namespace arp
         typedef typename hw_traits::addr_type       arp_hw_addr;
         typedef typename hw_traits::interface_type  arp_interface;
 
+        struct entry
+        {
+            kernel::kdlink      link;
+            arp_hw_addr         hw_addr;
+            arp_proto_addr      proto_addr;
+            kernel::timer_entry expiry_wqe;
+        };
+
         arp_interface* const            intf;
         kernel::slab                    arp_lookup_ops_slab;
         kernel::kdlist<arp_lookup_op>   arp_lookup_ops;
         kernel::slab                    arp_reply_ops_slab;
         kernel::slab                    arp_entries_slab;
-        kernel::kdlist<arp_entry>       arp_entries;
+        kernel::kdlist<entry>           arp_entries;
 
-        arp_entry* find_entry(arp_proto_addr tpa)
+        entry* find_entry(arp_proto_addr tpa)
         {
             for (auto& e : klist_elems(arp_entries,link))
             {
@@ -268,7 +263,7 @@ namespace arp
 
         void add_entry(arp_proto_addr pa, arp_hw_addr ha)
         {
-            auto* e       = arp_entries_slab.alloc<arp_entry>();
+            auto* e       = arp_entries_slab.alloc<entry>();
             e->hw_addr    = ha;
             e->proto_addr = pa;
             arp_entries.push_back(&e->link);
@@ -351,7 +346,7 @@ namespace arp
             intf(intf),
             arp_lookup_ops_slab(sizeof(arp_lookup_op)),
             arp_reply_ops_slab(sizeof(arp_reply_op)),
-            arp_entries_slab(sizeof(arp_entry))
+            arp_entries_slab(sizeof(entry))
         {
         }
     };
