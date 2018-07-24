@@ -251,7 +251,7 @@ void
 eth::interface::handle_rx_arp_frame(rx_page* p)
 {
     auto* h  = (eth::header*)(p->payload + p->eth_offset);
-    auto* sp = (arp::short_payload*)(h+1);
+    auto* sp = (arp::header*)(h+1);
     switch (sp->ptype)
     {
         case 0x0800:    arpc_ipv4->handle_rx_frame(p);  break;

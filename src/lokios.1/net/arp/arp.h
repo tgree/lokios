@@ -17,7 +17,7 @@
 
 namespace arp
 {
-    struct short_payload
+    struct header
     {
         be_uint16_t htype;
         be_uint16_t ptype;
@@ -35,23 +35,14 @@ namespace arp
         typedef typename hw_traits::tx_op_type      arp_tx_op;
         typedef typename hw_traits::header_type     ll_header_type;
 
-        struct payload
+        struct arp_frame
         {
-            be_uint16_t     htype;
-            be_uint16_t     ptype;
-            uint8_t         hlen;
-            uint8_t         plen;
-            be_uint16_t     oper;
+            ll_header_type  llhdr;
+            arp::header     hdr;
             arp_hw_addr     sha;
             arp_proto_addr  spa;
             arp_hw_addr     tha;
             arp_proto_addr  tpa;
-        } __PACKED__;
-
-        struct arp_frame
-        {
-            ll_header_type  llhdr;
-            payload         msg;
         } __PACKED__;
 
         struct entry
@@ -169,15 +160,15 @@ namespace arp
                 frame.llhdr.dst_mac    = eth::broadcast_addr;
                 frame.llhdr.src_mac    = service->intf->hw_mac;
                 frame.llhdr.ether_type = 0x0806;
-                frame.msg.htype        = hw_traits::arp_hw_type;
-                frame.msg.ptype        = proto_traits::ether_type;
-                frame.msg.hlen         = sizeof(frame.msg.sha);
-                frame.msg.plen         = sizeof(frame.msg.spa);
-                frame.msg.oper         = 1;
-                frame.msg.sha          = service->intf->hw_mac;
-                frame.msg.spa          = service->intf->ip_addr;
-                frame.msg.tha          = eth::addr{0,0,0,0,0,0};
-                frame.msg.tpa          = tpa;
+                frame.hdr.htype        = hw_traits::arp_hw_type;
+                frame.hdr.ptype        = proto_traits::ether_type;
+                frame.hdr.hlen         = sizeof(frame.sha);
+                frame.hdr.plen         = sizeof(frame.spa);
+                frame.hdr.oper         = 1;
+                frame.sha              = service->intf->hw_mac;
+                frame.spa              = service->intf->ip_addr;
+                frame.tha              = eth::addr{0,0,0,0,0,0};
+                frame.tpa              = tpa;
                 tx_op.cb               = send_cb;
                 tx_op.nalps            = 1;
                 tx_op.alps[0].paddr    = kernel::virt_to_phys(&frame);
@@ -213,11 +204,11 @@ namespace arp
                 memcpy(&frame,req,sizeof(frame));
                 frame.llhdr.dst_mac = req->llhdr.src_mac;
                 frame.llhdr.src_mac = service->intf->hw_mac;
-                frame.msg.sha       = service->intf->hw_mac;
-                frame.msg.spa       = service->intf->ip_addr;
-                frame.msg.tha       = req->msg.sha;
-                frame.msg.tpa       = req->msg.spa;
-                frame.msg.oper      = 2;
+                frame.hdr.oper      = 2;
+                frame.sha           = service->intf->hw_mac;
+                frame.spa           = service->intf->ip_addr;
+                frame.tha           = req->sha;
+                frame.tpa           = req->spa;
                 tx_op.cb            = send_cb;
                 tx_op.nalps         = 1;
                 tx_op.alps[0].paddr = kernel::virt_to_phys(&frame);
@@ -254,7 +245,7 @@ namespace arp
         {
             for (auto& op : klist_elems(arp_lookup_ops,link))
             {
-                if (op.frame.msg.tpa == tpa)
+                if (op.frame.tpa == tpa)
                     return &op;
             }
             return NULL;
@@ -280,14 +271,14 @@ namespace arp
         void handle_rx_frame(eth::rx_page* p)
         {
             auto* f = (arp_frame*)(p->payload + p->eth_offset);
-            auto* e = find_entry(f->msg.spa);
+            auto* e = find_entry(f->spa);
             if (e)
-                e->hw_addr = f->msg.sha;
-            if (f->msg.tpa == intf->ip_addr)
+                e->hw_addr = f->sha;
+            if (f->tpa == intf->ip_addr)
             {
                 if (!e)
-                    add_entry(f->msg.spa,f->msg.sha);
-                if (f->msg.oper == 2)
+                    add_entry(f->spa,f->sha);
+                if (f->hdr.oper == 2)
                     handle_rx_reply_frame(p);
                 else
                     handle_rx_request_frame(p);
@@ -298,15 +289,15 @@ namespace arp
         {
             kernel::console::printf("arp: handle rx reply frame\n");
             auto* f       = (arp_frame*)(p->payload + p->eth_offset);
-            lookup_op* op = find_lookup(f->msg.spa);
+            lookup_op* op = find_lookup(f->spa);
             if (op)
-                op->handle_rx_reply_tha(f->msg.tha);
+                op->handle_rx_reply_tha(f->tha);
             else
             {
                 kernel::console::printf("arp: couldn't find lookup op for "
                                         "%u.%u.%u.%u\n",
-                                        f->msg.spa[0],f->msg.spa[1],
-                                        f->msg.spa[2],f->msg.spa[3]);
+                                        f->spa[0],f->spa[1],
+                                        f->spa[2],f->spa[3]);
             }
         }
 
