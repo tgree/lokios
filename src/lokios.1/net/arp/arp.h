@@ -27,23 +27,6 @@ namespace arp
     } __PACKED__;
 
     template<typename hw_traits, typename proto_traits>
-    struct payload
-    {
-        typedef typename hw_traits::addr_type       hw_addr;
-        typedef typename proto_traits::addr_type    proto_addr;
-
-        be_uint16_t htype;
-        be_uint16_t ptype;
-        uint8_t     hlen;
-        uint8_t     plen;
-        be_uint16_t oper;
-        hw_addr     sha;
-        proto_addr  spa;
-        hw_addr     tha;
-        proto_addr  tpa;
-    } __PACKED__;
-
-    template<typename hw_traits, typename proto_traits>
     struct service
     {
         typedef typename proto_traits::addr_type    arp_proto_addr;
@@ -52,10 +35,23 @@ namespace arp
         typedef typename hw_traits::tx_op_type      arp_tx_op;
         typedef typename hw_traits::header_type     ll_header_type;
 
+        struct payload
+        {
+            be_uint16_t     htype;
+            be_uint16_t     ptype;
+            uint8_t         hlen;
+            uint8_t         plen;
+            be_uint16_t     oper;
+            arp_hw_addr     sha;
+            arp_proto_addr  spa;
+            arp_hw_addr     tha;
+            arp_proto_addr  tpa;
+        } __PACKED__;
+
         struct arp_frame
         {
-            ll_header_type                  llhdr;
-            payload<hw_traits,proto_traits> msg;
+            ll_header_type  llhdr;
+            payload         msg;
         } __PACKED__;
 
         struct entry
