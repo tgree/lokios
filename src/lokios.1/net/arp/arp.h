@@ -44,22 +44,19 @@ namespace arp
     } __PACKED__;
 
     template<typename hw_traits, typename proto_traits>
-    struct frame
-    {
-        typedef typename hw_traits::header_type header_type;
-        
-        header_type                     llhdr;
-        payload<hw_traits,proto_traits> msg;
-    } __PACKED__;
-
-    template<typename hw_traits, typename proto_traits>
     struct service
     {
-        typedef frame<hw_traits,proto_traits>       arp_frame;
         typedef typename proto_traits::addr_type    arp_proto_addr;
         typedef typename hw_traits::addr_type       arp_hw_addr;
         typedef typename hw_traits::interface_type  arp_interface;
         typedef typename hw_traits::tx_op_type      arp_tx_op;
+        typedef typename hw_traits::header_type     ll_header_type;
+
+        struct arp_frame
+        {
+            ll_header_type                  llhdr;
+            payload<hw_traits,proto_traits> msg;
+        } __PACKED__;
 
         struct entry
         {
@@ -87,7 +84,7 @@ namespace arp
             kernel::timer_entry                     timeout_cqe;
             uint64_t                                timeout_ms;
             arp_hw_addr*                            tha;
-            arp::frame<hw_traits,proto_traits>      frame;
+            arp_frame                               frame;
 
             static void send_cb(arp_tx_op* top)
             {
@@ -196,7 +193,7 @@ namespace arp
         {
             arp::service<hw_traits,proto_traits>*   service;
             arp_tx_op                               tx_op;
-            arp::frame<hw_traits,proto_traits>      frame;
+            arp_frame                               frame;
 
             static void send_cb(arp_tx_op* top)
             {
