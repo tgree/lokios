@@ -31,7 +31,7 @@ using kernel::console::printf;
 #endif
 
 static void
-handle_dhcp_client_send_comp_bounce(eth::tx_op* op)
+handle_dhcp_client_send_comp_bounce(net::tx_op* op)
 {
     auto* c = container_of(op,dhcp::client,send_op);
     c->handle_tx_send_comp();
@@ -423,9 +423,9 @@ dhcp::client::handle_rx_expiry(kernel::timer_entry*)
 }
 
 void
-dhcp::client::handle_rx_dhcp(eth::interface*, eth::rx_page* p) try
+dhcp::client::handle_rx_dhcp(eth::interface*, net::rx_page* p) try
 {
-    auto* resp = (dhcp::eth_message*)(p->payload + p->eth_offset);
+    auto* resp = (dhcp::eth_message*)(p->payload + p->pay_offset);
     if (resp->uhdr.src_port != 67)
         return;
     if (*(eth::addr*)resp->msg.chaddr != intf->hw_mac)

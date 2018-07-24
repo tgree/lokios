@@ -30,7 +30,7 @@ virtio_net::interface::issue_phy_write_16(uint16_t v, uint8_t offset,
 }
 
 void
-virtio_net::interface::post_tx_frame(eth::tx_op* op)
+virtio_net::interface::post_tx_frame(net::tx_op* op)
 {
 #if DUMP_TX_PACKETS
     kernel::console::printf("Transmitting packet:\n");
@@ -40,7 +40,7 @@ virtio_net::interface::post_tx_frame(eth::tx_op* op)
 }
 
 void
-virtio_net::interface::post_rx_pages(kernel::klist<eth::rx_page>& pages)
+virtio_net::interface::post_rx_pages(kernel::klist<net::rx_page>& pages)
 {
     vdev->post_rx_pages(pages);
 }

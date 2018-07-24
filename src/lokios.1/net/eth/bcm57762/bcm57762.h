@@ -46,11 +46,11 @@ namespace bcm57762
     {
         msix_sv_rss_status_block    status_block;
         uint8_t                     rsrv[4064];
-        eth::rx_page*               rx_page_table[512];
+        net::rx_page*               rx_page_table[512];
         send_bd                     send_bds[512];
         receive_bd                  recv_bds[512];
         receive_bd                  return_bds[512];
-        eth::tx_op*                 tx_op_table[512];
+        net::tx_op*                 tx_op_table[512];
         uint8_t                     rsrv3[12288];
     } __PACKED__;
     KASSERT(sizeof(mem_block) == 65536);
@@ -164,8 +164,8 @@ namespace bcm57762
         void    handle_phy_get_link_mode_complete(kernel::work_entry*);
 
         // Interface API.
-        void    post_tx_frame(eth::tx_op* op);
-        void    post_rx_pages(kernel::klist<eth::rx_page>& pages);
+        void    post_tx_frame(net::tx_op* op);
+        void    post_rx_pages(kernel::klist<net::rx_page>& pages);
 
         dev(const kernel::pci::dev* pd, const bcm57762::driver* owner);
         virtual ~dev();
@@ -180,8 +180,8 @@ namespace bcm57762
         virtual void    issue_phy_write_16(uint16_t v, uint8_t offset,
                                            kernel::work_entry* cqe);
 
-        virtual void    post_tx_frame(eth::tx_op* op);
-        virtual void    post_rx_pages(kernel::klist<eth::rx_page>& pages);
+        virtual void    post_tx_frame(net::tx_op* op);
+        virtual void    post_rx_pages(kernel::klist<net::rx_page>& pages);
 
         interface(bcm57762::dev* vdev);
         virtual ~interface();

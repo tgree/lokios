@@ -32,7 +32,6 @@ namespace arp
         typedef typename proto_traits::addr_type    proto_addr;
         typedef typename hw_traits::addr_type       hw_addr;
         typedef typename hw_traits::interface_type  interface;
-        typedef typename hw_traits::tx_op_type      tx_op;
         typedef typename hw_traits::header_type     ll_header_type;
 
         struct arp_frame
@@ -66,14 +65,14 @@ namespace arp
             } state;
 
             service*            serv;
-            tx_op               op;
+            net::tx_op          op;
             kernel::work_entry* cqe;
             kernel::timer_entry timeout_cqe;
             uint64_t            timeout_ms;
             hw_addr*            tha;
             arp_frame           frame;
 
-            static void send_cb(tx_op* top)
+            static void send_cb(net::tx_op* top)
             {
                 container_of(top,lookup_op,op)->handle_lookup_send_comp();
             }
@@ -177,10 +176,10 @@ namespace arp
         struct reply_op
         {
             service*    serv;
-            tx_op       op;
+            net::tx_op  op;
             arp_frame   frame;
 
-            static void send_cb(tx_op* top)
+            static void send_cb(net::tx_op* top)
             {
                 container_of(top,reply_op,op)->handle_reply_send_comp();
             }
@@ -265,9 +264,9 @@ namespace arp
             op->post();
         }
 
-        void handle_rx_frame(eth::rx_page* p)
+        void handle_rx_frame(net::rx_page* p)
         {
-            auto* f = (arp_frame*)(p->payload + p->eth_offset);
+            auto* f = (arp_frame*)(p->payload + p->pay_offset);
             auto* e = find_entry(f->spa);
             if (e)
                 e->ha = f->sha;
@@ -282,10 +281,10 @@ namespace arp
             }
         }
 
-        void handle_rx_reply_frame(eth::rx_page* p)
+        void handle_rx_reply_frame(net::rx_page* p)
         {
             kernel::console::printf("arp: handle rx reply frame\n");
-            auto* f       = (arp_frame*)(p->payload + p->eth_offset);
+            auto* f       = (arp_frame*)(p->payload + p->pay_offset);
             lookup_op* op = find_lookup(f->spa);
             if (op)
                 op->handle_rx_reply_tha(f->tha);
@@ -298,10 +297,10 @@ namespace arp
             }
         }
 
-        void handle_rx_request_frame(eth::rx_page* p)
+        void handle_rx_request_frame(net::rx_page* p)
         {
             kernel::console::printf("arp: handle rx request frame\n");
-            auto* f      = (arp_frame*)(p->payload + p->eth_offset);
+            auto* f      = (arp_frame*)(p->payload + p->pay_offset);
             reply_op* op = arp_reply_ops_slab.alloc<reply_op>(this,f);
             op->post();
         }

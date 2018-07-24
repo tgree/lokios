@@ -112,11 +112,11 @@ eth::interface::activate()
 void
 eth::interface::refill_rx_pages()
 {
-    kernel::klist<eth::rx_page> pages;
+    kernel::klist<net::rx_page> pages;
     size_t n = rx_qlen - rx_posted_count;
     for (size_t i=0; i<n; ++i)
     {
-        auto* p = new rx_page;
+        auto* p = new net::rx_page;
         pages.push_back(&p->link);
     }
     rx_posted_count = rx_qlen;
@@ -161,13 +161,13 @@ eth::interface::handle_dhcp_failure()
 }
 
 void
-eth::interface::handle_tx_completion(eth::tx_op* op)
+eth::interface::handle_tx_completion(net::tx_op* op)
 {
     op->cb(op);
 }
 
 void
-eth::interface::handle_rx_pages(kernel::klist<rx_page>& pages)
+eth::interface::handle_rx_pages(kernel::klist<net::rx_page>& pages)
 {
     while (!pages.empty())
     {
@@ -175,7 +175,7 @@ eth::interface::handle_rx_pages(kernel::klist<rx_page>& pages)
         pages.pop_front();
         --rx_posted_count;
 
-        auto* h = (eth::header*)(p->payload + p->eth_offset);
+        auto* h = (eth::header*)(p->payload + p->pay_offset);
         if (h->dst_mac != hw_mac && h->dst_mac != eth::broadcast_addr)
             delete p;
         else switch (h->ether_type)
@@ -189,9 +189,9 @@ eth::interface::handle_rx_pages(kernel::klist<rx_page>& pages)
 }
 
 void
-eth::interface::handle_rx_ipv4_frame(rx_page* p)
+eth::interface::handle_rx_ipv4_frame(net::rx_page* p)
 {
-    auto* h   = (eth::header*)(p->payload + p->eth_offset);
+    auto* h   = (eth::header*)(p->payload + p->pay_offset);
     auto* iph = (ipv4::header*)(h+1);
     if (iph->dst_ip != ip_addr && iph->dst_ip != ipv4::broadcast_addr)
         delete p;
@@ -207,9 +207,9 @@ eth::interface::handle_rx_ipv4_frame(rx_page* p)
 }
 
 void
-eth::interface::handle_rx_ipv4_tcp_frame(rx_page* p)
+eth::interface::handle_rx_ipv4_tcp_frame(net::rx_page* p)
 {
-    auto* h           = (eth::header*)(p->payload + p->eth_offset);
+    auto* h           = (eth::header*)(p->payload + p->pay_offset);
     auto* iph         = (ipv4::header*)(h+1);
     auto* th          = (tcp::header*)(iph+1);
     uint16_t dst_port = th->dst_port;
@@ -236,9 +236,9 @@ eth::interface::handle_rx_ipv4_tcp_frame(rx_page* p)
 }
 
 void
-eth::interface::handle_rx_ipv4_udp_frame(rx_page* p)
+eth::interface::handle_rx_ipv4_udp_frame(net::rx_page* p)
 {
-    auto* h   = (eth::header*)(p->payload + p->eth_offset);
+    auto* h   = (eth::header*)(p->payload + p->pay_offset);
     auto* iph = (ipv4::header*)(h+1);
     auto* uh  = (udp::header*)(iph+1);
     auto* ufh = &intf_mem->udp_frame_handlers[uh->dst_port];
@@ -248,9 +248,9 @@ eth::interface::handle_rx_ipv4_udp_frame(rx_page* p)
 }
 
 void
-eth::interface::handle_rx_arp_frame(rx_page* p)
+eth::interface::handle_rx_arp_frame(net::rx_page* p)
 {
-    auto* h  = (eth::header*)(p->payload + p->eth_offset);
+    auto* h  = (eth::header*)(p->payload + p->pay_offset);
     auto* sp = (arp::header*)(h+1);
     switch (sp->ptype)
     {

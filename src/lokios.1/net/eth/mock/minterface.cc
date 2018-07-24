@@ -66,31 +66,31 @@ eth::interface::handle_dhcp_failure()
 }
 
 void
-eth::interface::handle_tx_completion(eth::tx_op* op)
+eth::interface::handle_tx_completion(net::tx_op* op)
 {
     mock("eth::interface::handle_tx_completion",op);
 }
 
 void
-eth::interface::handle_rx_pages(kernel::klist<rx_page>& pages)
+eth::interface::handle_rx_pages(kernel::klist<net::rx_page>& pages)
 {
     mock("eth::interface::handle_rx_pages",&pages);
 }
 
 void
-eth::interface::handle_rx_ipv4_frame(rx_page* p)
+eth::interface::handle_rx_ipv4_frame(net::rx_page* p)
 {
     mock("eth::interface::handle_rx_ipv4_frame",p);
 }
 
 void
-eth::interface::handle_rx_ipv4_udp_frame(rx_page* p)
+eth::interface::handle_rx_ipv4_udp_frame(net::rx_page* p)
 {
     mock("eth::interface::handle_rx_ipv4_udp_frame",p);
 }
 
 void
-eth::interface::handle_rx_arp_frame(rx_page* p)
+eth::interface::handle_rx_arp_frame(net::rx_page* p)
 {
     mock("eth::interface::handle_rx_arp_frame",p);
 }

@@ -146,7 +146,7 @@ virtio_net::dev::issue_set_mac_address()
 }
 
 void
-virtio_net::dev::post_tx_frame(eth::tx_op* op)
+virtio_net::dev::post_tx_frame(net::tx_op* op)
 {
     // Allocate some descriptors.
     uint16_t dhead = tq.alloc_descriptors(op->nalps + 1);
@@ -178,7 +178,7 @@ virtio_net::dev::post_tx_frame(eth::tx_op* op)
 }
 
 void
-virtio_net::dev::post_rx_pages(kernel::klist<eth::rx_page>& pages)
+virtio_net::dev::post_rx_pages(kernel::klist<net::rx_page>& pages)
 {
     size_t count = 0;
 
@@ -305,7 +305,7 @@ virtio_net::dev::handle_rq_dsr(kernel::work_entry*)
     // used_elem struct is equal to the value that we pushed into the
     // avail_ring when we posted the receive buffer, i.e. it will be equal to
     // the index of the descriptor at the head of the buffer's chain.
-    kernel::klist<eth::rx_page> pages;
+    kernel::klist<net::rx_page> pages;
     while (!rq.empty())
     {
         auto ue = rq.pop();
@@ -313,9 +313,9 @@ virtio_net::dev::handle_rq_dsr(kernel::work_entry*)
 
         auto* d       = &rq.descriptors[ue.id];
         auto* p       = container_of((uint8_t*)phys_to_virt(d->addr),
-                                     eth::rx_page,payload[0]);
-        p->eth_len    = ue.len - sizeof(net_hdr);
-        p->eth_offset = sizeof(net_hdr);
+                                     net::rx_page,payload[0]);
+        p->pay_len    = ue.len - sizeof(net_hdr);
+        p->pay_offset = sizeof(net_hdr);
         pages.push_back(&p->link);
         rq.free_descriptors(ue.id);
     }

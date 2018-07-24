@@ -311,16 +311,16 @@ bcm57762::dev::handle_vec0_dsr(kernel::work_entry*)
     // Handle received packets.
     if (rx_bd_consumer_index != mem->status_block.rx_return_ring_0_prod_index)
     {
-        kernel::klist<eth::rx_page> pages;
+        kernel::klist<net::rx_page> pages;
         while (rx_bd_consumer_index !=
                mem->status_block.rx_return_ring_0_prod_index)
         {
             receive_bd* rbd = &mem->return_bds[rx_bd_consumer_index];
-            eth::rx_page* p = mem->rx_page_table[rbd->index];
+            net::rx_page* p = mem->rx_page_table[rbd->index];
             kassert(p != NULL);
 
-            p->eth_offset = 0;
-            p->eth_len    = rbd->len - 4; // Remove the Ethernet checksum
+            p->pay_offset = 0;
+            p->pay_len    = rbd->len - 4; // Remove the Ethernet checksum
             pages.push_back(&p->link);
 
             mem->rx_page_table[rbd->index] = NULL;
@@ -503,7 +503,7 @@ bcm57762::dev::handle_timer(kernel::timer_entry*)
             memset(mem->recv_bds,0,sizeof(mem->recv_bds));
             reg_write_32(kernel::virt_to_phys(mem->recv_bds) >> 32,0x2450);
             reg_write_32(kernel::virt_to_phys(mem->recv_bds) >>  0,0x2454);
-            reg_write_32((512 << 16) | (FIELD_SIZE(eth::rx_page,payload) << 2),
+            reg_write_32((512 << 16) | (FIELD_SIZE(net::rx_page,payload) << 2),
                          0x2458);
             reg_write_32(0x6000,0x245C);
 
@@ -1104,10 +1104,10 @@ bcm57762::dev::handle_phy_get_link_mode_complete(kernel::work_entry* wqe)
 }
 
 void
-bcm57762::dev::post_tx_frame(eth::tx_op* op)
+bcm57762::dev::post_tx_frame(net::tx_op* op)
 {
     send_bd* bd;
-    eth::tx_op** opp;
+    net::tx_op** opp;
 
     kassert(op->nalps > 0);
     for (size_t i=0; i<op->nalps; ++i)
@@ -1131,7 +1131,7 @@ bcm57762::dev::post_tx_frame(eth::tx_op* op)
 }
 
 void
-bcm57762::dev::post_rx_pages(kernel::klist<eth::rx_page>& pages)
+bcm57762::dev::post_rx_pages(kernel::klist<net::rx_page>& pages)
 {
     receive_bd* bd;
 
@@ -1184,13 +1184,13 @@ bcm57762::interface::issue_phy_write_16(uint16_t v, uint8_t offset,
 }
 
 void
-bcm57762::interface::post_tx_frame(eth::tx_op* op)
+bcm57762::interface::post_tx_frame(net::tx_op* op)
 {
     dev->post_tx_frame(op);
 }
 
 void
-bcm57762::interface::post_rx_pages(kernel::klist<eth::rx_page>& pages)
+bcm57762::interface::post_rx_pages(kernel::klist<net::rx_page>& pages)
 {
     dev->post_rx_pages(pages);
 }

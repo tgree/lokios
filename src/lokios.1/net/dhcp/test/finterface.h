@@ -19,12 +19,12 @@ namespace eth
             mock("eth::interface::issue_phy_write_16",v,offset,cqe);
         }
 
-        virtual void post_tx_frame(eth::tx_op* op)
+        virtual void post_tx_frame(net::tx_op* op)
         {
             mock("eth::interface::post_tx_frame",op);
         }
 
-        virtual void post_rx_pages(kernel::klist<eth::rx_page>& pages)
+        virtual void post_rx_pages(kernel::klist<net::rx_page>& pages)
         {
             mock("eth::interface::post_rx_pages",&pages);
         }

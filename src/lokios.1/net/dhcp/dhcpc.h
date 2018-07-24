@@ -65,7 +65,7 @@ namespace dhcp
         eth::interface*     intf;
 
         // Send op for any packet we are transmitting.
-        eth::tx_op          send_op;
+        net::tx_op          send_op;
 
         // State machine timers: T1, T2 and lease timer.
         kernel::timer_entry t1_wqe;
@@ -120,7 +120,7 @@ namespace dhcp
         // Handlers.
         void    handle_tx_send_comp();
         void    handle_rx_expiry(kernel::timer_entry*);
-        void    handle_rx_dhcp(eth::interface* intf, eth::rx_page* p);
+        void    handle_rx_dhcp(eth::interface* intf, net::rx_page* p);
         void    handle_rx_dhcp_offer(const  dhcp::eth_message* m);
         void    handle_rx_dhcp_ack(const dhcp::message* m);
         void    handle_rx_dhcp_nak(const dhcp::message* m);
