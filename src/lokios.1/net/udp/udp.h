@@ -1,9 +1,7 @@
 #ifndef __KERNEL_NET_UDP_H
 #define __KERNEL_NET_UDP_H
 
-#include "hdr/compiler.h"
-#include "kernel/kassert.h"
-#include <stdint.h>
+#include "net/net.h"
 
 namespace udp
 {
@@ -20,6 +18,8 @@ namespace udp
     {
         static constexpr const uint8_t ip_proto = 0x11;
     };
+
+    uint16_t compute_checksum(net::tx_op* op, size_t llhdr_size);
 }
 
 #endif /* __KERNEL_NET_UDP_H */
