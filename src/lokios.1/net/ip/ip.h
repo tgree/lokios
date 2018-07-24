@@ -44,7 +44,7 @@ namespace ipv4
         be_uint16_t     flags_fragoffset;
         uint8_t         ttl;
         uint8_t         proto;
-        uint16_t        header_checksum;
+        be_uint16_t     header_checksum;
         ipv4::addr      src_ip;
         ipv4::addr      dst_ip;
     } __PACKED__;
@@ -56,7 +56,7 @@ namespace ipv4
         uint32_t s        = 0;
         const uint16_t* p = (const uint16_t*)h;
         for (size_t i=0; i<nwords; ++i)
-            s += *p++;
+            s += swap_uint(*p++);
         while (s >> 16)
             s = (s >> 16) + (s & 0xFFFF);
         return ~s;
