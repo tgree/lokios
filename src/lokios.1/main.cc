@@ -32,6 +32,13 @@ kernel_ticker(kernel::timer_entry* wqe)
            kernel::page_count_free(),kernel::kernel_task->pt.page_count);
 }
 
+static kernel::timer_entry ten_sec_wqe;
+static void
+integration_test_timeout(kernel::timer_entry* wqe)
+{
+    kernel::panic("integration test timeout");
+}
+
 void
 kernel_main(kernel::work_entry* wqe)
 {
@@ -78,11 +85,12 @@ kernel_main(kernel::work_entry* wqe)
             &one_sec_wqe,TICKER_10MS_TICKS);
 
     // If there is an 'iTST' ACPI table, this indicates we are running on qemu
-    // in integration-tes mode and should just exit instead of spinning in the
-    // scheduler forever.
+    // in integration-test mode and should start a 10-second timeout after which
+    // we decalre the integration test to have failed.
     if (kernel::find_acpi_table('TSTi'))
     {
-        printf("Kernel exiting successfully.\n");
-        kernel::exit_guest(1);
+        ten_sec_wqe.fn = integration_test_timeout;
+        kernel::get_current_cpu()->scheduler.schedule_timer(
+                &ten_sec_wqe,1000);
     }
 }

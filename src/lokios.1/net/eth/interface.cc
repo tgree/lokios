@@ -7,6 +7,8 @@
 #include "net/tcp/traits.h"
 #include "kernel/console.h"
 #include "kernel/mm/vm.h"
+#include "acpi/tables.h"
+#include "platform/platform.h"
 
 #define DUMP_GOOD_PACKETS 0
 #if DUMP_GOOD_PACKETS
@@ -151,6 +153,15 @@ eth::interface::handle_dhcp_success()
            dhcpc->dns_addr[2],dhcpc->dns_addr[3],
            dhcpc->lease,dhcpc->t1,dhcpc->t2);
     ip_addr = dhcpc->requested_addr;
+
+    // If there is an 'iTST' ACPI table, this indicates we are running on qemu
+    // in integration-tes mode and should just exit instead of spinning in the
+    // scheduler forever.
+    if (kernel::find_acpi_table('TSTi'))
+    {
+        printf("Kernel exiting successfully.\n");
+        kernel::exit_guest(1);
+    }
 }
 
 void
