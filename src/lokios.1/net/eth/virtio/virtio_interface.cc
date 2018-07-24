@@ -1,5 +1,6 @@
 #include "virtio_interface.h"
 #include "virtio_net.h"
+#include "net/eth/checksum.h"
 #include "kernel/console.h"
 
 #define DUMP_TX_PACKETS 0
@@ -36,6 +37,7 @@ virtio_net::interface::post_tx_frame(net::tx_op* op)
     kernel::console::printf("Transmitting packet:\n");
     kernel::console::hexdump((void*)op->alps[0].paddr,op->alps[0].len,0);
 #endif
+    eth::insert_checksums(op);
     vdev->post_tx_frame(op);
 }
 
