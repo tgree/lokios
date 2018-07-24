@@ -1109,6 +1109,12 @@ bcm57762::dev::post_tx_frame(net::tx_op* op)
     send_bd* bd;
     net::tx_op** opp;
 
+    uint16_t flags = 0;
+    if (op->flags & NTX_FLAG_INSERT_IP_CSUM)
+        flags |= (1<<1);
+    if (op->flags & (NTX_FLAG_INSERT_UDP_CSUM | NTX_FLAG_INSERT_TCP_CSUM))
+        flags |= (1<<0);
+
     kassert(op->nalps > 0);
     for (size_t i=0; i<op->nalps; ++i)
     {
@@ -1117,7 +1123,7 @@ bcm57762::dev::post_tx_frame(net::tx_op* op)
 
         bd->host_addr = op->alps[i].paddr;
         bd->len       = op->alps[i].len;
-        bd->flags     = (1<<0); // TODO: It'd be nice to to IP csum offload too
+        bd->flags     = flags;
         bd->rsrv      = 0;
         bd->vlan_tag  = 0;
 
