@@ -167,6 +167,7 @@ namespace arp
                 frame.tha              = hw_traits::zero_addr;
                 frame.tpa              = tpa;
                 op.cb                  = send_cb;
+                op.flags               = 0;
                 op.nalps               = 1;
                 op.alps[0].paddr       = kernel::virt_to_phys(&frame);
                 op.alps[0].len         = sizeof(frame);
