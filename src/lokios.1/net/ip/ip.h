@@ -1,10 +1,7 @@
 #ifndef __KERNEL_NET_IP_H
 #define __KERNEL_NET_IP_H
 
-#include "hdr/compiler.h"
-#include "kernel/types.h"
-#include <stdint.h>
-#include <stddef.h>
+#include "net/net.h"
 
 namespace ipv4
 {
@@ -52,14 +49,7 @@ namespace ipv4
 
     static inline uint16_t csum(header* h)
     {
-        size_t nwords     = (h->version_ihl & 0x0F)*2;
-        uint32_t s        = 0;
-        const uint16_t* p = (const uint16_t*)h;
-        for (size_t i=0; i<nwords; ++i)
-            s += swap_uint(*p++);
-        while (s >> 16)
-            s = (s >> 16) + (s & 0xFFFF);
-        return ~s;
+        return net::ones_comp_csum(h,(h->version_ihl & 0x0F)*4,0);
     }
 
     struct net_traits
