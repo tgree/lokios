@@ -8,11 +8,14 @@
 namespace net
 {
     // Transmit parameter block.
+#define NTX_FLAG_INSERT_IP_CSUM     (1<<0)
+#define NTX_FLAG_INSERT_UDP_CSUM    (1<<1)
+#define NTX_FLAG_INSERT_TCP_CSUM    (1<<2)
     struct tx_op
     {
         kernel::klink   link;
         void           (*cb)(tx_op* op);
-        uint64_t        rsrv;
+        uint64_t        flags;
         size_t          nalps;
         kernel::dma_alp alps[2];
     };
