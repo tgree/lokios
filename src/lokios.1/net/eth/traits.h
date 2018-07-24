@@ -14,6 +14,9 @@ namespace eth
         typedef eth::interface  interface_type;
 
         static constexpr const uint16_t arp_hw_type = 1;
+        static constexpr const eth::addr broadcast_addr{0xFF,0xFF,0xFF,
+                                                        0xFF,0xFF,0xFF};
+        static constexpr const eth::addr zero_addr{0,0,0,0,0,0};
     };
 }
 
