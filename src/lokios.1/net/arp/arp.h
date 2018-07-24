@@ -48,7 +48,7 @@ namespace arp
     {
         typedef typename hw_traits::header_type header_type;
         
-        header_type                     hdr;
+        header_type                     llhdr;
         payload<hw_traits,proto_traits> msg;
     } __PACKED__;
 
@@ -171,24 +171,24 @@ namespace arp
                 timeout_ms(timeout_ms),
                 tha(tha)
             {
-                timeout_cqe.fn       = timer_delegate(handle_lookup_timeout);
-                timeout_cqe.args[0]  = (uintptr_t)this;
-                frame.hdr.dst_mac    = eth::broadcast_addr;
-                frame.hdr.src_mac    = service->intf->hw_mac;
-                frame.hdr.ether_type = 0x0806;
-                frame.msg.htype      = hw_traits::arp_hw_type;
-                frame.msg.ptype      = proto_traits::ether_type;
-                frame.msg.hlen       = sizeof(frame.msg.sha);
-                frame.msg.plen       = sizeof(frame.msg.spa);
-                frame.msg.oper       = 1;
-                frame.msg.sha        = service->intf->hw_mac;
-                frame.msg.spa        = service->intf->ip_addr;
-                frame.msg.tha        = eth::addr{0,0,0,0,0,0};
-                frame.msg.tpa        = tpa;
-                tx_op.cb             = send_cb;
-                tx_op.nalps          = 1;
-                tx_op.alps[0].paddr  = kernel::virt_to_phys(&frame);
-                tx_op.alps[0].len    = sizeof(frame);
+                timeout_cqe.fn         = timer_delegate(handle_lookup_timeout);
+                timeout_cqe.args[0]    = (uintptr_t)this;
+                frame.llhdr.dst_mac    = eth::broadcast_addr;
+                frame.llhdr.src_mac    = service->intf->hw_mac;
+                frame.llhdr.ether_type = 0x0806;
+                frame.msg.htype        = hw_traits::arp_hw_type;
+                frame.msg.ptype        = proto_traits::ether_type;
+                frame.msg.hlen         = sizeof(frame.msg.sha);
+                frame.msg.plen         = sizeof(frame.msg.spa);
+                frame.msg.oper         = 1;
+                frame.msg.sha          = service->intf->hw_mac;
+                frame.msg.spa          = service->intf->ip_addr;
+                frame.msg.tha          = eth::addr{0,0,0,0,0,0};
+                frame.msg.tpa          = tpa;
+                tx_op.cb               = send_cb;
+                tx_op.nalps            = 1;
+                tx_op.alps[0].paddr    = kernel::virt_to_phys(&frame);
+                tx_op.alps[0].len      = sizeof(frame);
             }
         };
 
@@ -218,8 +218,8 @@ namespace arp
                 service(service)
             {
                 memcpy(&frame,req,sizeof(frame));
-                frame.hdr.dst_mac   = req->hdr.src_mac;
-                frame.hdr.src_mac   = service->intf->hw_mac;
+                frame.llhdr.dst_mac = req->llhdr.src_mac;
+                frame.llhdr.src_mac = service->intf->hw_mac;
                 frame.msg.sha       = service->intf->hw_mac;
                 frame.msg.spa       = service->intf->ip_addr;
                 frame.msg.tha       = req->msg.sha;

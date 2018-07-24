@@ -27,20 +27,20 @@ rx_arp_reply(arp::service<hw_traits,proto_traits>* service,
     eth::rx_page p;
     memset(p.payload,0,sizeof(p.payload));
 
-    auto* f           = (typename arp_service::arp_frame*)p.payload;
-    p.eth_offset      = 0;
-    p.eth_len         = sizeof(*f);
-    f->hdr.dst_mac    = CLIENT_MAC;
-    f->hdr.src_mac    = hw_addr;
-    f->hdr.ether_type = 0x0806;
-    f->msg.htype      = hw_traits::arp_hw_type;
-    f->msg.ptype      = proto_traits::ether_type;
-    f->msg.hlen       = sizeof(f->msg.sha);
-    f->msg.plen       = sizeof(f->msg.spa);
-    f->msg.oper       = 2;
-    f->msg.sha        = hw_addr;
-    f->msg.spa        = proto_addr;
-    f->msg.tha        = CLIENT_MAC;
+    auto* f             = (typename arp_service::arp_frame*)p.payload;
+    p.eth_offset        = 0;
+    p.eth_len           = sizeof(*f);
+    f->llhdr.dst_mac    = CLIENT_MAC;
+    f->llhdr.src_mac    = hw_addr;
+    f->llhdr.ether_type = 0x0806;
+    f->msg.htype        = hw_traits::arp_hw_type;
+    f->msg.ptype        = proto_traits::ether_type;
+    f->msg.hlen         = sizeof(f->msg.sha);
+    f->msg.plen         = sizeof(f->msg.spa);
+    f->msg.oper         = 2;
+    f->msg.sha          = hw_addr;
+    f->msg.spa          = proto_addr;
+    f->msg.tha          = CLIENT_MAC;
 
     intf.arpc_ipv4->handle_rx_frame(&p);
 }
