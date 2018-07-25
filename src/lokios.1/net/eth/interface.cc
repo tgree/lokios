@@ -184,19 +184,22 @@ eth::interface::handle_rx_pages(kernel::klist<net::rx_page>& pages)
 {
     while (!pages.empty())
     {
-        auto* p = klist_front(pages,link);
+        auto* p  = klist_front(pages,link);
+        p->flags = 0;
         pages.pop_front();
         --rx_posted_count;
 
         auto* h = (eth::header*)(p->payload + p->pay_offset);
-        if (h->dst_mac != hw_mac && h->dst_mac != eth::broadcast_addr)
-            delete p;
-        else switch (h->ether_type)
+        if (h->dst_mac == hw_mac || h->dst_mac == eth::broadcast_addr)
         {
-            case 0x0800:    handle_rx_ipv4_frame(p);    break;
-            case 0x0806:    handle_rx_arp_frame(p);     break;
-            default:        delete p;                   break;
+            switch (h->ether_type)
+            {
+                case 0x0800:    handle_rx_ipv4_frame(p);    break;
+                case 0x0806:    handle_rx_arp_frame(p);     break;
+            }
         }
+        if (!(p->flags & NRX_FLAG_NO_DELETE))
+            delete p;
     }
     refill_rx_pages();
 }
@@ -207,15 +210,12 @@ eth::interface::handle_rx_ipv4_frame(net::rx_page* p)
     auto* h   = (eth::header*)(p->payload + p->pay_offset);
     auto* iph = (ipv4::header*)(h+1);
     if (iph->dst_ip != ip_addr && iph->dst_ip != ipv4::broadcast_addr)
-        delete p;
-    else switch (iph->proto)
+        return;
+
+    switch (iph->proto)
     {
         case tcp::net_traits::ip_proto: handle_rx_ipv4_tcp_frame(p);    break;
         case udp::net_traits::ip_proto: handle_rx_ipv4_udp_frame(p);    break;
-
-        default:
-            delete p;
-        break;
     }
 }
 
@@ -231,7 +231,6 @@ eth::interface::handle_rx_ipv4_tcp_frame(net::rx_page* p)
     if (!l)
     {
         intf_dbg("ipv4 tcp frame received and dropped on port %u\n",dst_port);
-        delete p;
         return;
     }
 
@@ -240,7 +239,6 @@ eth::interface::handle_rx_ipv4_tcp_frame(net::rx_page* p)
     {
         intf_dbg("ipv4 tcp frame received and rejected on port %u with err "
                  "%d\n",dst_port,err);
-        delete p;
         return;
     }
 
@@ -257,7 +255,6 @@ eth::interface::handle_rx_ipv4_udp_frame(net::rx_page* p)
     auto* ufh = &intf_mem->udp_frame_handlers[uh->dst_port];
     if (ufh->handler)
         (*ufh->handler)(this,ufh->cookie,p);
-    delete p;
 }
 
 void
@@ -269,5 +266,4 @@ eth::interface::handle_rx_arp_frame(net::rx_page* p)
     {
         case 0x0800:    arpc_ipv4->handle_rx_frame(p);  break;
     }
-    delete p;
 }

@@ -37,6 +37,7 @@ namespace net
     // In short: ignore everything before payload + pay_offset and don't trust
     // that everything from payload + pay_offset + pay_len is actually client
     // data.
+#define NRX_FLAG_NO_DELETE  (1<<0)  // Set by client to prevent auto-delete.
     struct rx_page
     {
         kernel::klink   link;
