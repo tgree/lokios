@@ -157,7 +157,7 @@ transition_DHCP_DECLINED_WAIT_TX_COMP()
     TASSERT(!intf.arpc_ipv4->arp_lookup_ops.empty());
     auto* op = klist_front(intf.arpc_ipv4->arp_lookup_ops,link);
     auto* cqe = op->cqe;
-    op->send_cb(&op->op);
+    op->op.cb(&op->op);
     rx_arp_reply(intf.arpc_ipv4,eth::addr{0x11,0x22,0x33,0x44,0x55,0x66},
                  CLIENT_IP);
 
@@ -177,7 +177,7 @@ transition_DHCP_BOUND_WAIT_TIMEOUT()
         TASSERT(!intf.arpc_ipv4->arp_lookup_ops.empty());
         auto* op = klist_front(intf.arpc_ipv4->arp_lookup_ops,link);
         auto* cqe = op->cqe;
-        op->send_cb(&op->op);
+        op->op.cb(&op->op);
 
         op->handle_lookup_timeout(&op->timeout_cqe);
 

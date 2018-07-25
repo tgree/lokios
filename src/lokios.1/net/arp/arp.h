@@ -74,7 +74,7 @@ namespace arp
 
             static void send_cb(net::tx_op* top)
             {
-                container_of(top,lookup_op,op)->handle_lookup_send_comp();
+                container_of(top,lookup_op,op)->handle_lookup_send_comp(top);
             }
 
             void post()
@@ -84,7 +84,7 @@ namespace arp
                 serv->intf->post_tx_frame(&op);
             }
 
-            void handle_lookup_send_comp()
+            void handle_lookup_send_comp(net::tx_op*)
             {
                 switch (state)
                 {
@@ -182,7 +182,7 @@ namespace arp
 
             static void send_cb(net::tx_op* top)
             {
-                container_of(top,reply_op,op)->handle_reply_send_comp();
+                container_of(top,reply_op,op)->handle_reply_send_comp(top);
             }
 
             void post()
@@ -190,7 +190,7 @@ namespace arp
                 serv->intf->post_tx_frame(&op);
             }
 
-            void handle_reply_send_comp()
+            void handle_reply_send_comp(net::tx_op*)
             {
                 serv->handle_reply_send_comp(this);
             }
