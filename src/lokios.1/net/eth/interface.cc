@@ -66,6 +66,7 @@ eth::interface::interface(const eth::addr& hw_mac, size_t tx_qlen,
 
     kernel::vmmap(intf_mem,sizeof(*intf_mem));
     memset(intf_mem,0,sizeof(*intf_mem));
+    new(intf_mem) interface_mem();
 
     dhcpc = new dhcp::client(this);
     arpc_ipv4 = new arp::service<eth::net_traits,ipv4::net_traits>(this);
@@ -73,6 +74,7 @@ eth::interface::interface(const eth::addr& hw_mac, size_t tx_qlen,
 
 eth::interface::~interface()
 {
+    intf_mem->~interface_mem();
     kernel::vmunmap(intf_mem,sizeof(*intf_mem));
     free_id(id);
 }
