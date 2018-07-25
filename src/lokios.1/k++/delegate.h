@@ -14,7 +14,7 @@ namespace kernel
         void*   obj;
         RC      (*bouncer)(void* obj, Args...);
 
-        inline RC operator()(Args&&... args)
+        inline RC operator()(Args... args)
         {
             return (*bouncer)(obj,std::forward<Args>(args)...);
         }
