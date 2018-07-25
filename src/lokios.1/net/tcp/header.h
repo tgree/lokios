@@ -1,7 +1,7 @@
 #ifndef __KERNEL_NET_TCP_HEADER_H
 #define __KERNEL_NET_TCP_HEADER_H
 
-#include "kernel/types.h"
+#include "net/net.h"
 
 namespace tcp
 {
@@ -34,6 +34,8 @@ namespace tcp
         be_uint16_t urgent_pointer;
     } __PACKED__;
     KASSERT(sizeof(header) == 20);
+
+    uint16_t compute_checksum(net::tx_op* op, size_t llhdr_size);
 }
 
 #endif /* __KERNEL_NET_TCP_HEADER_H */

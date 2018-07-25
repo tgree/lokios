@@ -1,0 +1,26 @@
+#include "../header.h"
+#include "tmock/tmock.h"
+
+class tmock_test
+{
+    TMOCK_TEST(test_actual_data)
+    {
+        uint8_t raw_packet[] = {0x45, 0x00, 0x00, 0x2C, 0x00, 0x02, 0x00, 0x00,
+                                0x40, 0x06, 0x62, 0xBA, 0x0A, 0x00, 0x02, 0x02,
+                                0x0A, 0x00, 0x02, 0x0F, 0x8D, 0x6A, 0x30, 0x39,
+                                0x00, 0x05, 0xDC, 0x01, 0x00, 0x00, 0x00, 0x00,
+                                0x60, 0x02, 0x22, 0x38, 0x00, 0x00, 0x00, 0x00,
+                                0x02, 0x04, 0x05, 0xB4};
+        KASSERT(sizeof(raw_packet) == 44);
+
+        net::tx_op op;
+        op.nalps = 1;
+        op.alps[0].paddr = kernel::virt_to_phys(raw_packet);
+        op.alps[0].len   = sizeof(raw_packet);
+        uint16_t csum    = tcp::compute_checksum(&op,0);
+
+        tmock::assert_equiv(csum,0xC433U);
+    }
+};
+
+TMOCK_MAIN();
