@@ -20,7 +20,7 @@ random_gen(uint8_t nbits)
 uint32_t
 kernel::random(uint32_t first, uint32_t last)
 {
-    return first + (random_gen(32) % (last - first + 1));
+    return first + (random_gen(32) % ((uint64_t)last - (uint64_t)first + 1));
 }
 
 void
