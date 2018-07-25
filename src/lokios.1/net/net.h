@@ -41,7 +41,8 @@ namespace net
     {
         kernel::klink   link;
         uint16_t        pay_offset;
-        uint16_t        pay_len;
+        uint16_t        flags   : 4,
+                        pay_len : 12;
         uint8_t         payload[4084];
     };
     KASSERT(sizeof(rx_page) == PAGE_SIZE);
