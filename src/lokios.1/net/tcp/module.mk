@@ -1,4 +1,4 @@
-SUBMODULES :=
+SUBMODULES := test
 
 TCP_SRC := $(wildcard $(MODULE_SRC_DIR)/*.cc)
 TCP_OBJ := $(TCP_SRC:$(MODULE_SRC_DIR)/%.cc=$(MODULE_BUILD_DIR)/%.o)
