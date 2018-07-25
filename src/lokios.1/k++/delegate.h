@@ -29,6 +29,13 @@ namespace kernel
         {
             return ((RC(*)(Args...))func)(std::forward<Args>(args)...);
         }
+
+        template<typename T, RC(T::*Method)(Args...)>
+        void _make_method_delegate(T* o)
+        {
+            obj     = (void*)o;
+            bouncer = mbounce<T,Method>;
+        }
     };
 
     template<typename T, typename RC, typename ...Args>
@@ -38,6 +45,9 @@ namespace kernel
     delegate<RC(Args...)> delegate_convert(RC (*Func)(Args...));
 
 #define this_type std::remove_reference_t<decltype(*this)>
+
+#define make_method_delegate(m) \
+    _make_method_delegate<this_type,&this_type::m>(this)
 
 #define method_delegate_ptmf(ptmf) \
     {(void*)this, \
