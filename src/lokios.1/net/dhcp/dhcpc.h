@@ -118,7 +118,7 @@ namespace dhcp
         void    process_request_reply();
 
         // Handlers.
-        void    handle_tx_send_comp();
+        void    handle_tx_send_comp(net::tx_op*);
         void    handle_rx_expiry(kernel::timer_entry*);
         void    handle_rx_dhcp(eth::interface* intf, net::rx_page* p);
         void    handle_rx_dhcp_offer(const  dhcp::eth_message* m);

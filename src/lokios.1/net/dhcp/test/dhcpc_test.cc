@@ -103,7 +103,7 @@ static void
 transition_DHCP_SELECTING_WAIT_RX_RESP()
 {
     transition_DHCP_SELECTING_WAIT_RX_RESP_TX_COMP();
-    intf.dhcpc->handle_tx_send_comp();
+    intf.dhcpc->send_op.cb(&intf.dhcpc->send_op);
     ASSERT_STATE(DHCP_SELECTING_WAIT_RX_RESP);
 }
 
@@ -120,7 +120,7 @@ transition_DHCP_REQUESTING_WAIT_RX_RESP_TX_COMP()
 {
     transition_DHCP_SELECTING_WAIT_TX_COMP();
     texpect("eth::interface::post_tx_frame",want(op,&intf.dhcpc->send_op));
-    intf.dhcpc->handle_tx_send_comp();
+    intf.dhcpc->send_op.cb(&intf.dhcpc->send_op);
     ASSERT_STATE(DHCP_REQUESTING_WAIT_RX_RESP_TX_COMP);
 }
 
@@ -128,7 +128,7 @@ static void
 transition_DHCP_REQUESTING_WAIT_RX_RESP()
 {
     transition_DHCP_REQUESTING_WAIT_RX_RESP_TX_COMP();
-    intf.dhcpc->handle_tx_send_comp();
+    intf.dhcpc->send_op.cb(&intf.dhcpc->send_op);
     ASSERT_STATE(DHCP_REQUESTING_WAIT_RX_RESP);
 }
 
@@ -145,7 +145,7 @@ transition_DHCP_REQUESTING_WAIT_ARP_COMP()
 {
     transition_DHCP_REQUESTING_WAIT_TX_COMP();
     texpect("eth::interface::post_tx_frame");
-    intf.dhcpc->handle_tx_send_comp();
+    intf.dhcpc->send_op.cb(&intf.dhcpc->send_op);
     ASSERT_STATE(DHCP_REQUESTING_WAIT_ARP_COMP);
 }
 
@@ -204,7 +204,7 @@ static void
 transition_DHCP_RENEWING_WAIT_RX_RESP()
 {
     transition_DHCP_RENEWING_WAIT_RX_RESP_TX_COMP();
-    intf.dhcpc->handle_tx_send_comp();
+    intf.dhcpc->send_op.cb(&intf.dhcpc->send_op);
     ASSERT_STATE(DHCP_RENEWING_WAIT_RX_RESP);
 }
 
@@ -261,7 +261,7 @@ static void
 transition_DHCP_REBINDING_WAIT_RX_RESP()
 {
     transition_DHCP_REBINDING_WAIT_RX_RESP_TX_COMP();
-    intf.dhcpc->handle_tx_send_comp();
+    intf.dhcpc->send_op.cb(&intf.dhcpc->send_op);
     ASSERT_STATE(DHCP_REBINDING_WAIT_RX_RESP);
 }
 

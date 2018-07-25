@@ -34,7 +34,7 @@ static void
 handle_dhcp_client_send_comp_bounce(net::tx_op* op)
 {
     auto* c = container_of(op,dhcp::client,send_op);
-    c->handle_tx_send_comp();
+    c->handle_tx_send_comp(op);
 }
 
 dhcp::client::client(eth::interface* intf):
@@ -331,7 +331,7 @@ dhcp::client::process_request_reply()
 }
 
 void
-dhcp::client::handle_tx_send_comp()
+dhcp::client::handle_tx_send_comp(net::tx_op*)
 {
     switch (state)
     {
