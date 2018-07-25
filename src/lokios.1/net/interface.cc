@@ -75,7 +75,7 @@ net::interface::udp_ignore(uint16_t port)
 }
 
 void
-net::interface::tcp_listen(uint16_t port, tcp::connection_filter f)
+net::interface::tcp_listen(uint16_t port, tcp::alloc_delegate ad)
 {
     kassert(!intf_mem->tcp_listeners[port]);
 
@@ -87,8 +87,47 @@ net::interface::tcp_listen(uint16_t port, tcp::connection_filter f)
 
     l->intf                       = this;
     l->port                       = port;
-    l->filter_delegate            = f;
+    l->socket_allocator           = ad;
     intf_mem->tcp_listeners[port] = l;
+}
+
+struct net_tcp_socket : public tcp::socket
+{
+    tcp::rx_queue   erq;
+
+    void rq_ready(tcp::rx_queue*)
+    {
+        char buffer[16];
+        memset(buffer,0,sizeof(buffer));
+        while (erq.avail_bytes)
+        {
+            uint32_t len = kernel::min(erq.avail_bytes,sizeof(buffer)-1);
+            erq.read(buffer,len);
+            if (!strcmp(buffer,"arp\r\n"))
+                intf->dump_arp_table();
+        }
+        kassert(erq.pages.empty());
+    }
+
+    net_tcp_socket(net::interface* intf, uint16_t port):
+        tcp::socket(intf,port,&erq),
+        erq(method_delegate(rq_ready))
+    {
+    }
+};
+
+tcp::socket*
+net::interface::tcp_socket_allocator(const tcp::header* syn)
+{
+    return new net_tcp_socket(this,syn->dst_port);
+}
+
+void
+net::interface::tcp_delete(tcp::socket* s)
+{
+    intf_dbg("deleting socket\n");
+    s->link.unlink();
+    delete s;
 }
 
 void
@@ -96,6 +135,9 @@ net::interface::activate()
 {
     // Post receive buffers.
     refill_rx_pages();
+
+    // Add a handler.
+    tcp_listen(12345,method_delegate(tcp_socket_allocator));
 }
 
 void
@@ -115,14 +157,15 @@ net::interface::refill_rx_pages()
 void
 net::interface::handle_rx_ipv4_frame(net::rx_page* p)
 {
-    auto* iph = (ipv4::header*)(p->payload + p->pay_offset);
+    auto* iph = p->payload_cast<ipv4::header*>();
     if (iph->dst_ip != ip_addr && iph->dst_ip != ipv4::broadcast_addr)
         return;
 
     switch (iph->proto)
     {
         case tcp::net_traits::ip_proto:
-            tcp::handle_rx_ipv4_tcp_frame(this,p);
+            if (iph->dst_ip == ip_addr)
+                tcp::handle_rx_ipv4_tcp_frame(this,p);
         break;
 
         case udp::net_traits::ip_proto:
@@ -134,7 +177,7 @@ net::interface::handle_rx_ipv4_frame(net::rx_page* p)
 void
 net::interface::handle_rx_ipv4_udp_frame(net::rx_page* p)
 {
-    auto* iph = (ipv4::header*)(p->payload + p->pay_offset);
+    auto* iph = p->payload_cast<ipv4::header*>();
     auto* uh  = (udp::header*)(iph+1);
 
     udp_frame_handler* ufh;

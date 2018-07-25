@@ -13,38 +13,26 @@ struct ipv4_tcp_headers
     tcp::header     tcp;
 } __PACKED__;
 
-struct ll_ipv4_tcp_headers
-{
-    uint8_t         ll[64];
-    ipv4::header    ip;
-    tcp::header     tcp;
-} __PACKED__;
-
-struct tcp_tx_op : public net::tx_op
-{
-    ll_ipv4_tcp_headers hdrs;
-};
-
 static kernel::spinlock op_lock;
-static kernel::slab     op_slab(sizeof(tcp_tx_op));
+static kernel::slab     op_slab(sizeof(tcp::tx_op) + MAX_OPTIONS_SIZE);
 
 static void
 tcp_reply_cb(net::tx_op* op)
 {
-    auto* top = static_cast<tcp_tx_op*>(op);
+    auto* top = static_cast<tcp::tx_op*>(op);
     with (op_lock)
     {
         op_slab.free(top);
     }
 }
 
-static tcp_tx_op*
-tcp_alloc_reply(net::interface* intf, net::rx_page* p)
+tcp::tx_op*
+tcp::alloc_reply(net::interface* intf, net::rx_page* p)
 {
-    tcp_tx_op* r;
+    tcp::tx_op* r;
     with (op_lock)
     {
-        r = op_slab.alloc<tcp_tx_op>();
+        r = op_slab.alloc<tcp::tx_op>();
     }
 
     auto* sh                    = p->payload_cast<ipv4_tcp_headers*>();
@@ -77,19 +65,19 @@ tcp_alloc_reply(net::interface* intf, net::rx_page* p)
     return r;
 }
 
-static void
-post_rst(net::interface* intf, net::rx_page* p, uint32_t seq_num)
+void
+tcp::post_rst(net::interface* intf, net::rx_page* p, uint32_t seq_num)
 {
-    auto* r             = tcp_alloc_reply(intf,p);
+    auto* r             = tcp::alloc_reply(intf,p);
     r->hdrs.tcp.seq_num = seq_num;
     r->hdrs.tcp.rst     = 1;
     intf->post_tx_frame(r);
 }
 
-static void
-post_rst_ack(net::interface* intf, net::rx_page* p, uint32_t ack_num)
+void
+tcp::post_rst_ack(net::interface* intf, net::rx_page* p, uint32_t ack_num)
 {
-    auto* r             = tcp_alloc_reply(intf,p);
+    auto* r             = tcp::alloc_reply(intf,p);
     r->hdrs.tcp.seq_num = 0;
     r->hdrs.tcp.ack_num = ack_num;
     r->hdrs.tcp.ack     = 1;
@@ -98,10 +86,54 @@ post_rst_ack(net::interface* intf, net::rx_page* p, uint32_t ack_num)
 }
 
 void
+tcp::post_ack(net::interface* intf, net::rx_page* p, uint32_t seq_num,
+    uint32_t ack_num, uint16_t window_size)
+{
+    auto* r                 = tcp::alloc_reply(intf,p);
+    r->hdrs.tcp.seq_num     = seq_num;
+    r->hdrs.tcp.ack_num     = ack_num;
+    r->hdrs.tcp.ack         = 1;
+    r->hdrs.tcp.window_size = window_size;
+    intf->post_tx_frame(r);
+}
+
+void
 tcp::handle_rx_ipv4_tcp_frame(net::interface* intf, net::rx_page* p)
 {
+    if (p->pay_len < sizeof(ipv4_tcp_headers))
+        return;
+
+    auto* h           = p->payload_cast<ipv4_tcp_headers*>();
+    uint16_t dst_port = h->tcp.dst_port;
+    auto& sl          = intf->intf_mem->tcp_socket_lists[dst_port];
+    for (auto& sock : klist_elems(sl,link))
+    {
+        if (sock.hdrs.tcp.dst_port != h->tcp.src_port)
+            continue;
+        if (sock.hdrs.ip.dst_ip != h->ip.src_ip)
+            continue;
+
+        sock.handle_rx_ipv4_tcp_frame(p);
+        return;
+    }
+
+    auto* l = intf->intf_mem->tcp_listeners[dst_port];
+    if (l)
+    {
+        auto* s = l->socket_allocator(&h->tcp);
+        if (s)
+        {
+            sl.push_back(&s->link);
+            s->handle_rx_ipv4_tcp_frame(p);
+        }
+        else
+        {
+            // TODO: LISTEN state but packet was rejected.
+        }
+        return;
+    }
+
     // CLOSED state handling since we don't have any kind of a stack yet.
-    auto* h = p->payload_cast<ipv4_tcp_headers*>();
     if (h->tcp.rst)
         return;
     if (h->tcp.ack)

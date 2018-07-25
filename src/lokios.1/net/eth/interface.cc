@@ -166,3 +166,21 @@ eth::interface::handle_rx_arp_frame(net::rx_page* p)
         case 0x0800:    arpc_ipv4->handle_rx_frame(p);  break;
     }
 }
+
+void
+eth::interface::dump_arp_table()
+{
+    size_t i = 0;
+    intf_dbg("arp table:\n");
+    auto* ht = &arpc_ipv4->arp_entries;
+    for (size_t j=0; j<ht->nbins; ++j)
+    {
+        for (auto& e : klist_elems(ht->bins[j],link))
+        {
+            ++i;
+            intf_dbg("%2zu: %u.%u.%u.%u: %02X:%02X:%02X:%02X:%02X:%02X\n",
+                     i,e.k[0],e.k[1],e.k[2],e.k[3],
+                     e.v[0],e.v[1],e.v[2],e.v[3],e.v[4],e.v[5]);
+        }
+    }
+}
