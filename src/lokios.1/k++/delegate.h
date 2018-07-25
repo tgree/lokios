@@ -37,12 +37,14 @@ namespace kernel
     template<typename RC, typename ...Args>
     delegate<RC(Args...)> delegate_convert(RC (*Func)(Args...));
 
+#define this_type std::remove_reference_t<decltype(*this)>
+
 #define method_delegate_ptmf(ptmf) \
     {(void*)this, \
-     decltype(kernel::delegate_convert(ptmf))::mbounce<typeof(*this),ptmf>}
+     decltype(kernel::delegate_convert(ptmf))::mbounce<this_type,ptmf>}
 
 #define method_delegate(m) \
-    method_delegate_ptmf(&std::remove_reference_t<decltype(*this)>::m)
+    method_delegate_ptmf(&this_type::m)
 
 #define func_delegate(f) delegate<typeof(f)> \
     {(void*)f, \
