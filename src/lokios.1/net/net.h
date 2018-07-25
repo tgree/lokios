@@ -2,6 +2,7 @@
 #define __KERNEL_NET_NET_H
 
 #include "k++/klist.h"
+#include "k++/delegate.h"
 #include "mm/mm.h"
 #include "mm/page.h"
 
@@ -13,11 +14,11 @@ namespace net
 #define NTX_FLAG_INSERT_TCP_CSUM    (1<<2)
     struct tx_op
     {
-        kernel::klink   link;
-        void           (*cb)(tx_op* op);
-        uint64_t        flags;
-        size_t          nalps;
-        kernel::dma_alp alps[2];
+        kernel::klink                   link;
+        kernel::delegate<void(tx_op*)>  cb;
+        uint32_t                        flags;
+        uint32_t                        nalps;
+        kernel::dma_alp                 alps[2];
     };
     KASSERT(sizeof(tx_op) == 64);
 

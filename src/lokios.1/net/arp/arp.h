@@ -72,11 +72,6 @@ namespace arp
             hw_addr*            tha;
             arp_frame           frame;
 
-            static void send_cb(net::tx_op* top)
-            {
-                container_of(top,lookup_op,op)->handle_lookup_send_comp(top);
-            }
-
             void post()
             {
                 kernel::kassert(state == WAIT_POST);
@@ -166,11 +161,12 @@ namespace arp
                 frame.spa              = serv->intf->ip_addr;
                 frame.tha              = hw_traits::zero_addr;
                 frame.tpa              = tpa;
-                op.cb                  = send_cb;
-                op.flags               = 0;
-                op.nalps               = 1;
-                op.alps[0].paddr       = kernel::virt_to_phys(&frame);
-                op.alps[0].len         = sizeof(frame);
+
+                op.cb.make_method_delegate(handle_lookup_send_comp);
+                op.flags         = 0;
+                op.nalps         = 1;
+                op.alps[0].paddr = kernel::virt_to_phys(&frame);
+                op.alps[0].len   = sizeof(frame);
             }
         };
 
@@ -179,11 +175,6 @@ namespace arp
             service*    serv;
             net::tx_op  op;
             arp_frame   frame;
-
-            static void send_cb(net::tx_op* top)
-            {
-                container_of(top,reply_op,op)->handle_reply_send_comp(top);
-            }
 
             void post()
             {
@@ -206,10 +197,11 @@ namespace arp
                 frame.spa           = serv->intf->ip_addr;
                 frame.tha           = req->sha;
                 frame.tpa           = req->spa;
-                op.cb               = send_cb;
-                op.nalps            = 1;
-                op.alps[0].paddr    = kernel::virt_to_phys(&frame);
-                op.alps[0].len      = sizeof(frame);
+
+                op.cb.make_method_delegate(handle_reply_send_comp);
+                op.nalps         = 1;
+                op.alps[0].paddr = kernel::virt_to_phys(&frame);
+                op.alps[0].len   = sizeof(frame);
             }
         };
 

@@ -30,13 +30,6 @@ using kernel::console::printf;
 #define TRANSITION(s) state = (s)
 #endif
 
-static void
-handle_dhcp_client_send_comp_bounce(net::tx_op* op)
-{
-    auto* c = container_of(op,dhcp::client,send_op);
-    c->handle_tx_send_comp(op);
-}
-
 dhcp::client::client(eth::interface* intf):
     state(DHCP_INIT),
     intf(intf),
@@ -68,7 +61,7 @@ dhcp::client::client(eth::interface* intf):
                                     sizeof(packet.iphdr);
     memset(&packet.msg.sname,0,sizeof(packet.msg.sname));
 
-    send_op.cb            = handle_dhcp_client_send_comp_bounce;
+    send_op.cb            = method_delegate(handle_tx_send_comp);
     send_op.flags         = NTX_FLAG_INSERT_IP_CSUM | NTX_FLAG_INSERT_UDP_CSUM;
     send_op.nalps         = 1;
     send_op.alps[0].paddr = kernel::virt_to_phys(&packet);
