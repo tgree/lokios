@@ -42,6 +42,13 @@ namespace hash
     }
 
     template<typename Key>
+    struct hasher
+    {
+        static inline size_t compute(const Key& k)   {return hash::compute(k);}
+        inline size_t operator()(const Key& k) const {return compute(k);}
+    };
+
+    template<typename Key>
     inline bool equals(const Key& lhs, const Key& rhs)
     {
         return lhs == rhs;
