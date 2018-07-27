@@ -91,6 +91,7 @@ struct be_uint
 {
     T   v;
     constexpr operator T()          {return to_big_endian(v);}
+    constexpr operator T() const    {return to_big_endian(v);}
     constexpr operator T() volatile {return to_big_endian(v);}
     void operator=(T _v)            {v = from_big_endian(_v);}
     void operator=(T _v) volatile   {v = from_big_endian(_v);}
@@ -103,6 +104,7 @@ struct le_uint
 {
     T   v;
     constexpr operator T()          {return to_little_endian(v);}
+    constexpr operator T() const    {return to_little_endian(v);}
     constexpr operator T() volatile {return to_little_endian(v);}
     void operator=(T _v)            {v = from_little_endian(_v);}
     void operator=(T _v) volatile   {v = from_little_endian(_v);}
