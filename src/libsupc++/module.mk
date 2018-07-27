@@ -1,4 +1,4 @@
-GCC_SRCS_DIR := /usr/src/gcc-7/gcc-7.2.0
+GCC_SRCS_DIR := /usr/src/gcc-7/latest
 GCC_LIBSUPCXX_SRCS_DIR := $(GCC_SRCS_DIR)/libstdc++-v3/libsupc++
 
 LIBSUPCXX_SRC := $(wildcard $(GCC_LIBSUPCXX_SRCS_DIR)/*.cc)
