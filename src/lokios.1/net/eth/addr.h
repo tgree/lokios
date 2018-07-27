@@ -38,4 +38,19 @@ namespace eth
     constexpr const addr broadcast_addr{0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 }
 
+#include "k++/hash.h"
+namespace hash
+{
+    template<>
+    inline size_t compute(const eth::addr& k)
+    {
+        return ((uint64_t)k[0] << 40) |
+               ((uint64_t)k[1] << 32) |
+               ((uint64_t)k[2] << 24) |
+               ((uint64_t)k[3] << 16) |
+               ((uint64_t)k[4] <<  8) |
+               ((uint64_t)k[5] <<  0);
+    }
+}
+
 #endif /* __KERNEL_NET_ETH_ADDR_H */
