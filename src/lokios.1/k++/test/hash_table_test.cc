@@ -25,6 +25,12 @@ static inline bool operator==(const elem& lhs, const elem& rhs)
     return lhs.a == rhs.a && lhs.b == rhs.b && lhs.c == rhs.c;
 }
 
+template<typename T>
+static inline size_t one_hasher(const T& k)
+{
+    return 1;
+}
+
 class tmock_test
 {
     TMOCK_TEST(test_construct_destroy)
@@ -127,6 +133,15 @@ class tmock_test
         tmock::assert_equiv(constructions,6U);
         tmock::assert_equiv(destructions,6U);
         TASSERT(!t.contains(10));
+    }
+
+    TMOCK_TEST(test_custom_hasher)
+    {
+        hash::table<int,int,one_hasher> t;
+        t.emplace(1,1);
+        t.emplace(2,2);
+        t.emplace(3,3);
+        tmock::assert_equiv(t.bins[1].size(),3U);
     }
 };
 

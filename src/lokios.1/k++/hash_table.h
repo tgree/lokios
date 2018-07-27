@@ -14,7 +14,8 @@ namespace hash
         constexpr no_such_key_exception():message_exception("no such key") {}
     };
 
-    template<typename Key, typename Value>
+    template<typename Key, typename Value,
+             size_t (&HashFunc)(const Key&) = hash::hasher<Key>::compute>
     struct table
     {
         struct dummy {};
@@ -45,7 +46,7 @@ namespace hash
 
         size_t compute_slot(const Key& k) const
         {
-            return (hash::compute(k) & (nbins-1));
+            return (HashFunc(k) & (nbins-1));
         }
 
         node* find_node_in_slot(const Key& k, size_t slot) const
