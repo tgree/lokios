@@ -11,6 +11,24 @@ tmock::abort(const char* s)
 }
 
 void
+tmock::abort_mem_dump(const void* v, const void* expected, size_t len,
+    const char* file, size_t line)
+{
+    if (!(tmock::internal::mode_flags & TMOCK_MODE_FLAG_SILENT))
+    {
+        printf("%s:%zu:\n",file,line);
+        printf(" Expected:");
+        for (size_t i=0; i<len; ++i)
+            printf(" %02X",((const uint8_t*)expected)[i]);
+        printf("\n      Got:");
+        for (size_t i=0; i<len; ++i)
+            printf(" %02X",((const uint8_t*)v)[i]);
+        printf("\n");
+    }
+    exit(-1);
+}
+
+void
 tmock::assert_equiv(const char* s, const char* expected, const char* file,
     size_t line)
 {

@@ -14,6 +14,9 @@ namespace tmock
     void abort(const char* s) __attribute__((noreturn));
 #define TASSERT(expr) if (!(expr)) tmock::abort(FILELINESTR ": " #expr)
 
+    void abort_mem_dump(const void* v, const void* expected, size_t len,
+                        const char* file, size_t line);
+
     // Assert that two objects are equivalent.  For values it is just a simple
     // comparison with ==.  For things like const char* it will do a string
     // comparison.
@@ -38,6 +41,16 @@ namespace tmock
     void assert_equiv(int64_t v, int64_t expected,
                       const char* file = __builtin_FILE(),
                       size_t line = __builtin_LINE());
+    template<typename T>
+    inline void assert_equiv(const T& v, const T& expected,
+                             const char* file = __builtin_FILE(),
+                             size_t line = __builtin_LINE())
+    {
+        if (v == expected)
+            return;
+        abort_mem_dump(&v,&expected,sizeof(T),file,line);
+    }
+
 
     int run_tests(int argc, const char* argv[]);
 
