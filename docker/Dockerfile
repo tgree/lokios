@@ -35,6 +35,11 @@ RUN apt-get update -y                                   \
  && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 --slave /usr/bin/g++ g++ /usr/bin/g++-7 \
  && update-alternatives --config gcc
 
+# Configure symlink to latest gcc source.
+RUN cd /usr/src/gcc-7       \
+ && tar xf gcc-7.?.?.tar.xz \
+ && ln -s gcc-7.?.? latest
+
 # Copy in the filesystem.
 COPY fs/ /
 
