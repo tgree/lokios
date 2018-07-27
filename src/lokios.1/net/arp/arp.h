@@ -12,6 +12,7 @@
 #include "kernel/cpu.h"
 #include "mm/slab.h"
 #include "mm/mm.h"
+#include "k++/hash_table.h"
 
 #include <kernel/console.h>
 
@@ -43,14 +44,6 @@ namespace arp
             hw_addr         tha;
             proto_addr      tpa;
         } __PACKED__;
-
-        struct entry
-        {
-            kernel::kdlink      link;
-            hw_addr             ha;
-            proto_addr          pa;
-            kernel::timer_entry expiry_wqe;
-        };
 
         struct lookup_op
         {
@@ -209,26 +202,7 @@ namespace arp
         kernel::slab                    arp_lookup_ops_slab;
         kernel::kdlist<lookup_op>       arp_lookup_ops;
         kernel::slab                    arp_reply_ops_slab;
-        kernel::slab                    arp_entries_slab;
-        kernel::kdlist<entry>           arp_entries;
-
-        entry* find_entry(proto_addr tpa)
-        {
-            for (auto& e : klist_elems(arp_entries,link))
-            {
-                if (e.pa == tpa)
-                    return &e;
-            }
-            return NULL;
-        }
-
-        void add_entry(proto_addr pa, hw_addr ha)
-        {
-            auto* e  = arp_entries_slab.alloc<entry>();
-            e->ha    = ha;
-            e->pa    = pa;
-            arp_entries.push_back(&e->link);
-        }
+        hash::table<proto_addr,hw_addr> arp_entries;
 
         lookup_op* find_lookup(proto_addr tpa)
         {
@@ -260,13 +234,13 @@ namespace arp
         void handle_rx_frame(net::rx_page* p)
         {
             auto* f = (arp_frame*)(p->payload + p->pay_offset);
-            auto* e = find_entry(f->spa);
+            auto* e = arp_entries.find_node(f->spa);
             if (e)
-                e->ha = f->sha;
+                e->v = f->sha;
             if (f->tpa == intf->ip_addr)
             {
                 if (!e)
-                    add_entry(f->spa,f->sha);
+                    arp_entries.insert(f->spa,f->sha);
                 if (f->hdr.oper == 2)
                     handle_rx_reply_frame(p);
                 else
@@ -306,8 +280,7 @@ namespace arp
         service(interface* intf):
             intf(intf),
             arp_lookup_ops_slab(sizeof(lookup_op)),
-            arp_reply_ops_slab(sizeof(reply_op)),
-            arp_entries_slab(sizeof(entry))
+            arp_reply_ops_slab(sizeof(reply_op))
         {
         }
     };
