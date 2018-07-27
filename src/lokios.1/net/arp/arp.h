@@ -47,8 +47,6 @@ namespace arp
 
         struct lookup_op
         {
-            kernel::kdlink link;
-
             enum op_state_type
             {
                 WAIT_POST,
@@ -198,37 +196,22 @@ namespace arp
             }
         };
 
-        interface* const                intf;
-        kernel::slab                    arp_lookup_ops_slab;
-        kernel::kdlist<lookup_op>       arp_lookup_ops;
-        kernel::slab                    arp_reply_ops_slab;
-        hash::table<proto_addr,hw_addr> arp_entries;
-
-        lookup_op* find_lookup(proto_addr tpa)
-        {
-            for (auto& op : klist_elems(arp_lookup_ops,link))
-            {
-                if (op.frame.tpa == tpa)
-                    return &op;
-            }
-            return NULL;
-        }
+        interface* const                    intf;
+        kernel::slab                        arp_reply_ops_slab;
+        hash::table<proto_addr,lookup_op>   arp_lookup_ops;
+        hash::table<proto_addr,hw_addr>     arp_entries;
 
         void complete_lookup(lookup_op* op, uint64_t result)
         {
             op->cqe->args[1] = result;
             kernel::cpu::schedule_local_work(op->cqe);
-            op->link.unlink();
-            arp_lookup_ops_slab.free(op);
+            arp_lookup_ops.erase_value(op);
         }
 
         void enqueue_lookup(proto_addr tpa, hw_addr* tha,
                             kernel::work_entry* cqe, size_t timeout_ms)
         {
-            lookup_op* op = arp_lookup_ops_slab.alloc<lookup_op>(this,tpa,tha,
-                                cqe,timeout_ms);
-            arp_lookup_ops.push_back(&op->link);
-            op->post();
+            arp_lookup_ops.emplace(tpa,this,tpa,tha,cqe,timeout_ms).post();
         }
 
         void handle_rx_frame(net::rx_page* p)
@@ -251,11 +234,12 @@ namespace arp
         void handle_rx_reply_frame(net::rx_page* p)
         {
             kernel::console::printf("arp: handle rx reply frame\n");
-            auto* f       = (arp_frame*)(p->payload + p->pay_offset);
-            lookup_op* op = find_lookup(f->spa);
-            if (op)
-                op->handle_rx_reply_tha(f->tha);
-            else
+            auto* f = (arp_frame*)(p->payload + p->pay_offset);
+            try
+            {
+                arp_lookup_ops[f->spa].handle_rx_reply_tha(f->tha);
+            }
+            catch (hash::no_such_key_exception)
             {
                 kernel::console::printf("arp: couldn't find lookup op for "
                                         "%u.%u.%u.%u\n",
@@ -279,7 +263,6 @@ namespace arp
 
         service(interface* intf):
             intf(intf),
-            arp_lookup_ops_slab(sizeof(lookup_op)),
             arp_reply_ops_slab(sizeof(reply_op))
         {
         }
