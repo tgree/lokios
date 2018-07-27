@@ -21,9 +21,10 @@ ASFLAGS := -march=core2 --64
 BASE_CXXFLAGS := -O2 -march=core2 -m64 -mpopcnt -std=gnu++17 -Wall -Werror \
                  -Wno-invalid-offsetof -Wno-multichar -Wno-pmf-conversions \
 		 -ggdb -I$(abspath $(SRC_DIR)) -I$(INCLUDE_DIR)
-KERN_CXXFLAGS := $(BASE_CXXFLAGS) -mcmodel=kernel
-KERN_CCFLAGS  := -O2 -march=core2 -m64 -Werror -ggdb -mcmodel=kernel
-TEST_CXXFLAGS := $(BASE_CXXFLAGS) -DBUILDING_UNITTEST
+KERN_CXXFLAGS := $(BASE_CXXFLAGS) -mcmodel=kernel -fno-PIC -fno-pie
+KERN_CCFLAGS  := -O2 -march=core2 -m64 -Werror -ggdb -mcmodel=kernel \
+                 -fno-PIC -fno-pie
+TEST_CXXFLAGS := $(BASE_CXXFLAGS) -DBUILDING_UNITTEST -fno-PIC -fno-pie
 
 ARFLAGS := rc
 
@@ -37,7 +38,7 @@ define define_test
 -include $$($(1).objs:.o=.d)
 $$(TESTS_DIR)/$(1): $$($(1).objs) $$($(1).libs) $$(LTMOCK) $$(MODULE_MK)
 	@echo Building $$@
-	@$$(BUILD_TEST) $$($(1).objs) -Wl,-\( $$($(1).libs) -Wl,-\) $$(LTMOCK)
+	$$(BUILD_TEST) $$($(1).objs) -Wl,-\( $$($(1).libs) -Wl,-\) $$(LTMOCK)
 endef
 
 define include_module
@@ -99,12 +100,12 @@ clean:
 $(BUILD_O_DIR)/%.o: $(SRC_DIR)/%.cc | headers
 	@echo Compiling kern object $(SRC_DIR)/$*.cc...
 	@mkdir -p $(dir $@)
-	@$(CXX) -MMD -MP -MF $(BUILD_O_DIR)/$*.d -c $(KERN_CXXFLAGS) $(SRC_DIR)/$*.cc -o $@
+	$(CXX) -MMD -MP -MF $(BUILD_O_DIR)/$*.d -c $(KERN_CXXFLAGS) $(SRC_DIR)/$*.cc -o $@
 
 $(BUILD_TO_DIR)/%.o: $(SRC_DIR)/%.cc | headers
 	@echo Compiling test object $(SRC_DIR)/$*.cc...
 	@mkdir -p $(dir $@)
-	@$(CXX) -MMD -MP -MF $(BUILD_TO_DIR)/$*.d -c $(TEST_CXXFLAGS) $(SRC_DIR)/$*.cc -o $@
+	$(CXX) -MMD -MP -MF $(BUILD_TO_DIR)/$*.d -c $(TEST_CXXFLAGS) $(SRC_DIR)/$*.cc -o $@
 
 $(BUILD_O_DIR)/%.o: $(SRC_DIR)/%.s
 	@echo Assembling $^...
