@@ -22,6 +22,7 @@ RUN apt-get update -y                                   \
     software-properties-common                          \
     sudo                                                \
     systemtap-sdt-dev                                   \
+    telnet                                              \
     tig                                                 \
     tmux                                                \
     vim                                                 \
