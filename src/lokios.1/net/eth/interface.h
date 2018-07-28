@@ -38,7 +38,7 @@ namespace eth
         eth::phy*           phy;
 
         // DHCP client service.
-        dhcp::client*           dhcpc;
+        dhcp::client*       dhcpc;
 
         // ARP service.
         arp::service<eth::net_traits,ipv4::net_traits>* arpc_ipv4;
