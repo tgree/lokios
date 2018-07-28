@@ -5,13 +5,7 @@
 #include "net/interface.h"
 #include "net/net.h"
 #include "net/ip/ip.h"
-#include "net/tcp/socket.h"
 #include "kernel/schedule.h"
-#include "kernel/types.h"
-#include "kernel/kassert.h"
-#include "mm/mm.h"
-#include "mm/page.h"
-#include <stdarg.h>
 
 namespace dhcp
 {
