@@ -121,7 +121,7 @@ namespace dhcp
         void    handle_tx_send_comp(net::tx_op*);
         void    handle_rx_expiry(kernel::timer_entry*);
         void    handle_rx_dhcp(net::interface* intf, net::rx_page* p);
-        void    handle_rx_dhcp_offer(const  dhcp::eth_message* m);
+        void    handle_rx_dhcp_offer(const dhcp::eth_message* m);
         void    handle_rx_dhcp_ack(const dhcp::message* m);
         void    handle_rx_dhcp_nak(const dhcp::message* m);
         void    handle_arp_completion(kernel::work_entry*);
