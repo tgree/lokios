@@ -136,7 +136,6 @@ net::interface::handle_rx_ipv4_tcp_frame(net::rx_page* p)
     }
 
     intf_dbg("ipv4 tcp frame accepted on port %u\n",dst_port);
-    delete p;
 }
 
 void
