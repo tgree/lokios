@@ -416,7 +416,7 @@ dhcp::client::handle_rx_expiry(kernel::timer_entry*)
 }
 
 void
-dhcp::client::handle_rx_dhcp(eth::interface*, net::rx_page* p) try
+dhcp::client::handle_rx_dhcp(net::interface*, net::rx_page* p) try
 {
     auto* resp = (dhcp::eth_message*)(p->payload + p->pay_offset);
     if (resp->uhdr.src_port != 67)
