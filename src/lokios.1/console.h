@@ -26,6 +26,14 @@ namespace kernel::console
     }
 
     void v2printf(const char* fmt1, va_list ap1, const char* fmt2, va_list ap2);
+    inline void __PRINTF__(3,4) p2printf(const char* fmt2, va_list ap2,
+                                         const char* fmt, ...)
+    {
+        va_list ap;
+        va_start(ap,fmt);
+        kernel::console::v2printf(fmt,ap,fmt2,ap2);
+        va_end(ap);
+    }
 
     void _putc(char c);
 
