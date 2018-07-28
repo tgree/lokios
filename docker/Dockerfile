@@ -4,7 +4,11 @@
 # Note that the special privileges are only required for use with gdb if you
 # want to debug unittests.  If you are concerned about the privilege level and
 # only want to do builds then you can run without the extra privileges.
-FROM ubuntu:latest
+
+# We require Ubuntu 16.04.  Later versions of Ubuntu seem to have all sorts of
+# problems building with PIC/PIE and mcmode=kernel even though we are providing
+# all our own tools.
+FROM ubuntu:16.04
 
 # Install the base OS packages.
 RUN apt-get update -y                                   \
