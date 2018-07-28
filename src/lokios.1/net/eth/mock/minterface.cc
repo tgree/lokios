@@ -7,7 +7,6 @@
 eth::interface::interface(const eth::addr& hw_mac, size_t tx_qlen,
     size_t rx_qlen):
         hw_mac(hw_mac),
-        ip_addr{0,0,0,0},
         tx_qlen(tx_qlen),
         rx_qlen(rx_qlen),
         rx_posted_count(0),

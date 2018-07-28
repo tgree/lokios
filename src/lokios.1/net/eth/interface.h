@@ -34,9 +34,6 @@ namespace eth
         // MAC address that was assigned by hardware.
         const eth::addr     hw_mac;
 
-        // IP address assigned by software.
-        ipv4::addr          ip_addr;
-
         // Size of the hardware transmit and receive queues.
         const size_t        tx_qlen;
         const size_t        rx_qlen;

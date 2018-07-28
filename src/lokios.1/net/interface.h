@@ -47,6 +47,9 @@ namespace net
         // Interface memory.
         interface_mem*      intf_mem;
 
+        // IP address assigned by software.
+        ipv4::addr          ip_addr;
+
         // Emit log messages.
                 void                 intf_vdbg(const char* fmt, va_list ap);
         inline  void __PRINTF__(2,3) intf_dbg(const char* fmt, ...)

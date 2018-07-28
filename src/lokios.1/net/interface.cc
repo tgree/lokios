@@ -31,7 +31,8 @@ free_id(size_t id)
 
 net::interface::interface():
     id(alloc_id()),
-    intf_mem((interface_mem*)(MM_ETH_BEGIN + id*MM_ETH_STRIDE))
+    intf_mem((interface_mem*)(MM_ETH_BEGIN + id*MM_ETH_STRIDE)),
+    ip_addr{0,0,0,0}
 {
     kernel::vmmap(intf_mem,sizeof(*intf_mem));
     memset(intf_mem,0,sizeof(*intf_mem));
