@@ -1,5 +1,6 @@
 #include "interface.h"
 #include "kernel/console.h"
+#include "mm/vm.h"
 #include "k++/kmath.h"
 
 using kernel::_kassert;
@@ -29,12 +30,18 @@ free_id(size_t id)
 }
 
 net::interface::interface():
-    id(alloc_id())
+    id(alloc_id()),
+    intf_mem((interface_mem*)(MM_ETH_BEGIN + id*MM_ETH_STRIDE))
 {
+    kernel::vmmap(intf_mem,sizeof(*intf_mem));
+    memset(intf_mem,0,sizeof(*intf_mem));
+    new(intf_mem) interface_mem();
 }
 
 net::interface::~interface()
 {
+    intf_mem->~interface_mem();
+    kernel::vmunmap(intf_mem,sizeof(*intf_mem));
     free_id(id);
 }
 

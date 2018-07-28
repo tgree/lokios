@@ -1,9 +1,8 @@
 #ifndef __KERNEL_NET_INTERFACE_H
 #define __KERNEL_NET_INTERFACE_H
 
-#include "net.h"
+#include "tcp/socket.h"
 #include "hdr/compiler.h"
-#include <stddef.h>
 #include <stdarg.h>
 
 namespace net
@@ -28,10 +27,25 @@ namespace net
         std::remove_reference_t<decltype(*this)>, \
         &std::remove_reference_t<decltype(*this)>::fn>::handler
 
+    // Data structure that gets mapped at the interface's reserved vaddr.
+    struct interface_mem
+    {
+        struct
+        {
+            void*           cookie;
+            frame_handler   handler;
+        } udp_frame_handlers[65536];
+
+        tcp::listener*      tcp_listeners[65536];
+    };
+
     struct interface
     {
         // The netX id number.
         const size_t        id;
+
+        // Interface memory.
+        interface_mem*      intf_mem;
 
         // Emit log messages.
                 void                 intf_vdbg(const char* fmt, va_list ap);

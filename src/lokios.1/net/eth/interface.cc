@@ -25,7 +25,6 @@ static kernel::slab tcp_slab(sizeof(tcp::listener));
 
 eth::interface::interface(const eth::addr& hw_mac, size_t tx_qlen,
     size_t rx_qlen):
-        intf_mem((interface_mem*)(MM_ETH_BEGIN + id*MM_ETH_STRIDE)),
         hw_mac(hw_mac),
         ip_addr{0,0,0,0},
         tx_qlen(tx_qlen),
@@ -36,18 +35,12 @@ eth::interface::interface(const eth::addr& hw_mac, size_t tx_qlen,
     intf_dbg("creating interface with MAC %02X:%02X:%02X:%02X:%02X:%02X\n",
              hw_mac[0],hw_mac[1],hw_mac[2],hw_mac[3],hw_mac[4],hw_mac[5]);
 
-    kernel::vmmap(intf_mem,sizeof(*intf_mem));
-    memset(intf_mem,0,sizeof(*intf_mem));
-    new(intf_mem) interface_mem();
-
     dhcpc = new dhcp::client(this);
     arpc_ipv4 = new arp::service<eth::net_traits,ipv4::net_traits>(this);
 }
 
 eth::interface::~interface()
 {
-    intf_mem->~interface_mem();
-    kernel::vmunmap(intf_mem,sizeof(*intf_mem));
 }
 
 void

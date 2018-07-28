@@ -20,7 +20,8 @@ free_id(size_t id)
 }
 
 net::interface::interface():
-    id(alloc_id())
+    id(alloc_id()),
+    intf_mem((net::interface_mem*)malloc(sizeof(*intf_mem)))
 {
 }
 

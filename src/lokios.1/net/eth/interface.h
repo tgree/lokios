@@ -28,24 +28,9 @@ namespace eth
     struct phy;
     struct net_traits;
 
-    // Data structure that gets mapped at the interface's reserved vaddr.
-    struct interface_mem
-    {
-        struct
-        {
-            void*               cookie;
-            net::frame_handler  handler;
-        } udp_frame_handlers[65536];
-
-        tcp::listener*      tcp_listeners[65536];
-    };
-
     // Ethernet interface.
     struct interface : public net::interface
     {
-        // Interface memory.
-        interface_mem*      intf_mem;
-
         // MAC address that was assigned by hardware.
         const eth::addr     hw_mac;
 
