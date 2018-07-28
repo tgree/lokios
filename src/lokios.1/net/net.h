@@ -45,6 +45,20 @@ namespace net
         uint16_t        flags   : 4,
                         pay_len : 12;
         uint8_t         payload[4084];
+
+        // Get a pointer to the payload in a stripped page.
+        template<typename T>
+        inline T payload_cast()
+        {
+            return (T)(payload + pay_offset);
+        }
+
+        // Get a pointer to the link-layer header in a stripped page.
+        template<typename T>
+        inline T llhdr_cast()
+        {
+            return (T)(payload + pay_offset - sizeof(*(T)0));
+        }
     };
     KASSERT(sizeof(rx_page) == PAGE_SIZE);
 
