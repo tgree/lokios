@@ -25,7 +25,7 @@ namespace kernel
 
         virtual void _putc(char c) = 0;
 
-    protected:
+    public:
         void    locked_vprintf(const char* fmt, va_list ap);
         void    locked_hexdump(const void* addr, size_t len,
                                unsigned long base);
@@ -38,16 +38,16 @@ namespace kernel
             va_end(ap);
         }
 
+    protected:
         char_stream_base();
         virtual ~char_stream_base();
     };
 
     template<typename Lock>
-    class char_stream : public char_stream_base
+    struct char_stream : public char_stream_base
     {
         Lock    lock;
 
-    public:
         inline void jvprintf(uint64_t jiffies, const char* fmt, va_list ap)
         {
             with (lock)
