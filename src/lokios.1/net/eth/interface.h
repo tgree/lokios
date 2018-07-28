@@ -50,9 +50,6 @@ namespace eth
         virtual void        issue_phy_write_16(uint16_t v, uint8_t offset,
                                 kernel::work_entry* cqe) = 0;
 
-        // TCP.
-                int     tcp_filter(const tcp::header* syn);
-
         // Activate the interface.
         virtual void    activate();
 
