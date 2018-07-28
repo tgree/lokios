@@ -48,15 +48,6 @@ namespace kernel
     {
         Lock    lock;
 
-        inline void jvprintf(uint64_t jiffies, const char* fmt, va_list ap)
-        {
-            with (lock)
-            {
-                locked_printf("[%3lu.%02lu] ",jiffies/100,jiffies%100);
-                locked_vprintf(fmt,ap);
-            }
-        }
-
         inline void vprintf(const char* fmt, va_list ap)
         {
             with (lock)

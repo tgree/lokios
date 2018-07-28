@@ -18,7 +18,11 @@ kernel::console::vprintf(const char* fmt, va_list ap)
     {
         va_list ap2;
         va_copy(ap2,ap);
-        kc.jvprintf(jiffies,fmt,ap2);
+        with (kc.lock)
+        {
+            kc.locked_printf("[%3lu.%02lu] ",jiffies/100,jiffies%100);
+            kc.locked_vprintf(fmt,ap2);
+        }
         va_end(ap2);
     }
 }
