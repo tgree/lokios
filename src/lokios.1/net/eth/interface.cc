@@ -17,9 +17,6 @@
 #define dump_good_page(p)
 #endif
 
-#define intf_dbg(fmt,...) \
-    kernel::console::printf("eth%zu: " fmt,id,##__VA_ARGS__)
-
 using kernel::console::printf;
 using kernel::_kassert;
 
@@ -77,6 +74,12 @@ eth::interface::~interface()
     intf_mem->~interface_mem();
     kernel::vmunmap(intf_mem,sizeof(*intf_mem));
     free_id(id);
+}
+
+void
+eth::interface::intf_vdbg(const char* fmt, va_list ap)
+{
+    kernel::console::p2printf(fmt,ap,"eth%zu: ",id);
 }
 
 void

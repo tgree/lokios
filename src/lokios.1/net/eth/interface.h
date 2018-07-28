@@ -10,6 +10,7 @@
 #include "kernel/kassert.h"
 #include "mm/mm.h"
 #include "mm/page.h"
+#include <stdarg.h>
 
 namespace dhcp
 {
@@ -85,6 +86,16 @@ namespace eth
 
         // ARP service.
         arp::service<eth::net_traits,ipv4::net_traits>* arpc_ipv4;
+
+        // Emit log messages.
+                void                 intf_vdbg(const char* fmt, va_list ap);
+        inline  void __PRINTF__(2,3) intf_dbg(const char* fmt, ...)
+        {
+            va_list ap;
+            va_start(ap,fmt);
+            intf_vdbg(fmt,ap);
+            va_end(ap);
+        }
 
         // Access the PHY.  These are asynchronous and result in callbacks.
                 void        issue_probe_phy(kernel::work_entry* cqe);
