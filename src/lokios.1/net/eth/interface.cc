@@ -20,36 +20,11 @@
 using kernel::console::printf;
 using kernel::_kassert;
 
-static kernel::spinlock ids_lock;
-static uint32_t free_ids = 0xFFFFFFFF;
-
 static kernel::spinlock slab_lock;
 static kernel::slab tcp_slab(sizeof(tcp::listener));
 
-static size_t
-alloc_id()
-{
-    with (ids_lock)
-    {
-        kassert(free_ids != 0);
-        size_t id = kernel::ffs(free_ids);
-        free_ids &= ~(1<<id);
-        return id;
-    }
-}
-
-static void
-free_id(size_t id)
-{
-    with (ids_lock)
-    {
-        free_ids |= (1<<id);
-    }
-}
-
 eth::interface::interface(const eth::addr& hw_mac, size_t tx_qlen,
     size_t rx_qlen):
-        id(alloc_id()),
         intf_mem((interface_mem*)(MM_ETH_BEGIN + id*MM_ETH_STRIDE)),
         hw_mac(hw_mac),
         ip_addr{0,0,0,0},
@@ -73,13 +48,6 @@ eth::interface::~interface()
 {
     intf_mem->~interface_mem();
     kernel::vmunmap(intf_mem,sizeof(*intf_mem));
-    free_id(id);
-}
-
-void
-eth::interface::intf_vdbg(const char* fmt, va_list ap)
-{
-    kernel::console::p2printf(fmt,ap,"eth%zu: ",id);
 }
 
 void

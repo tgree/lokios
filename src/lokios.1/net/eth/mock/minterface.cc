@@ -4,26 +4,8 @@
 #include "net/dhcp/dhcpc.h"
 #include <tmock/tmock.h>
 
-static uint32_t free_ids = 0xFFFFFFFF;
-
-static size_t
-alloc_id()
-{
-    kernel::kassert(free_ids != 0);
-    size_t id = kernel::ffs(free_ids);
-    free_ids &= ~(1<<id);
-    return id;
-}
-
-static void
-free_id(size_t id)
-{
-    free_ids |= (1<<id);
-}
-
 eth::interface::interface(const eth::addr& hw_mac, size_t tx_qlen,
     size_t rx_qlen):
-	id(alloc_id()),
         intf_mem((eth::interface_mem*)malloc(sizeof(*intf_mem))),
         hw_mac(hw_mac),
         ip_addr{0,0,0,0},
@@ -38,7 +20,6 @@ eth::interface::interface(const eth::addr& hw_mac, size_t tx_qlen,
 
 eth::interface::~interface()
 {
-    free_id(id);
 }
 
 void
