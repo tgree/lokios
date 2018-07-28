@@ -55,22 +55,6 @@ namespace eth
         virtual void        issue_phy_write_16(uint16_t v, uint8_t offset,
                                 kernel::work_entry* cqe) = 0;
 
-        // Register UDP frame handlers.
-        inline  void    register_udp_handler(uint16_t port, void* cookie,
-                                             net::frame_handler handler)
-        {
-            auto* ufh = &intf_mem->udp_frame_handlers[port];
-            kernel::kassert(!ufh->handler);
-            ufh->cookie  = cookie;
-            ufh->handler = handler;
-        }
-        inline  void    deregister_udp_handler(uint16_t port)
-        {
-            auto* ufh = &intf_mem->udp_frame_handlers[port];
-            kernel::kassert(ufh->handler);
-            ufh->handler = NULL;
-        }
-
         // TCP.
                 void    tcp_listen(uint16_t port, tcp::connection_filter f);
                 int     tcp_filter(const tcp::header* syn);

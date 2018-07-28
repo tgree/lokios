@@ -60,6 +60,22 @@ namespace net
             va_end(ap);
         }
 
+        // Register UDP frame handlers.
+        inline  void    register_udp_handler(uint16_t port, void* cookie,
+                                             net::frame_handler handler)
+        {
+            auto* ufh = &intf_mem->udp_frame_handlers[port];
+            kernel::kassert(!ufh->handler);
+            ufh->cookie  = cookie;
+            ufh->handler = handler;
+        }
+        inline  void    deregister_udp_handler(uint16_t port)
+        {
+            auto* ufh = &intf_mem->udp_frame_handlers[port];
+            kernel::kassert(ufh->handler);
+            ufh->handler = NULL;
+        }
+
         // Constructor.
         interface();
         virtual ~interface();
