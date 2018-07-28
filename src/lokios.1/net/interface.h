@@ -85,6 +85,9 @@ namespace net
         virtual void    activate();
                 void    refill_rx_pages();
 
+        // Transmit a frame.
+        virtual void    post_tx_frame(net::tx_op* op) = 0;
+
         // Post a receive page.  The entire page is available for the driver's
         // use even if the chip doesn't support a large enough MTU to use it
         // efficiently.

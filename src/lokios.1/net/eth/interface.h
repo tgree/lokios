@@ -57,9 +57,6 @@ namespace eth
         // Activate the interface.
         virtual void    activate();
 
-        // Transmit a frame.
-        virtual void    post_tx_frame(net::tx_op* op) = 0;
-
         // Handle link status changes.
                 void    handle_link_up(size_t mbits, bool full_duplex);
                 void    handle_link_down();
