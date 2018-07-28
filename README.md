@@ -8,6 +8,19 @@ Simple experimental OS that can be booted with osx-pxe-server.
 
 2. lokios.1 is the actual kernel.  It gets loaded into memory at address 0x00200000 and will still be running off the crappy lokios.0 stack.  It switch stacks, records the E820 contents that will be passed up from lokios.0 and initializes page tables to map the first 32M of RAM.  We do some simple ACPI parsing, set up some interrupt stuff and output to the screen and serial port.  C++ exceptions and RTTI also work.
 
+# Getting started
+
+Congratulations, you've cloned lokios onto your docker-enabled desktop!  Now, to start working with it there are a couple more steps required.
+
+First, you need to create the docker development/build environment.  Enter the docker subdirectory and display the build and run commands we'll need to invoke to start a container:
+
+cd docker
+head -2 Dockerfile
+
+Execute the build command (inserting your name/username into the build parameters) and then execute the run command.  You will then be presented with a bash prompt from inside the docker container.  Do all your work here; when you are done, simply exit the container.  From outside the container, use 'docker ps -a' to find the name of your container and reenter it when you want to continue working via 'docker start -i container_name'.  Use of tmux while inside the container is recommended for sanity; Ctrl-A is the tmux command prefix.
+
+Now that you are inside the container, cat the README.txt file and follow the directions to clone and build lokios.  Yes, I know you've already cloned it onto your desktop - now you need to clone it into the docker container too.
+
 # Building and running unit tests
 
 make -j5
@@ -26,4 +39,4 @@ This version of the qemu invocation sets up TCP forwarding on localhost port 123
 
 make -j && qemu-system-x86_64 -cpu qemu64,+popcnt -drive file=bin/lokios.mbr,format=raw -smp 4 -nographic -device isa-debug-exit -device virtio-net-pci,netdev=net0,disable-legacy=on,disable-modern=off,vectors=4 -netdev user,id=net0,hostfwd=tcp::12345-:12345 -object filter-dump,id=dump0,netdev=net0,file=net0dump.pcap -m 64M
 
-To exit qemu: Type Ctrl-A A X.
+To exit qemu: Type Ctrl-A X.  Or, if you are within tmux: Ctrl-A A X.
