@@ -95,6 +95,9 @@ namespace net
 
         // Handlers.
         inline  void    handle_tx_completion(net::tx_op* op) {op->cb(op);}
+                void    handle_rx_ipv4_frame(net::rx_page* p);
+                void    handle_rx_ipv4_tcp_frame(net::rx_page* p);
+                void    handle_rx_ipv4_udp_frame(net::rx_page* p);
 
         // Constructor.
         interface(size_t tx_qlen, size_t rx_qlen);

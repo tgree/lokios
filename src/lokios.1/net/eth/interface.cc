@@ -149,56 +149,6 @@ eth::interface::handle_rx_pages(kernel::klist<net::rx_page>& pages)
 }
 
 void
-eth::interface::handle_rx_ipv4_frame(net::rx_page* p)
-{
-    auto* iph = (ipv4::header*)(p->payload + p->pay_offset);
-    if (iph->dst_ip != ip_addr && iph->dst_ip != ipv4::broadcast_addr)
-        return;
-
-    switch (iph->proto)
-    {
-        case tcp::net_traits::ip_proto: handle_rx_ipv4_tcp_frame(p);    break;
-        case udp::net_traits::ip_proto: handle_rx_ipv4_udp_frame(p);    break;
-    }
-}
-
-void
-eth::interface::handle_rx_ipv4_tcp_frame(net::rx_page* p)
-{
-    auto* iph         = (ipv4::header*)(p->payload + p->pay_offset);
-    auto* th          = (tcp::header*)(iph+1);
-    uint16_t dst_port = th->dst_port;
-
-    auto* l = intf_mem->tcp_listeners[th->dst_port];
-    if (!l)
-    {
-        intf_dbg("ipv4 tcp frame received and dropped on port %u\n",dst_port);
-        return;
-    }
-
-    int err = l->filter_delegate(th);
-    if (err)
-    {
-        intf_dbg("ipv4 tcp frame received and rejected on port %u with err "
-                 "%d\n",dst_port,err);
-        return;
-    }
-
-    intf_dbg("ipv4 tcp frame accepted on port %u\n",dst_port);
-    delete p;
-}
-
-void
-eth::interface::handle_rx_ipv4_udp_frame(net::rx_page* p)
-{
-    auto* iph = (ipv4::header*)(p->payload + p->pay_offset);
-    auto* uh  = (udp::header*)(iph+1);
-    auto* ufh = &intf_mem->udp_frame_handlers[uh->dst_port];
-    if (ufh->handler)
-        (*ufh->handler)(this,ufh->cookie,p);
-}
-
-void
 eth::interface::handle_rx_arp_frame(net::rx_page* p)
 {
     auto* sp = (arp::header*)(p->payload + p->pay_offset);

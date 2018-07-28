@@ -67,9 +67,6 @@ namespace eth
 
         // Handle receive completions.
                 void    handle_rx_pages(kernel::klist<net::rx_page>& pages);
-                void    handle_rx_ipv4_frame(net::rx_page* p);
-                void    handle_rx_ipv4_tcp_frame(net::rx_page* p);
-                void    handle_rx_ipv4_udp_frame(net::rx_page* p);
                 void    handle_rx_arp_frame(net::rx_page* p);
 
         interface(const eth::addr& hw_mac, size_t tx_qlen, size_t rx_qlen);

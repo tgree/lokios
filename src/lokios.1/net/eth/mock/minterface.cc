@@ -43,18 +43,6 @@ eth::interface::handle_rx_pages(kernel::klist<net::rx_page>& pages)
 }
 
 void
-eth::interface::handle_rx_ipv4_frame(net::rx_page* p)
-{
-    mock("eth::interface::handle_rx_ipv4_frame",p);
-}
-
-void
-eth::interface::handle_rx_ipv4_udp_frame(net::rx_page* p)
-{
-    mock("eth::interface::handle_rx_ipv4_udp_frame",p);
-}
-
-void
 eth::interface::handle_rx_arp_frame(net::rx_page* p)
 {
     mock("eth::interface::handle_rx_arp_frame",p);
