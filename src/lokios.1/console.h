@@ -25,6 +25,8 @@ namespace kernel::console
         va_end(ap);
     }
 
+    void v2printf(const char* fmt1, va_list ap1, const char* fmt2, va_list ap2);
+
     void _putc(char c);
 
     void hexdump(const void* addr, size_t len, unsigned long base);
