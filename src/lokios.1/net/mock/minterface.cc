@@ -59,12 +59,6 @@ net::interface::handle_rx_ipv4_frame(net::rx_page* p)
 }
 
 void
-net::interface::handle_rx_ipv4_tcp_frame(net::rx_page* p)
-{
-    mock("net::interface::handle_rx_ipv4_tcp_frame",p);
-}
-
-void
 net::interface::handle_rx_ipv4_udp_frame(net::rx_page* p)
 {
     mock("net::interface::handle_rx_ipv4_udp_frame",p);
