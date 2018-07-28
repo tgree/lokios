@@ -51,7 +51,6 @@ namespace eth
                                 kernel::work_entry* cqe) = 0;
 
         // TCP.
-                void    tcp_listen(uint16_t port, tcp::connection_filter f);
                 int     tcp_filter(const tcp::header* syn);
 
         // Activate the interface.

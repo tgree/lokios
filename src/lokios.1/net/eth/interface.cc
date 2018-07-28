@@ -20,9 +20,6 @@
 using kernel::console::printf;
 using kernel::_kassert;
 
-static kernel::spinlock slab_lock;
-static kernel::slab tcp_slab(sizeof(tcp::listener));
-
 eth::interface::interface(const eth::addr& hw_mac, size_t tx_qlen,
     size_t rx_qlen):
         net::interface(tx_qlen,rx_qlen),
@@ -44,23 +41,6 @@ void
 eth::interface::issue_probe_phy(kernel::work_entry* cqe)
 {
     eth::phy_driver::issue_probe(this,cqe);
-}
-
-void
-eth::interface::tcp_listen(uint16_t port, tcp::connection_filter f)
-{
-    kassert(!intf_mem->tcp_listeners[port]);
-
-    tcp::listener* l;
-    with (slab_lock)
-    {
-        l = tcp_slab.alloc<tcp::listener>();
-    }
-
-    l->intf                       = this;
-    l->port                       = port;
-    l->filter_delegate            = f;
-    intf_mem->tcp_listeners[port] = l;
 }
 
 void

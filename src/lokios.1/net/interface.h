@@ -81,6 +81,9 @@ namespace net
             ufh->handler = NULL;
         }
 
+        // TCP.
+                void    tcp_listen(uint16_t port, tcp::connection_filter f);
+
         // Activate the interface.
         virtual void    activate();
                 void    refill_rx_pages();
