@@ -216,6 +216,10 @@ namespace arp
 
         void handle_rx_frame(net::rx_page* p)
         {
+            // Unstrip the packet.
+            p->pay_offset -= sizeof(ll_header_type);
+            p->pay_len    += sizeof(ll_header_type);
+
             auto* f = (arp_frame*)(p->payload + p->pay_offset);
             auto* e = arp_entries.find_node(f->spa);
             if (e)

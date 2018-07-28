@@ -133,6 +133,9 @@ eth::interface::handle_rx_pages(kernel::klist<net::rx_page>& pages)
         auto* h = (eth::header*)(p->payload + p->pay_offset);
         if (h->dst_mac == hw_mac || h->dst_mac == eth::broadcast_addr)
         {
+            // Strip the eth::header.
+            p->pay_offset += sizeof(eth::header);
+            p->pay_len    -= sizeof(eth::header);
             switch (h->ether_type)
             {
                 case 0x0800:    handle_rx_ipv4_frame(p);    break;
@@ -148,8 +151,7 @@ eth::interface::handle_rx_pages(kernel::klist<net::rx_page>& pages)
 void
 eth::interface::handle_rx_ipv4_frame(net::rx_page* p)
 {
-    auto* h   = (eth::header*)(p->payload + p->pay_offset);
-    auto* iph = (ipv4::header*)(h+1);
+    auto* iph = (ipv4::header*)(p->payload + p->pay_offset);
     if (iph->dst_ip != ip_addr && iph->dst_ip != ipv4::broadcast_addr)
         return;
 
@@ -163,8 +165,7 @@ eth::interface::handle_rx_ipv4_frame(net::rx_page* p)
 void
 eth::interface::handle_rx_ipv4_tcp_frame(net::rx_page* p)
 {
-    auto* h           = (eth::header*)(p->payload + p->pay_offset);
-    auto* iph         = (ipv4::header*)(h+1);
+    auto* iph         = (ipv4::header*)(p->payload + p->pay_offset);
     auto* th          = (tcp::header*)(iph+1);
     uint16_t dst_port = th->dst_port;
 
@@ -190,8 +191,7 @@ eth::interface::handle_rx_ipv4_tcp_frame(net::rx_page* p)
 void
 eth::interface::handle_rx_ipv4_udp_frame(net::rx_page* p)
 {
-    auto* h   = (eth::header*)(p->payload + p->pay_offset);
-    auto* iph = (ipv4::header*)(h+1);
+    auto* iph = (ipv4::header*)(p->payload + p->pay_offset);
     auto* uh  = (udp::header*)(iph+1);
     auto* ufh = &intf_mem->udp_frame_handlers[uh->dst_port];
     if (ufh->handler)
@@ -201,8 +201,7 @@ eth::interface::handle_rx_ipv4_udp_frame(net::rx_page* p)
 void
 eth::interface::handle_rx_arp_frame(net::rx_page* p)
 {
-    auto* h  = (eth::header*)(p->payload + p->pay_offset);
-    auto* sp = (arp::header*)(h+1);
+    auto* sp = (arp::header*)(p->payload + p->pay_offset);
     switch (sp->ptype)
     {
         case 0x0800:    arpc_ipv4->handle_rx_frame(p);  break;

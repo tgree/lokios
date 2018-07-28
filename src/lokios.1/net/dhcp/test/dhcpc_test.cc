@@ -28,8 +28,8 @@ rx_arp_reply(arp::service<hw_traits,proto_traits>* service,
     memset(p.payload,0,sizeof(p.payload));
 
     auto* f             = (typename arp_service::arp_frame*)p.payload;
-    p.pay_offset        = 0;
-    p.pay_len           = sizeof(*f);
+    p.pay_offset        = sizeof(typename hw_traits::header_type);
+    p.pay_len           = sizeof(*f) - p.pay_offset;
     f->llhdr.dst_mac    = CLIENT_MAC;
     f->llhdr.src_mac    = hw_addr;
     f->llhdr.ether_type = 0x0806;
@@ -49,8 +49,8 @@ static dhcp::eth_message*
 prepare_rx_message(net::rx_page* p)
 {
     memset(p->payload,0,sizeof(p->payload));
-    p->pay_offset = 0;
-    p->pay_len    = sizeof(dhcp::eth_message);
+    p->pay_offset = sizeof(eth::header);
+    p->pay_len    = sizeof(dhcp::eth_message) - sizeof(eth::header);
 
     auto* m             = (dhcp::eth_message*)p->payload;
     m->llhdr.src_mac    = SERVER_MAC;
