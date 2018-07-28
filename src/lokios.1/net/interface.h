@@ -44,6 +44,11 @@ namespace net
         // The netX id number.
         const size_t        id;
 
+        // Size of the hardware transmit and receive queues.
+        const size_t        tx_qlen;
+        const size_t        rx_qlen;
+        size_t              rx_posted_count;
+
         // Interface memory.
         interface_mem*      intf_mem;
 
@@ -76,8 +81,17 @@ namespace net
             ufh->handler = NULL;
         }
 
+        // Activate the interface.
+        virtual void    activate();
+                void    refill_rx_pages();
+
+        // Post a receive page.  The entire page is available for the driver's
+        // use even if the chip doesn't support a large enough MTU to use it
+        // efficiently.
+        virtual void    post_rx_pages(kernel::klist<net::rx_page>& pages) = 0;
+
         // Constructor.
-        interface();
+        interface(size_t tx_qlen, size_t rx_qlen);
         virtual ~interface();
     };
 }

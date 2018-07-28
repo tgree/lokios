@@ -6,10 +6,8 @@
 
 eth::interface::interface(const eth::addr& hw_mac, size_t tx_qlen,
     size_t rx_qlen):
+        net::interface(tx_qlen,rx_qlen),
         hw_mac(hw_mac),
-        tx_qlen(tx_qlen),
-        rx_qlen(rx_qlen),
-        rx_posted_count(0),
         phy(NULL)
 {
     dhcpc = new dhcp::client(this);
@@ -24,12 +22,6 @@ void
 eth::interface::activate()
 {
     mock("eth::interface::activate");
-}
-
-void
-eth::interface::refill_rx_pages()
-{
-    mock("eth::interface::refill_rx_pages");
 }
 
 void

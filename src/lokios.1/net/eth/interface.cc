@@ -25,10 +25,8 @@ static kernel::slab tcp_slab(sizeof(tcp::listener));
 
 eth::interface::interface(const eth::addr& hw_mac, size_t tx_qlen,
     size_t rx_qlen):
+        net::interface(tx_qlen,rx_qlen),
         hw_mac(hw_mac),
-        tx_qlen(tx_qlen),
-        rx_qlen(rx_qlen),
-        rx_posted_count(0),
         phy(NULL)
 {
     intf_dbg("creating interface with MAC %02X:%02X:%02X:%02X:%02X:%02X\n",
@@ -68,26 +66,12 @@ eth::interface::tcp_listen(uint16_t port, tcp::connection_filter f)
 void
 eth::interface::activate()
 {
-    // Post receive buffers.
-    refill_rx_pages();
+    // Activate it in the network stack.
+    net::interface::activate();
 
     // Post a dhcp request.
     // TODO: Wait a random time from 0-10 seconds before starting dhcpc.
     dhcpc->start();
-}
-
-void
-eth::interface::refill_rx_pages()
-{
-    kernel::klist<net::rx_page> pages;
-    size_t n = rx_qlen - rx_posted_count;
-    for (size_t i=0; i<n; ++i)
-    {
-        auto* p = new net::rx_page;
-        pages.push_back(&p->link);
-    }
-    rx_posted_count = rx_qlen;
-    post_rx_pages(pages);
 }
 
 void

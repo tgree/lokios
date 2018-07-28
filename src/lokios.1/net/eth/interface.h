@@ -34,11 +34,6 @@ namespace eth
         // MAC address that was assigned by hardware.
         const eth::addr     hw_mac;
 
-        // Size of the hardware transmit and receive queues.
-        const size_t        tx_qlen;
-        const size_t        rx_qlen;
-        size_t              rx_posted_count;
-
         // PHY, if present.
         eth::phy*           phy;
 
@@ -60,16 +55,10 @@ namespace eth
                 int     tcp_filter(const tcp::header* syn);
 
         // Activate the interface.
-                void    activate();
-                void    refill_rx_pages();
+        virtual void    activate();
 
         // Transmit a frame.
         virtual void    post_tx_frame(net::tx_op* op) = 0;
-
-        // Post a receive page.  The entire page is available for the driver's
-        // use even if the chip doesn't support a large enough MTU to use it
-        // efficiently.
-        virtual void    post_rx_pages(kernel::klist<net::rx_page>& pages) = 0;
 
         // Handle link status changes.
                 void    handle_link_up(size_t mbits, bool full_duplex);

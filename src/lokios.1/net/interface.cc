@@ -29,8 +29,11 @@ free_id(size_t id)
     }
 }
 
-net::interface::interface():
+net::interface::interface(size_t tx_qlen, size_t rx_qlen):
     id(alloc_id()),
+    tx_qlen(tx_qlen),
+    rx_qlen(rx_qlen),
+    rx_posted_count(0),
     intf_mem((interface_mem*)(MM_ETH_BEGIN + id*MM_ETH_STRIDE)),
     ip_addr{0,0,0,0}
 {
@@ -51,3 +54,25 @@ net::interface::intf_vdbg(const char* fmt, va_list ap)
 {
     kernel::console::p2printf(fmt,ap,"net%zu: ",id);
 }
+
+void
+net::interface::activate()
+{
+    // Post receive buffers.
+    refill_rx_pages();
+}
+
+void
+net::interface::refill_rx_pages()
+{
+    kernel::klist<net::rx_page> pages;
+    size_t n = rx_qlen - rx_posted_count;
+    for (size_t i=0; i<n; ++i)
+    {
+        auto* p = new net::rx_page;
+        pages.push_back(&p->link);
+    }
+    rx_posted_count = rx_qlen;
+    post_rx_pages(pages);
+}
+
