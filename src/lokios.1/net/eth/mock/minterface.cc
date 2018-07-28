@@ -37,12 +37,6 @@ eth::interface::handle_dhcp_failure()
 }
 
 void
-eth::interface::handle_tx_completion(net::tx_op* op)
-{
-    mock("eth::interface::handle_tx_completion",op);
-}
-
-void
 eth::interface::handle_rx_pages(kernel::klist<net::rx_page>& pages)
 {
     mock("eth::interface::handle_rx_pages",&pages);

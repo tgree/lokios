@@ -93,6 +93,9 @@ namespace net
         // efficiently.
         virtual void    post_rx_pages(kernel::klist<net::rx_page>& pages) = 0;
 
+        // Handlers.
+        inline  void    handle_tx_completion(net::tx_op* op) {op->cb(op);}
+
         // Constructor.
         interface(size_t tx_qlen, size_t rx_qlen);
         virtual ~interface();

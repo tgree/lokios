@@ -65,8 +65,7 @@ namespace eth
                 void    handle_dhcp_success();
                 void    handle_dhcp_failure();
 
-        // Handle send and receive completions.
-                void    handle_tx_completion(net::tx_op* op);
+        // Handle receive completions.
                 void    handle_rx_pages(kernel::klist<net::rx_page>& pages);
                 void    handle_rx_ipv4_frame(net::rx_page* p);
                 void    handle_rx_ipv4_tcp_frame(net::rx_page* p);
