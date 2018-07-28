@@ -37,6 +37,9 @@ namespace eth
         // ARP service.
         arp::service<eth::net_traits,ipv4::net_traits>* arpc_ipv4;
 
+        // For sending reply frames.
+        virtual size_t  format_ll_reply(net::rx_page* p, void* reply_payload);
+
         // Access the PHY.  These are asynchronous and result in callbacks.
                 void        issue_probe_phy(kernel::work_entry* cqe);
         virtual void        issue_phy_read_16(uint8_t offset,

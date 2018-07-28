@@ -65,6 +65,36 @@ namespace net
             va_end(ap);
         }
 
+        // Format the link-layer part of a reply packet.  It's assumed that in
+        // the rx_page parameter we've received some sort of packet (of
+        // unspecified type, but it includes a link-layer header) that we need
+        // to format a reply to.
+        //
+        // Furthermore, it's assumed that you have some sort of payload after
+        // the link-layer header that you want to transmit; the address of that
+        // payload is what's passed in via the payload pointer.
+        //
+        // For instance, for an ipv4 packet you might have something like:
+        //
+        //      struct packet
+        //      {
+        //          uint8_t         ll[64];
+        //          ipv4::header    ip;
+        //          ...
+        //      };
+        //
+        // In this example, the payload pointer would be set to the address of
+        // the ipv4 header and we've provided up to 64 bytes before the ip
+        // header to hold the link-layer header.  The net::interface subclass
+        // will prefix the payload with an appropriate-sized link-layer header
+        // and return the header size (since it may not use the full 64 bytes -
+        // i.e. Ethernet only uses 12 bytes).
+        // 
+        // Finally, it's assumed that the rx_page you are replying to is in the
+        // link-layer-stripped form.
+        virtual size_t  format_ll_reply(net::rx_page* p, 
+                                        void* reply_payload) = 0;
+
         // Register UDP frame handlers.
         inline  void    register_udp_handler(uint16_t port, void* cookie,
                                              net::frame_handler handler)

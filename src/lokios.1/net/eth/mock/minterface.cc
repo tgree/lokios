@@ -18,6 +18,12 @@ eth::interface::~interface()
 {
 }
 
+size_t
+eth::interface::format_ll_reply(net::rx_page* p, void* reply)
+{
+    return (size_t)mock("eth::interface::format_ll_reply",p,reply);
+}
+
 void
 eth::interface::activate()
 {
