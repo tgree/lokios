@@ -148,7 +148,7 @@ eth::interface::handle_rx_pages(kernel::klist<net::rx_page>& pages)
 void
 eth::interface::handle_rx_arp_frame(net::rx_page* p)
 {
-    auto* sp = (arp::header*)(p->payload + p->pay_offset);
+    auto* sp = p->payload_cast<arp::header*>();
     switch (sp->ptype)
     {
         case 0x0800:    arpc_ipv4->handle_rx_frame(p);  break;
