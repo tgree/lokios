@@ -9,17 +9,14 @@
 #define MAX_RX_WINDOW   0x01FFFFFF  // 32M
 #define RX_WINDOW_SHIFT 9
 
-#define intf_dbg(fmt,...) \
-    kernel::console::printf("eth%zu: " fmt,intf->id,##__VA_ARGS__)
-
 #define DEBUG_TRANSITIONS 1
 
 #if DEBUG_TRANSITIONS
 #define TRANSITION(s) \
-    do                                                             \
-    {                                                              \
-        intf_dbg("%s:%u: %u -> " #s "\n",__FILE__,__LINE__,state); \
-        state = (s);                                               \
+    do                                                                   \
+    {                                                                    \
+        intf->intf_dbg("%s:%u: %u -> " #s "\n",__FILE__,__LINE__,state); \
+        state = (s);                                                     \
     } while(0)
 #else
 #define TRANSITION(s) state = (s)
@@ -74,18 +71,18 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
         case TCP_LISTEN:
             if (h->tcp.rst)
             {
-                intf_dbg("packet had rst bit\n");
+                intf->intf_dbg("packet had rst bit\n");
                 break;
             }
             if (h->tcp.ack)
             {
-                intf_dbg("packet had ack bit\n");
+                intf->intf_dbg("packet had ack bit\n");
                 tcp::post_rst(intf,p,h->tcp.ack_num);
                 break;
             }
             if (!h->tcp.syn)
             {
-                intf_dbg("packet didn't have syn bit\n");
+                intf->intf_dbg("packet didn't have syn bit\n");
                 break;
             }
 
@@ -106,7 +103,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
             if (h->tcp.rst)
             {
                 if (prev_state == TCP_LISTEN)
-                    intf_dbg("passive open failed, deleting socket\n");
+                    intf->intf_dbg("passive open failed, deleting socket\n");
                 else
                     kernel::panic("active open failed - notify client!\n");
                 intf->tcp_delete(this);
@@ -148,7 +145,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
 
         case TCP_CLOSED:
         case TCP_CLOSE_WAIT:
-            intf_dbg("dropping packet\n");
+            intf->intf_dbg("dropping packet\n");
         break;
     }
 }
@@ -190,51 +187,52 @@ tcp::socket::handle_listen_syn_recvd(net::rx_page* p)
         switch (*opt)
         {
             case 0:     // End-of-options.
-                intf_dbg("%zu: opt %u - end of options\n",opt-start,*opt);
+                intf->intf_dbg("%zu: opt %u - end of options\n",opt-start,*opt);
                 rem = 0;
             break;
 
             case 1:     // No-op.
-                intf_dbg("%zu: opt %u - no-op\n",opt-start,*opt);
+                intf->intf_dbg("%zu: opt %u - no-op\n",opt-start,*opt);
                 --rem;
                 ++opt;
             break;
 
             case 2:     // MSS value.
-                intf_dbg("%zu: opt %u - MSS\n",opt-start,*opt);
+                intf->intf_dbg("%zu: opt %u - MSS\n",opt-start,*opt);
                 if (rem < 4)
                 {
-                    intf_dbg("truncated MSS option\n");
+                    intf->intf_dbg("truncated MSS option\n");
                     return;
                 }
                 if (opt[1] != 4)
                 {
-                    intf_dbg("bad MSS length of %u\n",opt[1]);
+                    intf->intf_dbg("bad MSS length of %u\n",opt[1]);
                     return;
                 }
                 snd_mss = *(be_uint16_t*)(opt + 2);
-                intf_dbg("send MSS: %u\n",snd_mss);
+                intf->intf_dbg("send MSS: %u\n",snd_mss);
                 rem -= 4;
                 opt += 4;
             break;
 
             case 3:     // Window Size Shift
-                intf_dbg("%zu: opt %u - window size shift\n",opt-start,*opt);
+                intf->intf_dbg("%zu: opt %u - window size shift\n",
+                               opt-start,*opt);
                 if (rem < 3)
                 {
-                    intf_dbg("truncated WND_SHIFT option\n");
+                    intf->intf_dbg("truncated WND_SHIFT option\n");
                     return;
                 }
                 if (opt[1] != 3)
                 {
-                    intf_dbg("bad WND_SHIFT length of %u\n",opt[1]);
+                    intf->intf_dbg("bad WND_SHIFT length of %u\n",opt[1]);
                     return;
                 }
                 snd_wnd_shift = opt[2];
                 if (snd_wnd_shift > 14)
                 {
-                    intf_dbg("large WND_SHIFT value of %u, using 14\n",
-                             snd_wnd_shift);
+                    intf->intf_dbg("large WND_SHIFT value of %u, using 14\n",
+                                   snd_wnd_shift);
                     snd_wnd_shift = 14;
                 }
                 rem          -= 3;
@@ -245,13 +243,14 @@ tcp::socket::handle_listen_syn_recvd(net::rx_page* p)
             default:    // Anything else.
                 if (rem < 2)
                 {
-                    intf_dbg("option %u missing length\n",opt[0]);
+                    intf->intf_dbg("option %u missing length\n",opt[0]);
                     return;
                 }
-                intf_dbg("%zu: opt %u - other len %u\n",opt-start,*opt,opt[1]);
+                intf->intf_dbg("%zu: opt %u - other len %u\n",
+                               opt-start,*opt,opt[1]);
                 if (rem < opt[1])
                 {
-                    intf_dbg("option %u truncated\n",opt[0]);
+                    intf->intf_dbg("option %u truncated\n",opt[0]);
                     return;
                 }
                 rem -= opt[1];
@@ -392,26 +391,26 @@ tcp::socket::handle_established_segment_recvd(net::rx_page* p)
 void
 tcp::socket::dump_socket()
 {
-    intf_dbg("%u.%u.%u.%u:%u <-> %u.%u.%u.%u:%u state=%u snd_mss=%u "
-             "snd_window=%u snd_shift=%u rcv_mss=%u rcv_window=%u "
-             "rcv_shift=%u\n",
-             hdrs.ip.src_ip[0],
-             hdrs.ip.src_ip[1],
-             hdrs.ip.src_ip[2],
-             hdrs.ip.src_ip[3],
-             (uint16_t)hdrs.tcp.src_port,
-             hdrs.ip.dst_ip[0],
-             hdrs.ip.dst_ip[1],
-             hdrs.ip.dst_ip[2],
-             hdrs.ip.dst_ip[3],
-             (uint16_t)hdrs.tcp.dst_port,
-             state,
-             snd_mss,
-             snd_wnd,
-             snd_wnd_shift,
-             rcv_mss,
-             (uint16_t)(rcv_wnd >> rcv_wnd_shift),
-             rcv_wnd_shift);
+    intf->intf_dbg("%u.%u.%u.%u:%u <-> %u.%u.%u.%u:%u state=%u snd_mss=%u "
+                   "snd_window=%u snd_shift=%u rcv_mss=%u rcv_window=%u "
+                   "rcv_shift=%u\n",
+                   hdrs.ip.src_ip[0],
+                   hdrs.ip.src_ip[1],
+                   hdrs.ip.src_ip[2],
+                   hdrs.ip.src_ip[3],
+                   (uint16_t)hdrs.tcp.src_port,
+                   hdrs.ip.dst_ip[0],
+                   hdrs.ip.dst_ip[1],
+                   hdrs.ip.dst_ip[2],
+                   hdrs.ip.dst_ip[3],
+                   (uint16_t)hdrs.tcp.dst_port,
+                   state,
+                   snd_mss,
+                   snd_wnd,
+                   snd_wnd_shift,
+                   rcv_mss,
+                   (uint16_t)(rcv_wnd >> rcv_wnd_shift),
+                   rcv_wnd_shift);
 }
 
 void
