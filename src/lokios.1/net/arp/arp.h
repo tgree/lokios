@@ -35,9 +35,18 @@ namespace arp
         typedef typename hw_traits::interface_type  interface;
         typedef typename hw_traits::header_type     ll_header_type;
 
-        struct arp_frame
+        struct ll_arp_frame
         {
             ll_header_type  llhdr;
+            arp::header     hdr;
+            hw_addr         sha;
+            proto_addr      spa;
+            hw_addr         tha;
+            proto_addr      tpa;
+        } __PACKED__;
+
+        struct arp_frame
+        {
             arp::header     hdr;
             hw_addr         sha;
             proto_addr      spa;
@@ -61,7 +70,7 @@ namespace arp
             kernel::timer_entry timeout_cqe;
             uint64_t            timeout_ms;
             hw_addr*            tha;
-            arp_frame           frame;
+            ll_arp_frame        frame;
 
             void post()
             {
@@ -138,11 +147,11 @@ namespace arp
                 timeout_ms(timeout_ms),
                 tha(tha)
             {
-                timeout_cqe.fn         = timer_delegate(handle_lookup_timeout);
-                timeout_cqe.args[0]    = (uintptr_t)this;
-                frame.llhdr.dst_mac    = hw_traits::broadcast_addr;
-                frame.llhdr.src_mac    = serv->intf->hw_mac;
-                frame.llhdr.ether_type = 0x0806;
+                timeout_cqe.fn      = timer_delegate(handle_lookup_timeout);
+                timeout_cqe.args[0] = (uintptr_t)this;
+
+                kernel::kassert(serv->intf->format_arp_broadcast(&frame.hdr) ==
+                                sizeof(frame.llhdr));
                 frame.hdr.htype        = hw_traits::arp_hw_type;
                 frame.hdr.ptype        = proto_traits::ether_type;
                 frame.hdr.hlen         = sizeof(frame.sha);
@@ -163,9 +172,9 @@ namespace arp
 
         struct reply_op
         {
-            service*    serv;
-            net::tx_op  op;
-            arp_frame   frame;
+            service*        serv;
+            net::tx_op      op;
+            ll_arp_frame    frame;
 
             void post()
             {
@@ -177,17 +186,20 @@ namespace arp
                 serv->handle_reply_send_comp(this);
             }
 
-            reply_op(service* serv, typeof(frame)* req):
+            reply_op(service* serv, net::rx_page* p):
                 serv(serv)
             {
-                memcpy(&frame,req,sizeof(frame));
-                frame.llhdr.dst_mac = req->llhdr.src_mac;
-                frame.llhdr.src_mac = serv->intf->hw_mac;
+                auto* h = p->payload_cast<arp_frame*>();
+                serv->intf->format_ll_reply(p,&frame.hdr);
+                frame.hdr.htype     = h->hdr.htype;
+                frame.hdr.ptype     = h->hdr.ptype;
+                frame.hdr.hlen      = h->hdr.hlen;
+                frame.hdr.plen      = h->hdr.plen;
                 frame.hdr.oper      = 2;
                 frame.sha           = serv->intf->hw_mac;
                 frame.spa           = serv->intf->ip_addr;
-                frame.tha           = req->sha;
-                frame.tpa           = req->spa;
+                frame.tha           = h->sha;
+                frame.tpa           = h->spa;
 
                 op.cb.make_method_delegate(handle_reply_send_comp);
                 op.nalps         = 1;
@@ -216,11 +228,7 @@ namespace arp
 
         void handle_rx_frame(net::rx_page* p)
         {
-            // Unstrip the packet.
-            p->pay_offset -= sizeof(ll_header_type);
-            p->pay_len    += sizeof(ll_header_type);
-
-            auto* f = (arp_frame*)(p->payload + p->pay_offset);
+            auto* f = p->payload_cast<arp_frame*>();
             auto* e = arp_entries.find_node(f->spa);
             if (e)
                 e->v = f->sha;
@@ -238,7 +246,7 @@ namespace arp
         void handle_rx_reply_frame(net::rx_page* p)
         {
             kernel::console::printf("arp: handle rx reply frame\n");
-            auto* f = (arp_frame*)(p->payload + p->pay_offset);
+            auto* f = p->payload_cast<arp_frame*>();
             try
             {
                 arp_lookup_ops[f->spa].handle_rx_reply_tha(f->tha);
@@ -255,8 +263,7 @@ namespace arp
         void handle_rx_request_frame(net::rx_page* p)
         {
             kernel::console::printf("arp: handle rx request frame\n");
-            auto* f      = (arp_frame*)(p->payload + p->pay_offset);
-            reply_op* op = arp_reply_ops_slab.alloc<reply_op>(this,f);
+            reply_op* op = arp_reply_ops_slab.alloc<reply_op>(this,p);
             op->post();
         }
 
