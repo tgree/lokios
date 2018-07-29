@@ -28,7 +28,7 @@ rx_arp_reply(arp::service<hw_traits,proto_traits>* service,
     net::rx_page p;
     memset(p.payload,0,sizeof(p.payload));
 
-    auto* f             = (typename arp_service::arp_frame*)p.payload;
+    auto* f             = (typename arp_service::ll_arp_frame*)p.payload;
     p.pay_offset        = sizeof(typename hw_traits::header_type);
     p.pay_len           = sizeof(*f) - p.pay_offset;
     f->llhdr.dst_mac    = CLIENT_MAC;
@@ -145,6 +145,8 @@ static void
 transition_DHCP_REQUESTING_WAIT_ARP_COMP()
 {
     transition_DHCP_REQUESTING_WAIT_TX_COMP();
+    texpect("eth::interface::format_arp_broadcast",
+            returns(sizeof(eth::header)));
     texpect("eth::interface::post_tx_frame");
     intf.dhcpc->send_op.cb(&intf.dhcpc->send_op);
     ASSERT_STATE(DHCP_REQUESTING_WAIT_ARP_COMP);
@@ -183,7 +185,11 @@ transition_DHCP_BOUND_WAIT_TIMEOUT()
         if (i == ARP_RETRY_ATTEMPTS - 1)
             texpect("eth::interface::handle_dhcp_success");
         else
+        {
+            texpect("eth::interface::format_arp_broadcast",
+                    returns(sizeof(eth::header)));
             texpect("eth::interface::post_tx_frame");
+        }
         kernel::fire_work(cqe);
     }
 
