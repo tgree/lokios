@@ -54,6 +54,18 @@ eth::interface::format_ll_reply(net::rx_page* p, void* reply)
     return sizeof(eth::header);
 }
 
+size_t
+eth::interface::format_arp_broadcast(void* arp_payload)
+{
+    // Format the broadcast header.
+    auto* h       = (eth::header*)((char*)arp_payload - sizeof(eth::header));
+    h->src_mac    = hw_mac;
+    h->dst_mac    = eth::net_traits::broadcast_addr;
+    h->ether_type = 0x0806;
+
+    return sizeof(eth::header);
+}
+
 void
 eth::interface::issue_probe_phy(kernel::work_entry* cqe)
 {

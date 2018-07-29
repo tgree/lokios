@@ -24,6 +24,12 @@ eth::interface::format_ll_reply(net::rx_page* p, void* reply)
     return (size_t)mock("eth::interface::format_ll_reply",p,reply);
 }
 
+size_t
+eth::interface::format_arp_broadcast(void* arp_payload)
+{
+    return (size_t)mock("eth::interface::format_arp_broadcast",arp_payload);
+}
+
 void
 eth::interface::activate()
 {

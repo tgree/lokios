@@ -77,6 +77,12 @@ namespace net
         virtual size_t  format_ll_reply(net::rx_page* p, 
                                         void* reply_payload) = 0;
 
+        // Format an ARP request's link-layer header.  This will be a broadcast
+        // packet of some sort.  This works similarly to format_ll_reply where
+        // you pass a pointer to the arp payload and there is sufficient space
+        // preceding it to hold a link-layer header.
+        virtual size_t  format_arp_broadcast(void* arp_payload) = 0;
+
         // UDP
                 void    udp_listen(uint16_t port, udp_frame_handler h);
                 void    udp_ignore(uint16_t port);
