@@ -24,6 +24,18 @@ namespace loki
     // Extract the underlying type from the this pointer.
 #define this_type loki::remove_pointer_t<decltype(this)>
 
+    // Forward a parameter.
+    template<typename T>
+    constexpr T&& forward(remove_reference_t<T>& t) noexcept
+    {
+        return static_cast<T&&>(t);
+    }
+    template<typename T>
+    constexpr T&& forward(remove_reference_t<T>&& t) noexcept
+    {
+        return static_cast<T&&>(t);
+    }
+
     // Type that cannot be copied if you subclass it.
     struct non_copyable
     {
