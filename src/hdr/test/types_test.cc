@@ -27,11 +27,12 @@ typeof_field(big_struct,f8)    g8;
 typeof_field(big_struct,f1234) g1234;
 typeof_field(big_struct,f2)    g2;
 typeof_field(big_struct,f16)   g16;
-KASSERT(sizeof(g4)    == 4);
-KASSERT(sizeof(g1)    == 1);
-KASSERT(sizeof(g8)    == 8);
-KASSERT(sizeof(g1234) == 1234);
-KASSERT(sizeof(g2)    == 2);
-KASSERT(sizeof(g16)   == 16);
+KASSERT(sizeof(g4)          == 4);
+KASSERT(sizeof(g1)          == 1);
+KASSERT(sizeof(g8)          == 8);
+KASSERT(sizeof(g1234)       == 1234);
+KASSERT(sizeof(g2)          == 2);
+KASSERT(sizeof(g16)         == 16);
+KASSERT(nelmof_array(g1234) == 1234);
 
 TMOCK_MAIN();

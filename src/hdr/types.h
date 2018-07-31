@@ -30,6 +30,9 @@ namespace loki
 #define nelmof_field(T,f) (sizeof(typeof_field(T,f))/ \
                            sizeof(typeof_field(T,f[0])))
 
+    // Determine the attributes of an array.
+#define nelmof_array(a) (sizeof(a)/sizeof((a)[0]))
+
     // Forward a parameter.
     template<typename T>
     constexpr T&& forward(remove_reference_t<T>& t) noexcept
