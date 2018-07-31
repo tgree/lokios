@@ -1,8 +1,8 @@
 #ifndef __KERNEL_VECTOR_BASE_H
 #define __KERNEL_VECTOR_BASE_H
 
-#include "kernel/kassert.h"
 #include "allocator.h"
+#include "kernel/kassert.h"
 #include <stddef.h>
 #include <unistd.h>
 #include <utility>
