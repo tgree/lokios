@@ -55,10 +55,10 @@ namespace bcm57762
     } __PACKED__;
     KASSERT(sizeof(mem_block) == 65536);
     KASSERT(kernel::is_pow2(sizeof(mem_block)));
-    KASSERT(kernel::is_pow2(FIELD_NELEMS(mem_block,send_bds)));
-    KASSERT(kernel::is_pow2(FIELD_NELEMS(mem_block,recv_bds)));
-    KASSERT(FIELD_NELEMS(mem_block,recv_bds) ==
-            FIELD_NELEMS(mem_block,return_bds));
+    KASSERT(kernel::is_pow2(nelmof_field(mem_block,send_bds)));
+    KASSERT(kernel::is_pow2(nelmof_field(mem_block,recv_bds)));
+    KASSERT(nelmof_field(mem_block,recv_bds) ==
+            nelmof_field(mem_block,return_bds));
 
     struct dev : public kernel::pci::dev
     {
