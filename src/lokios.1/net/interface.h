@@ -24,8 +24,8 @@ namespace net
     };
 #define frame_delegate(fn) \
     net::_frame_delegate< \
-        std::remove_reference_t<decltype(*this)>, \
-        &std::remove_reference_t<decltype(*this)>::fn>::handler
+        loki::remove_reference_t<decltype(*this)>, \
+        &loki::remove_reference_t<decltype(*this)>::fn>::handler
 
     // Data structure that gets mapped at the interface's reserved vaddr.
     struct interface_mem
