@@ -503,8 +503,8 @@ bcm57762::dev::handle_timer(kernel::timer_entry*)
             memset(mem->recv_bds,0,sizeof(mem->recv_bds));
             reg_write_32(kernel::virt_to_phys(mem->recv_bds) >> 32,0x2450);
             reg_write_32(kernel::virt_to_phys(mem->recv_bds) >>  0,0x2454);
-            reg_write_32((512 << 16) | (FIELD_SIZE(net::rx_page,payload) << 2),
-                         0x2458);
+            reg_write_32((512 << 16) |
+                         (sizeof_field(net::rx_page,payload) << 2),0x2458);
             reg_write_32(0x6000,0x245C);
 
             // Step 31: initialize the receive BD standard producer index.
