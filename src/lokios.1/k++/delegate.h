@@ -2,7 +2,6 @@
 #define __KERNEL_DELEGATE_H
 
 #include "hdr/types.h"
-#include <utility>
 
 namespace kernel
 {
@@ -17,18 +16,18 @@ namespace kernel
 
         inline RC operator()(Args... args)
         {
-            return (*bouncer)(obj,std::forward<Args>(args)...);
+            return (*bouncer)(obj,loki::forward<Args>(args)...);
         }
 
         template<typename T, RC(T::*Method)(Args...)>
         static RC mbounce(void* obj, Args... args)
         {
-            return (((T*)obj)->*Method)(std::forward<Args>(args)...);
+            return (((T*)obj)->*Method)(loki::forward<Args>(args)...);
         }
 
         static RC fbounce(void* func, Args... args)
         {
-            return ((RC(*)(Args...))func)(std::forward<Args>(args)...);
+            return ((RC(*)(Args...))func)(loki::forward<Args>(args)...);
         }
 
         template<typename T, RC(T::*Method)(Args...)>
