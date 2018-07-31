@@ -1,5 +1,5 @@
 #include "../sort.h"
-#include "../kmath.h"
+#include "hdr/types.h"
 #include "kernel/kassert.h"
 #include "tmock/tmock.h"
 #include <string.h>

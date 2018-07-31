@@ -32,6 +32,7 @@ namespace loki
 
     // Determine the attributes of an array.
 #define nelmof_array(a) (sizeof(a)/sizeof((a)[0]))
+#define NELEMS(a)       nelmof_array(a)
 
     // Forward a parameter.
     template<typename T>

@@ -18,8 +18,6 @@ namespace kernel
         return (l < r ? r : l);
     }
 
-#define NELEMS(a)           (sizeof(a)/sizeof(a[0]))
-
     template<typename T>
     constexpr bool is_pow2(T v)
     {
