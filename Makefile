@@ -1,4 +1,4 @@
-MODULES      := tmock libsupc++ lokios.1 lokios.0
+MODULES      := tmock libsupc++ lokios.1 lokios.0 hdr
 ALL_TESTS    :=
 
 TESTS_DIR    := tests
