@@ -30,20 +30,6 @@ namespace kernel
     void page_free(void*);
     size_t page_count_free();
 
-    struct page_raii : public non_copyable
-    {
-        void*   addr;
-
-        inline operator void*() {return addr;}
-        inline page_raii(void* addr = page_alloc()):addr(addr) {}
-        inline ~page_raii() {page_free(addr);}
-    };
-
-    struct page_zraii : public page_raii
-    {
-        inline page_zraii():page_raii(page_zalloc()) {}
-    };
-
     struct page_allocator
     {
         constexpr static size_t len   = PAGE_SIZE;
