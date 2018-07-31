@@ -2,19 +2,12 @@
 #define __KERNEL_TYPES_H
 
 #include "hdr/endian.h"
+#include "hdr/types.h"
 #include <stddef.h>
 #include <stdint.h>
 
 namespace kernel
 {
-    struct non_copyable
-    {
-        void operator=(const non_copyable&) = delete;
-
-        non_copyable() = default;
-        non_copyable(const non_copyable&) = delete;
-    };
-
     template<size_t Width, typename T>
     struct fat_register
     {
