@@ -117,9 +117,9 @@ tcp::handle_rx_ipv4_tcp_frame(net::interface* intf, net::rx_page* p)
     {
     }
 
-    auto* l = intf_mem->tcp_listeners[dst_port];
-    if (l)
+    try
     {
+        auto* l = intf_mem->tcp_listeners[dst_port];
         auto* s = l->socket_allocator(&h->tcp);
         if (s)
         {
@@ -131,6 +131,9 @@ tcp::handle_rx_ipv4_tcp_frame(net::interface* intf, net::rx_page* p)
             // TODO: LISTEN state but packet was rejected.
         }
         return;
+    }
+    catch (hash::no_such_key_exception&)
+    {
     }
 
     // CLOSED state handling since we don't have any kind of a stack yet.

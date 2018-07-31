@@ -77,7 +77,7 @@ net::interface::udp_ignore(uint16_t port)
 void
 net::interface::tcp_listen(uint16_t port, tcp::alloc_delegate ad)
 {
-    kassert(!intf_mem->tcp_listeners[port]);
+    kassert(!intf_mem->tcp_listeners.contains(port));
 
     tcp::listener* l;
     with (slab_lock)
@@ -85,10 +85,10 @@ net::interface::tcp_listen(uint16_t port, tcp::alloc_delegate ad)
         l = tcp_slab.alloc<tcp::listener>();
     }
 
-    l->intf                       = this;
-    l->port                       = port;
-    l->socket_allocator           = ad;
-    intf_mem->tcp_listeners[port] = l;
+    l->intf             = this;
+    l->port             = port;
+    l->socket_allocator = ad;
+    intf_mem->tcp_listeners.emplace(port,l);
 }
 
 struct net_tcp_socket : public tcp::socket
