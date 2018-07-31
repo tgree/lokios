@@ -6,7 +6,6 @@
 #include "k++/heap.h"
 #include "k++/vector.h"
 #include "mm/page.h"
-#include <type_traits>
 
 namespace kernel
 {
@@ -106,14 +105,14 @@ namespace kernel
     };
 #define work_delegate(fn) \
     kernel::_work_delegate< \
-        std::remove_reference_t<decltype(*this)>, \
+        loki::remove_reference_t<decltype(*this)>, \
         kernel::work_entry, \
-        &std::remove_reference_t<decltype(*this)>::fn>::handler
+        &loki::remove_reference_t<decltype(*this)>::fn>::handler
 #define timer_delegate(fn) \
     kernel::_work_delegate< \
-        std::remove_reference_t<decltype(*this)>, \
+        loki::remove_reference_t<decltype(*this)>, \
         kernel::timer_entry, \
-        &std::remove_reference_t<decltype(*this)>::fn>::handler
+        &loki::remove_reference_t<decltype(*this)>::fn>::handler
 
     // These will allocate/free WQEs off a locked, shared internal slab.  Use
     // of these is optional, you can define WQE objects anywhere.
