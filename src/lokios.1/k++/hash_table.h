@@ -30,7 +30,7 @@ namespace hash
             template<typename ...Args>
             node(dummy, const Key& k, Args&& ...args):
                 k(k),
-                v(std::forward<Args>(args)...)
+                v(loki::forward<Args>(args)...)
             {
             }
         };
@@ -85,7 +85,7 @@ namespace hash
             size_t slot = compute_slot(k);
             kernel::kassert(!find_node_in_slot(k,slot));
             node* n = node_slab.alloc<node>(dummy(),k,
-                                            std::forward<Args>(args)...);
+                                            loki::forward<Args>(args)...);
             bins[slot].push_back(&n->link);
             ++nelems;
             return n->v;
