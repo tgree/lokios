@@ -3,9 +3,9 @@
 
 #include "allocator.h"
 #include "kernel/kassert.h"
+#include "hdr/types.h"
 #include <stddef.h>
 #include <unistd.h>
-#include <utility>
 #include <new>
 
 namespace kernel
@@ -55,7 +55,7 @@ namespace kernel
         {
             kassert(!full());
             T* mem = &_elems[size()];
-            new((void*)mem) T(std::forward<T&&>(val));
+            new((void*)mem) T(loki::forward<T&&>(val));
             ++_size;
         }
 
@@ -81,7 +81,7 @@ namespace kernel
         void emplace(const iterator pos, Args&& ...args)
         {
             _make_slot(pos);
-            new((void*)pos) T(std::forward<Args>(args)...);
+            new((void*)pos) T(loki::forward<Args>(args)...);
             ++_size;
         }
 
@@ -90,7 +90,7 @@ namespace kernel
         {
             kassert(!full());
             T* t = &_elems[size()];
-            t = new((void*)t) T(std::forward<Args>(args)...);
+            t = new((void*)t) T(loki::forward<Args>(args)...);
             ++_size;
             return *t;
         }
