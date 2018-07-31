@@ -84,6 +84,12 @@ namespace tcp
         uint16_t    remote_port;
         uint16_t    local_port;
     };
+    constexpr bool operator==(const socket_id& lhs, const socket_id& rhs)
+    {
+        return lhs.remote_ip   == rhs.remote_ip &&
+               lhs.remote_port == rhs.remote_port &&
+               lhs.local_port  == rhs.local_port;
+    }
 }
 
 #include "k++/hash.h"
