@@ -19,8 +19,6 @@ namespace kernel
     }
 
 #define NELEMS(a)           (sizeof(a)/sizeof(a[0]))
-#define FIELD_NELEMS(T,a)   NELEMS(((T*)0)->a)
-#define FIELD_SIZE(T,a)     sizeof(((T*)0)->a)
 
     template<typename T>
     constexpr bool is_pow2(T v)
