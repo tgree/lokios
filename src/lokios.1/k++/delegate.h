@@ -1,6 +1,7 @@
 #ifndef __KERNEL_DELEGATE_H
 #define __KERNEL_DELEGATE_H
 
+#include "hdr/types.h"
 #include <utility>
 
 namespace kernel
@@ -43,8 +44,6 @@ namespace kernel
 
     template<typename RC, typename ...Args>
     delegate<RC(Args...)> delegate_convert(RC (*Func)(Args...));
-
-#define this_type std::remove_reference_t<decltype(*this)>
 
 #define make_method_delegate(m) \
     _make_method_delegate<this_type,&this_type::m>(this)

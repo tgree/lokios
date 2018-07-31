@@ -21,6 +21,9 @@ namespace loki
     template<typename T>
     using remove_pointer_t = remove_reference_t<decltype(*(T)0)>;
 
+    // Extract the underlying type from the this pointer.
+#define this_type loki::remove_pointer_t<decltype(this)>
+
     // Type that cannot be copied if you subclass it.
     struct non_copyable
     {
