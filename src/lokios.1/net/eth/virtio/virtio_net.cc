@@ -14,6 +14,7 @@
 #include "kernel/cpu.h"
 #include "kernel/console.h"
 #include "net/udp/udp.h"
+#include <initializer_list>
 
 using kernel::console::printf;
 using kernel::_kassert;
