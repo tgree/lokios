@@ -99,7 +99,7 @@ namespace kernel
         T* alloc(Args&& ...args)
         {
             kassert(sizeof(T) <= elem_size);
-            return new(_alloc()) T(std::forward<Args>(args)...);
+            return new(_alloc()) T(loki::forward<Args>(args)...);
         }
 
         void free(void* e)
