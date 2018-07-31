@@ -105,25 +105,25 @@ tcp::handle_rx_ipv4_tcp_frame(net::interface* intf, net::rx_page* p)
 
     auto* h           = p->payload_cast<ipv4_tcp_headers*>();
     uint16_t dst_port = h->tcp.dst_port;
-    auto& sl          = intf->intf_mem->tcp_socket_lists[dst_port];
-    for (auto& sock : klist_elems(sl,link))
+    auto* intf_mem    = intf->intf_mem;
+    auto sid          = socket_id{h->ip.src_ip,h->tcp.src_port,dst_port};
+    try
     {
-        if (sock.hdrs.tcp.dst_port != h->tcp.src_port)
-            continue;
-        if (sock.hdrs.ip.dst_ip != h->ip.src_ip)
-            continue;
-
-        sock.handle_rx_ipv4_tcp_frame(p);
+        auto* sock = intf_mem->tcp_sockets[sid];
+        sock->handle_rx_ipv4_tcp_frame(p);
         return;
     }
+    catch (hash::no_such_key_exception&)
+    {
+    }
 
-    auto* l = intf->intf_mem->tcp_listeners[dst_port];
+    auto* l = intf_mem->tcp_listeners[dst_port];
     if (l)
     {
         auto* s = l->socket_allocator(&h->tcp);
         if (s)
         {
-            sl.push_back(&s->link);
+            intf_mem->tcp_sockets.emplace(sid,s);
             s->handle_rx_ipv4_tcp_frame(p);
         }
         else
