@@ -24,6 +24,12 @@ namespace loki
     // Extract the underlying type from the this pointer.
 #define this_type loki::remove_pointer_t<decltype(this)>
 
+    // Determine the attributes of a given field in a type.
+#define typeof_field(T,f) loki::remove_pointer_t<decltype(&((T*)0)->f)>
+#define sizeof_field(T,f) sizeof(typeof_field(T,f))
+#define nelmof_field(T,f) (sizeof(typeof_field(T,f))/ \
+                           sizeof(typeof_field(T,f[0])))
+
     // Forward a parameter.
     template<typename T>
     constexpr T&& forward(remove_reference_t<T>& t) noexcept
