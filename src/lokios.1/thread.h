@@ -3,6 +3,7 @@
 
 #include "k++/klist.h"
 #include "hdr/compiler.h"
+#include "hdr/types.h"
 
 namespace kernel
 {
