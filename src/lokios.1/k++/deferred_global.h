@@ -2,7 +2,7 @@
 #define __KERNEL_DEFERRED_GLOBAL_H
 
 #include "hdr/compiler.h"
-#include <utility>
+#include "hdr/types.h"
 
 namespace kernel
 {
@@ -31,7 +31,7 @@ namespace kernel
         {
             kassert(!inited);
             inited = true;
-            new(storage) T(std::forward<Args>(args)...);
+            new(storage) T(loki::forward<Args>(args)...);
         }
 
         inline void destroy()
