@@ -1,6 +1,7 @@
 #ifndef __KERNEL_ASSERT_H
 #define __KERNEL_ASSERT_H
 
+#include <hdr/kassert.h>
 #include <hdr/compiler.h>
 #include <hdr/fileline.h>
 #include <stdint.h>
@@ -19,6 +20,5 @@ namespace kernel
 }
 
 #define kassert(exp) _kassert((exp),FILELINESTR ":" #exp)
-#define KASSERT(exp) static_assert(exp, #exp)
 
 #endif /* __KERNEL_ASSERT_H */
