@@ -119,8 +119,8 @@ tcp::handle_rx_ipv4_tcp_frame(net::interface* intf, net::rx_page* p)
 
     try
     {
-        auto* l = intf_mem->tcp_listeners[dst_port];
-        auto* s = l->socket_allocator(&h->tcp);
+        auto& l = intf_mem->tcp_listeners[dst_port];
+        auto* s = l.socket_allocator(&h->tcp);
         if (s)
         {
             intf_mem->tcp_sockets.emplace(sid,s);

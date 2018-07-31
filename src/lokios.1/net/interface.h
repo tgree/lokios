@@ -15,7 +15,7 @@ namespace net
     // Data structure that gets mapped at the interface's reserved vaddr.
     struct interface_mem
     {
-        hash::table<uint16_t,tcp::listener*>        tcp_listeners;
+        hash::table<uint16_t,tcp::listener>         tcp_listeners;
         hash::table<tcp::socket_id,tcp::socket*>    tcp_sockets;
     };
 

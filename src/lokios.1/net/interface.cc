@@ -12,9 +12,6 @@ using kernel::_kassert;
 static kernel::spinlock ids_lock;
 static uint32_t free_ids = 0xFFFFFFFF;
 
-static kernel::spinlock slab_lock;
-static kernel::slab tcp_slab(sizeof(tcp::listener));
-
 static size_t
 alloc_id()
 {
@@ -78,17 +75,7 @@ void
 net::interface::tcp_listen(uint16_t port, tcp::alloc_delegate ad)
 {
     kassert(!intf_mem->tcp_listeners.contains(port));
-
-    tcp::listener* l;
-    with (slab_lock)
-    {
-        l = tcp_slab.alloc<tcp::listener>();
-    }
-
-    l->intf             = this;
-    l->port             = port;
-    l->socket_allocator = ad;
-    intf_mem->tcp_listeners.emplace(port,l);
+    intf_mem->tcp_listeners.emplace(port,tcp::listener{this,port,ad});
 }
 
 struct net_tcp_socket : public tcp::socket
