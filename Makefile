@@ -112,6 +112,7 @@ $(BUILD_O_DIR)/%.o: $(SRC_DIR)/%.s
 	@$(AS) $(ASFLAGS) -o $@ $^
 
 $(TEST_RES_DIR)/%.tpass: $(TESTS_DIR)/%
+	@echo Running $^...
 	@mkdir -p $(TEST_RES_DIR)
 	@$^ && touch $@
 
