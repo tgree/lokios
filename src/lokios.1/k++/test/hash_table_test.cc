@@ -2,6 +2,8 @@
 #include "net/ip/ip.h"
 #include "net/eth/addr.h"
 #include "tmock/tmock.h"
+#include <vector>
+#include <algorithm>
 
 static size_t constructions;
 static size_t destructions;
@@ -142,6 +144,29 @@ class tmock_test
         t.emplace(2,2);
         t.emplace(3,3);
         tmock::assert_equiv(t.bins[1].size(),3U);
+    }
+
+    TMOCK_TEST(test_clear)
+    {
+        hash::table<int,int> t;
+
+        TASSERT(t.empty());
+        tmock::assert_equiv(t.size(),0U);
+        for (size_t i=0; i<t.nbins; ++i)
+            TASSERT(t.bins[i].empty());
+
+        for (size_t i=0; i<t.nbins; ++i)
+            t.emplace(i,i);
+        TASSERT(!t.empty());
+        tmock::assert_equiv(t.size(),t.nbins);
+        for (size_t i=0; i<t.nbins; ++i)
+            TASSERT(!t.bins[i].empty());
+
+        t.clear();
+        TASSERT(t.empty());
+        tmock::assert_equiv(t.size(),0U);
+        for (size_t i=0; i<t.nbins; ++i)
+            TASSERT(t.bins[i].empty());
     }
 };
 

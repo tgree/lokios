@@ -70,6 +70,20 @@ namespace hash
             kernel::buddy_free(b,order);
         }
 
+        void clear()
+        {
+            for (size_t i=0; i<nbins; ++i)
+            {
+                while (!bins[i].empty())
+                {
+                    auto* n = klist_front(bins[i],link);
+                    bins[i].pop_front();
+                    node_slab.free(n);
+                }
+            }
+            nelems = 0;
+        }
+
         node* find_node_in_slot(const Key& k, size_t slot) const
         {
             for (auto& n : klist_elems(bins[slot],link))
@@ -160,15 +174,7 @@ namespace hash
 
         ~table()
         {
-            for (size_t i=0; i<nbins; ++i)
-            {
-                while (!bins[i].empty())
-                {
-                    auto* n = klist_front(bins[i],link);
-                    bins[i].pop_front();
-                    node_slab.free(n);
-                }
-            }
+            clear();
             free_bins(bins,nbins);
         }
     };
