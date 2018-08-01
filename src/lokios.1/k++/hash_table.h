@@ -36,7 +36,6 @@ namespace hash
         };
 
         size_t                  nelems;
-        size_t                  buddy_order;
         size_t                  nbins;
         kernel::kdlist<node>*   bins;
         kernel::slab            node_slab;
@@ -47,6 +46,28 @@ namespace hash
         static size_t compute_slot(const Key& k, size_t nbins)
         {
             return (HashFunc(k) & (nbins-1));
+        }
+
+        static typeof(bins) alloc_bins(size_t n)
+        {
+            kernel::kassert(kernel::is_pow2(n));
+            kernel::kassert(n >= PAGE_SIZE/sizeof(bins[0]));
+
+            size_t order = kernel::ulog2(n*sizeof(bins[0])) - 12;
+            auto* b      = (typeof(bins))kernel::buddy_alloc(order);
+            return new(b) kernel::kdlist<node>[n];
+        }
+
+        static void free_bins(typeof(bins) b, size_t n)
+        {
+            kernel::kassert(kernel::is_pow2(n));
+            kernel::kassert(n >= PAGE_SIZE/sizeof(bins[0]));
+
+            for (size_t i=0; i<n; ++i)
+                b[i].~kdlist();
+
+            size_t order = kernel::ulog2(n*sizeof(bins[0])) - 12;
+            kernel::buddy_free(b,order);
         }
 
         node* find_node_in_slot(const Key& k, size_t slot) const
@@ -132,15 +153,9 @@ namespace hash
         table():
             nelems(0),
             nbins(PAGE_SIZE/sizeof(bins[0])),
+            bins(alloc_bins(nbins)),
             node_slab(sizeof(node))
         {
-            kernel::kassert(kernel::is_pow2(nbins));
-
-            size_t len  = kernel::max(nbins*sizeof(bins[0]),PAGE_SIZE);
-            buddy_order = kernel::ulog2(len) - 12;
-            bins        = (typeof(bins))kernel::buddy_alloc(buddy_order);
-
-            new(bins) kernel::kdlist<node>[nbins];
         }
 
         ~table()
@@ -153,10 +168,8 @@ namespace hash
                     bins[i].pop_front();
                     node_slab.free(n);
                 }
-                bins[i].~kdlist();
             }
-
-            buddy_free(bins,buddy_order);
+            free_bins(bins,nbins);
         }
     };
 }
