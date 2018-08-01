@@ -76,8 +76,7 @@ net::interface::tcp_listen(uint16_t port,
     tcp::socket_accepted_delegate ad,
     tcp::should_accept_delegate sad)
 {
-    kassert(!intf_mem->tcp_listeners.contains(port));
-    intf_mem->tcp_listeners.emplace(port,tcp::listener{sad,ad});
+    tcp_listeners.emplace(port,tcp::listener{sad,ad});
 }
 
 void

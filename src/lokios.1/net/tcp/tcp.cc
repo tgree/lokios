@@ -107,11 +107,10 @@ tcp::handle_rx_ipv4_tcp_frame(net::interface* intf, net::rx_page* p)
     // Look for an existing tcp::socket first.
     auto* h           = p->payload_cast<ipv4_tcp_headers*>();
     uint16_t dst_port = h->tcp.dst_port;
-    auto* intf_mem    = intf->intf_mem;
     auto sid          = socket_id{h->ip.src_ip,h->tcp.src_port,dst_port};
     try
     {
-        intf_mem->tcp_sockets[sid].handle_rx_ipv4_tcp_frame(p);
+        intf->tcp_sockets[sid].handle_rx_ipv4_tcp_frame(p);
         return;
     }
     catch (hash::no_such_key_exception&)
@@ -121,10 +120,10 @@ tcp::handle_rx_ipv4_tcp_frame(net::interface* intf, net::rx_page* p)
     // No socket; look for a tcp::listener.
     try
     {
-        auto& l = intf_mem->tcp_listeners[dst_port];
+        auto& l = intf->tcp_listeners[dst_port];
         if (l.should_accept(&h->tcp))
         {
-            auto& s = intf_mem->tcp_sockets.emplace(sid,intf,dst_port);
+            auto& s = intf->tcp_sockets.emplace(sid,intf,dst_port);
             l.socket_accepted(&s);
             s.handle_rx_ipv4_tcp_frame(p);
             return;

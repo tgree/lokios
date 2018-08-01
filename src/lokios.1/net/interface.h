@@ -15,8 +15,6 @@ namespace net
     // Data structure that gets mapped at the interface's reserved vaddr.
     struct interface_mem
     {
-        hash::table<uint16_t,tcp::listener>     tcp_listeners;
-        hash::table<tcp::socket_id,tcp::socket> tcp_sockets;
     };
 
     struct interface
@@ -37,6 +35,10 @@ namespace net
 
         // UDP.
         hash::table<uint16_t,udp_frame_handler> udp_sockets;
+
+        // TCP.
+        hash::table<uint16_t,tcp::listener>     tcp_listeners;
+        hash::table<tcp::socket_id,tcp::socket> tcp_sockets;
 
         // Emit log messages.
                 void                 intf_vdbg(const char* fmt, va_list ap);
