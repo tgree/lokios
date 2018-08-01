@@ -14,6 +14,12 @@ namespace kernel
 
         inline operator bool() {return inited;}
 
+        inline T* operator&()
+        {
+            kassert(inited);
+            return (T*)storage;
+        }
+
         inline operator T&()
         {
             kassert(inited);
