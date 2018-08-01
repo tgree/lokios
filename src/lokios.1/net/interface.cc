@@ -38,18 +38,12 @@ net::interface::interface(size_t tx_qlen, size_t rx_qlen):
     tx_qlen(tx_qlen),
     rx_qlen(rx_qlen),
     rx_posted_count(0),
-    intf_mem((interface_mem*)(MM_ETH_BEGIN + id*MM_ETH_STRIDE)),
     ip_addr{0,0,0,0}
 {
-    kernel::vmmap(intf_mem,sizeof(*intf_mem));
-    memset(intf_mem,0,sizeof(*intf_mem));
-    new(intf_mem) interface_mem();
 }
 
 net::interface::~interface()
 {
-    intf_mem->~interface_mem();
-    kernel::vmunmap(intf_mem,sizeof(*intf_mem));
     free_id(id);
 }
 
