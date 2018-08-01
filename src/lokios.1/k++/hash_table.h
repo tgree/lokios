@@ -70,14 +70,56 @@ namespace hash
             kernel::buddy_free(b,order);
         }
 
+        static void bin_transfer(typeof(bins) old_bins, size_t old_nbins,
+                                 typeof(bins) new_bins, size_t new_nbins)
+        {
+            for (size_t i=0; i<old_nbins; ++i)
+            {
+                while (!old_bins[i].empty())
+                {
+                    auto* n = klist_front(old_bins[i],link);
+                    old_bins[i].pop_front();
+                    new_bins[compute_slot(n->k,new_nbins)].push_back(&n->link);
+                }
+            }
+        }
+
         void grow()
         {
             ++nelems;
+            if (nelems < 6*nbins)
+                return;
+
+            try
+            {
+                auto* old_bins = bins;
+                bins           = alloc_bins(nbins*2);
+                nbins         *= 2;
+                bin_transfer(old_bins,nbins/2,bins,nbins);
+                free_bins(old_bins,nbins/2);
+            }
+            catch (kernel::buddy_allocator_oom_exception&)
+            {
+            }
         }
 
         void shrink()
         {
             --nelems;
+            if (nelems >= 2*nbins || nbins <= PAGE_SIZE/sizeof(bins[0]))
+                return;
+
+            try
+            {
+                auto* old_bins = bins;
+                bins           = alloc_bins(nbins/2);
+                nbins         /= 2;
+                bin_transfer(old_bins,nbins*2,bins,nbins);
+                free_bins(old_bins,nbins*2);
+            }
+            catch (kernel::buddy_allocator_oom_exception&)
+            {
+            }
         }
 
         void clear()

@@ -146,6 +146,51 @@ class tmock_test
         tmock::assert_equiv(t.bins[1].size(),3U);
     }
 
+    TMOCK_TEST(test_grow_shrink)
+    {
+        hash::table<int,int> t;
+        std::vector<int> elems;
+        tmock::assert_equiv(t.nbins,256U);
+        for (int i=0; i<6*256-1; ++i)
+        {
+            t.emplace(i,i);
+            elems.push_back(i);
+        }
+        tmock::assert_equiv(t.nbins,256U);
+        for (size_t i=0; i<t.nbins; ++i)
+        {
+            size_t bin_size = t.bins[i].size();
+            TASSERT(bin_size == 5 || bin_size == 6);
+        }
+        t.emplace(6*256-1,6*256-1);
+        elems.push_back(6*256-1);
+        tmock::assert_equiv(t.nbins,512U);
+        tmock::assert_equiv(t.size(),6*256U);
+        for (int i=0; i<6*256; ++i)
+            tmock::assert_equiv(t[i],i);
+        for (size_t i=0; i<t.nbins; ++i)
+        {
+            size_t bin_size = t.bins[i].size();
+            TASSERT(bin_size == 3);
+        }
+
+        random_shuffle(elems.begin(),elems.end());
+        for (int i=0; i<2*256; ++i)
+            t.erase(elems[i]);
+        tmock::assert_equiv(t.size(),4*256U);
+        tmock::assert_equiv(t.nbins,512U);
+
+        t.erase(elems[2*256]);
+        tmock::assert_equiv(t.size(),4*256U-1U);
+        tmock::assert_equiv(t.nbins,256U);
+
+        for (int i=2*256+1; i<6*256; ++i)
+            t.erase(elems[i]);
+        TASSERT(t.empty());
+        tmock::assert_equiv(t.size(),0U);
+        tmock::assert_equiv(t.nbins,256U);
+    }
+
     TMOCK_TEST(test_clear)
     {
         hash::table<int,int> t;
