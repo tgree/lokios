@@ -114,14 +114,18 @@ namespace hash
             return find_node(k) != NULL;
         }
 
+        Value& append_to_slot(node* n, size_t slot)
+        {
+            bins[slot].push_back(&n->link);
+            grow();
+            return n->v;
+        }
+
         Value& insert(const Key& k, const Value& v)
         {
             size_t slot = compute_slot(k,nbins);
             kernel::kassert(!find_node_in_slot(k,slot));
-            node* n = node_slab.alloc<node>(k,v);
-            bins[slot].push_back(&n->link);
-            grow();
-            return n->v;
+            return append_to_slot(node_slab.alloc<node>(k,v),slot);
         }
 
         template<typename ...Args>
@@ -129,11 +133,9 @@ namespace hash
         {
             size_t slot = compute_slot(k,nbins);
             kernel::kassert(!find_node_in_slot(k,slot));
-            node* n = node_slab.alloc<node>(dummy(),k,
-                                            loki::forward<Args>(args)...);
-            bins[slot].push_back(&n->link);
-            grow();
-            return n->v;
+            return append_to_slot(
+                node_slab.alloc<node>(dummy(),k,loki::forward<Args>(args)...),
+                slot);
         }
 
         void erase(node* n)
