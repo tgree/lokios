@@ -44,7 +44,7 @@ namespace hash
         size_t size() const {return nelems;}
         bool empty() const  {return size() == 0;}
 
-        size_t compute_slot(const Key& k) const
+        static size_t compute_slot(const Key& k, size_t nbins)
         {
             return (HashFunc(k) & (nbins-1));
         }
@@ -61,7 +61,7 @@ namespace hash
 
         node* find_node(const Key& k) const
         {
-            return find_node_in_slot(k,compute_slot(k));
+            return find_node_in_slot(k,compute_slot(k,nbins));
         }
 
         bool contains(const Key& k) const
@@ -71,7 +71,7 @@ namespace hash
 
         Value& insert(const Key& k, const Value& v)
         {
-            size_t slot = compute_slot(k);
+            size_t slot = compute_slot(k,nbins);
             kernel::kassert(!find_node_in_slot(k,slot));
             node* n = node_slab.alloc<node>(k,v);
             bins[slot].push_back(&n->link);
@@ -82,7 +82,7 @@ namespace hash
         template<typename ...Args>
         Value& emplace(const Key& k, Args&& ...args)
         {
-            size_t slot = compute_slot(k);
+            size_t slot = compute_slot(k,nbins);
             kernel::kassert(!find_node_in_slot(k,slot));
             node* n = node_slab.alloc<node>(dummy(),k,
                                             loki::forward<Args>(args)...);
