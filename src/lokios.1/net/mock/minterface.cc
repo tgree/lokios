@@ -1,6 +1,7 @@
 #include "../interface.h"
 #include "k++/kmath.h"
 #include <tmock/tmock.h>
+#include <new>
 
 static uint32_t free_ids = 0xFFFFFFFF;
 
@@ -27,6 +28,8 @@ net::interface::interface(size_t tx_qlen, size_t rx_qlen):
     intf_mem((net::interface_mem*)malloc(sizeof(*intf_mem))),
     ip_addr{0,0,0,0}
 {
+    memset(intf_mem,0,sizeof(*intf_mem));
+    new(intf_mem) interface_mem();
 }
 
 net::interface::~interface()
