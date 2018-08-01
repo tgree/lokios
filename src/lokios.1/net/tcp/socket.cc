@@ -24,13 +24,17 @@
 
 using kernel::_kassert;
 
-tcp::socket::socket(net::interface* intf, uint16_t port,
-    socket_readable_delegate rx_readable):
-        intf(intf),
-        state(TCP_LISTEN),
-        prev_state(TCP_CLOSED),
-        rx_avail_bytes(0),
-        rx_readable(rx_readable)
+static void
+noop_rx_readable(tcp::socket*)
+{
+}
+
+tcp::socket::socket(net::interface* intf, uint16_t port):
+    intf(intf),
+    state(TCP_LISTEN),
+    prev_state(TCP_CLOSED),
+    rx_readable(kernel::func_delegate(noop_rx_readable)),
+    rx_avail_bytes(0)
 {
 #if 0
     hdrs.ll.dst_mac          = eth::net_traits::zero_addr;

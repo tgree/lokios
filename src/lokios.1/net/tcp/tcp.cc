@@ -124,8 +124,9 @@ tcp::handle_rx_ipv4_tcp_frame(net::interface* intf, net::rx_page* p)
         auto& l = intf_mem->tcp_listeners[dst_port];
         if (l.should_accept(&h->tcp))
         {
-            intf_mem->tcp_sockets.emplace(sid,intf,dst_port,l.socket_readable)
-                .handle_rx_ipv4_tcp_frame(p);
+            auto& s = intf_mem->tcp_sockets.emplace(sid,intf,dst_port);
+            l.socket_accepted(&s);
+            s.handle_rx_ipv4_tcp_frame(p);
             return;
         }
     }

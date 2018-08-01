@@ -21,13 +21,13 @@ namespace tcp
         // Decide whether or not to accept a SYN connection request.
         kernel::delegate<bool(const header* syn)>   should_accept;
 
-        // Delegate to call when new data arrives on a socket.  This will be
-        // called each time a packet arrives even if there are pending packets
-        // already on the rx queue.
-        kernel::delegate<void(socket*)>             socket_readable;
+        // Called when a new connection has been accepted.  The client can
+        // fill out the rx_readable delegate on the socket if they wish to get
+        // rx packet notifications.
+        kernel::delegate<void(socket*)>             socket_accepted;
     };
-    typedef typeof_field(listener,should_accept) should_accept_delegate;
-    typedef typeof_field(listener,socket_readable) socket_readable_delegate;
+    typedef typeof_field(listener,should_accept)   should_accept_delegate;
+    typedef typeof_field(listener,socket_accepted) socket_accepted_delegate;
 
     struct socket
     {
@@ -40,7 +40,6 @@ namespace tcp
             TCP_CLOSE_WAIT,
         };
 
-        kernel::kdlink                  link;
         net::interface*                 intf;
         tcp::ll_ipv4_tcp_headers        hdrs;
         tcp_state                       state;
@@ -48,8 +47,8 @@ namespace tcp
 
         // Receive queue.
         kernel::klist<net::rx_page>     rx_pages;
+        kernel::delegate<void(socket*)> rx_readable;
         size_t                          rx_avail_bytes;
-        socket_readable_delegate        rx_readable;
 
         // Send sequence variables.
         uint32_t                        snd_una;
@@ -87,8 +86,7 @@ namespace tcp
         void    process_fin(net::rx_page* p);
 
         // Passive open.
-        socket(net::interface* intf, uint16_t port,
-               socket_readable_delegate srd);
+        socket(net::interface* intf, uint16_t port);
     };
 
     struct socket_id

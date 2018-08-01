@@ -90,12 +90,14 @@ namespace net
 
         // TCP.
                 void    tcp_listen(uint16_t port,
-                                   tcp::should_accept_delegate sad,
-                                   tcp::socket_readable_delegate srd);
+                                   tcp::socket_accepted_delegate ad,
+                                   tcp::should_accept_delegate sad =
+                                    kernel::func_delegate(tcp_always_accept));
+        static  bool    tcp_always_accept(const tcp::header*) {return true;}
                 void    tcp_delete(tcp::socket* s);
 
         // Cheesy command socket.
-                bool    cmd_socket_should_accept(const tcp::header* syn);
+                void    cmd_socket_accepted(tcp::socket* s);
                 void    cmd_socket_readable(tcp::socket* s);
 
         // Activate the interface.

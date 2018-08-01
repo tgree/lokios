@@ -72,25 +72,25 @@ net::interface::udp_ignore(uint16_t port)
 }
 
 void
-net::interface::tcp_listen(uint16_t port, tcp::should_accept_delegate sad,
-    tcp::socket_readable_delegate srd)
+net::interface::tcp_listen(uint16_t port,
+    tcp::socket_accepted_delegate ad,
+    tcp::should_accept_delegate sad)
 {
     kassert(!intf_mem->tcp_listeners.contains(port));
-    intf_mem->tcp_listeners.emplace(port,tcp::listener{sad,srd});
+    intf_mem->tcp_listeners.emplace(port,tcp::listener{sad,ad});
 }
 
 void
 net::interface::tcp_delete(tcp::socket* s)
 {
     intf_dbg("deleting socket\n");
-    s->link.unlink();
     delete s;
 }
 
-bool
-net::interface::cmd_socket_should_accept(const tcp::header* syn)
+void
+net::interface::cmd_socket_accepted(tcp::socket* s)
 {
-    return true;
+    s->rx_readable = method_delegate(cmd_socket_readable);
 }
 
 void
@@ -115,9 +115,7 @@ net::interface::activate()
     refill_rx_pages();
 
     // Add a handler.
-    tcp_listen(12345,
-               method_delegate(cmd_socket_should_accept),
-               method_delegate(cmd_socket_readable));
+    tcp_listen(12345,method_delegate(cmd_socket_accepted));
 }
 
 void
