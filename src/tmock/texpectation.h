@@ -82,6 +82,13 @@ namespace tmock
         tmock::_expect((tmock::expectation*)&e); \
     } while(false)
 
+#define TEXPECT(fname,...) \
+    __attribute__((constructor))                    \
+    static void _tmock_static_expect ## __LINE__()  \
+    {                                               \
+        texpect(fname,__VA_ARGS__);                 \
+    }
+
 // Construct a mock function call without dynamically allocating memory.
 #define _MOCK_ARG(_arg) tmock::targ{#_arg, (uintptr_t)_arg},
 #define mock(fname,...) \
