@@ -74,6 +74,12 @@ net::interface::tcp_listen(uint16_t port,
 }
 
 void
+net::interface::tcp_ignore(uint16_t port)
+{
+    tcp_listeners.erase(port);
+}
+
+void
 net::interface::tcp_delete(tcp::socket* s)
 {
     intf_dbg("deleting socket\n");

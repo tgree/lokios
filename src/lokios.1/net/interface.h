@@ -87,6 +87,7 @@ namespace net
                                    tcp::socket_accepted_delegate ad,
                                    tcp::should_accept_delegate sad =
                                     kernel::func_delegate(tcp_always_accept));
+                void    tcp_ignore(uint16_t port);
         static  bool    tcp_always_accept(const tcp::header*) {return true;}
                 void    tcp_delete(tcp::socket* s);
 
