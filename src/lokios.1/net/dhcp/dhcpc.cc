@@ -67,7 +67,7 @@ dhcp::client::client(eth::interface* intf):
     send_op.alps[0].paddr = kernel::virt_to_phys(&packet);
     send_op.alps[0].len   = sizeof(packet);
 
-    intf->register_udp_handler(68,this,frame_delegate(handle_rx_dhcp));
+    intf->register_udp_handler(68,method_delegate(handle_rx_dhcp));
 }
 
 void

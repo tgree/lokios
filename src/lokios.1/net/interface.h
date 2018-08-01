@@ -9,33 +9,13 @@ namespace net
 {
     struct interface;
 
-    // Handler for inbound frames.
-    typedef void (*frame_handler)(interface* intf, void* cookie,
-                                  net::rx_page* p);
-
     // Method delegate for inbound frames.
-    template<typename T, void (T::*Handler)(interface* intf, net::rx_page*)>
-    struct _frame_delegate
-    {
-        static void handler(interface* intf, void* cookie, net::rx_page* p)
-        {
-            (((T*)cookie)->*Handler)(intf,p);
-        }
-    };
-#define frame_delegate(fn) \
-    net::_frame_delegate< \
-        loki::remove_reference_t<decltype(*this)>, \
-        &loki::remove_reference_t<decltype(*this)>::fn>::handler
+    typedef kernel::delegate<void(interface*,rx_page*)> udp_frame_handler;
 
     // Data structure that gets mapped at the interface's reserved vaddr.
     struct interface_mem
     {
-        struct
-        {
-            void*           cookie;
-            frame_handler   handler;
-        } udp_frame_handlers[65536];
-
+        udp_frame_handler   udp_frame_handlers[65536];
         tcp::listener*      tcp_listeners[65536];
     };
 
@@ -96,19 +76,17 @@ namespace net
                                         void* reply_payload) = 0;
 
         // Register UDP frame handlers.
-        inline  void    register_udp_handler(uint16_t port, void* cookie,
-                                             net::frame_handler handler)
+        inline  void    register_udp_handler(uint16_t port, udp_frame_handler h)
         {
-            auto* ufh = &intf_mem->udp_frame_handlers[port];
-            kernel::kassert(!ufh->handler);
-            ufh->cookie  = cookie;
-            ufh->handler = handler;
+            auto& ufh = intf_mem->udp_frame_handlers[port];
+            kernel::kassert(!ufh);
+            ufh = h;
         }
         inline  void    deregister_udp_handler(uint16_t port)
         {
-            auto* ufh = &intf_mem->udp_frame_handlers[port];
-            kernel::kassert(ufh->handler);
-            ufh->handler = NULL;
+            auto& ufh = intf_mem->udp_frame_handlers[port];
+            kernel::kassert(ufh);
+            ufh.clear();
         }
 
         // TCP.

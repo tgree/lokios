@@ -124,8 +124,8 @@ net::interface::handle_rx_ipv4_udp_frame(net::rx_page* p)
 {
     auto* iph = (ipv4::header*)(p->payload + p->pay_offset);
     auto* uh  = (udp::header*)(iph+1);
-    auto* ufh = &intf_mem->udp_frame_handlers[uh->dst_port];
-    if (ufh->handler)
-        (*ufh->handler)(this,ufh->cookie,p);
+    auto& ufh = intf_mem->udp_frame_handlers[uh->dst_port];
+    if (ufh)
+        ufh(this,p);
 }
 
