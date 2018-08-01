@@ -2,7 +2,6 @@
 #define __KERNEL_NET_TCP_SOCKET_H
 
 #include "header.h"
-#include "rx_queue.h"
 #include "net/net.h"
 #include "net/ip/ip.h"
 #include "k++/delegate.h"
@@ -17,13 +16,18 @@ namespace tcp
 {
     struct socket;
 
-    typedef kernel::delegate<socket*(const header* syn)> alloc_delegate;
     struct listener
     {
-        net::interface*         intf;
-        uint16_t                port;
-        alloc_delegate          socket_allocator;
+        // Decide whether or not to accept a SYN connection request.
+        kernel::delegate<bool(const header* syn)>   should_accept;
+
+        // Delegate to call when new data arrives on a socket.  This will be
+        // called each time a packet arrives even if there are pending packets
+        // already on the rx queue.
+        kernel::delegate<void(socket*)>             socket_readable;
     };
+    typedef typeof_field(listener,should_accept) should_accept_delegate;
+    typedef typeof_field(listener,socket_readable) socket_readable_delegate;
 
     struct socket
     {
@@ -41,7 +45,11 @@ namespace tcp
         tcp::ll_ipv4_tcp_headers        hdrs;
         tcp_state                       state;
         tcp_state                       prev_state;
-        tcp::rx_queue*                  rq;
+
+        // Receive queue.
+        kernel::klist<net::rx_page>     rx_pages;
+        size_t                          rx_avail_bytes;
+        socket_readable_delegate        rx_readable;
 
         // Send sequence variables.
         uint32_t                        snd_una;
@@ -69,13 +77,18 @@ namespace tcp
         void    handle_listen_syn_recvd(net::rx_page* p);
         void    handle_established_segment_recvd(net::rx_page* p);
 
+        // Access the receive queue.
+        void    rx_append(net::rx_page* p);
+        void    read(void* dst, uint32_t len);
+
         // Helpers.
         void    dump_socket();
         void    window_update(uint32_t seg_len);
         void    process_fin(net::rx_page* p);
 
         // Passive open.
-        socket(net::interface* intf, uint16_t port, tcp::rx_queue* rq);
+        socket(net::interface* intf, uint16_t port,
+               socket_readable_delegate srd);
     };
 
     struct socket_id

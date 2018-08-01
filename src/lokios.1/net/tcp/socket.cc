@@ -24,11 +24,13 @@
 
 using kernel::_kassert;
 
-tcp::socket::socket(net::interface* intf, uint16_t port, tcp::rx_queue* rq):
-    intf(intf),
-    state(TCP_LISTEN),
-    prev_state(TCP_CLOSED),
-    rq(rq)
+tcp::socket::socket(net::interface* intf, uint16_t port,
+    socket_readable_delegate rx_readable):
+        intf(intf),
+        state(TCP_LISTEN),
+        prev_state(TCP_CLOSED),
+        rx_avail_bytes(0),
+        rx_readable(rx_readable)
 {
 #if 0
     hdrs.ll.dst_mac          = eth::net_traits::zero_addr;
@@ -371,7 +373,7 @@ tcp::socket::handle_established_segment_recvd(net::rx_page* p)
             p->client_offset = seg_data - p->payload;
             p->client_len    = seg_len;
             p->flags         = NRX_FLAG_NO_DELETE;
-            rq->append(p);
+            rx_append(p);
         }
         else
         {
@@ -385,6 +387,39 @@ tcp::socket::handle_established_segment_recvd(net::rx_page* p)
         process_fin(p);
         TRANSITION(TCP_CLOSE_WAIT);
         return;
+    }
+}
+
+void
+tcp::socket::rx_append(net::rx_page* p)
+{
+    rx_pages.push_back(&p->link);
+    rx_avail_bytes += p->client_len;
+    rx_readable(this);
+}
+
+void
+tcp::socket::read(void* _dst, uint32_t rem)
+{
+    kassert(rem <= rx_avail_bytes);
+    rx_avail_bytes -= rem;
+
+    char* dst = (char*)_dst;
+    while (rem)
+    {
+        net::rx_page* p = klist_front(rx_pages,link);
+        uint32_t len    = kernel::min(rem,(uint32_t)p->client_len);
+        memcpy(dst,p->payload + p->client_offset,len);
+        p->client_offset += len;
+        p->client_len    -= len;
+        dst              += len;
+        rem              -= len;
+
+        if (!p->client_len)
+        {
+            rx_pages.pop_front();
+            delete p;
+        }
     }
 }
 

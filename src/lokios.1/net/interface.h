@@ -15,8 +15,8 @@ namespace net
     // Data structure that gets mapped at the interface's reserved vaddr.
     struct interface_mem
     {
-        hash::table<uint16_t,tcp::listener>         tcp_listeners;
-        hash::table<tcp::socket_id,tcp::socket*>    tcp_sockets;
+        hash::table<uint16_t,tcp::listener>     tcp_listeners;
+        hash::table<tcp::socket_id,tcp::socket> tcp_sockets;
     };
 
     struct interface
@@ -89,9 +89,14 @@ namespace net
                 void    udp_ignore(uint16_t port);
 
         // TCP.
-                void    tcp_listen(uint16_t port, tcp::alloc_delegate ad);
-        tcp::socket*    tcp_socket_allocator(const tcp::header* sync);
+                void    tcp_listen(uint16_t port,
+                                   tcp::should_accept_delegate sad,
+                                   tcp::socket_readable_delegate srd);
                 void    tcp_delete(tcp::socket* s);
+
+        // Cheesy command socket.
+                bool    cmd_socket_should_accept(const tcp::header* syn);
+                void    cmd_socket_readable(tcp::socket* s);
 
         // Activate the interface.
         virtual void    activate();

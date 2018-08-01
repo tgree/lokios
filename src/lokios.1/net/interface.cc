@@ -72,41 +72,11 @@ net::interface::udp_ignore(uint16_t port)
 }
 
 void
-net::interface::tcp_listen(uint16_t port, tcp::alloc_delegate ad)
+net::interface::tcp_listen(uint16_t port, tcp::should_accept_delegate sad,
+    tcp::socket_readable_delegate srd)
 {
     kassert(!intf_mem->tcp_listeners.contains(port));
-    intf_mem->tcp_listeners.emplace(port,tcp::listener{this,port,ad});
-}
-
-struct net_tcp_socket : public tcp::socket
-{
-    tcp::rx_queue   erq;
-
-    void rq_ready(tcp::rx_queue*)
-    {
-        char buffer[16];
-        memset(buffer,0,sizeof(buffer));
-        while (erq.avail_bytes)
-        {
-            uint32_t len = kernel::min(erq.avail_bytes,sizeof(buffer)-1);
-            erq.read(buffer,len);
-            if (!strcmp(buffer,"arp\r\n"))
-                intf->dump_arp_table();
-        }
-        kassert(erq.pages.empty());
-    }
-
-    net_tcp_socket(net::interface* intf, uint16_t port):
-        tcp::socket(intf,port,&erq),
-        erq(method_delegate(rq_ready))
-    {
-    }
-};
-
-tcp::socket*
-net::interface::tcp_socket_allocator(const tcp::header* syn)
-{
-    return new net_tcp_socket(this,syn->dst_port);
+    intf_mem->tcp_listeners.emplace(port,tcp::listener{sad,srd});
 }
 
 void
@@ -117,6 +87,27 @@ net::interface::tcp_delete(tcp::socket* s)
     delete s;
 }
 
+bool
+net::interface::cmd_socket_should_accept(const tcp::header* syn)
+{
+    return true;
+}
+
+void
+net::interface::cmd_socket_readable(tcp::socket* s)
+{
+    char buffer[16];
+    memset(buffer,0,sizeof(buffer));
+    while (s->rx_avail_bytes)
+    {
+        uint32_t len = kernel::min(s->rx_avail_bytes,sizeof(buffer)-1);
+        s->read(buffer,len);
+        if (!strcmp(buffer,"arp\r\n"))
+            dump_arp_table();
+    }
+    kassert(s->rx_pages.empty());
+}
+
 void
 net::interface::activate()
 {
@@ -124,7 +115,9 @@ net::interface::activate()
     refill_rx_pages();
 
     // Add a handler.
-    tcp_listen(12345,method_delegate(tcp_socket_allocator));
+    tcp_listen(12345,
+               method_delegate(cmd_socket_should_accept),
+               method_delegate(cmd_socket_readable));
 }
 
 void
