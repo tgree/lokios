@@ -44,6 +44,18 @@ net::interface::intf_vdbg(const char* fmt, va_list ap)
 }
 
 void
+net::interface::udp_listen(uint16_t port, udp_frame_handler h)
+{
+    mock("net::interface::udp_listen",port,&h);
+}
+
+void
+net::interface::udp_ignore(uint16_t port)
+{
+    mock("net::interface::udp_ignore",port);
+}
+
+void
 net::interface::activate()
 {
     mock("net::interface::activate");

@@ -15,6 +15,7 @@
 #define DNS_IP          ipv4::addr{192,168,1,2}
 #define LEASE_TIME      86400
 
+TEXPECT("net::interface::udp_listen",want(port,68));
 static eth::finterface intf(CLIENT_MAC);
 
 template<typename hw_traits, typename proto_traits>

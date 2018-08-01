@@ -77,15 +77,9 @@ namespace net
         virtual size_t  format_ll_reply(net::rx_page* p, 
                                         void* reply_payload) = 0;
 
-        // Register UDP frame handlers.
-        inline  void    register_udp_handler(uint16_t port, udp_frame_handler h)
-        {
-            udp_sockets.emplace(port,h);
-        }
-        inline  void    deregister_udp_handler(uint16_t port)
-        {
-            udp_sockets.erase(port);
-        }
+        // UDP
+                void    udp_listen(uint16_t port, udp_frame_handler h);
+                void    udp_ignore(uint16_t port);
 
         // TCP.
                 void    tcp_listen(uint16_t port, tcp::connection_filter f);

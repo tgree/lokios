@@ -63,6 +63,18 @@ net::interface::intf_vdbg(const char* fmt, va_list ap)
 }
 
 void
+net::interface::udp_listen(uint16_t port, udp_frame_handler h)
+{
+    udp_sockets.emplace(port,h);
+}
+
+void
+net::interface::udp_ignore(uint16_t port)
+{
+    udp_sockets.erase(port);
+}
+
+void
 net::interface::tcp_listen(uint16_t port, tcp::connection_filter f)
 {
     kassert(!intf_mem->tcp_listeners[port]);
