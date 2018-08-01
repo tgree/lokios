@@ -15,8 +15,7 @@ namespace net
     // Data structure that gets mapped at the interface's reserved vaddr.
     struct interface_mem
     {
-        hash::table<uint16_t,udp_frame_handler> udp_sockets;
-        tcp::listener*                          tcp_listeners[65536];
+        tcp::listener*  tcp_listeners[65536];
     };
 
     struct interface
@@ -34,6 +33,9 @@ namespace net
 
         // IP address assigned by software.
         ipv4::addr          ip_addr;
+
+        // UDP.
+        hash::table<uint16_t,udp_frame_handler> udp_sockets;
 
         // Emit log messages.
                 void                 intf_vdbg(const char* fmt, va_list ap);
@@ -78,11 +80,11 @@ namespace net
         // Register UDP frame handlers.
         inline  void    register_udp_handler(uint16_t port, udp_frame_handler h)
         {
-            intf_mem->udp_sockets.emplace(port,h);
+            udp_sockets.emplace(port,h);
         }
         inline  void    deregister_udp_handler(uint16_t port)
         {
-            intf_mem->udp_sockets.erase(port);
+            udp_sockets.erase(port);
         }
 
         // TCP.

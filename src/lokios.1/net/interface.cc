@@ -128,7 +128,7 @@ net::interface::handle_rx_ipv4_udp_frame(net::rx_page* p)
     udp_frame_handler* ufh;
     try
     {
-        ufh = &intf_mem->udp_sockets[uh->dst_port];
+        ufh = &udp_sockets[uh->dst_port];
     }
     catch (hash::no_such_key_exception&)
     {
