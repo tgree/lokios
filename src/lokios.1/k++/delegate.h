@@ -14,6 +14,9 @@ namespace kernel
         void*   obj;
         RC      (*bouncer)(void* obj, Args...);
 
+        constexpr operator bool() const {return bouncer != NULL;}
+        void clear()                    {bouncer = NULL;}
+
         inline RC operator()(Args... args)
         {
             return (*bouncer)(obj,loki::forward<Args>(args)...);
@@ -36,6 +39,9 @@ namespace kernel
             obj     = (void*)o;
             bouncer = mbounce<T,Method>;
         }
+
+        constexpr delegate(void* obj = NULL, typeof(bouncer) bouncer = NULL):
+            obj(obj),bouncer(bouncer) {}
     };
 
     template<typename T, typename RC, typename ...Args>
@@ -48,15 +54,15 @@ namespace kernel
     _make_method_delegate<this_type,&this_type::m>(this)
 
 #define method_delegate_ptmf(ptmf) \
-    {(void*)this, \
-     decltype(kernel::delegate_convert(ptmf))::mbounce<this_type,ptmf>}
+    decltype(kernel::delegate_convert(ptmf))((void*)this, \
+     decltype(kernel::delegate_convert(ptmf))::mbounce<this_type,ptmf>)
 
 #define method_delegate(m) \
     method_delegate_ptmf(&this_type::m)
 
 #define func_delegate(f) delegate<typeof(f)> \
-    {(void*)f, \
-     decltype(kernel::delegate_convert(f))::fbounce}
+    ((void*)f, \
+     decltype(kernel::delegate_convert(f))::fbounce)
 }
 
 #endif /* __KERNEL_DELEGATE_H */
