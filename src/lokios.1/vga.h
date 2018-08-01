@@ -23,8 +23,8 @@ namespace kernel
         vga_console(uint16_t* base);
     };
 
-    void vga_write(uint8_t x, uint8_t y, const char* s,
-                   uint16_t cflags = 0x4F00) noexcept;
+    size_t vga_write(uint8_t x, uint8_t y, const char* s,
+                     uint16_t cflags = 0x4F00) noexcept;
     void vga_set_flags(uint16_t cflags) noexcept;
     void init_vga_console(dma_addr64 vga_base);
 }

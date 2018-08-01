@@ -20,12 +20,14 @@ kernel::init_vga_console(dma_addr64 _vga_base)
     kernel::console::register_console(vga);
 }
 
-void
+size_t
 kernel::vga_write(uint8_t x, uint8_t y, const char* s, uint16_t cflags) noexcept
 {
-    uint16_t* addr = &vga_base[y*SCREEN_WIDTH + x];
+    uint16_t* base = &vga_base[y*SCREEN_WIDTH + x];
+    uint16_t* addr = base;
     while (*s)
         *addr++ = cflags | *s++;
+    return addr - base;
 }
 
 void
