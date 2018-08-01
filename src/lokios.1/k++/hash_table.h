@@ -129,9 +129,9 @@ namespace hash
             return n->v;
         }
 
-        table(size_t nbins = PAGE_SIZE/sizeof(bins[0])):
+        table():
             nelems(0),
-            nbins(nbins),
+            nbins(PAGE_SIZE/sizeof(bins[0])),
             node_slab(sizeof(node))
         {
             kernel::kassert(kernel::is_pow2(nbins));
