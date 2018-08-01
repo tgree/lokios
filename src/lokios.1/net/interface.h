@@ -2,7 +2,7 @@
 #define __KERNEL_NET_INTERFACE_H
 
 #include "tcp/socket.h"
-#include "hdr/compiler.h"
+#include "k++/hash_table.h"
 #include <stdarg.h>
 
 namespace net
@@ -15,8 +15,8 @@ namespace net
     // Data structure that gets mapped at the interface's reserved vaddr.
     struct interface_mem
     {
-        udp_frame_handler   udp_frame_handlers[65536];
-        tcp::listener*      tcp_listeners[65536];
+        hash::table<uint16_t,udp_frame_handler> udp_sockets;
+        tcp::listener*                          tcp_listeners[65536];
     };
 
     struct interface
@@ -78,15 +78,11 @@ namespace net
         // Register UDP frame handlers.
         inline  void    register_udp_handler(uint16_t port, udp_frame_handler h)
         {
-            auto& ufh = intf_mem->udp_frame_handlers[port];
-            kernel::kassert(!ufh);
-            ufh = h;
+            intf_mem->udp_sockets.emplace(port,h);
         }
         inline  void    deregister_udp_handler(uint16_t port)
         {
-            auto& ufh = intf_mem->udp_frame_handlers[port];
-            kernel::kassert(ufh);
-            ufh.clear();
+            intf_mem->udp_sockets.erase(port);
         }
 
         // TCP.

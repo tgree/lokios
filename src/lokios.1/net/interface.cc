@@ -124,8 +124,17 @@ net::interface::handle_rx_ipv4_udp_frame(net::rx_page* p)
 {
     auto* iph = (ipv4::header*)(p->payload + p->pay_offset);
     auto* uh  = (udp::header*)(iph+1);
-    auto& ufh = intf_mem->udp_frame_handlers[uh->dst_port];
-    if (ufh)
-        ufh(this,p);
+
+    udp_frame_handler* ufh;
+    try
+    {
+        ufh = &intf_mem->udp_sockets[uh->dst_port];
+    }
+    catch (hash::no_such_key_exception&)
+    {
+        return;
+    }
+
+    (*ufh)(this,p);
 }
 
