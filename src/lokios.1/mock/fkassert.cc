@@ -8,7 +8,7 @@ kernel::halt() noexcept
 }
 
 void
-kernel::panic(const char* s) noexcept
+kernel::panic(const char* s, const char* f, unsigned int l) noexcept
 {
-    tmock::abort(s);
+    tmock::abort(s,f,l);
 }

@@ -10,15 +10,17 @@ namespace kernel
 {
     void halt() noexcept __NORETURN__;
 
-    void panic(const char* s = "") noexcept __NORETURN__;
+    void panic(const char* s = "", const char* f = __builtin_FILE(),
+               unsigned int l = __builtin_LINE()) noexcept __NORETURN__;
 
-    inline void _kassert(bool expr, const char* s)
+    inline void _kassert(bool expr, const char* s,
+                         const char* f = __builtin_FILE(),
+                         unsigned int l = __builtin_LINE())
     {
         if (!expr)
-            panic(s);
+            panic(s,f,l);
     }
 }
-
-#define kassert(exp) _kassert((exp),FILELINESTR ":" #exp)
+#define kassert(exp) _kassert((exp),#exp)
 
 #endif /* __KERNEL_ASSERT_H */
