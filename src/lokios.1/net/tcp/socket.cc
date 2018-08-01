@@ -374,6 +374,8 @@ tcp::socket::handle_established_segment_recvd(net::rx_page* p)
             rcv_nxt = h->tcp.seq_num + seg_len;
             tcp::post_ack(intf,p,snd_nxt,rcv_nxt,rcv_wnd >> rcv_wnd_shift);
 
+            // BAH!  The packet can get deleted if we let rx_append call out
+            // to the client in context.
             p->client_offset = seg_data - p->payload;
             p->client_len    = seg_len;
             p->flags         = NRX_FLAG_NO_DELETE;

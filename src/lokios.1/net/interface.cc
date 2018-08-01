@@ -96,10 +96,12 @@ void
 net::interface::cmd_socket_readable(tcp::socket* s)
 {
     char buffer[16];
-    memset(buffer,0,sizeof(buffer));
+    memset(buffer,'T',sizeof(buffer));
     while (s->rx_avail_bytes)
     {
+        intf_dbg("rx_avail_bytes %zu\n",s->rx_avail_bytes);
         uint32_t len = kernel::min(s->rx_avail_bytes,sizeof(buffer)-1);
+        buffer[len]  = '\0';
         s->read(buffer,len);
         if (!strcmp(buffer,"arp\r\n"))
             dump_arp_table();
