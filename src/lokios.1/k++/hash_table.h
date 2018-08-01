@@ -70,6 +70,16 @@ namespace hash
             kernel::buddy_free(b,order);
         }
 
+        void grow()
+        {
+            ++nelems;
+        }
+
+        void shrink()
+        {
+            --nelems;
+        }
+
         void clear()
         {
             for (size_t i=0; i<nbins; ++i)
@@ -110,7 +120,7 @@ namespace hash
             kernel::kassert(!find_node_in_slot(k,slot));
             node* n = node_slab.alloc<node>(k,v);
             bins[slot].push_back(&n->link);
-            ++nelems;
+            grow();
             return n->v;
         }
 
@@ -122,13 +132,13 @@ namespace hash
             node* n = node_slab.alloc<node>(dummy(),k,
                                             loki::forward<Args>(args)...);
             bins[slot].push_back(&n->link);
-            ++nelems;
+            grow();
             return n->v;
         }
 
         void erase(node* n)
         {
-            --nelems;
+            shrink();
             n->link.unlink();
             node_slab.free(n);
         }
