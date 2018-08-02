@@ -1,11 +1,14 @@
 SECTIONS
 {
     /* This value should match the _kernel_base value in lokios.0.ld. */
-    _phys_addr = 0x00200000;
+    _phys_addr = 0x00200100;
     _virt_addr = 0xFFFFFFFFC0000000 + _phys_addr;
+    _kernel_phys_base = _phys_addr;
+    _kernel_virt_base = _virt_addr;
     . = _virt_addr;
     .image_header :
     {
+        LONG(0x494B4F4C);
         LONG(_num_sectors)
         . = ALIGN(0x10);
     }
@@ -107,9 +110,11 @@ SECTIONS
         BYTE(0xBB)
         FILL(0xBB)
         . = ALIGN(4096);
+        . = . + 0x100;
     }
 
-    ASSERT(. % 4096 == 0, "not an integral number of sectors")
+    ASSERT((. - _virt_addr) % 4096 == 0, "not an integral number of sectors")
     _num_sectors = (. - _virt_addr) / 512;
-    _sbrk = . - _virt_addr + _phys_addr;
+
+    _kernel_end = .;
 }

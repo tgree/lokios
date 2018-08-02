@@ -29,9 +29,9 @@ _mbr_entry:
     call    _disk_read
     jc      .L_disk_read_failed
 
-    # Get the total number of sectors.  This is stored as a 32-bit value at the
+    # Get the total number of sectors.  This is stored as a 32-bit value near the
     # beginning of the first kernel sector.
-    movl    _pre_e820_bounce_buffer, %esi
+    movl    _pre_e820_bounce_buffer + 4, %esi
     push    %esi
 
     # Loop over all the sectors.  We do up to 4K at a time.

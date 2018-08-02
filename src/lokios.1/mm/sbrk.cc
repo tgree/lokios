@@ -1,17 +1,20 @@
 #include "sbrk.h"
 #include "kernel/spinlock.h"
 #include "kernel/kassert.h"
+#include "kernel/console.h"
+#include "kernel/image.h"
 
-extern char _sbrk[];
+extern char _kernel_phys_base[];
 
 static kernel::spinlock sbrklock;
-static dma_addr64 _brk = (dma_addr64)_sbrk;
+static dma_addr64 _brk;
 static dma_addr64 _brklim = KERNEL_SBRK_END;
 static bool sbrk_frozen = false;
 
 dma_addr64
 kernel::sbrk(size_t n)
 {
+    kernel::console::printf("_brk = 0x%016lX\n",_brk);
     dma_addr64 p;
     dma_addr64 new_brk;
 
@@ -57,4 +60,10 @@ dma_addr64
 kernel::get_sbrk_limit()
 {
     return _brklim;
+}
+
+void
+kernel::init_sbrk()
+{
+    _brk = (dma_addr64)_kernel_phys_base + image_header->num_sectors*512;
 }

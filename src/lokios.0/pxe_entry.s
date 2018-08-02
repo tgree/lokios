@@ -168,7 +168,7 @@ _pxe_start_load:
     jne     .L_read_truncated
 
     # Get the remaining number of sectors to bounce-copy.
-    movl    _pre_e820_bounce_buffer, %esi
+    movl    _pre_e820_bounce_buffer + 4, %esi
     movl    %esi, _pxe_remaining_sectors
 
 .L_read_loop:

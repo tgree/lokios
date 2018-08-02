@@ -21,6 +21,8 @@ namespace kernel
         inline void* alloc()      {return phys_to_virt(sbrk(len));}
         inline void free(void* p) {}
     };
+
+    void init_sbrk();
 }
 
 #endif /* __KERNEL_SBRK_H */

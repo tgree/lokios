@@ -81,10 +81,10 @@ $(BIN_DIR)/lokios.0: $(BUILD_O_DIR)/lokios.0/lokios.0.elf
 	@mkdir -p $(@D)
 	@objcopy -O binary -S $(BUILD_O_DIR)/lokios.0/lokios.0.elf $(BIN_DIR)/lokios.0
 
-$(BIN_DIR)/lokios.1: $(BUILD_O_DIR)/lokios.1/lokios.1.elf
+$(BIN_DIR)/lokios.1: $(BUILD_O_DIR)/lokios.1/lokios.1.bin $(BUILD_O_DIR)/lokios.1/lokios.1.sym
 	@echo Generating $@...
 	@mkdir -p $(@D)
-	@objcopy -O binary -S $(BUILD_O_DIR)/lokios.1/lokios.1.elf $(BIN_DIR)/lokios.1
+	@tools/cat_bin.py $(BUILD_O_DIR)/lokios.1/lokios.1.bin $(BUILD_O_DIR)/lokios.1/lokios.1.sym $(BIN_DIR)/lokios.1
 
 $(BIN_DIR)/lokios.mbr: $(BIN_DIR)/lokios.0 $(BIN_DIR)/lokios.1
 	@echo Generating $@...

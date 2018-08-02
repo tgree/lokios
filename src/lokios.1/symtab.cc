@@ -1,13 +1,12 @@
 #include "symtab.h"
 #include "console.h"
-
-extern uint8_t _symtab_begin[];
-extern uint8_t _symtab_end[];
+#include "image.h"
 
 void
 kernel::init_symtab()
 {
-    kernel::console::printf(".symtab 0x%016lX len %lu\n",
-                            (uintptr_t)_symtab_begin,
-                            _symtab_end - _symtab_begin);
+    kernel::console::printf(".elf 0x%016lX len %lu\n",
+                            (uintptr_t)elf_begin,
+                            elf_end - elf_begin);
+    kernel::console::hexdump(elf_begin,0x100,(uintptr_t)elf_begin);
 }

@@ -8,6 +8,7 @@
 #include "schedule.h"
 #include "kbacktrace.h"
 #include "symtab.h"
+#include "image.h"
 #include "platform/platform.h"
 #include "mm/mm.h"
 #include "mm/sbrk.h"
@@ -68,6 +69,12 @@ init_bsp()
 {
     // Remap kernel args.
     e820_base = (kernel::e820_map*)kernel::phys_to_virt(kargs->e820_base);
+
+    // Initialize image.
+    kernel::init_image();
+
+    // Init sbrk.
+    kernel::init_sbrk();
 
     // Initialize the console as early as we can.
     kernel::init_vga_console(kargs->vga_base);

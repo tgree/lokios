@@ -20,11 +20,24 @@ $(MODULE_BUILD_DIR)/lokios.1.elf: LDM  := $(MODULE_BUILD_DIR)/lokios.1.map
 $(MODULE_BUILD_DIR)/lokios.1.elf: LDLD := $(MODULE_SRC_DIR)/lokios.1.ld
 $(MODULE_BUILD_DIR)/lokios.1.elf: $(LOKIOS_1_OBJ) $(LOKIOS_1_LIB:%=$(LIB_DIR)/%) $(MODULE_SRC_DIR)/lokios.1.ld $(MODULE_MK)
 	@echo Linking $@...
-	@ld -melf_x86_64 -Map=$(LDM) -T $(LDLD) $(LOKIOS_1_DRIVERS:%=--require-defined=%_driver) $(LOKIOS_1_CONSTRUCTORS:%=--require-defined=%) -o $@ \
-	    	$(CRTBEGIN_OBJ) \
-		$(LOKIOS_1_OBJ) \
-		-\(             \
-		$(LOKIOS_1_LIB:%=$(LIB_DIR)/%) \
-		-\)             \
-		$(LGCC_EH_OBJ)  \
-		$(CRTEND_OBJ)
+	@ld -o $@ \
+	    -melf_x86_64 \
+	    -Map=$(LDM) \
+	    -T $(LDLD) \
+	    $(LOKIOS_1_DRIVERS:%=--require-defined=%_driver) \
+	    $(LOKIOS_1_CONSTRUCTORS:%=--require-defined=%) \
+	    $(CRTBEGIN_OBJ) \
+	    $(LOKIOS_1_OBJ) \
+	    -\(             \
+	    $(LOKIOS_1_LIB:%=$(LIB_DIR)/%) \
+	    -\)             \
+	    $(LGCC_EH_OBJ)  \
+	    $(CRTEND_OBJ)
+
+$(MODULE_BUILD_DIR)/lokios.1.bin: $(MODULE_BUILD_DIR)/lokios.1.elf
+	@echo Building $@...
+	@objcopy -O binary -S $^ $@
+
+$(MODULE_BUILD_DIR)/lokios.1.sym: $(MODULE_BUILD_DIR)/lokios.1.elf
+	@echo Building $@...
+	@objcopy --extract-symbol --only-keep-debug $^ $@
