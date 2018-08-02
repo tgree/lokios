@@ -1,5 +1,4 @@
 #include "iocfg.h"
-#include "kernel/x86.h"
 #include "kernel/console.h"
 
 using kernel::console::printf;

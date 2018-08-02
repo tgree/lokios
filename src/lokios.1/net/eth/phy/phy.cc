@@ -2,7 +2,6 @@
 #include "net/eth/interface.h"
 #include "kernel/console.h"
 #include "kernel/cpu.h"
-#include "kernel/x86.h"
 
 #define intf_dbg(fmt,...) \
     kernel::console::printf("eth%zu: " fmt,intf->id,##__VA_ARGS__)

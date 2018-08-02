@@ -1,7 +1,6 @@
 #include "mm.h"
 #include "page_table.h"
 #include "sbrk.h"
-#include "../x86.h"
 #include "../console.h"
 #include "../task.h"
 #include "../cpu.h"

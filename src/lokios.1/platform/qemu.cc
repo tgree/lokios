@@ -1,5 +1,5 @@
 #include "qemu.h"
-#include "kernel/x86.h"
+#include "hdr/x86.h"
 
 kernel::qemu_platform::qemu_platform():
     kernel::platform("QEMU")

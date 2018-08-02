@@ -3,7 +3,7 @@
 
 #include "page.h"
 #include "mm.h"
-#include "kernel/x86.h"
+#include "hdr/x86.h"
 
 class tmock_test;
 

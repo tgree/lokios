@@ -2,7 +2,7 @@
 #define __KERNEL_VGA_H
 
 #include "console.h"
-#include <stdint.h>
+#include "types.h"
 
 namespace kernel
 {

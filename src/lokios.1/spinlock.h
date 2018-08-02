@@ -1,10 +1,9 @@
 #ifndef _KERNEL_SPINLOCK_H
 #define _KERNEL_SPINLOCK_H
 
-#include "x86.h"
 #include "thread.h"
 #include "k++/with.h"
-#include "hdr/compiler.h"
+#include "hdr/x86.h"
 
 namespace kernel
 {

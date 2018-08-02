@@ -1,8 +1,9 @@
-#ifndef __KERNEL_X86_H
-#define __KERNEL_X86_H
+#ifndef __LOKIOS_X86_H
+#define __LOKIOS_X86_H
 
-#include "hdr/compiler.h"
-#include "kernel/types.h"
+#include "compiler.h"
+#include "kassert.h"
+#include <stdint.h>
 
 static inline uint64_t mfcr2()
 {
@@ -11,14 +12,14 @@ static inline uint64_t mfcr2()
     return rc;
 }
 
-static inline dma_addr64 mfcr3()
+static inline uint64_t mfcr3()
 {
     uint64_t rc;
     asm ("mov %%cr3, %0" : "=r"(rc));
     return rc;
 }
 
-static inline void mtcr3(dma_addr64 val)
+static inline void mtcr3(uint64_t val)
 {
     asm ("mov %0, %%cr3" : : "r"(val));
 }
@@ -133,4 +134,4 @@ static inline uint64_t rdtsc()
     return (msw << 32) | lsw;
 }
 
-#endif /* __KERNEL_X86_H */
+#endif /* __LOKIOS_X86_H */

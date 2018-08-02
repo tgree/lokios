@@ -1,5 +1,4 @@
 #include "serial.h"
-#include "x86.h"
 #include <new>
 
 struct uart_settings

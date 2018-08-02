@@ -1,7 +1,7 @@
 #include "pmtimer.h"
 #include "console.h"
-#include "x86.h"
 #include "acpi/tables.h"
+#include "hdr/x86.h"
 
 #define PMTIMER_FREQ    3579545UL
 #define MAX_TICKS       0x00800000
