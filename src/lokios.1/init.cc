@@ -6,6 +6,8 @@
 #include "cmos.h"
 #include "pmtimer.h"
 #include "schedule.h"
+#include "kbacktrace.h"
+#include "symtab.h"
 #include "platform/platform.h"
 #include "mm/mm.h"
 #include "mm/sbrk.h"
@@ -78,6 +80,12 @@ init_bsp()
     // of malloc() which is why we can't set up exceptions before preinit_mm()
     // is called.
     __register_frame(_eh_frame_begin);
+
+    // Initialize backtrace support.
+    kernel::init_backtrace();
+
+    // Initialize symbol table support.
+    kernel::init_symtab();
 
     // Initialize globals.
     init_globals();

@@ -5,6 +5,7 @@
 #include "cxx_exception.h"
 #include "kassert.h"
 #include "schedule.h"
+#include "kbacktrace.h"
 #include "pci/pci.h"
 #include "platform/platform.h"
 #include "acpi/tables.h"
@@ -78,6 +79,9 @@ kernel_main(kernel::work_entry* wqe)
         wqe->fn   = kernel_hello;
         c->scheduler.schedule_remote_work(wqe);
     }
+
+    // Print a backtrace.
+    kernel::backtrace(NULL,0);
 
     // Set up a repeating ticker.
     one_sec_wqe.fn = kernel_ticker;
