@@ -1,7 +1,6 @@
 #include "sbrk.h"
 #include "kernel/spinlock.h"
 #include "kernel/kassert.h"
-#include "kernel/console.h"
 #include "kernel/image.h"
 
 extern char _kernel_phys_base[];
@@ -14,7 +13,6 @@ static bool sbrk_frozen = false;
 dma_addr64
 kernel::sbrk(size_t n)
 {
-    kernel::console::printf("_brk = 0x%016lX\n",_brk);
     dma_addr64 p;
     dma_addr64 new_brk;
 
