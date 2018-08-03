@@ -1,25 +1,31 @@
 SUBMODULES := bootsector
 
-LOKIOS_0_OBJ := \
-    	$(MODULE_BUILD_DIR)/bootsector/bootsector.a \
-	$(MODULE_BUILD_DIR)/smp_entry.o             \
-	$(MODULE_BUILD_DIR)/common_entry.o          \
-	$(MODULE_BUILD_DIR)/pxe_entry.o             \
-	$(MODULE_BUILD_DIR)/mbr_entry.o             \
-	$(MODULE_BUILD_DIR)/e820.o                  \
-	$(MODULE_BUILD_DIR)/a20_gate.o              \
-	$(MODULE_BUILD_DIR)/unreal_mode.o           \
-	$(MODULE_BUILD_DIR)/long_mode.o
-TIMESTAMP_S := $(MODULE_BUILD_DIR)/bootsector/timestamp.s
-TIMESTAMP_O := $(MODULE_BUILD_DIR)/bootsector/timestamp.o
+LOKIOS_0_CXX_SRC := $(wildcard $(MODULE_SRC_DIR)/*.cc)
+LOKIOS_0_ASM_SRC := $(wildcard $(MODULE_SRC_DIR)/*.s)
+
+LOKIOS_0_OBJ := $(LOKIOS_0_CXX_SRC:$(MODULE_SRC_DIR)/%.cc=$(MODULE_BUILD_DIR)/%.o) \
+                $(LOKIOS_0_ASM_SRC:$(MODULE_SRC_DIR)/%.s=$(MODULE_BUILD_DIR)/%.o)
 
 $(LOKIOS_0_OBJ): ASFLAGS := $(MODE16_ASFLAGS)
+$(LOKIOS_0_OBJ): KERN_CXXFLAGS := $(MODE16_CXXFLAGS)
+
+LOKIOS_0_LIB := bootsector.a
+
+TIMESTAMP_S := $(MODULE_BUILD_DIR)/timestamp.s
+TIMESTAMP_O := $(MODULE_BUILD_DIR)/timestamp.o
+
+-include $(LOKIOS_0_OBJ:.o=.d)
 
 $(MODULE_BUILD_DIR)/lokios.0.elf: LDLD := $(MODULE_SRC_DIR)/lokios.0.ld
-$(MODULE_BUILD_DIR)/lokios.0.elf: $(LOKIOS_0_OBJ) $(MODULE_SRC_DIR)/lokios.0.ld $(MODULE_MK)
+$(MODULE_BUILD_DIR)/lokios.0.elf: $(LOKIOS_0_OBJ) $(LOKIOS_0_LIB:%=$(LIB_DIR)/%) $(MODULE_SRC_DIR)/lokios.0.ld $(MODULE_MK)
 	@echo '.data' > $(TIMESTAMP_S)
 	@echo '.globl _BUILD_TIME' >> $(TIMESTAMP_S)
 	@echo '_BUILD_TIME: .asciz "$(NOW)\\r\\n"' >> $(TIMESTAMP_S)
 	@$(AS) $(MODE16_ASFLAGS) -o $(TIMESTAMP_O) $(TIMESTAMP_S)
 	@echo 'Linking $@...'
-	@ld -melf_i386 -T $(LDLD) -o $@ $(LOKIOS_0_OBJ) $(TIMESTAMP_O)
+	@ld -melf_i386 -T $(LDLD) -o $@    \
+	    $(LOKIOS_0_OBJ)                \
+	    $(TIMESTAMP_O)                 \
+	    -\(                            \
+	    $(LOKIOS_0_LIB:%=$(LIB_DIR)/%) \
+	    -\)                            \

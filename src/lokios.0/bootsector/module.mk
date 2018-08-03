@@ -4,6 +4,7 @@ BOOTSECTOR_OBJ := \
 	$(MODULE_BUILD_DIR)/entry.o
 
 $(BOOTSECTOR_OBJ): ASFLAGS := $(MODE16_ASFLAGS)
-$(MODULE_BUILD_DIR)/bootsector.a: $(BOOTSECTOR_OBJ) $(MODULE_MK)
+$(LIB_DIR)/bootsector.a: $(BOOTSECTOR_OBJ) $(MODULE_MK)
 	@echo Archiving $@...
+	@mkdir -p $(LIB_DIR)
 	@$(AR) $(ARFLAGS) $@ $(BOOTSECTOR_OBJ)
