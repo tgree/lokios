@@ -1,7 +1,12 @@
 #ifndef __KERNEL_NET_UDP_H
 #define __KERNEL_NET_UDP_H
 
-#include "net/net.h"
+#include "hdr/endian.h"
+
+namespace net
+{
+    struct tx_op;
+}
 
 namespace udp
 {

@@ -1,5 +1,6 @@
 #include "udp.h"
 #include "net/ip/ip.h"
+#include "net/net.h"
 
 using kernel::_kassert;
 

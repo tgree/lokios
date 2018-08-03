@@ -1,7 +1,8 @@
 #ifndef __KERNEL_NET_IP_H
 #define __KERNEL_NET_IP_H
 
-#include "net/net.h"
+#include "net/net_csum.h"
+#include "hdr/endian.h"
 
 namespace ipv4
 {

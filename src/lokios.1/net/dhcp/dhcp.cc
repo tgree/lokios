@@ -1,5 +1,6 @@
 #include "dhcp.h"
 #include "k++/kmath.h"
+#include "hdr/types.h"
 #include <string.h>
 
 using kernel::_kassert;
