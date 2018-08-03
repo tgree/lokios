@@ -119,6 +119,11 @@ static inline void cpu_pause()
     asm ("pause");
 }
 
+static inline void cpu_halt()
+{
+    asm ("hlt");
+}
+
 static inline uint64_t get_rflags()
 {
     uint64_t rc;
