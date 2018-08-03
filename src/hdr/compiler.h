@@ -8,6 +8,7 @@
 #define __NORETURN__    __attribute__((noreturn))
 #define __FASTCALL__    __attribute__((fastcall))
 #define __REG_PARMS__   __attribute__((regparm(3)))
+#define __NOINLINE__    __attribute__((noinline))
 
 #define __CACHE_ALIGNED__   __ALIGNED__(64)
 
