@@ -15,7 +15,8 @@ INCLUDE_DIR  := $(BUILD_DIR)/include
 HEADERS      :=
 
 I386_16_ASFLAGS := -march=core2 --32
-I386_32_CFLAGS := -O1 -m32 -march=pentium -Wall -Werror
+I386_32_CXXFLAGS := -O2 -m16 -march=pentium -Wall -Werror -fno-stack-protector \
+    		    -I$(abspath $(SRC_DIR)) -I$(INCLUDE_DIR)
 
 ASFLAGS := -march=core2 --64
 BASE_CXXFLAGS := -O2 -march=core2 -m64 -mpopcnt -std=gnu++17 -Wall -Werror \
