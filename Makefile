@@ -14,10 +14,11 @@ NOW          := $(shell date +"%c")
 INCLUDE_DIR  := $(BUILD_DIR)/include
 HEADERS      :=
 
-I386_16_ASFLAGS := -march=core2 --32
-I386_32_CXXFLAGS := -O2 -m16 -march=pentium -std=gnu++17 -Wall -Werror \
-                    -fno-stack-protector \
-    		    -I$(abspath $(SRC_DIR)) -I$(INCLUDE_DIR)
+MODE16_ASFLAGS := -march=core2 --32
+MODE_BASE_CXXFLAGS := -O2 -march=pentium -std=gnu++17 -Wall -Werror \
+                      -fno-stack-protector \
+    		      -I$(abspath $(SRC_DIR)) -I$(INCLUDE_DIR)
+MODE16_CXXFLAGS    := $(MODE_BASE_CXXFLAGS) -m16
 
 ASFLAGS := -march=core2 --64
 BASE_CXXFLAGS := -O2 -march=core2 -m64 -mpopcnt -std=gnu++17 -Wall -Werror \
