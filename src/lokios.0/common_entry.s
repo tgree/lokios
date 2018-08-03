@@ -33,6 +33,9 @@ _common_init:
 #   SS:SP      - on a valid stack with base 0:0xFC00
 .globl _common_entry
 _common_entry:
+    # Go back into unreal mode in case something like PXE screwed us over.
+    call    _enter_unreal_mode
+
     # Parse the memory map with E820.
     call    _E820_get_list
     jc      .L_E820_get_list_failed

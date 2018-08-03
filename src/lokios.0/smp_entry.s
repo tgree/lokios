@@ -28,6 +28,9 @@ _smp_entry:
     # Clear direction so string operations move forward in memory.
     cld
 
+    # Enter unreal mode - we need this for the switch to long mode.
+    call    _enter_unreal_mode
+
     # Enter long mode and jump to the kernel.
     movl    $_kernel_ap_entry, %esi
     jmp     _enter_long_mode

@@ -3,6 +3,7 @@
 
 
 # Switch to long mode and jump into the kernel.  Interrupts should be disabled.
+# Unreal mode should be enabled.
 #   On entry:
 #       ESI - kernel address to jump to
 .global  _enter_long_mode
@@ -10,6 +11,11 @@ _enter_long_mode:
     # Ensure interrupts are disabled.  After we muck with these registers BIOS
     # interrupts will not work properly.
     cli
+
+    # Fetch the kernel's CR3 value for later.  We read it here to avoid
+    # unnecessary memory accesses while we are switching modes.
+    mov     $_kernel_base + 4, %ebx
+    movl    %fs:(%ebx), %ebx
 
     # Set the PAT MSR to: 
     #   WB WT WC UC WB WT WC UC
@@ -29,9 +35,7 @@ _enter_long_mode:
 
     # Set CR3 to point at the first level page table we defined in the linker
     # file.  This page table identity-maps the first 8M of RAM.
-    xor     %eax, %eax
-    lea     _page_table, %ax
-    mov     %eax, %cr3
+    mov     %ebx, %cr3
 
     # Set EFER.LME and EFER.NXE.
     mov     $0xC0000080, %ecx
