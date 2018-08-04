@@ -18,7 +18,7 @@ MODE16_ASFLAGS := -march=core2 --32
 MODE_BASE_CXXFLAGS := -O2 -march=core2 -std=gnu++17 -Wall -Werror \
                       -fno-stack-protector \
     		      -I$(abspath $(SRC_DIR)) -I$(INCLUDE_DIR)
-MODE16_CXXFLAGS    := $(MODE_BASE_CXXFLAGS) -m16
+MODE16_CXXFLAGS    := $(MODE_BASE_CXXFLAGS) -m16 -ggdb
 
 ASFLAGS := -march=core2 --64
 BASE_CXXFLAGS := -O2 -march=core2 -m64 -mpopcnt -std=gnu++17 -Wall -Werror \
