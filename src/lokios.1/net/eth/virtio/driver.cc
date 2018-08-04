@@ -15,11 +15,12 @@ virtio_net::driver::driver():
 uint64_t
 virtio_net::driver::score(kernel::pci::dev* pd) const
 {
-    if (pd->config_read_16(0) == 0x1AF4 &&
-        pd->config_read_16(2) == 0x1041)
-    {
+    if (pd->config_read_16(0) != 0x1AF4)
+        return 0;
+    if (pd->config_read_16(2) == 0x1041)
         return 100;
-    }
+    if (pd->config_read_16(2) == 0x1000)
+        return 50;
     return 0;
 }
 
@@ -28,7 +29,6 @@ virtio_net::driver::claim(kernel::pci::dev* pd) const
 {
     uint16_t vid = pd->config_read_16(0);
     uint16_t did = pd->config_read_16(2);
-    kassert(vid == 0x1AF4 && did == 0x1041);
 
     printf("virtio_net (%04X:%04X): claiming device %04X:%02X:%02X.%u\n",
            vid,did,pd->domain->id,pd->bus,(pd->devfn >> 3),(pd->devfn & 7));
