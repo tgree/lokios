@@ -87,6 +87,11 @@ SECTIONS
         LONG(_idt_64);
     }
 
+    .bss :
+    {
+        *(.bss)
+    }
+
     /* Provide at least 4096 bytes to hold the E820 map.  This should be more
      * than enough (I hope).  Before we've loaded the E820 map, this region of
      * memory can also be used for a disk IO bounce buffer. */
