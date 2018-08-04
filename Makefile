@@ -15,7 +15,7 @@ INCLUDE_DIR  := $(BUILD_DIR)/include
 HEADERS      :=
 
 MODE16_ASFLAGS := -march=core2 --32
-MODE_BASE_CXXFLAGS := -O2 -march=pentium -std=gnu++17 -Wall -Werror \
+MODE_BASE_CXXFLAGS := -O2 -march=core2 -std=gnu++17 -Wall -Werror \
                       -fno-stack-protector \
     		      -I$(abspath $(SRC_DIR)) -I$(INCLUDE_DIR)
 MODE16_CXXFLAGS    := $(MODE_BASE_CXXFLAGS) -m16
