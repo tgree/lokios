@@ -40,3 +40,11 @@ This version of the qemu invocation sets up TCP forwarding on localhost port 123
 make -j && qemu-system-x86_64 -cpu qemu64,+popcnt -drive file=bin/lokios.mbr,format=raw -smp 4 -nographic -device isa-debug-exit -device virtio-net-pci,netdev=net0,disable-legacy=on,disable-modern=off,vectors=4 -netdev user,id=net0,hostfwd=tcp::12345-:12345 -object filter-dump,id=dump0,netdev=net0,file=net0dump.pcap -m 64M
 
 To exit qemu: Type Ctrl-A X.  Or, if you are within tmux: Ctrl-A A X.
+
+# PXE booting inside QEMU
+
+qemu can also be used to test PXE with its built-in PXE server.  It is pretty slow to get link-up (10-20 seconds) though so it's not an ideal test environment.
+
+make -j && qemu-system-x86_64 -cpu qemu64,+popcnt -smp 4 -device isa-debug-exit -device virtio-net-pci,netdev=net0,disable-modern=off,vectors=4 -netdev user,id=net0,hostfwd=tcp::12345-:12345,tftp=bin/,bootfile=lokios.0 -object filter-dump,id=dump0,netdev=net0,file=net0dump.pcap -m 64M -boot n -nographic
+
+You can also specify -curses instead of -nographic for the ugly ANSI VGA emulation.  Use Esc-1, Esc-2 and so on to switch consoles in this mode.
