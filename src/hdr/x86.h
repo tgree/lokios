@@ -71,7 +71,7 @@ static inline void int126()
 static inline uint8_t inb(uint16_t port)
 {
     uint8_t rc;
-    asm volatile ("inb %1" : "=a"(rc) : "di"(port));
+    asm volatile ("inb %1" : "=a"(rc) : "d"(port));
     return rc;
 }
 
