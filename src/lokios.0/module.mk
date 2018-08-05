@@ -16,6 +16,7 @@ TIMESTAMP_O := $(MODULE_BUILD_DIR)/timestamp.o
 
 -include $(LOKIOS_0_OBJ:.o=.d)
 
+$(MODULE_BUILD_DIR)/lokios.0.elf: LDM  := $(MODULE_BUILD_DIR)/lokios.0.map
 $(MODULE_BUILD_DIR)/lokios.0.elf: LDLD := $(MODULE_SRC_DIR)/lokios.0.ld
 $(MODULE_BUILD_DIR)/lokios.0.elf: $(LOKIOS_0_OBJ) $(LOKIOS_0_LIB:%=$(LIB_DIR)/%) $(MODULE_SRC_DIR)/lokios.0.ld $(MODULE_MK)
 	@echo '.data' > $(TIMESTAMP_S)
@@ -23,9 +24,9 @@ $(MODULE_BUILD_DIR)/lokios.0.elf: $(LOKIOS_0_OBJ) $(LOKIOS_0_LIB:%=$(LIB_DIR)/%)
 	@echo '_BUILD_TIME: .asciz "$(NOW)\\r\\n"' >> $(TIMESTAMP_S)
 	@$(AS) $(MODE16_ASFLAGS) -o $(TIMESTAMP_O) $(TIMESTAMP_S)
 	@echo 'Linking $@...'
-	@ld -melf_i386 -T $(LDLD) -o $@    \
-	    $(LOKIOS_0_OBJ)                \
-	    $(TIMESTAMP_O)                 \
-	    -\(                            \
-	    $(LOKIOS_0_LIB:%=$(LIB_DIR)/%) \
-	    -\)                            \
+	@ld -melf_i386 -Map=$(LDM) -T $(LDLD) --whole-archive -o $@ \
+	    $(LOKIOS_0_OBJ)                                         \
+	    $(TIMESTAMP_O)                                          \
+	    -\(                                                     \
+	    $(LOKIOS_0_LIB:%=$(LIB_DIR)/%)                          \
+	    -\)                                                     \
