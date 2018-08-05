@@ -16,25 +16,15 @@
 #   EA[XHL], SI
 .globl _disk_read
 _disk_read:
-    mov     %ebx, .L_DAP_first_sector_low
-    mov     %cx, .L_DAP_num_sectors
-    mov     %si, .L_DAP_destination_ptr
-    mov     $.L_DAP, %si
+    pop     %ax
+    pushl   $0
+    pushl   %ebx
+    pushw   $0
+    push    %si
+    push    %cx
+    push    $0x0010
+    mov     %sp, %si
+    push    %ax
     mov     $0x42, %ah
     int     $0x13
-    ret
-
-
-.data
-.L_DAP:
-    .byte   0x10
-    .byte   0
-.L_DAP_num_sectors:
-    .word   0
-.L_DAP_destination_ptr:
-    .word   0
-    .word   0
-.L_DAP_first_sector_low:
-    .long   0x11111111
-.L_DAP_first_sector_high:
-    .long   0   # Always 0 for our purposes since we don't seek very far
+    ret     $16
