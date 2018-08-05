@@ -70,7 +70,8 @@ _start:
     cld
 
     # Print the copyright banner first.
-    call    _print_banners
+    lea     _BUILD_BANNER, %si
+    call    _puts
 
     # Check if we can see a 'PXENV+' signature at ES:BX and dispatch to the
     # correct entry point.  We also set ES = 0 on the way out so that it maps
@@ -119,31 +120,9 @@ _start:
     lret
 
 
-# Print the copyright bannder.
-.globl _print_banners
-_print_banners:
-.if 0
-    # Hide the cursor.
-    call    _hide_cursor
-.endif
-
-    # Print the loki copyright banner.
-    lea     .L_loki_os_banner, %si
-    call    _puts
-
-    # Print the build time.
-    lea     _BUILD_TIME, %si
-    call    _puts
-
-    ret
-
-
 .data
 .L_pxenv_str:
     .ascii  "PXENV+"
-.L_loki_os_banner:
-    .ascii  "Loki\r\n"
-    .asciz  "Copyright (c) 2017 by Terry Greeniaus.\r\n"
 .L_mbr_read_failed_text:
     .asciz  "MBR read failed\r\n"
 
