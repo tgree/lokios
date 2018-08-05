@@ -23,10 +23,11 @@
 
 
 # On entry:
-#   RDI - address of the kernel_args struct
-#   RSP - set to the bootloader temporary stack
+#   RSP:        set to the bootloader temporary stack
+#   RSP + 64:   kernel args
 _bsp_entry:
     # Populate kernel::args.
+    lea     64(%rsp), %rdi
     mov     %rdi, kargs
 
     # Enable SSE since the stupid compiler is generating %xmm register

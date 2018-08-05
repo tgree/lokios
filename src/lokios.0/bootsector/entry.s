@@ -90,11 +90,13 @@ _start:
     # PXE detected.  Just jump into the PXE entry point since the image was
     # already loaded for us as part of the PXE download.
 .L_pxe_start:
-    call    _pxe_entry
+    mov     $0x00000001, %eax
+.L_call_m32_entry:
+    call    _m32_entry
     jmp     .L_back_to_bios
 
-    # MBR detected.  Read the remaining sectors from the disk since BIOS has
-    # only loaded the first sector of the image.
+    # MBR detected.  Read the remaining lokios.0 sectors from the disk since
+    # BIOS has only loaded the first sector of the image.
 .L_mbr_start:
     mov     _mbr_drive_number, %dl
     mov     $1, %ebx
@@ -102,14 +104,12 @@ _start:
     mov     $0x7E00, %si
     call    _disk_read
     jc      .L_mbr_read_failed
-    call    _mbr_entry
-    jmp     .L_back_to_bios
+    xor     %eax, %eax
+    jmp     .L_call_m32_entry
 
 .L_mbr_read_failed:
     lea     .L_mbr_read_failed_text, %si
     call    _puts
-    jmp     .L_back_to_bios
-
 .L_back_to_bios:
     # Return to BIOS.
     pop     %gs
