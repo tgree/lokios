@@ -9,7 +9,7 @@ SECTIONS
         *bootsector.a:entry.o(.text)
         *bootsector.a:*(*text)
     }
-    .bootsector_data :
+    .bootsector_data ALIGN(1) :
     {
         *timestamp.o(.data)
         *bootsector.a:*(.data)
