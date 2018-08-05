@@ -133,14 +133,14 @@ _start:
 
 .globl _saved_es_bx
 _saved_es_bx:
-    .word   0       # BX
-    .word   0       # ES
+    .word   0xAAAA  # BX
+    .word   0xAAAA  # ES
 
 .globl _saved_ss_sp
 _saved_ss_sp:
-    .word   0       # SP
-    .word   0       # SS
+    .word   0xBBBB  # SP
+    .word   0xBBBB  # SS
 
 .globl _mbr_drive_number
 _mbr_drive_number:
-    .byte   0
+    .byte   0xCC
