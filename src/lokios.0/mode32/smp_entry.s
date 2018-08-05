@@ -21,17 +21,15 @@ _smp_entry:
     ljmp    $0, $.L_start_clear_cs
 .L_start_clear_cs:
 
-    # Clear DS
-    xor     %ax, %ax
-    mov     %ax, %ds
-
     # Clear direction so string operations move forward in memory.
     cld
 
-    # Enter unreal mode - we need this for the switch to long mode.
+    # Load the gdt.
     lgdt    _m32_gdt_desc
-    call    _enter_unreal_mode
 
-    # Enter long mode and jump to the kernel.
-    movl    $_kernel_ap_entry, %esi
-    jmp     _enter_long_mode
+    # Enter protected mode - we need this for the switch to long mode.
+    call _mode_switch_protected_and_write_dot_code32_after_this_line
+.code32
+
+    # Do it.
+    jmp     m32_smp_entry
