@@ -1673,7 +1673,7 @@ SECTIONS
         . = ALIGN(4096);
     }
 
-    ASSERT(. % 4096 == 0, "not an integral number of sectors")
+    ASSERT((. - _virt_addr) % 512 == 0, "not an integral number of sectors")
     _num_sectors = (. - _virt_addr) / 512;
     _sbrk = . - _virt_addr + _phys_addr;
 }
