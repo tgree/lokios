@@ -46,35 +46,6 @@ SECTIONS
         *(.data)
     } = 0xCC
 
-    /* Provide a global descriptor table to use for the swtich to 16-bit
-     * unreal mode. */
-    . = ALIGN(64);
-    .gdt_unreal_16 :
-    {
-        _gdt_unreal_16 = .;
-        QUAD(0x0000000000000000);
-        QUAD(0x00CF92000000FFFF);
-
-        _gdt_unreal_16_desc = .;
-        SHORT(_gdt_unreal_16_desc - _gdt_unreal_16 - 1);
-        LONG(_gdt_unreal_16);
-    }
-
-    /* Provide a global descriptor table to use for the switch to 64-bit
-     * mode. */
-    . = ALIGN(64);
-    .gdt_64 :
-    {
-        _gdt_64 = .;
-        QUAD(0x0000000000000000);
-        QUAD(0x00209A0000000000);   /* Code descriptor */
-        QUAD(0x0000920000000000);   /* Data descriptor */
-
-        _gdt_64_desc = .;
-        SHORT(_gdt_64_desc - _gdt_64 - 1);
-        LONG(_gdt_64);
-    }
-
     /* Provide an empty interrupt descriptor table.  TODO: Figure out what to
      * really put here. */
     . = ALIGN(64);

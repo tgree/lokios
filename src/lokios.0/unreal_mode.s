@@ -7,9 +7,6 @@
 #   EAX, EBX
 .global _enter_unreal_mode
 _enter_unreal_mode:
-    # Load the GDT.
-    lgdt    _gdt_unreal_16_desc
-
     # Enable protected mode.
     mov     %cr0, %eax
     or      $(1<<0), %eax

@@ -51,8 +51,7 @@ _enter_long_mode:
     # OK, we are now in compatibility mode.  We need to load the GDT and use it
     # to jump into our code segment.  The $8 below is the offset to the code
     # descriptor in the GDT.
-    lgdt    _gdt_64_desc
-    ljmp    $8, $_into_long_mode
+    ljmp    $48, $_into_long_mode
 
 .code64
 _into_long_mode:

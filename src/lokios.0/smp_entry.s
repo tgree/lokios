@@ -29,6 +29,7 @@ _smp_entry:
     cld
 
     # Enter unreal mode - we need this for the switch to long mode.
+    lgdt    _m32_gdt_desc
     call    _enter_unreal_mode
 
     # Enter long mode and jump to the kernel.
