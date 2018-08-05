@@ -1,4 +1,4 @@
-SUBMODULES := bootsector
+SUBMODULES := bootsector mode32
 
 LOKIOS_0_CXX_SRC := $(wildcard $(MODULE_SRC_DIR)/*.cc)
 LOKIOS_0_ASM_SRC := $(wildcard $(MODULE_SRC_DIR)/*.s)
@@ -9,7 +9,7 @@ LOKIOS_0_OBJ := $(LOKIOS_0_CXX_SRC:$(MODULE_SRC_DIR)/%.cc=$(MODULE_BUILD_DIR)/%.
 $(LOKIOS_0_OBJ): ASFLAGS := $(MODE16_ASFLAGS)
 $(LOKIOS_0_OBJ): KERN_CXXFLAGS := $(MODE16_CXXFLAGS)
 
-LOKIOS_0_LIB := bootsector.a
+LOKIOS_0_LIB := bootsector.a mode32.a
 
 TIMESTAMP_S := $(MODULE_BUILD_DIR)/timestamp.s
 TIMESTAMP_O := $(MODULE_BUILD_DIR)/timestamp.o
