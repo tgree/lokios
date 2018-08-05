@@ -89,8 +89,8 @@ SECTIONS
 
     /* This is where we are going to physically load the kernel. */
     _kernel_base = 0x00200200;
-    _kernel_bsp_entry = _kernel_base + 0x10;
-    _kernel_ap_entry = _kernel_base + 0x20;
+    _kernel_bsp_entry = _kernel_base + 0x100;
+    _kernel_ap_entry = _kernel_base + 0x200;
     _kernel_stack = 0x001FF000;
     _kernel_params = _kernel_stack;
 }

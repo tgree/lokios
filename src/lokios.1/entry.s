@@ -18,7 +18,7 @@
 .org 0
     jmp     _bsp_entry
 
-.org 16
+.org 256
     jmp     _ap_entry
 
 

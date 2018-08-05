@@ -8,9 +8,9 @@ SECTIONS
     {
         LONG(_num_sectors)
         LONG(_page_table)
-        . = ALIGN(0x10);
     }
 
+    . = _virt_addr + 0x100;
     .text :
     {
         *lokios.1/entry.o(.text)
