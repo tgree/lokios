@@ -1,5 +1,4 @@
 #include "mode32.h"
-#include "serial.h"
 #include "a20_gate.h"
 #include "e820.h"
 #include "mbr.h"
@@ -28,7 +27,7 @@ m32_entry(uint32_t flags)
 {
     console::init();
 
-    m32_serial_puts("Enabling A20 line.\n");
+    console::printf("Enabling A20 line.\n");
     m32_assert(a20_enable() == 0);
 
     int err = -1;
@@ -40,10 +39,8 @@ m32_entry(uint32_t flags)
     if (err)
         return err;
 
-    m32_serial_putx(kernel_base->num_sectors);
-    m32_serial_putc('\n');
-    m32_serial_putx(kernel_base->cr3);
-    m32_serial_putc('\n');
+    console::printf("  Kernel sectors: %u\n",kernel_base->num_sectors);
+    console::printf("Kernel pagetable: 0x%08X\n",kernel_base->cr3);
 
     e820_map* m = (e820_map*)(uint32_t)_e820_end;
     m->nentries = 0;
@@ -55,23 +52,12 @@ m32_entry(uint32_t flags)
         m->entries[m->nentries++] = io.entry;
 
         m32_assert(io.sig == 0x534D4150);
-        m32_serial_putu(io.entry_len);
-        m32_serial_putc(' ');
-        m32_serial_putx(io.entry.addr >> 32);
-        m32_serial_putc(':');
-        m32_serial_putx(io.entry.addr >>  0);
-        m32_serial_putc(' ');
-        m32_serial_putx(io.entry.len >> 32);
-        m32_serial_putc(':');
-        m32_serial_putx(io.entry.len >>  0);
-        m32_serial_putc(' ');
-        m32_serial_putx(io.entry.type);
+        console::printf("%u %016llX:%016llX 0x%08X",
+                        io.entry_len,io.entry.addr,
+                        io.entry.addr + io.entry.len - 1,io.entry.type);
         if (io.entry_len > 20)
-        {
-            m32_serial_putc(' ');
-            m32_serial_putx(io.entry.rsrv);
-        }
-        m32_serial_putc('\n');
+            console::printf(" 0x%08X",io.entry.rsrv);
+        console::printf("\n");
     }
 
     auto* kargs      = (kernel::kernel_args*)(uint32_t)_kernel_params;

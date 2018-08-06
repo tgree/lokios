@@ -1,6 +1,5 @@
 #include "pxe.h"
-#include "serial.h"
-#include "vga.h"
+#include "console.h"
 #include "massert.h"
 #include <string.h>
 
@@ -27,8 +26,7 @@ m32_pxe_find_entry(far_pointer* fp)
     uint8_t cs = m32_pxe_checksum(pep,pep->len);
     if (cs != 0)
     {
-        m32_serial_putx(cs);
-        m32_serial_puts(" <- PXENV+ struct has non-zero checksum\n");
+        console::printf("PXENV+ struct has non-zero checksum (0x%02X)\n",cs);
         return -1;
     }
 
@@ -39,7 +37,7 @@ m32_pxe_find_entry(far_pointer* fp)
     // If the version is < 2.1 then we use the PXENV+ struct.
     if (pep->version < 0x0201)
     {
-        m32_serial_puts("Version below 2.1, using PXENV+\n");
+        console::printf("Version below 2.1, using PXENV+\n");
         return 0;
     }
 
@@ -49,7 +47,7 @@ m32_pxe_find_entry(far_pointer* fp)
         np->sig[3] != 'E')
     {
         // No !PXE struct was found.  Use the PXENV+ one we already saved off.
-        m32_serial_puts("!PXE signature missing\n");
+        console::printf("!PXE signature missing\n");
         return 0;
     }
 
@@ -60,14 +58,13 @@ m32_pxe_find_entry(far_pointer* fp)
         // What to do?  We found a !PXE struct but the checksum is bogus.  It
         // could be corrupted or maybe BIOS is just broken?  In any case, we
         // won't trust it, so go with the PXENV+ entry point.
-        m32_serial_putx(cs);
-        m32_serial_puts(" <- !PXE struct has non-zero checksum, using "
-                        "PXENV+\n");
+        console::printf("!PXE struct has non-zero checksum (0x%02X), using "
+                        "PXENV+\n",cs);
         return 0;
     }
 
     // !PXE checks out, so use it.
-    m32_serial_puts("Using !PXE struct\n");
+    console::printf("Using !PXE struct\n");
     *fp = np->entry_point_sp;
     return 0;
 }
@@ -153,14 +150,8 @@ m32_bounce_packet(uint16_t expected_packet_num)
 int
 m32_pxe_entry()
 {
-    // Hello, sailor.
-    m32_serial_puts("m32_pxe_entry\n");
-    m32_vga_puts("m32_pxe_entry\n");
-
     // Find the entry point.
     m32_assert(m32_pxe_find_entry(&_m32_pxe_entry_fp) == 0);
-    m32_serial_putx((uint32_t)_m32_pxe_entry_fp.to_addr());
-    m32_vga_putx((uint32_t)_m32_pxe_entry_fp.to_addr());
 
     // Get cached data.
     far_pointer dhcp_fp;
@@ -168,29 +159,18 @@ m32_pxe_entry()
     uint16_t rc = m32_pxe_get_cached_dhcp_ack(&dhcp_fp,&dhcp_size);
     if (rc != 0)
     {
-        m32_serial_putu(rc);
-        m32_serial_puts(" <- error getting dhcp\n");
-        m32_vga_putu(rc);
-        m32_vga_puts(" <- error getting dhcp\n");
+        console::printf("Error %u getting cached DHCP ACK\n",rc);
         return -1;
     }
 
     auto* siaddr = (uint8_t*)dhcp_fp.to_addr() + 20;
-    m32_serial_puts("DHCP Server IP: ");
-    m32_serial_putu(siaddr[0]);
-    m32_serial_putc('.');
-    m32_serial_putu(siaddr[1]);
-    m32_serial_putc('.');
-    m32_serial_putu(siaddr[2]);
-    m32_serial_putc('.');
-    m32_serial_putu(siaddr[3]);
-    m32_serial_putc('\n');
+    console::printf("DHCP Servier IP: %u.%u.%u.%u\n",
+                    siaddr[0],siaddr[1],siaddr[2],siaddr[3]);
 
     rc = m32_tftp_open(siaddr,"lokios.1");
     if (rc != 0)
     {
-        m32_serial_putu(rc);
-        m32_serial_puts(" <- error tftp_open\n");
+        console::printf("Error %u from TFTP_OPEN\n",rc);
         return -2;
     }
 
@@ -226,7 +206,6 @@ m32_pxe_entry()
             return -5;
     }
 
-    m32_serial_puts("\npxe success\n");
-    m32_vga_puts("\npxe success\n");
+    console::printf("PXE entry complete.\n");
     return 0;
 }

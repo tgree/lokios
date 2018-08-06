@@ -1,7 +1,6 @@
 #include "mbr.h"
-#include "serial.h"
 #include "disk.h"
-#include "massert.h"
+#include "console.h"
 #include <stddef.h>
 
 extern uint8_t _kernel_base[];
@@ -32,9 +31,6 @@ m32_mbr_entry()
     if (err)
         return err;
 
-    m32_serial_putx(buf[0]);
-    m32_serial_putc('\n');
-
     uint32_t rem_sectors = buf[0];
     uint32_t sector_num  = first_kernel_sector;
     auto* pos            = (char*)_kernel_base;
@@ -51,6 +47,6 @@ m32_mbr_entry()
         pos         += 512*nsectors;
     }
 
-    m32_serial_puts("M32 entry complete.\n");
+    console::printf("MBR entry complete.\n");
     return 0;
 }
