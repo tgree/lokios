@@ -180,10 +180,17 @@ pxe_entry()
     // Handle the first sector.
     assert(bounce_packet(1) == 512);
 
+    // Validate the image header.
+    auto* khdr = (kernel::image_header*)(uint32_t)_kernel_base;
+    if (khdr->sig != IMAGE_HEADER_SIG)
+    {
+        console::printf("Invalid kernel header signature.\n");
+        return -6;
+    }
+
     // Figure out how many sectors we need.  We've already read the first
     // sector, but there will be an extra zero-length sector from the PXE
     // server at the end to terminate the transfer.
-    auto* khdr = (kernel::image_header*)(uint32_t)_kernel_base;
     uint16_t expected_packet_num = 2;
     uint32_t nsectors = khdr->num_sectors;
     while (--nsectors)

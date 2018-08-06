@@ -28,11 +28,20 @@ mbr_entry()
     uint32_t* buf                = (uint32_t*)(uint32_t)_pre_e820_bounce_buffer;
     int err;
 
+    // Read the first sector.
     err = disk_read(mbr_drive_number,first_kernel_sector,1,buf);
     if (err)
         return err;
 
-    auto* khdr           = (kernel::image_header*)buf;
+    // Validate the image header.
+    auto* khdr = (kernel::image_header*)buf;
+    if (khdr->sig != IMAGE_HEADER_SIG)
+    {
+        console::printf("Invalid kernel header signature.\n");
+        return -6;
+    }
+
+    // Read all the sectors.
     uint32_t rem_sectors = khdr->num_sectors;
     uint32_t sector_num  = first_kernel_sector;
     auto* pos            = (char*)_kernel_base;
