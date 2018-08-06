@@ -1,6 +1,7 @@
 #ifndef __MODE32_PXE_H
 #define __MODE32_PXE_H
 
+#include "mode32.h"
 #include "far_pointer.h"
 #include "hdr/endian.h"
 
@@ -83,6 +84,6 @@ struct __PACKED__ pxe_generic_pb
     uint8_t     data[10];
 };
 
-int pxe_entry();
+image_stream* pxe_entry();
 
 #endif /* __MODE32_PXE_H */

@@ -5,6 +5,15 @@
 #include "hdr/compiler.h"
 #include <stdint.h>
 
+struct image_stream
+{
+    const char* name;
+    virtual int open() = 0;
+    virtual int read(void* dst, uint16_t nsectors) = 0;
+    virtual int close() = 0;
+    constexpr image_stream(const char* name):name(name) {}
+};
+
 extern "C"
 {
 #define FLAG_BOOT_TYPE_MASK 0x00000001

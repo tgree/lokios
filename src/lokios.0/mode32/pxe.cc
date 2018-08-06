@@ -8,6 +8,7 @@ extern far_pointer _saved_es_bx;
 extern uint8_t _kernel_base[];
 
 static far_pointer pxe_entry_fp;
+static uint8_t server_ip[4];
 
 extern "C" uint16_t _call_pxe(uint16_t opcode, void* pb, far_pointer proc_ptr);
 
@@ -135,105 +136,104 @@ pxe_generic_cmd(uint16_t opcode)
     return _call_pxe(opcode,&pb,pxe_entry_fp) ?: pb.status;
 }
 
-static int
-pxe_read_sectors(void* dst, uint16_t nsectors)
+struct pxe_image_stream : public image_stream
 {
-    // Global state.
-    static uint16_t expected_packet_num = 1;
+    uint16_t expected_packet_num;
 
-    // Read all the sectors.
-    auto* pos = (char*)dst;
-    uint16_t packet_num;
-    uint16_t packet_size;
-    uint8_t buf[512];
-    while (nsectors--)
+    virtual int open() override
     {
-        int err = tftp_read(buf,&packet_num,&packet_size);
-        if (err)
-            return err;
-        if (packet_num != expected_packet_num)
-            return -1;
-        if (packet_size == 0)
-            return -2;
-        if (packet_size != 512)
-            return -3;
+        // Reset to the first packet.
+        expected_packet_num = 1;
 
-        memcpy(pos,buf,sizeof(buf));
-        ++expected_packet_num;
-        pos += sizeof(buf);
+        // Open the TFTP stream.
+        return tftp_open(server_ip,"lokios.1");
     }
 
-    return 0;
-}
+    virtual int read(void* dst, uint16_t nsectors) override
+    {
+        // Read all the sectors from the TFTP stream.
+        auto* pos = (char*)dst;
+        uint16_t packet_num;
+        uint16_t packet_size;
+        uint8_t buf[512];
+        while (nsectors--)
+        {
+            int err = tftp_read(buf,&packet_num,&packet_size);
+            if (err)
+                return err;
+            if (packet_num != expected_packet_num)
+                return -1;
+            if (packet_size == 0)
+                return -2;
+            if (packet_size != 512)
+                return -3;
 
-int
+            memcpy(pos,buf,sizeof(buf));
+            ++expected_packet_num;
+            pos += sizeof(buf);
+        }
+
+        return 0;
+    }
+
+    virtual int close() override
+    {
+        // There should be a final 0-length packet.
+        uint8_t buf[512];
+        int err = read(buf,1);
+        if (err != -2)
+            return -4;
+
+        // Issue the PXE shutdown sequence.
+        uint16_t shutdown_sequence[] = {
+                0x0021, // TFTP Close
+            //  0x0007, // UNDI Close - DELL doesn't like this error 0x6A
+                0x0005, // UNDI Shutdown
+                0x0076, // Stop Base
+            //  0x0070, // Unload Stack - DELL doesn't like this one error 0x01
+                0x0002, // UNDI Cleanup
+            //  0x0015, // Stop UNDI - iPXE doesn't seem to like this one
+        };
+        for (uint16_t opcode : shutdown_sequence)
+        {
+            if (pxe_generic_cmd(opcode))
+                return -5;
+        }
+        return 0;
+    }
+
+    constexpr pxe_image_stream():
+        image_stream("PXE"),
+        expected_packet_num(0)
+    {
+    }
+};
+
+static pxe_image_stream pxe_stream;
+
+image_stream*
 pxe_entry()
 {
     // Find the entry point.
-    assert(pxe_find_entry(&pxe_entry_fp) == 0);
+    int err = pxe_find_entry(&pxe_entry_fp);
+    if (err)
+    {
+        console::printf("Error %d finding PXE entry point.\n",err);
+        return NULL;
+    }
 
-    // Get cached data.
+    // Get cached data to find the server address.
     far_pointer dhcp_fp;
     uint16_t dhcp_size;
     uint16_t rc = pxe_get_cached_dhcp_ack(&dhcp_fp,&dhcp_size);
     if (rc != 0)
     {
         console::printf("Error %u getting cached DHCP ACK\n",rc);
-        return -1;
+        return NULL;
     }
+    memcpy(server_ip,(uint8_t*)dhcp_fp.to_addr() + 20,sizeof(server_ip));
+    console::printf("DHCP Server IP: %u.%u.%u.%u\n",
+                    server_ip[0],server_ip[1],server_ip[2],server_ip[3]);
 
-    auto* siaddr = (uint8_t*)dhcp_fp.to_addr() + 20;
-    console::printf("DHCP Servier IP: %u.%u.%u.%u\n",
-                    siaddr[0],siaddr[1],siaddr[2],siaddr[3]);
-
-    rc = tftp_open(siaddr,"lokios.1");
-    if (rc != 0)
-    {
-        console::printf("Error %u from TFTP_OPEN\n",rc);
-        return -2;
-    }
-
-    // Read the first sector into kernel_base.
-    // Handle the first sector.
-    auto* khdr = (kernel::image_header*)(uint32_t)_kernel_base;
-    int err = pxe_read_sectors(khdr,1);
-    if (err)
-        return err;
-
-    // Validate the image header.
-    if (khdr->sig != IMAGE_HEADER_SIG)
-    {
-        console::printf("Invalid kernel header signature.\n");
-        return -6;
-    }
-
-    // Read the remaining sectors.
-    err = pxe_read_sectors((char*)khdr + 512,khdr->num_sectors-1);
-    if (err)
-        return err;
-
-    // There should be a final 0-length packet.
-    uint8_t buf[512];
-    err = pxe_read_sectors(buf,1);
-    if (err != -2)
-        return -4;
-
-    // Issue the PXE shutdown sequence.
-    uint16_t shutdown_sequence[] = {
-            0x0021, // TFTP Close
-        //  0x0007, // UNDI Close - DELL doesn't like this error 0x6A
-            0x0005, // UNDI Shutdown
-            0x0076, // Stop Base
-        //  0x0070, // Unload Stack - DELL doesn't like this one error 0x01
-            0x0002, // UNDI Cleanup
-        //  0x0015, // Stop UNDI - iPXE doesn't seem to like this one
-    };
-    for (uint16_t opcode : shutdown_sequence)
-    {
-        if (pxe_generic_cmd(opcode))
-            return -5;
-    }
-
-    console::printf("PXE entry complete.\n");
-    return 0;
+    return &pxe_stream;
 }

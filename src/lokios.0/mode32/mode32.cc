@@ -26,18 +26,59 @@ m32_entry(uint32_t flags)
     console::printf("Enabling A20 line.\n");
     assert(a20_enable() == 0);
 
-    int err = -1;
+    // Find someone to read the image.
+    image_stream* is;
     switch (flags & FLAG_BOOT_TYPE_MASK)
     {
-        case FLAG_BOOT_TYPE_MBR:    err = mbr_entry();  break;
-        case FLAG_BOOT_TYPE_PXE:    err = pxe_entry();  break;
+        case FLAG_BOOT_TYPE_MBR: is = mbr_entry();  break;
+        case FLAG_BOOT_TYPE_PXE: is = pxe_entry();  break;
     }
-    if (err)
-        return err;
+    if (!is)
+        return -1;
 
+    // Open the input stream.
+    console::printf("Opening %s input stream.\n",is->name);
+    int err = is->open();
+    if (err)
+    {
+        console::printf("Error %d opening stream.\n",err);
+        return err;
+    }
+
+    // Read the first sector into kernel_base
     auto* khdr = (kernel::image_header*)(uint32_t)_kernel_base;
+    err = is->read(khdr,1);
+    if (err)
+    {
+        console::printf("Error %d reading first sector.\n",err);
+        return err;
+    }
+
+    // Validate the image header.
+    if (khdr->sig != IMAGE_HEADER_SIG)
+    {
+        console::printf("Invalid kernel header signature.\n");
+        return -6;
+    }
     console::printf("  Kernel sectors: %u\n",khdr->num_sectors);
     console::printf("Kernel pagetable: 0x%08X\n",khdr->page_table_addr);
+
+    // Read the remaining sectors.
+    err = is->read((char*)khdr + 512,khdr->num_sectors-1);
+    if (err)
+    {
+        console::printf("Error %d reading remaining sectors.\n",err);
+        return err;
+    }
+
+    // Close the stream.
+    err = is->close();
+    if (err)
+    {
+        console::printf("Error %d closing input stream.\n",err);
+        return err;
+    }
+    console::printf("Successfully read %s input stream.\n",is->name);
 
     auto* kftr =
         (kernel::image_footer*)((char*)khdr + 512*(khdr->num_sectors-1));
