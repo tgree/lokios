@@ -16,7 +16,45 @@ SECTIONS
     }
     ASSERT(. <= 0x7DB4, "boot sector crashed into disk ID")
 
-    /* Include a valid MBR signature for booting off disk. */
+    /* Disk ID - MS Windows thing. */
+    . = 0x7DB8;
+    .disk_id :
+    {
+        LONG(0x11223344);   /* Disk signature */
+        SHORT(0x0000);      /* Use 0x5A5A if copy-protected */
+    }
+
+    /* Include a valid MBR parititon entry for booting off disk.  Without this
+     * BIOS won't recognize that there's a bootable disk. */
+    . = 0x7DBE;
+    .partition_table :
+    {
+        /* Partition 0 */
+        QUAD(0x0000000000000000)
+        QUAD(0x0000000000000000)
+
+        /* Partition 1 */
+        QUAD(0x0000000000000000)
+        QUAD(0x0000000000000000)
+
+        /* Partition 2 */
+        QUAD(0x0000000000000000)
+        QUAD(0x0000000000000000)
+
+        /* Partition 3 */
+        BYTE(0x80);         /* Bootable */
+        BYTE(0);            /* First Head */
+        BYTE(1);            /* First Cylinder[9:8] | First Sector[5:0] */
+        BYTE(0);            /* First Cylinder[7:0] */
+        BYTE(0xEB);         /* BeOS file system... */
+        BYTE(0)             /* Last Head */
+        BYTE(2)  ;          /* Last Cylinder[9:8] | Last Sector[5:0] */
+        BYTE(0);            /* Last Cylinder[7:0] */
+        LONG(0x00000000);   /* First LBA. */
+        LONG(0x00000001);   /* Last LBA. */
+    }
+
+    /* Finally, the MBR signature. */
     . = 0x7DFE;
     .mbr_sig :
     {
