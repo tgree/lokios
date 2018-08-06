@@ -5,6 +5,8 @@ LOKIOS_0_LIB := bootsector.a mode32.a
 TIMESTAMP_S := $(MODULE_BUILD_DIR)/timestamp.s
 TIMESTAMP_O := $(MODULE_BUILD_DIR)/timestamp.o
 
+LGCC_OBJ  := /usr/lib/gcc/x86_64-linux-gnu/7/32/libgcc.a
+
 $(MODULE_BUILD_DIR)/lokios.0.elf: LDM  := $(MODULE_BUILD_DIR)/lokios.0.map
 $(MODULE_BUILD_DIR)/lokios.0.elf: LDLD := $(MODULE_SRC_DIR)/lokios.0.ld
 $(MODULE_BUILD_DIR)/lokios.0.elf: $(LOKIOS_0_LIB:%=$(LIB_DIR)/%) $(MODULE_SRC_DIR)/lokios.0.ld $(MODULE_MK)
@@ -20,3 +22,4 @@ $(MODULE_BUILD_DIR)/lokios.0.elf: $(LOKIOS_0_LIB:%=$(LIB_DIR)/%) $(MODULE_SRC_DI
 	    -\(                                                     \
 	    $(LOKIOS_0_LIB:%=$(LIB_DIR)/%)                          \
 	    -\)                                                     \
+	    $(LGCC_OBJ)
