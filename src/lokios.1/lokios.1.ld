@@ -6,6 +6,7 @@ SECTIONS
     . = _virt_addr;
     .image_header :
     {
+        LONG(0x494B4F4C)
         LONG(_num_sectors)
         LONG(_page_table)
     }

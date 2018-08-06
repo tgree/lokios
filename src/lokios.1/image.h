@@ -3,8 +3,10 @@
 
 namespace kernel
 {
+#define IMAGE_HEADER_SIG    0x494B4F4C // 'LOKI'
     struct image_header
     {
+        uint32_t    sig;
         uint32_t    num_sectors;
         uint32_t    page_table_addr;
     };
