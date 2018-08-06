@@ -154,7 +154,7 @@ struct pxe_image_stream : public image_stream
         expected_packet_num = 1;
 
         // Open the TFTP stream.
-        return tftp_open(server_ip,"lokios.1");
+        return tftp_open(server_ip,"lokios.1.elf");
     }
 
     virtual int read(void* dst, uint16_t nsectors) override
