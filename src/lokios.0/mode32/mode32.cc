@@ -46,7 +46,7 @@ m32_entry(uint32_t flags)
     }
 
     // Read the first sector into kernel_base
-    auto* khdr = (kernel::image_header*)(uint32_t)_kernel_base;
+    auto* khdr = (kernel::image_header*)_kernel_base;
     err = is->read(khdr,1);
     if (err)
     {
@@ -88,7 +88,7 @@ m32_entry(uint32_t flags)
         return -2;
     }
 
-    e820_map* m = (e820_map*)(uint32_t)_e820_end;
+    e820_map* m = (e820_map*)_e820_end;
     m->nentries = 0;
 
     e820_io io;
@@ -106,7 +106,7 @@ m32_entry(uint32_t flags)
         console::printf("\n");
     }
 
-    auto* kargs      = (kernel::kernel_args*)(uint32_t)_kernel_params;
+    auto* kargs      = (kernel::kernel_args*)_kernel_params;
     kargs->e820_base = (dma_addr64)_e820_end;
     kargs->vga_base  = 0x000B8000;
 
@@ -119,7 +119,7 @@ m32_entry(uint32_t flags)
 void
 m32_smp_entry()
 {
-    auto* khdr = (kernel::image_header*)(uint32_t)_kernel_base;
+    auto* khdr = (kernel::image_header*)_kernel_base;
     _m32_long_jump(khdr->page_table_addr,
                    0xFFFFFFFFC0000000ULL | (uint64_t)_kernel_ap_entry,
                    0xFFFFFFFFC0000000ULL | (uint64_t)_kernel_stack
