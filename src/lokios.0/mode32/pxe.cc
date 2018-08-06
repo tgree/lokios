@@ -129,6 +129,14 @@ tftp_read(void* buf, uint16_t* packet_num, uint16_t* size)
 }
 
 static uint16_t
+tftp_close()
+{
+    tftp_close_pb pb;
+    memset(&pb,0,sizeof(pb));
+    return _call_pxe(0x0021,&pb,pxe_entry_fp) ?: pb.status;
+}
+
+static uint16_t
 pxe_generic_cmd(uint16_t opcode)
 {
     pxe_generic_pb pb;
@@ -178,11 +186,10 @@ struct pxe_image_stream : public image_stream
 
     virtual int close() override
     {
-        // There should be a final 0-length packet.
-        uint8_t buf[512];
-        int err = read(buf,1);
-        if (err != -2)
-            return -4;
+        // Close the TFTP stream.
+        int err = tftp_close();
+        if (err)
+            return err;
 
         // Issue the PXE shutdown sequence.
         uint16_t shutdown_sequence[] = {

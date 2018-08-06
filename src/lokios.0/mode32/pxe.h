@@ -78,6 +78,12 @@ struct __PACKED__ tftp_read_pb
 };
 KASSERT(sizeof(tftp_read_pb) == 10);
 
+struct __PACKED__ tftp_close_pb
+{
+    uint16_t    status;
+};
+KASSERT(sizeof(tftp_close_pb) == 2);
+
 struct __PACKED__ pxe_generic_pb
 {
     uint16_t    status;
