@@ -4,6 +4,7 @@
 #include "e820.h"
 #include "mbr.h"
 #include "pxe.h"
+#include "console.h"
 #include "massert.h"
 #include "kernel/kernel_args.h"
 
@@ -25,7 +26,7 @@ constexpr kernel_header* kernel_base = (kernel_header*)(uint32_t)_kernel_base;
 int
 m32_entry(uint32_t flags)
 {
-    m32_serial_init();
+    console::init();
 
     m32_serial_puts("Enabling A20 line.\n");
     m32_assert(a20_enable() == 0);
