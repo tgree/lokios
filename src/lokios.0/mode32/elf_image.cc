@@ -7,12 +7,12 @@ extern uint8_t _elf_base[];
 extern uint8_t _kernel_base[];
 
 int
-process_elf_image(image_stream* is, elf_header* sector0)
+process_elf_image(image_stream* is, void* sector0)
 {
     console::printf("Processing elf kernel image.\n");
 
     // Copy the first sector into place.
-    auto* ehdr = (elf_header*)_elf_base;
+    void* ehdr = (void*)_elf_base;
     memcpy(ehdr,sector0,512);
 
     // Read sectors until we have the kernel header.

@@ -70,9 +70,9 @@ m32_entry(uint32_t flags)
             return err;
         }
     }
-    else if (((elf_header*)buf)->sig == ELF_HEADER_SIG)
+    else if (*(uint32_t*)buf == ELF_HEADER_SIG)
     {
-        err = process_elf_image(is,(elf_header*)buf);
+        err = process_elf_image(is,buf);
         if (err)
         {
             console::printf("Error %d handling elf image.\n",err);
