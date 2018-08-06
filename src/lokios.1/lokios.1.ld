@@ -1673,6 +1673,13 @@ SECTIONS
         . = ALIGN(4096);
     }
 
+    image_footer :
+    {
+        FILL(0xDD);
+        . = . + 508;
+        LONG(0x4C4F4B49); /* 'IKOL' */
+    }
+
     ASSERT((. - _virt_addr) % 512 == 0, "not an integral number of sectors")
     _num_sectors = (. - _virt_addr) / 512;
     _sbrk = . - _virt_addr + _phys_addr;
