@@ -83,6 +83,6 @@ struct __PACKED__ pxe_generic_pb
     uint8_t     data[10];
 };
 
-int m32_pxe_entry();
+int pxe_entry();
 
 #endif /* __MODE32_PXE_H */

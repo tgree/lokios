@@ -31,13 +31,13 @@ m32_entry(uint32_t flags)
     console::init();
 
     console::printf("Enabling A20 line.\n");
-    m32_assert(a20_enable() == 0);
+    assert(a20_enable() == 0);
 
     int err = -1;
     switch (flags & FLAG_BOOT_TYPE_MASK)
     {
-        case FLAG_BOOT_TYPE_MBR:    err = m32_mbr_entry();  break;
-        case FLAG_BOOT_TYPE_PXE:    err = m32_pxe_entry();  break;
+        case FLAG_BOOT_TYPE_MBR:    err = mbr_entry();  break;
+        case FLAG_BOOT_TYPE_PXE:    err = pxe_entry();  break;
     }
     if (err)
         return err;
@@ -50,11 +50,11 @@ m32_entry(uint32_t flags)
 
     e820_io io;
     io.cookie = 0;
-    for (m32_e820_iter(&io); io.cookie; m32_e820_iter(&io))
+    for (e820_iter(&io); io.cookie; e820_iter(&io))
     {
         m->entries[m->nentries++] = io.entry;
 
-        m32_assert(io.sig == 0x534D4150);
+        assert(io.sig == 0x534D4150);
         console::printf("%u %016llX:%016llX 0x%08X",
                         io.entry_len,io.entry.addr,
                         io.entry.addr + io.entry.len - 1,io.entry.type);

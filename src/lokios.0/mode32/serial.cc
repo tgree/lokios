@@ -17,7 +17,7 @@ write_reg(uint8_t val, uint8_t index)
 }
 
 void
-m32_serial_init()
+serial_init()
 {
     // Configure for 115200 N/8/1.
     write_reg(read_reg(3) & 0x7F,3);
@@ -31,7 +31,7 @@ m32_serial_init()
 }
 
 static void
-_m32_serial_putc(char c)
+_serial_putc(char c)
 {
     while ((read_reg(5) & 0x20) == 0)
         ;
@@ -39,9 +39,9 @@ _m32_serial_putc(char c)
 }
 
 void
-m32_serial_putc(char c)
+serial_putc(char c)
 {
     if (c == '\n')
-        _m32_serial_putc('\r');
-    _m32_serial_putc(c);
+        _serial_putc('\r');
+    _serial_putc(c);
 }

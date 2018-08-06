@@ -1,12 +1,12 @@
 #include "vga.h"
 #include "hdr/compiler.h"
 
-extern "C" void _m32_vga_putc(char c) __REG_PARMS__;
+extern "C" void _vga_putc(char c) __REG_PARMS__;
 
 void
-m32_vga_putc(char c)
+vga_putc(char c)
 {
     if (c == '\n')
-        _m32_vga_putc('\r');
-    _m32_vga_putc(c);
+        _vga_putc('\r');
+    _vga_putc(c);
 }

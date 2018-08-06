@@ -177,8 +177,8 @@ _m32_long_jump:
 #   12(esp) - pxe far pointer
 # On exit:
 #   AX    - error code
-.globl _m32_call_pxe
-_m32_call_pxe:
+.globl _call_pxe
+_call_pxe:
 .code32
     push    %ebx
     push    %edi
@@ -228,8 +228,8 @@ _a20_enable_int15h:
 # On exit:
 #   e820_io struct will be updated and ebx should be consulted to see if we
 #   are at the end - we massage CF into there for you.
-.global m32_e820_iter
-m32_e820_iter:
+.global e820_iter
+e820_iter:
 .code32
     push    %ebx
 
@@ -264,8 +264,8 @@ m32_e820_iter:
 # Call INT 10h to write a character to the VGA console from protected mode.
 # On entry:
 #   AX - character to write
-.global _m32_vga_putc
-_m32_vga_putc:
+.global _vga_putc
+_vga_putc:
 .code32
     push    %ebx
 

@@ -26,7 +26,7 @@ struct __PACKED__ e820_map
 
 extern "C"
 {
-    void m32_e820_iter(e820_io* io);
+    void e820_iter(e820_io* io);
 }
 
 #endif /* __MODE32_E820_H */

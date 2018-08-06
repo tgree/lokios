@@ -6,13 +6,12 @@
 extern far_pointer _saved_es_bx;
 extern uint8_t _kernel_base[];
 
-static far_pointer _m32_pxe_entry_fp;
+static far_pointer pxe_entry_fp;
 
-extern "C" uint16_t _m32_call_pxe(uint16_t opcode, void* pb,
-                                  far_pointer proc_ptr);
+extern "C" uint16_t _call_pxe(uint16_t opcode, void* pb, far_pointer proc_ptr);
 
 static uint8_t
-m32_pxe_checksum(void* _p, uint32_t n)
+pxe_checksum(void* _p, uint32_t n)
 {
     uint8_t sum = 0;
     uint8_t* p  = (uint8_t*)_p;
@@ -22,11 +21,11 @@ m32_pxe_checksum(void* _p, uint32_t n)
 }
 
 static int
-m32_pxe_find_entry(far_pointer* fp)
+pxe_find_entry(far_pointer* fp)
 {
     // Checksum the PXENV+ struct.
     auto* pep = (pxe_env_plus*)_saved_es_bx.to_addr();
-    uint8_t cs = m32_pxe_checksum(pep,pep->len);
+    uint8_t cs = pxe_checksum(pep,pep->len);
     if (cs != 0)
     {
         console::printf("PXENV+ struct has non-zero checksum (0x%02X)\n",cs);
@@ -55,7 +54,7 @@ m32_pxe_find_entry(far_pointer* fp)
     }
 
     // Found !PXE, checksum it.
-    cs = m32_pxe_checksum(np,np->len);
+    cs = pxe_checksum(np,np->len);
     if (cs != 0)
     {
         // What to do?  We found a !PXE struct but the checksum is bogus.  It
@@ -73,13 +72,13 @@ m32_pxe_find_entry(far_pointer* fp)
 }
 
 static uint16_t
-m32_pxe_get_cached_dhcp_ack(far_pointer* fp, uint16_t* size)
+pxe_get_cached_dhcp_ack(far_pointer* fp, uint16_t* size)
 {
     pxe_get_cached_info_pb pb;
     memset(&pb,0,sizeof(pb));
     pb.packet_type = 2;
 
-    uint16_t rc = _m32_call_pxe(0x0071,&pb,_m32_pxe_entry_fp);
+    uint16_t rc = _call_pxe(0x0071,&pb,pxe_entry_fp);
     if (rc)
         return rc;
     if (pb.status)
@@ -91,7 +90,7 @@ m32_pxe_get_cached_dhcp_ack(far_pointer* fp, uint16_t* size)
 }
 
 static uint16_t
-m32_tftp_open(uint8_t* server_ip, const char* filename)
+tftp_open(uint8_t* server_ip, const char* filename)
 {
     tftp_open_pb pb;
     memset(&pb,0,sizeof(pb));
@@ -106,17 +105,17 @@ m32_tftp_open(uint8_t* server_ip, const char* filename)
     while (*filename)
         *p++ = *filename++;
 
-    return _m32_call_pxe(0x0020,&pb,_m32_pxe_entry_fp) ?: pb.status;
+    return _call_pxe(0x0020,&pb,pxe_entry_fp) ?: pb.status;
 }
 
 static uint16_t
-m32_tftp_read(void* buf, uint16_t* packet_num, uint16_t* size)
+tftp_read(void* buf, uint16_t* packet_num, uint16_t* size)
 {
     tftp_read_pb pb;
     memset(&pb,0,sizeof(pb));
     pb.buffer_fp = far_pointer{(uint16_t)(uint32_t)buf,0};
 
-    uint16_t rc = _m32_call_pxe(0x0022,&pb,_m32_pxe_entry_fp);
+    uint16_t rc = _call_pxe(0x0022,&pb,pxe_entry_fp);
     if (rc)
         return rc;
     if (pb.status)
@@ -128,38 +127,38 @@ m32_tftp_read(void* buf, uint16_t* packet_num, uint16_t* size)
 }
 
 static uint16_t
-m32_pxe_generic_cmd(uint16_t opcode)
+pxe_generic_cmd(uint16_t opcode)
 {
     pxe_generic_pb pb;
     memset(&pb,0,sizeof(pb));
-    return _m32_call_pxe(opcode,&pb,_m32_pxe_entry_fp) ?: pb.status;
+    return _call_pxe(opcode,&pb,pxe_entry_fp) ?: pb.status;
 }
 
 static uint16_t
-m32_bounce_packet(uint16_t expected_packet_num)
+bounce_packet(uint16_t expected_packet_num)
 {
     char* kernel_base = (char*)(uint32_t)_kernel_base;
     uint16_t packet_num;
     uint16_t packet_size;
     uint8_t buf[512];
-    m32_assert(!m32_tftp_read(buf,&packet_num,&packet_size));
-    m32_assert(packet_num == expected_packet_num);
-    m32_assert(packet_size == 512 || packet_size == 0);
+    assert(!tftp_read(buf,&packet_num,&packet_size));
+    assert(packet_num == expected_packet_num);
+    assert(packet_size == 512 || packet_size == 0);
     if (packet_size)
         memcpy(kernel_base + 512*(expected_packet_num-1),buf,sizeof(buf));
     return packet_size;
 }
 
 int
-m32_pxe_entry()
+pxe_entry()
 {
     // Find the entry point.
-    m32_assert(m32_pxe_find_entry(&_m32_pxe_entry_fp) == 0);
+    assert(pxe_find_entry(&pxe_entry_fp) == 0);
 
     // Get cached data.
     far_pointer dhcp_fp;
     uint16_t dhcp_size;
-    uint16_t rc = m32_pxe_get_cached_dhcp_ack(&dhcp_fp,&dhcp_size);
+    uint16_t rc = pxe_get_cached_dhcp_ack(&dhcp_fp,&dhcp_size);
     if (rc != 0)
     {
         console::printf("Error %u getting cached DHCP ACK\n",rc);
@@ -170,7 +169,7 @@ m32_pxe_entry()
     console::printf("DHCP Servier IP: %u.%u.%u.%u\n",
                     siaddr[0],siaddr[1],siaddr[2],siaddr[3]);
 
-    rc = m32_tftp_open(siaddr,"lokios.1");
+    rc = tftp_open(siaddr,"lokios.1");
     if (rc != 0)
     {
         console::printf("Error %u from TFTP_OPEN\n",rc);
@@ -178,7 +177,7 @@ m32_pxe_entry()
     }
 
     // Handle the first sector.
-    m32_assert(m32_bounce_packet(1) == 512);
+    assert(bounce_packet(1) == 512);
 
     // Figure out how many sectors we need.  We've already read the first
     // sector, but there will be an extra zero-length sector from the PXE
@@ -187,10 +186,10 @@ m32_pxe_entry()
     uint32_t nsectors = *(uint32_t*)(uint32_t)_kernel_base;
     while (--nsectors)
     {
-        if (m32_bounce_packet(expected_packet_num++) != 512)
+        if (bounce_packet(expected_packet_num++) != 512)
             return -3;
     }
-    if (m32_bounce_packet(expected_packet_num) != 0)
+    if (bounce_packet(expected_packet_num) != 0)
             return -4;
 
     // Issue the PXE shutdown sequence.
@@ -205,7 +204,7 @@ m32_pxe_entry()
     };
     for (uint16_t opcode : shutdown_sequence)
     {
-        if (m32_pxe_generic_cmd(opcode))
+        if (pxe_generic_cmd(opcode))
             return -5;
     }
 

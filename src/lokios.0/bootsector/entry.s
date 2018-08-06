@@ -70,7 +70,7 @@ _start:
     cld
 
     # Load the gdt.
-    lgdt    _m32_gdt_desc
+    lgdt    _gdt_desc
 
     # Print the copyright banner first.
     lea     _BUILD_BANNER, %si
@@ -153,14 +153,14 @@ _mbr_drive_number:
 # in there and when calculating the GDT address subtract 2 bytes to make it
 # a "full" 64-bit entry.  So the start of the GDT actually points a couple
 # bytes before the beginning of this struct!
-.globl _m32_gdt_desc
-_m32_gdt_desc:
-    .word   _m32_gdt_desc_end - _m32_gdt_desc + 2 - 1
-    .long   _m32_gdt_desc - 2
+.globl _gdt_desc
+_gdt_desc:
+    .word   _gdt_desc_end - _gdt_desc + 2 - 1
+    .long   _gdt_desc - 2
     .quad   0x00CF92000000FFFF # 32-bit data segment
     .quad   0x00CF9A000000FFFF # 32-bit code segment
     .quad   0x000092000000FFFF # 16-bit data segment
     .quad   0x00009A000000FFFF # 16-bit code segment
     .quad   0x0000920000000000 # 64-bit data segment
     .quad   0x00209A0000000000 # 64-bit code segment
-_m32_gdt_desc_end:
+_gdt_desc_end:

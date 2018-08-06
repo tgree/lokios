@@ -13,7 +13,7 @@ extern "C"
 }
 
 void
-m32_abort(const char* f, int l)
+_abort(const char* f, int l)
 {
     console::printf("ASSERTION FAILED: %s:%u\n",f,l);
     abort();

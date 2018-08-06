@@ -25,7 +25,7 @@ _smp_entry:
     cld
 
     # Load the gdt.
-    lgdt    _m32_gdt_desc
+    lgdt    _gdt_desc
 
     # Enter protected mode - we need this for the switch to long mode.
     call _mode_switch_protected_and_write_dot_code32_after_this_line

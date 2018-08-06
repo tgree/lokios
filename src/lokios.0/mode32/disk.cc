@@ -3,8 +3,7 @@
 extern "C" int _m32_disk_read(uint8_t drive, disk_read_io* iopb);
 
 int
-m32_disk_read(uint8_t drive, uint32_t first_sector, uint16_t nsectors,
-    void* dst)
+disk_read(uint8_t drive, uint32_t first_sector, uint16_t nsectors, void* dst)
 {
     disk_read_io io;
     io.iorec_size        = sizeof(io);

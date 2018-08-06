@@ -6,14 +6,14 @@
 static
 void _putc(void* cookie, char c)
 {
-    m32_serial_putc(c);
-    m32_vga_putc(c);
+    serial_putc(c);
+    vga_putc(c);
 }
 
 void
 console::init()
 {
-    m32_serial_init();
+    serial_init();
 }
 
 void
