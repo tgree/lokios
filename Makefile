@@ -101,9 +101,9 @@ $(BIN_DIR)/lokios.mbr: $(BIN_DIR)/lokios.0 $(BIN_DIR)/lokios.1
 	@echo Generating $@...
 	@cat $(BIN_DIR)/lokios.0 $(BIN_DIR)/lokios.1 > $(BIN_DIR)/lokios.mbr
 
-$(BIN_DIR)/lokios.elf.mbr: $(BIN_DIR)/lokios.0 $(BUILD_O_DIR)/lokios.1/lokios.1.elf
+$(BIN_DIR)/lokios.elf.mbr: $(BIN_DIR)/lokios.0 $(BIN_DIR)/lokios.1.elf
 	@echo Generating $@...
-	@cat $(BIN_DIR)/lokios.0 $(BUILD_O_DIR)/lokios.1/lokios.1.elf > $(BIN_DIR)/lokios.elf.mbr
+	@cat $(BIN_DIR)/lokios.0 $(BIN_DIR)/lokios.1.elf > $(BIN_DIR)/lokios.elf.mbr
 
 .PHONY: clean
 clean:
