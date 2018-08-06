@@ -7,7 +7,9 @@
 #include "massert.h"
 #include "kernel/image.h"
 #include "kernel/kernel_args.h"
+#include <string.h>
 
+extern uint8_t _elf_base[];
 extern uint8_t _kernel_base[];
 extern uint8_t _kernel_stack[];
 extern uint8_t _kernel_bsp_entry[];
@@ -25,6 +27,9 @@ m32_entry(uint32_t flags)
 
     console::printf("Enabling A20 line.\n");
     assert(a20_enable() == 0);
+
+    // Nuke the ELF base in memory.
+    memset(_elf_base,0,_kernel_base-_elf_base);
 
     // Find someone to read the image.
     image_stream* is;
