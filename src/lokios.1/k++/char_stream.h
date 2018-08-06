@@ -9,21 +9,9 @@ namespace kernel
 {
     class char_stream_base
     {
-        void    print_field(const char* ptr, size_t digits, unsigned int flags,
-                            unsigned int width, unsigned int precision);
-        void    print_decimal(long long v, unsigned int flags,
-                              unsigned int width, unsigned int precision);
-        void    print_udecimal(unsigned long long v, unsigned int flags,
-                               unsigned int width, unsigned int precision);
-        void    print_octal(unsigned long long v, unsigned int flags,
-                            unsigned int width, unsigned int precision);
-        void    print_hex(unsigned long long v, unsigned int flags,
-                          unsigned int width, unsigned int precision,
-                          const char* lut);
-        void    print_string(const char* s, unsigned int flags,
-                             unsigned int width, unsigned int precision);
-
         virtual void _putc(char c) = 0;
+
+        static void _putc_bounce(void* cookie, char c);
 
     public:
         void    locked_vprintf(const char* fmt, va_list ap);

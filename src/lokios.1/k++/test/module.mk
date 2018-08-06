@@ -12,6 +12,7 @@ TESTS := char_stream_test \
 char_stream_test.objs := \
 	$(MODULE_TBUILD_DIR)/char_stream_test.o \
 	$(PARENT_TBUILD_DIR)/char_stream.o \
+	$(PARENT_TBUILD_DIR)/kprintf.o \
 	$(BUILD_TO_DIR)/lokios.1/mock/fkassert.o
 
 klist_test.objs := \
