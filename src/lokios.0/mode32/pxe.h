@@ -85,9 +85,6 @@ struct __PACKED__ pxe_generic_pb
 
 extern "C"
 {
-    uint16_t m32_call_pxe(uint16_t opcode, void* pb,
-                          far_pointer proc_ptr);
-
     int m32_pxe_entry();
 }
 

@@ -7,9 +7,6 @@
 
 extern "C"
 {
-    void m32_long_jump(uint32_t cr3, uint64_t proc_addr,
-                       uint64_t rsp) __NORETURN__;
-
 #define FLAG_BOOT_TYPE_MASK 0x00000001
 #define FLAG_BOOT_TYPE_MBR  0x00000000
 #define FLAG_BOOT_TYPE_PXE  0x00000001

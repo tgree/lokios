@@ -22,6 +22,9 @@ extern uint8_t _e820_end[];
 
 constexpr kernel_header* kernel_base = (kernel_header*)(uint32_t)_kernel_base;
 
+extern "C" void _m32_long_jump(uint32_t cr3, uint64_t proc_addr,
+                               uint64_t rsp) __NORETURN__;
+
 int
 m32_entry(uint32_t flags)
 {
@@ -64,17 +67,17 @@ m32_entry(uint32_t flags)
     kargs->e820_base = (dma_addr64)_e820_end;
     kargs->vga_base  = 0x000B8000;
 
-    m32_long_jump(kernel_base->cr3,
-                  0xFFFFFFFFC0000000ULL | (uint64_t)_kernel_bsp_entry,
-                  0xFFFFFFFFC0000000ULL | (uint64_t)_kernel_stack
-                  );
+    _m32_long_jump(kernel_base->cr3,
+                   0xFFFFFFFFC0000000ULL | (uint64_t)_kernel_bsp_entry,
+                   0xFFFFFFFFC0000000ULL | (uint64_t)_kernel_stack
+                   );
 }
 
 void
 m32_smp_entry()
 {
-    m32_long_jump(kernel_base->cr3,
-                  0xFFFFFFFFC0000000ULL | (uint64_t)_kernel_ap_entry,
-                  0xFFFFFFFFC0000000ULL | (uint64_t)_kernel_stack
-                  );
+    _m32_long_jump(kernel_base->cr3,
+                   0xFFFFFFFFC0000000ULL | (uint64_t)_kernel_ap_entry,
+                   0xFFFFFFFFC0000000ULL | (uint64_t)_kernel_stack
+                   );
 }

@@ -1,6 +1,8 @@
 #include "a20_gate.h"
 #include <stdint.h>
 
+extern "C" void _a20_enable_int15h();
+
 static uint16_t a20_sig;
 
 static bool

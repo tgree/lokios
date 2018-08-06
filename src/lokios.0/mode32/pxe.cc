@@ -8,6 +8,9 @@ extern uint8_t _kernel_base[];
 
 static far_pointer _m32_pxe_entry_fp;
 
+extern "C" uint16_t _m32_call_pxe(uint16_t opcode, void* pb,
+                                  far_pointer proc_ptr);
+
 static uint8_t
 m32_pxe_checksum(void* _p, uint32_t n)
 {
@@ -76,7 +79,7 @@ m32_pxe_get_cached_dhcp_ack(far_pointer* fp, uint16_t* size)
     memset(&pb,0,sizeof(pb));
     pb.packet_type = 2;
 
-    uint16_t rc = m32_call_pxe(0x0071,&pb,_m32_pxe_entry_fp);
+    uint16_t rc = _m32_call_pxe(0x0071,&pb,_m32_pxe_entry_fp);
     if (rc)
         return rc;
     if (pb.status)
@@ -103,7 +106,7 @@ m32_tftp_open(uint8_t* server_ip, const char* filename)
     while (*filename)
         *p++ = *filename++;
 
-    return m32_call_pxe(0x0020,&pb,_m32_pxe_entry_fp) ?: pb.status;
+    return _m32_call_pxe(0x0020,&pb,_m32_pxe_entry_fp) ?: pb.status;
 }
 
 static uint16_t
@@ -113,7 +116,7 @@ m32_tftp_read(void* buf, uint16_t* packet_num, uint16_t* size)
     memset(&pb,0,sizeof(pb));
     pb.buffer_fp = far_pointer{(uint16_t)(uint32_t)buf,0};
 
-    uint16_t rc = m32_call_pxe(0x0022,&pb,_m32_pxe_entry_fp);
+    uint16_t rc = _m32_call_pxe(0x0022,&pb,_m32_pxe_entry_fp);
     if (rc)
         return rc;
     if (pb.status)
@@ -129,7 +132,7 @@ m32_pxe_generic_cmd(uint16_t opcode)
 {
     pxe_generic_pb pb;
     memset(&pb,0,sizeof(pb));
-    return m32_call_pxe(opcode,&pb,_m32_pxe_entry_fp) ?: pb.status;
+    return _m32_call_pxe(opcode,&pb,_m32_pxe_entry_fp) ?: pb.status;
 }
 
 static uint16_t

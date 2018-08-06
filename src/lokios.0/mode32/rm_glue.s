@@ -88,8 +88,8 @@ _mode_switch_protected_and_write_dot_code32_after_this_line:
 #  16(esp)  - 64-bit jump stack address
 # On exit:
 #   DOES NOT RETURN.
-.global m32_long_jump
-m32_long_jump:
+.global _m32_long_jump
+_m32_long_jump:
 .code32
     cli
 
@@ -177,8 +177,8 @@ m32_long_jump:
 #   12(esp) - pxe far pointer
 # On exit:
 #   AX    - error code
-.globl m32_call_pxe
-m32_call_pxe:
+.globl _m32_call_pxe
+_m32_call_pxe:
 .code32
     push    %ebx
     push    %edi

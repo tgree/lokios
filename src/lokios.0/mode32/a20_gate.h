@@ -3,7 +3,6 @@
 
 extern "C"
 {
-    void _a20_enable_int15h();
     int a20_enable();
 }
 
