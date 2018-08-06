@@ -297,6 +297,7 @@ _m32_disk_read:
     mov     12(%esp), %esi
     mov     $0x4200, %eax
     int     $0x13
+    cli
     jc      .L_disk_read_failed
     mov     $0, %eax
     jmp     .L_disk_read_out
