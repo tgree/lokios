@@ -35,7 +35,7 @@ ARFLAGS := rc
 BUILD_TEST = mkdir -p $(TESTS_DIR) && $(CXX) $(TEST_CXXFLAGS) -o $@
 
 .PHONY: all
-all: $(BIN_DIR)/lokios.mbr test
+all: $(BIN_DIR)/lokios.mbr $(BIN_DIR)/lokios.elf.mbr test
 	@:
 
 define define_test
@@ -86,14 +86,23 @@ $(BIN_DIR)/lokios.0: $(BUILD_O_DIR)/lokios.0/lokios.0.elf
 	@mkdir -p $(@D)
 	@objcopy -O binary -S $(BUILD_O_DIR)/lokios.0/lokios.0.elf $(BIN_DIR)/lokios.0
 
-$(BIN_DIR)/lokios.1: $(BUILD_O_DIR)/lokios.1/lokios.1.elf
+$(BIN_DIR)/lokios.1.elf: $(BUILD_O_DIR)/lokios.1/lokios.1.elf
+	@echo Copying $@...
+	@mkdir -p $(@D)
+	@cp $(BUILD_O_DIR)/lokios.1/lokios.1.elf $(BIN_DIR)/
+
+$(BIN_DIR)/lokios.1: $(BIN_DIR)/lokios.1.elf
 	@echo Generating $@...
 	@mkdir -p $(@D)
-	@objcopy -O binary -S $(BUILD_O_DIR)/lokios.1/lokios.1.elf $(BIN_DIR)/lokios.1
+	@objcopy -O binary -S $(BIN_DIR)/lokios.1.elf $(BIN_DIR)/lokios.1
 
 $(BIN_DIR)/lokios.mbr: $(BIN_DIR)/lokios.0 $(BIN_DIR)/lokios.1
 	@echo Generating $@...
 	@cat $(BIN_DIR)/lokios.0 $(BIN_DIR)/lokios.1 > $(BIN_DIR)/lokios.mbr
+
+$(BIN_DIR)/lokios.elf.mbr: $(BIN_DIR)/lokios.0 $(BUILD_O_DIR)/lokios.1/lokios.1.elf
+	@echo Generating $@...
+	@cat $(BIN_DIR)/lokios.0 $(BUILD_O_DIR)/lokios.1/lokios.1.elf > $(BIN_DIR)/lokios.elf.mbr
 
 .PHONY: clean
 clean:
