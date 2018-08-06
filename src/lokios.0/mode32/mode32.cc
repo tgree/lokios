@@ -80,6 +80,7 @@ m32_entry(uint32_t flags)
     }
     console::printf("Successfully read %s input stream.\n",is->name);
 
+    // Sanity on the footer before we jump anywhere.
     auto* kftr =
         (kernel::image_footer*)((char*)khdr + 512*(khdr->num_sectors-1));
     if (kftr->sig != IMAGE_FOOTER_SIG)
@@ -88,9 +89,11 @@ m32_entry(uint32_t flags)
         return -2;
     }
 
+    // Initialize the E820 map.
     e820_map* m = (e820_map*)_e820_end;
     m->nentries = 0;
 
+    // Fetch the E820 entries.
     e820_io io;
     io.cookie = 0;
     for (e820_iter(&io); io.cookie; e820_iter(&io))
@@ -106,10 +109,12 @@ m32_entry(uint32_t flags)
         console::printf("\n");
     }
 
+    // Initialize the kernel args.
     auto* kargs      = (kernel::kernel_args*)_kernel_params;
     kargs->e820_base = (dma_addr64)_e820_end;
     kargs->vga_base  = 0x000B8000;
 
+    // Jump!
     _m32_long_jump(khdr->page_table_addr,
                    0xFFFFFFFFC0000000ULL | (uint64_t)_kernel_bsp_entry,
                    0xFFFFFFFFC0000000ULL | (uint64_t)_kernel_stack
@@ -119,6 +124,7 @@ m32_entry(uint32_t flags)
 void
 m32_smp_entry()
 {
+    // Jump!
     auto* khdr = (kernel::image_header*)_kernel_base;
     _m32_long_jump(khdr->page_table_addr,
                    0xFFFFFFFFC0000000ULL | (uint64_t)_kernel_ap_entry,
