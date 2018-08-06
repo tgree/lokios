@@ -30,3 +30,11 @@ memcpy(void* _dest, const void* _src, size_t n)
     return _dest;
 }
 
+extern "C"
+void* memset(void* _s, int c, size_t n)
+{
+    char* s = (char*)_s;
+    while (n--)
+        *s++ = c;
+    return _s;
+}
