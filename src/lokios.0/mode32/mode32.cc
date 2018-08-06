@@ -83,14 +83,21 @@ m32_entry(uint32_t flags)
         return err;
     }
 
-    // Sanity on the footer before we jump anywhere.
+    // Sanity on the header before we jump anywhere.
     auto* khdr = (kernel::image_header*)_kernel_base;
+    if (khdr->sig != IMAGE_HEADER_SIG)
+    {
+        console::printf("Post-processing validation failed on header sig.\n");
+        return -7;
+    }
+
+    // Sanity on the footer before we jump anywhere.
     auto* kftr =
         (kernel::image_footer*)((char*)khdr + 512*(khdr->num_sectors-1));
     if (kftr->sig != IMAGE_FOOTER_SIG)
     {
-        console::printf("Kernel footer signature missing.\n");
-        return -2;
+        console::printf("Post-processing validation failed on footer sig.\n");
+        return -8;
     }
 
     // Initialize the E820 map.
