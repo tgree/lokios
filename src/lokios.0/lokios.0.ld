@@ -3,7 +3,7 @@ SECTIONS
 {
     /* PXE loads us into memory at 0x7c00, so link ourselves at that base
      * address. */
-    . = 0x7c00;
+    . = 0x7C00;
     .bootsector_text :
     {
         *bootsector.a:entry.o(.text)
@@ -17,7 +17,7 @@ SECTIONS
     ASSERT(. <= 0x7DB4, "boot sector crashed into disk ID")
 
     /* Include a valid MBR signature for booting off disk. */
-    . = 0x7dfe;
+    . = 0x7DFE;
     .mbr_sig :
     {
         BYTE(0x55)
