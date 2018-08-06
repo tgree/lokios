@@ -17,7 +17,7 @@ HEADERS      :=
 MODE16_ASFLAGS := -march=core2 --32
 MODE32_ASFLAGS := -march=core2 --32
 MODE_BASE_CXXFLAGS := -O2 -march=core2 -std=gnu++17 -Wall -Werror \
-                      -fno-stack-protector \
+                      -fno-stack-protector -fno-rtti \
     		      -I$(abspath $(SRC_DIR)) -I$(INCLUDE_DIR)
 MODE16_CXXFLAGS    := $(MODE_BASE_CXXFLAGS) -m16 -ggdb
 MODE32_CXXFLAGS    := $(MODE_BASE_CXXFLAGS) -m32 -ggdb
