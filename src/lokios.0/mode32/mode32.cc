@@ -5,6 +5,7 @@
 #include "pxe.h"
 #include "console.h"
 #include "raw_image.h"
+#include "elf_image.h"
 #include "massert.h"
 #include "kernel/kernel_args.h"
 #include <string.h>
@@ -66,6 +67,15 @@ m32_entry(uint32_t flags)
         if (err)
         {
             console::printf("Error %d handling raw image.\n",err);
+            return err;
+        }
+    }
+    else if (((elf_header*)buf)->sig == ELF_HEADER_SIG)
+    {
+        err = process_elf_image(is,(elf_header*)buf);
+        if (err)
+        {
+            console::printf("Error %d handling elf image.\n",err);
             return err;
         }
     }
