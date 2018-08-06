@@ -58,3 +58,27 @@ make -j && qemu-system-x86_64 -cpu qemu64,+popcnt -smp 4 -device isa-debug-exit 
 ```
 
 You can also specify -curses instead of -nographic for the ugly ANSI VGA emulation.  Use Esc-1, Esc-2 and so on to switch consoles in this mode.
+
+# Booting from a USB key on Mac OS
+
+1. Download the "Etcher" app:
+
+```
+https://etcher.io
+```
+
+2. Copy lokios.mbr or lokios.elf.mbr out of the docker image to your local desktop:
+
+```
+scp bin/* docker.for.mac.localhost:Desktop/
+```
+
+3. Add a .raw suffix to the .mbr file so that Etcher will recognize it as a raw image.
+4. Insert your USB key and make sure Etcher detects it.
+5. Drag the .mbr.raw file onto Etcher.
+6. Burn it.
+7. Insert the USB key into the target machine.
+8. Boot and hold down the Option key until you see a disk selector menu.
+9. Select the removable drive labeled "Windows".  Tip: Hold down Control while doing this to make your selection persistent.
+
+You will now boot into LokiOS on the bare metal.  Note: I had to use a USB 2.0 key to make this work on my old MacBook Air.  I think it does support USB 3.0, but I tried first using a USB 3.0 key and was very frustrated for awhile before I tried a USB 2.0 key and everything just worked.  It seems that the Mac BIOS wouldn't recognize the USB 3.0 key for some reason.
