@@ -89,7 +89,8 @@ $(BIN_DIR)/lokios.0: $(BUILD_O_DIR)/lokios.0/lokios.0.elf
 $(BIN_DIR)/lokios.1.elf: $(BUILD_O_DIR)/lokios.1/lokios.1.elf
 	@echo Copying $@...
 	@mkdir -p $(@D)
-	@cp $(BUILD_O_DIR)/lokios.1/lokios.1.elf $(BIN_DIR)/
+	@cp $^ $@
+	@strip -S $@
 
 $(BIN_DIR)/lokios.1: $(BIN_DIR)/lokios.1.elf
 	@echo Generating $@...
