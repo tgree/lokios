@@ -243,6 +243,7 @@ e820_iter:
     mov     $0x534D4150, %edx
     lea     12(%edi), %edi
     int     $0x15
+    cli
 
     mov     8(%esp), %edi
     mov     %eax, 0(%edi)
