@@ -14,8 +14,10 @@ Congratulations, you've cloned lokios onto your docker-enabled desktop!  Now, to
 
 First, you need to create the docker development/build environment.  Enter the docker subdirectory and display the build and run commands we'll need to invoke to start a container:
 
+```
 cd docker
 head -2 Dockerfile
+```
 
 Execute the build command (inserting your name/username into the build parameters) and then execute the run command.  You will then be presented with a bash prompt from inside the docker container.  Do all your work here; when you are done, simply exit the container.  From outside the container, use 'docker ps -a' to find the name of your container and reenter it when you want to continue working via 'docker start -i container_name'.  Use of tmux while inside the container is recommended for sanity; Ctrl-A is the tmux command prefix.
 
@@ -23,13 +25,17 @@ Now that you are inside the container, cat the README.txt file and follow the di
 
 # Building and running unit tests
 
+```
 make -j5
+```
 
 # Running integration/smoke test under qemu
 
 qemu comes preinstalled in the docker image, so you can just test your changes immediately from the command line.  By specifying an 'iTST' ACPI table entry we can also tell the kernel to exit after initialization steps are complete.
 
+```
 qemu-system-x86_64 -cpu qemu64,+popcnt -drive file=bin/lokios.mbr,format=raw -nographic -device isa-debug-exit -smp 2 -acpitable sig=iTST,data=/dev/null -device virtio-net-pci,netdev=net0,disable-legacy=on,disable-modern=off,vectors=4 -netdev user,id=net0,hostfwd=tcp::12345-:12345 -object filter-dump,id=dump0,netdev=net0,file=net0dump.pcap -m 64M
+```
 
 An exit code of 3 indicates that the kernel successful ran and exited.  Any other exit code indicates a problem.
 
@@ -37,7 +43,9 @@ An exit code of 3 indicates that the kernel successful ran and exited.  Any othe
 
 This version of the qemu invocation sets up TCP forwarding on localhost port 12345 into guest port 12345.  This can be used to initiate a TCP connection from the docker container to the lokios kernel for testing purposes (say, by using the telnet tool):
 
+```
 make -j && qemu-system-x86_64 -cpu qemu64,+popcnt -drive file=bin/lokios.mbr,format=raw -smp 4 -nographic -device isa-debug-exit -device virtio-net-pci,netdev=net0,disable-legacy=on,disable-modern=off,vectors=4 -netdev user,id=net0,hostfwd=tcp::12345-:12345 -object filter-dump,id=dump0,netdev=net0,file=net0dump.pcap -m 64M
+```
 
 To exit qemu: Type Ctrl-A X.  Or, if you are within tmux: Ctrl-A A X.
 
@@ -45,6 +53,8 @@ To exit qemu: Type Ctrl-A X.  Or, if you are within tmux: Ctrl-A A X.
 
 qemu can also be used to test PXE with its built-in PXE server.  It is pretty slow to get link-up (10-20 seconds) though so it's not an ideal test environment.
 
+```
 make -j && qemu-system-x86_64 -cpu qemu64,+popcnt -smp 4 -device isa-debug-exit -device virtio-net-pci,netdev=net0,disable-modern=off,vectors=4 -netdev user,id=net0,hostfwd=tcp::12345-:12345,tftp=bin/,bootfile=lokios.0 -object filter-dump,id=dump0,netdev=net0,file=net0dump.pcap -m 64M -boot n -nographic
+```
 
 You can also specify -curses instead of -nographic for the ugly ANSI VGA emulation.  Use Esc-1, Esc-2 and so on to switch consoles in this mode.
