@@ -2,22 +2,13 @@
 #include "disk.h"
 #include "console.h"
 #include "kernel/image.h"
+#include <string.h>
 #include <stddef.h>
 
 extern uint8_t _kernel_base[];
 extern uint8_t _extra_sectors[];
 extern uint8_t _mbr_drive_number;
 extern uint8_t _pre_e820_bounce_buffer[];
-
-void*
-memcpy(void* _dest, const void* _src, size_t n)
-{
-    auto* d = (char*)_dest;
-    auto* s = (const char*)_src;
-    while (n--)
-        *d++ = *s++;
-    return _dest;
-}
 
 int
 mbr_entry()
