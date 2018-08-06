@@ -16,10 +16,7 @@ struct __PACKED__ disk_read_io
 };
 KASSERT(sizeof(disk_read_io) == 16);
 
-extern "C"
-{
-    int m32_disk_read(uint8_t drive, uint32_t first_sector, uint16_t nsectors,
-                      void* dst);
-}
+int m32_disk_read(uint8_t drive, uint32_t first_sector, uint16_t nsectors,
+                  void* dst);
 
 #endif /* __MODE32_DISK_H */
