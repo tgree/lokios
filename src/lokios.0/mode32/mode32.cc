@@ -39,6 +39,14 @@ m32_entry(uint32_t flags)
     console::printf("  Kernel sectors: %u\n",khdr->num_sectors);
     console::printf("Kernel pagetable: 0x%08X\n",khdr->page_table_addr);
 
+    auto* kftr =
+        (kernel::image_footer*)((char*)khdr + 512*(khdr->num_sectors-1));
+    if (kftr->sig != IMAGE_FOOTER_SIG)
+    {
+        console::printf("Kernel footer signature missing.\n");
+        return -2;
+    }
+
     e820_map* m = (e820_map*)(uint32_t)_e820_end;
     m->nentries = 0;
 
