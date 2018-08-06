@@ -6,9 +6,6 @@
 extern "C"
 {
     void m32_serial_putc(char c);
-    void m32_serial_puts(const char* c);
-    void m32_serial_putx(uint32_t v);
-    void m32_serial_putu(uint32_t v);
     void m32_serial_init();
 }
 
