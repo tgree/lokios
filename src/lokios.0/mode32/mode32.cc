@@ -5,13 +5,8 @@
 #include "pxe.h"
 #include "console.h"
 #include "massert.h"
+#include "kernel/image.h"
 #include "kernel/kernel_args.h"
-
-struct kernel_header
-{
-    uint32_t    num_sectors;
-    uint32_t    cr3;
-};
 
 extern uint8_t _kernel_base[];
 extern uint8_t _kernel_stack[];
@@ -19,8 +14,6 @@ extern uint8_t _kernel_bsp_entry[];
 extern uint8_t _kernel_ap_entry[];
 extern uint8_t _kernel_params[];
 extern uint8_t _e820_end[];
-
-constexpr kernel_header* kernel_base = (kernel_header*)(uint32_t)_kernel_base;
 
 extern "C" void _m32_long_jump(uint32_t cr3, uint64_t proc_addr,
                                uint64_t rsp) __NORETURN__;
@@ -42,8 +35,9 @@ m32_entry(uint32_t flags)
     if (err)
         return err;
 
-    console::printf("  Kernel sectors: %u\n",kernel_base->num_sectors);
-    console::printf("Kernel pagetable: 0x%08X\n",kernel_base->cr3);
+    auto* khdr = (kernel::image_header*)(uint32_t)_kernel_base;
+    console::printf("  Kernel sectors: %u\n",khdr->num_sectors);
+    console::printf("Kernel pagetable: 0x%08X\n",khdr->page_table_addr);
 
     e820_map* m = (e820_map*)(uint32_t)_e820_end;
     m->nentries = 0;
@@ -67,7 +61,7 @@ m32_entry(uint32_t flags)
     kargs->e820_base = (dma_addr64)_e820_end;
     kargs->vga_base  = 0x000B8000;
 
-    _m32_long_jump(kernel_base->cr3,
+    _m32_long_jump(khdr->page_table_addr,
                    0xFFFFFFFFC0000000ULL | (uint64_t)_kernel_bsp_entry,
                    0xFFFFFFFFC0000000ULL | (uint64_t)_kernel_stack
                    );
@@ -76,7 +70,8 @@ m32_entry(uint32_t flags)
 void
 m32_smp_entry()
 {
-    _m32_long_jump(kernel_base->cr3,
+    auto* khdr = (kernel::image_header*)(uint32_t)_kernel_base;
+    _m32_long_jump(khdr->page_table_addr,
                    0xFFFFFFFFC0000000ULL | (uint64_t)_kernel_ap_entry,
                    0xFFFFFFFFC0000000ULL | (uint64_t)_kernel_stack
                    );

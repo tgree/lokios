@@ -1,6 +1,7 @@
 #include "pxe.h"
 #include "console.h"
 #include "massert.h"
+#include "kernel/image.h"
 #include <string.h>
 
 extern far_pointer _saved_es_bx;
@@ -182,8 +183,9 @@ pxe_entry()
     // Figure out how many sectors we need.  We've already read the first
     // sector, but there will be an extra zero-length sector from the PXE
     // server at the end to terminate the transfer.
+    auto* khdr = (kernel::image_header*)(uint32_t)_kernel_base;
     uint16_t expected_packet_num = 2;
-    uint32_t nsectors = *(uint32_t*)(uint32_t)_kernel_base;
+    uint32_t nsectors = khdr->num_sectors;
     while (--nsectors)
     {
         if (bounce_packet(expected_packet_num++) != 512)

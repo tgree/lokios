@@ -1,6 +1,7 @@
 #include "mbr.h"
 #include "disk.h"
 #include "console.h"
+#include "kernel/image.h"
 #include <stddef.h>
 
 extern uint8_t _kernel_base[];
@@ -31,7 +32,8 @@ mbr_entry()
     if (err)
         return err;
 
-    uint32_t rem_sectors = buf[0];
+    auto* khdr           = (kernel::image_header*)buf;
+    uint32_t rem_sectors = khdr->num_sectors;
     uint32_t sector_num  = first_kernel_sector;
     auto* pos            = (char*)_kernel_base;
     while (rem_sectors)
