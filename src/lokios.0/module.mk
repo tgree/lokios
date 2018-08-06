@@ -15,7 +15,7 @@ $(MODULE_BUILD_DIR)/lokios.0.elf: $(LOKIOS_0_LIB:%=$(LIB_DIR)/%) $(MODULE_SRC_DI
 	@echo '_BUILD_TIME: .asciz "$(NOW)\\r\\n"' >> $(TIMESTAMP_S)
 	@$(AS) $(MODE16_ASFLAGS) -o $(TIMESTAMP_O) $(TIMESTAMP_S)
 	@echo 'Linking $@...'
-	@ld -melf_i386 -Map=$(LDM) -T $(LDLD) --whole-archive -o $@ \
+	@ld -melf_i386 -Map=$(LDM) -T $(LDLD) -u _smp_entry -o $@   \
 	    $(TIMESTAMP_O)                                          \
 	    -\(                                                     \
 	    $(LOKIOS_0_LIB:%=$(LIB_DIR)/%)                          \
