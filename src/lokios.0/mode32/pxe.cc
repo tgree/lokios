@@ -160,10 +160,10 @@ struct pxe_image_stream : public image_stream
     virtual int read(void* dst, uint16_t nsectors) override
     {
         // Read all the sectors from the TFTP stream.
-        auto* pos = (char*)dst;
-        uint16_t packet_num;
-        uint16_t packet_size;
         uint8_t buf[512];
+        auto* pos            = (char*)dst;
+        uint16_t packet_size = sizeof(buf);
+        uint16_t packet_num;
         while (nsectors--)
         {
             int err = tftp_read(buf,&packet_num,&packet_size);
@@ -173,13 +173,20 @@ struct pxe_image_stream : public image_stream
                 return -1;
             if (packet_size == 0)
                 return -2;
-            if (packet_size != 512)
+            if (packet_size != 512 && nsectors)
                 return -3;
+            if (packet_size > sizeof(buf))
+                return -4;
 
-            memcpy(pos,buf,sizeof(buf));
+            memcpy(pos,buf,packet_size);
             ++expected_packet_num;
-            pos += sizeof(buf);
+            pos += packet_size;
         }
+
+        // Zap the end of the last sector if it was short.  Since we're
+        // streaming a file there's no guarantee that it's a multiple of the
+        // sector size.
+        memset(pos,0xEE,sizeof(buf)-packet_size);
 
         return 0;
     }
