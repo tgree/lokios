@@ -135,19 +135,35 @@ pxe_generic_cmd(uint16_t opcode)
     return _call_pxe(opcode,&pb,pxe_entry_fp) ?: pb.status;
 }
 
-static uint16_t
-bounce_packet(uint16_t expected_packet_num)
+static int
+pxe_read_sectors(void* dst, uint16_t nsectors)
 {
-    char* kernel_base = (char*)(uint32_t)_kernel_base;
+    // Global state.
+    static uint16_t expected_packet_num = 1;
+
+    // Read all the sectors.
+    auto* pos = (char*)dst;
     uint16_t packet_num;
     uint16_t packet_size;
     uint8_t buf[512];
-    assert(!tftp_read(buf,&packet_num,&packet_size));
-    assert(packet_num == expected_packet_num);
-    assert(packet_size == 512 || packet_size == 0);
-    if (packet_size)
-        memcpy(kernel_base + 512*(expected_packet_num-1),buf,sizeof(buf));
-    return packet_size;
+    while (nsectors--)
+    {
+        int err = tftp_read(buf,&packet_num,&packet_size);
+        if (err)
+            return err;
+        if (packet_num != expected_packet_num)
+            return -1;
+        if (packet_size == 0)
+            return -2;
+        if (packet_size != 512)
+            return -3;
+
+        memcpy(pos,buf,sizeof(buf));
+        ++expected_packet_num;
+        pos += sizeof(buf);
+    }
+
+    return 0;
 }
 
 int
@@ -177,29 +193,30 @@ pxe_entry()
         return -2;
     }
 
+    // Read the first sector into kernel_base.
     // Handle the first sector.
-    assert(bounce_packet(1) == 512);
+    auto* khdr = (kernel::image_header*)(uint32_t)_kernel_base;
+    int err = pxe_read_sectors(khdr,1);
+    if (err)
+        return err;
 
     // Validate the image header.
-    auto* khdr = (kernel::image_header*)(uint32_t)_kernel_base;
     if (khdr->sig != IMAGE_HEADER_SIG)
     {
         console::printf("Invalid kernel header signature.\n");
         return -6;
     }
 
-    // Figure out how many sectors we need.  We've already read the first
-    // sector, but there will be an extra zero-length sector from the PXE
-    // server at the end to terminate the transfer.
-    uint16_t expected_packet_num = 2;
-    uint32_t nsectors = khdr->num_sectors;
-    while (--nsectors)
-    {
-        if (bounce_packet(expected_packet_num++) != 512)
-            return -3;
-    }
-    if (bounce_packet(expected_packet_num) != 0)
-            return -4;
+    // Read the remaining sectors.
+    err = pxe_read_sectors((char*)khdr + 512,khdr->num_sectors-1);
+    if (err)
+        return err;
+
+    // There should be a final 0-length packet.
+    uint8_t buf[512];
+    err = pxe_read_sectors(buf,1);
+    if (err != -2)
+        return -4;
 
     // Issue the PXE shutdown sequence.
     uint16_t shutdown_sequence[] = {
