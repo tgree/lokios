@@ -1,8 +1,10 @@
 SECTIONS
 {
     /* This value should match the _kernel_base value in lokios.0.ld. */
-    _phys_addr = 0x00200200;
-    _virt_addr = 0xFFFFFFFFC0000000 + _phys_addr;
+    _phys_elf_header = 0x00200000;
+    _virt_elf_header = 0xFFFFFFFFC0000000 + _phys_elf_header;
+    _phys_addr = _phys_elf_header + 0x200;
+    _virt_addr = _virt_elf_header + 0x200;
     . = _virt_addr;
     .image_header :
     {
