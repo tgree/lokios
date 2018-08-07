@@ -39,6 +39,9 @@ _mode_switch_real_and_write_dot_code16_after_this_line:
     mov     %bx, %ss
     mov     %bx, %ds
 
+    # Enable interrupts.
+    sti
+
     # Manually return via jmp.
     movl    0(%esp), %ebx
     add     $8, %esp
@@ -51,6 +54,9 @@ _mode_switch_real_and_write_dot_code16_after_this_line:
 _mode_switch_protected_and_write_dot_code32_after_this_line:
 .code16
     pushl   %ebx
+
+    # Disable interrupts.
+    cli
 
     # Enable protected mode.
     mov     %cr0, %ebx
@@ -91,8 +97,6 @@ _mode_switch_protected_and_write_dot_code32_after_this_line:
 .global _m32_long_jump
 _m32_long_jump:
 .code32
-    cli
-
     # Load an empty interrupt descriptor table.
     lidt    _idt_64_desc
 
@@ -243,7 +247,6 @@ e820_iter:
     mov     $0x534D4150, %edx
     lea     12(%edi), %edi
     int     $0x15
-    cli
 
     mov     8(%esp), %edi
     mov     %eax, 0(%edi)
@@ -298,7 +301,6 @@ _m32_disk_read:
     mov     12(%esp), %esi
     mov     $0x4200, %eax
     int     $0x13
-    cli
     jc      .L_disk_read_failed
     mov     $0, %eax
     jmp     .L_disk_read_out

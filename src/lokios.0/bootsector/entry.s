@@ -32,9 +32,6 @@
 # 0xFC00.
 .globl _start
 _start:
-    # Disable interrupts.
-    cli
-
     # Clear CS
     ljmp    $0, $.L_start_clear_cs
 .L_start_clear_cs:
