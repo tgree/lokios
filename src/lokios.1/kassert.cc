@@ -23,6 +23,7 @@ abort()
 {
     // Do a backtrace and re-print the ABORT message in case the backtrace
     // went off the screen.
+    kernel::vga_set_colors(0x4F00);
     printf("ABORT\n");
     kernel::backtrace();
     printf("ABORT\n");
@@ -36,6 +37,7 @@ kernel::panic(const char* s, const char* f, unsigned int l) noexcept
 {
     // Print the panic message, do a backtrace and re-print the panic message
     // in case it scrolled off the screen.
+    kernel::vga_set_colors(0x4F00);
     printf("PANIC:%s:%u: %s\n",f,l,s);
     kernel::backtrace();
     printf("PANIC:%s:%u: %s\n",f,l,s);
