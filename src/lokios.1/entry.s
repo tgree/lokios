@@ -35,7 +35,7 @@ _bsp_entry:
     call    _enable_sse
 
     # Initialize the bootstrap processor.
-    jmp     init_bsp
+    call    init_bsp
 
 
 # On entry:
@@ -46,7 +46,7 @@ _ap_entry:
     call    _enable_sse
 
     # Initialize the application processor.
-    jmp     init_ap
+    call    init_ap
 
 
 # Enable SSE.
