@@ -7,6 +7,7 @@
 #include "symtab.h"
 #include "console.h"
 #include <unwind.h>
+#include <cxxabi.h>
 #include <stdlib.h>
 
 using kernel::console::printf;
@@ -59,7 +60,27 @@ kernel::backtrace(const char* header)
             {
                 break;
             }
-            printf("  0x%016lX  %s+%zu\n",pc,si.name,si.offset);
+
+            // This is a hack to demangle without allocating memory.  If we
+            // don't pass in a buffer, __cxa_demangle will malloc one.  If we
+            // do pass in a buffer and it's too small, __cxa_demangle will
+            // either a realloc on it or a free/malloc.  In either case, we are
+            // screwed because on this path we don't want to rely on memory
+            // allocation anymore (stuff could be badly corrupt).
+            //
+            // Our crappy malloc can only malloc up to 4K before itself
+            // asserting (which could be a double-assert on this code path if
+            // we are dumping a backtrace from abort handling!), so we just do
+            // a 4K buffer on the stack and let free or realloc blow up if we
+            // really do have a symbol longer than 4K.
+            int status;
+            char buf[4096];
+            size_t n = sizeof(buf);
+            abi::__cxa_demangle(si.name,buf,&n,&status);
+            if (!status)
+                printf("  0x%016lX  %s+%zu/%zu\n",pc,buf,si.offset,si.size);
+            else
+                printf("  0x%016lX  %s+%zu/%zu\n",pc,si.name,si.offset,si.size);
         }
         catch (kernel::symbol_not_found_exception&)
         {
