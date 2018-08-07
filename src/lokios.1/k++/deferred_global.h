@@ -11,7 +11,11 @@ namespace kernel
     template<typename T, bool auto_destroy = false>
     struct deferred_global
     {
-        char    storage[sizeof(T)] __ALIGNED__(alignof(T));
+        union
+        {
+            char    storage[1];
+            T       obj;
+        };
         bool    inited;
 
         inline operator bool() {return inited;}
@@ -19,19 +23,19 @@ namespace kernel
         inline operator T*()
         {
             kassert(inited);
-            return (T*)storage;
+            return &obj;
         }
 
         inline T* operator->()
         {
             kassert(inited);
-            return (T*)storage;
+            return &obj;
         }
 
         inline T& operator*()
         {
             kassert(inited);
-            return *(T*)storage;
+            return obj;
         }
 
         template<typename ...Args>
@@ -39,14 +43,14 @@ namespace kernel
         {
             kassert(!inited);
             inited = true;
-            new(storage) T(loki::forward<Args>(args)...);
+            new(&obj) T(loki::forward<Args>(args)...);
         }
 
         inline void destroy()
         {
             kassert(inited);
             inited = false;
-            ((T*)storage)->~T();
+            obj.~T();
         }
 
         constexpr deferred_global():
