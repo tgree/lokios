@@ -8,8 +8,8 @@
 
 namespace kernel
 {
-    template<typename T, bool auto_destroy = false>
-    struct deferred_global
+    template<typename T, bool auto_destroy = true>
+    struct deferred_init
     {
         union
         {
@@ -53,18 +53,22 @@ namespace kernel
             obj.~T();
         }
 
-        constexpr deferred_global():
+        constexpr deferred_init():
             storage{},
             inited(false)
         {
         }
 
-        ~deferred_global()
+        ~deferred_init()
         {
             if (auto_destroy && inited)
                 destroy();
         }
     };
+
+    // Don't call the destructor; useful for actual globals.
+    template<typename T>
+    using deferred_global = deferred_init<T,false>;
 }
 
 #endif /* __KERNEL_DEFERRED_GLOBAL_H */
