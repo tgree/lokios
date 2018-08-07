@@ -12,6 +12,7 @@ namespace kernel
     void set_sbrk(dma_addr64);
     void set_sbrk_limit(dma_addr64 new_lim);
     void freeze_sbrk();
+    void init_sbrk(dma_addr64 pos);
 
     template<size_t Len>
     struct sbrk_allocator

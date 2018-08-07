@@ -2,10 +2,8 @@
 #include "kernel/spinlock.h"
 #include "kernel/kassert.h"
 
-extern char _sbrk[];
-
 static kernel::spinlock sbrklock;
-static dma_addr64 _brk = (dma_addr64)_sbrk;
+static dma_addr64 _brk = KERNEL_SBRK_END;
 static dma_addr64 _brklim = KERNEL_SBRK_END;
 static bool sbrk_frozen = false;
 
@@ -57,4 +55,11 @@ dma_addr64
 kernel::get_sbrk_limit()
 {
     return _brklim;
+}
+
+void
+kernel::init_sbrk(dma_addr64 pos)
+{
+    kassert(pos <= _brklim);
+    _brk = pos;
 }
