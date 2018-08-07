@@ -95,7 +95,7 @@ net::interface::refill_rx_pages()
 uint64_t
 net::interface::handle_rx_ipv4_frame(net::rx_page* p)
 {
-    auto* iph = (ipv4::header*)(p->payload + p->pay_offset);
+    auto* iph = p->payload_cast<ipv4::header*>();
     if (iph->dst_ip != ip_addr && iph->dst_ip != ipv4::broadcast_addr)
         return 0;
 
@@ -114,7 +114,7 @@ net::interface::handle_rx_ipv4_frame(net::rx_page* p)
 uint64_t
 net::interface::handle_rx_ipv4_udp_frame(net::rx_page* p)
 {
-    auto* iph = (ipv4::header*)(p->payload + p->pay_offset);
+    auto* iph = p->payload_cast<ipv4::header*>();
     auto* uh  = (udp::header*)(iph+1);
 
     udp_frame_handler* ufh;
