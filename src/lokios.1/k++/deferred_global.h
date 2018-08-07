@@ -8,7 +8,7 @@
 
 namespace kernel
 {
-    template<typename T>
+    template<typename T, bool auto_destroy = false>
     struct deferred_global
     {
         char    storage[sizeof(T)] __ALIGNED__(alignof(T));
@@ -53,6 +53,12 @@ namespace kernel
             storage{},
             inited(false)
         {
+        }
+
+        ~deferred_global()
+        {
+            if (auto_destroy && inited)
+                destroy();
         }
     };
 }
