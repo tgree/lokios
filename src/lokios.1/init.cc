@@ -6,6 +6,7 @@
 #include "cmos.h"
 #include "pmtimer.h"
 #include "schedule.h"
+#include "symtab.h"
 #include "platform/platform.h"
 #include "mm/mm.h"
 #include "mm/sbrk.h"
@@ -73,6 +74,9 @@ init_bsp()
     // Initialize the console as early as we can.
     kernel::init_vga_console(kargs->vga_base);
     kernel::init_serial_console(0x3F8,kernel::N81_115200);
+
+    // Initialize symbol table information.
+    kernel::init_symtab();
 
     // Initialize the memory map.
     kernel::preinit_mm(e820_base);
