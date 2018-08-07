@@ -12,11 +12,6 @@ namespace net
 
 namespace tcp
 {
-    struct headers
-    {
-        ipv4::header    ip;
-        tcp::header     tcp;
-    } __PACKED__;
 
     typedef kernel::delegate<int(const tcp::header* syn)> connection_filter;
     struct listener
