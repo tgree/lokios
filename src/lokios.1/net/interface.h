@@ -12,11 +12,6 @@ namespace net
     // Method delegate for inbound frames.  Returns a NRX_FLAG_ value.
     typedef kernel::delegate<uint64_t(interface*,rx_page*)> udp_frame_handler;
 
-    // Data structure that gets mapped at the interface's reserved vaddr.
-    struct interface_mem
-    {
-    };
-
     struct interface
     {
         // The netX id number.
@@ -26,9 +21,6 @@ namespace net
         const size_t        tx_qlen;
         const size_t        rx_qlen;
         size_t              rx_posted_count;
-
-        // Interface memory.
-        interface_mem*      intf_mem;
 
         // IP address assigned by software.
         ipv4::addr          ip_addr;
