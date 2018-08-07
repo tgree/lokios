@@ -1,6 +1,6 @@
 #include "vga.h"
 #include "mm/mm.h"
-#include <new>
+#include "k++/deferred_init.h"
 
 #define CONSOLE_HEIGHT  25
 #define CONSOLE_WIDTH   79
@@ -8,15 +8,14 @@
 #define SCREEN_HEIGHT   25
 #define SCREEN_WIDTH    80
 
-static kernel::vga_console* vga;
-static uint64_t _vga[(sizeof(*vga) + sizeof(uint64_t) - 1)/sizeof(uint64_t)];
+static kernel::deferred_global<kernel::vga_console> vga;
 static uint16_t* vga_base;
 
 void
 kernel::init_vga_console(dma_addr64 _vga_base)
 {
     vga_base = (uint16_t*)phys_to_virt(_vga_base);
-    vga = new(_vga) vga_console(vga_base);
+    vga.init(vga_base);
     kernel::console::register_console(vga);
 }
 
