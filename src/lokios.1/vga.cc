@@ -10,6 +10,7 @@
 
 static kernel::deferred_global<kernel::vga_console> vga;
 static uint16_t* vga_base;
+static uint16_t vga_colors = 0x1F00;
 
 void
 kernel::init_vga_console(dma_addr64 _vga_base)
@@ -49,6 +50,20 @@ kernel::vga_set_flags(uint16_t _cflags) noexcept
     }
 }
 
+void
+kernel::vga_set_colors(uint16_t cflags)
+{
+    vga_colors = cflags;
+    uint16_t* addr = &vga_base[(SCREEN_HEIGHT-1)*SCREEN_WIDTH];
+    for (size_t x=0; x<CONSOLE_WIDTH; ++x)
+    {
+        uint16_t val = *addr;
+        val         &= 0x00FF;
+        val         |= cflags;
+        *addr++      = val;
+    }
+}
+
 kernel::vga_console::vga_console(uint16_t* base):
     base(base),
     x(0),
@@ -72,7 +87,7 @@ kernel::vga_console::scroll()
 
     uint16_t* dst = &base[(CONSOLE_HEIGHT-1)*SCREEN_WIDTH];
     for (size_t x=0; x<CONSOLE_WIDTH; ++x)
-        *dst++ = 0x1F00 | ' ';
+        *dst++ = vga_colors | ' ';
 }
 
 void
@@ -93,7 +108,7 @@ kernel::vga_console::_putc(char c)
         putnewline();
     else
     {
-        base[y*SCREEN_WIDTH + x] = 0x1F00 | (uint16_t)c;
+        base[y*SCREEN_WIDTH + x] = vga_colors | (uint16_t)c;
         if (++x == CONSOLE_WIDTH)
             putnewline();
     }
