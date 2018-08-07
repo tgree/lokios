@@ -7,31 +7,26 @@
 #include "kernel/spinlock.h"
 #include "k++/random.h"
 
-struct tcp_tx_op : public net::tx_op
-{
-    tcp::ll_ipv4_tcp_headers hdrs;
-};
-
 static kernel::spinlock op_lock;
-static kernel::slab     op_slab(sizeof(tcp_tx_op));
+static kernel::slab     op_slab(sizeof(tcp::tx_op));
 
 static void
 tcp_reply_cb(net::tx_op* op)
 {
-    auto* top = static_cast<tcp_tx_op*>(op);
+    auto* top = static_cast<tcp::tx_op*>(op);
     with (op_lock)
     {
         op_slab.free(top);
     }
 }
 
-static tcp_tx_op*
+static tcp::tx_op*
 tcp_alloc_reply(net::interface* intf, net::rx_page* p)
 {
-    tcp_tx_op* r;
+    tcp::tx_op* r;
     with (op_lock)
     {
-        r = op_slab.alloc<tcp_tx_op>();
+        r = op_slab.alloc<tcp::tx_op>();
     }
 
     auto* sh                    = p->payload_cast<tcp::ipv4_tcp_headers*>();
