@@ -84,6 +84,7 @@ elf64::image::get_sym_info(const void* addr)
 
     return kernel::sym_info{closest->st_value,
                             (uintptr_t)addr - closest->st_value,
+                            closest->st_size,
                             symstrtab->get_string(closest->st_name),
                             NULL,
                             0,

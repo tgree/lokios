@@ -11,6 +11,7 @@ namespace kernel
     {
         uintptr_t   addr;
         size_t      offset;
+        size_t      size;
         const char* name;
         const char* file;
         size_t      line;
