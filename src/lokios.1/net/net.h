@@ -43,7 +43,9 @@ namespace net
         kernel::klink   link;
         uint16_t        pay_offset;
         uint16_t        pay_len;
-        uint8_t         payload[4084];
+        uint16_t        client_offset;
+        uint16_t        client_len;
+        uint8_t         payload[4080];
 
         // Get a pointer to the payload in a stripped page.
         template<typename T>
