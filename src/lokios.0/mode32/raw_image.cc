@@ -5,7 +5,8 @@
 extern uint8_t _kernel_base[];
 
 int
-process_raw_image(image_stream* is, kernel::image_header* sector0)
+process_raw_image(image_stream* is, kernel::image_header* sector0,
+    uintptr_t* image_end)
 {
     console::printf("Processing raw kernel image.\n");
 
@@ -20,6 +21,9 @@ process_raw_image(image_stream* is, kernel::image_header* sector0)
         console::printf("Error %d reading remaining sectors.\n",err);
         return err;
     }
+
+    // Set the image end.
+    *image_end = (uintptr_t)khdr + khdr->num_sectors*512;
 
     return 0;
 }

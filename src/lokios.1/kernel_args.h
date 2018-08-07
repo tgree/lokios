@@ -9,6 +9,7 @@ namespace kernel
     {
         dma_addr64      e820_base;
         dma_addr64      vga_base;
+        dma_addr64      kernel_end;
     };
 }
 

@@ -5,6 +5,6 @@
 
 #define ELF_HEADER_SIG 0x464C457F
 
-int process_elf_image(image_stream* is, void* sector0);
+int process_elf_image(image_stream* is, void* sector0, uintptr_t* image_end);
 
 #endif /* __MODE32_ELF_IMAGE_H */

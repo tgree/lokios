@@ -13,7 +13,7 @@ extern uint8_t _kernel_base[];
 extern uint8_t _kernel_bsp_entry[];
 
 int
-process_elf_image(image_stream* is, void* sector0)
+process_elf_image(image_stream* is, void* sector0, uintptr_t* image_end)
 {
     console::printf("Processing elf kernel image.\n");
 
@@ -119,6 +119,10 @@ process_elf_image(image_stream* is, void* sector0)
                         err,nsectors,pos);
         return -9;
     }
+    pos = limit;
+
+    // Set the image end.
+    *image_end = (uintptr_t)ehdr + pos;
 
     // Looks like success.
     return 0;

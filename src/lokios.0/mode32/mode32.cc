@@ -61,9 +61,10 @@ m32_entry(uint32_t flags)
     }
 
     // Find someone to handle this.
+    uintptr_t image_end;
     if (((kernel::image_header*)buf)->sig == IMAGE_HEADER_SIG)
     {
-        err = process_raw_image(is,(kernel::image_header*)buf);
+        err = process_raw_image(is,(kernel::image_header*)buf,&image_end);
         if (err)
         {
             console::printf("Error %d handling raw image.\n",err);
@@ -72,7 +73,7 @@ m32_entry(uint32_t flags)
     }
     else if (*(uint32_t*)buf == ELF_HEADER_SIG)
     {
-        err = process_elf_image(is,buf);
+        err = process_elf_image(is,buf,&image_end);
         if (err)
         {
             console::printf("Error %d handling elf image.\n",err);
@@ -131,9 +132,10 @@ m32_entry(uint32_t flags)
     }
 
     // Initialize the kernel args.
-    auto* kargs      = (kernel::kernel_args*)_kernel_params;
-    kargs->e820_base = (dma_addr64)_e820_end;
-    kargs->vga_base  = 0x000B8000;
+    auto* kargs       = (kernel::kernel_args*)_kernel_params;
+    kargs->e820_base  = (dma_addr64)_e820_end;
+    kargs->vga_base   = 0x000B8000;
+    kargs->kernel_end = image_end;
 
     // Jump!
     _m32_long_jump(khdr->page_table_addr,
