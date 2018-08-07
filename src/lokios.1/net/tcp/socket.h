@@ -43,6 +43,29 @@ namespace tcp
         // Passive open.
         socket(net::interface* intf, uint16_t port);
     };
+
+    struct socket_id
+    {
+        ipv4::addr  remote_ip;
+        uint16_t    remote_port;
+        uint16_t    local_port;
+    };
+    constexpr bool operator==(const socket_id& lhs, const socket_id& rhs)
+    {
+        return lhs.remote_ip   == rhs.remote_ip &&
+               lhs.remote_port == rhs.remote_port &&
+               lhs.local_port  == rhs.local_port;
+    }
+}
+
+#include "k++/hash.h"
+namespace hash
+{
+    template<>
+    inline size_t compute(const tcp::socket_id& k)
+    {
+        return hash::compute(k.remote_ip) + k.remote_port + k.local_port;
+    }
 }
 
 #endif /* __KERNEL_NET_TCP_SOCKET_H */
