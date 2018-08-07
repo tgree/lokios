@@ -16,6 +16,9 @@ kernel::init_vga_console(dma_addr64 _vga_base)
 {
     vga_base = (uint16_t*)phys_to_virt(_vga_base);
     vga.init(vga_base);
+    for (size_t x=CONSOLE_WIDTH; x<SCREEN_WIDTH; ++x)
+        for (size_t y=0; y<SCREEN_HEIGHT; ++y)
+            vga_base[y*SCREEN_WIDTH + x] = 0x0F00 | ' ';
     kernel::console::register_console(vga);
 }
 
@@ -51,9 +54,9 @@ kernel::vga_console::vga_console(uint16_t* base):
     x(0),
     y(0)
 {
-    uint64_t* addr = (uint64_t*)base;
-    for (unsigned int i=0; i<500; ++i)
-        *addr++ = 0x1F201F201F201F20;
+    for (size_t x=0; x<CONSOLE_WIDTH; ++x)
+        for (size_t y=0; y<CONSOLE_HEIGHT; ++y)
+            base[y*SCREEN_WIDTH + x] = 0x1F00 | ' ';
 }
 
 void

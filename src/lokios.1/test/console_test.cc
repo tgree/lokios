@@ -10,7 +10,7 @@ class tmock_test
     TMOCK_TEST(test_screen_initialized)
     {
         for (uint16_t v : conbuf)
-            tmock::assert_equiv(v,0x1F20U);
+            tmock::assert_equiv(v & 0xEFFF,0x0F20U);
     }
 
     TMOCK_TEST(test_putc)
