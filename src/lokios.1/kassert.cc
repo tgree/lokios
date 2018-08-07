@@ -8,7 +8,7 @@
 void
 kernel::halt() noexcept
 {
-    vga_write(74,24,"Halted");
+    vga_write(73,24,"Halted");
     serial_write("Halted\n");
     for (;;)
         asm ("hlt;");
