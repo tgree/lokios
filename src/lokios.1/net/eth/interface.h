@@ -63,6 +63,9 @@ namespace eth
                 void    handle_rx_pages(kernel::klist<net::rx_page>& pages);
                 void    handle_rx_arp_frame(net::rx_page* p);
 
+        // Helpers.
+        virtual void    dump_arp_table();
+
         interface(const eth::addr& hw_mac, size_t tx_qlen, size_t rx_qlen);
         virtual ~interface();
     };

@@ -59,3 +59,9 @@ eth::interface::handle_rx_arp_frame(net::rx_page* p)
 {
     mock("eth::interface::handle_rx_arp_frame",p);
 }
+
+void
+eth::interface::dump_arp_table()
+{
+    mock("eth::interface::dump_arp_table");
+}

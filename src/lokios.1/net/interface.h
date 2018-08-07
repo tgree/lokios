@@ -111,6 +111,9 @@ namespace net
                 uint64_t    handle_rx_ipv4_frame(net::rx_page* p);
                 uint64_t    handle_rx_ipv4_udp_frame(net::rx_page* p);
 
+        // Helpers.
+        virtual void    dump_arp_table() = 0;
+
         // Constructor.
         interface(size_t tx_qlen, size_t rx_qlen);
         virtual ~interface();
