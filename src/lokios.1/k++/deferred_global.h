@@ -3,33 +3,35 @@
 
 #include "hdr/compiler.h"
 #include "hdr/types.h"
+#include "kernel/kassert.h"
+#include <new>
 
 namespace kernel
 {
     template<typename T>
     struct deferred_global
     {
-        bool    inited;
         char    storage[sizeof(T)] __ALIGNED__(alignof(T));
+        bool    inited;
 
         inline operator bool() {return inited;}
 
-        inline T* operator&()
+        inline operator T*()
         {
             kassert(inited);
             return (T*)storage;
-        }
-
-        inline operator T&()
-        {
-            kassert(inited);
-            return *(T*)storage;
         }
 
         inline T* operator->()
         {
             kassert(inited);
             return (T*)storage;
+        }
+
+        inline T& operator*()
+        {
+            kassert(inited);
+            return *(T*)storage;
         }
 
         template<typename ...Args>
@@ -48,8 +50,8 @@ namespace kernel
         }
 
         constexpr deferred_global():
-            inited(false),
-            storage{}
+            storage{},
+            inited(false)
         {
         }
     };
