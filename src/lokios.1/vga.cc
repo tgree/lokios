@@ -72,7 +72,7 @@ kernel::vga_console::scroll()
 
     uint16_t* dst = &base[(CONSOLE_HEIGHT-1)*SCREEN_WIDTH];
     for (size_t x=0; x<CONSOLE_WIDTH; ++x)
-        *dst++ = 0x1F20;
+        *dst++ = 0x1F00 | ' ';
 }
 
 void
