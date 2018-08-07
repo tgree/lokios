@@ -72,6 +72,12 @@ net::interface::tcp_listen(uint16_t port, tcp::connection_filter f)
 }
 
 void
+net::interface::tcp_ignore(uint16_t port)
+{
+    tcp_listeners.erase(port);
+}
+
+void
 net::interface::activate()
 {
     // Post receive buffers.

@@ -83,6 +83,7 @@ namespace net
 
         // TCP.
                 void    tcp_listen(uint16_t port, tcp::connection_filter f);
+                void    tcp_ignore(uint16_t port);
 
         // Activate the interface.
         virtual void    activate();
