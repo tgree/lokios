@@ -7,22 +7,9 @@
 #include "kernel/spinlock.h"
 #include "k++/random.h"
 
-struct ipv4_tcp_headers
-{
-    ipv4::header    ip;
-    tcp::header     tcp;
-} __PACKED__;
-
-struct ll_ipv4_tcp_headers
-{
-    uint8_t         ll[64];
-    ipv4::header    ip;
-    tcp::header     tcp;
-} __PACKED__;
-
 struct tcp_tx_op : public net::tx_op
 {
-    ll_ipv4_tcp_headers hdrs;
+    tcp::ll_ipv4_tcp_headers hdrs;
 };
 
 static kernel::spinlock op_lock;
@@ -47,7 +34,7 @@ tcp_alloc_reply(net::interface* intf, net::rx_page* p)
         r = op_slab.alloc<tcp_tx_op>();
     }
 
-    auto* sh                    = p->payload_cast<ipv4_tcp_headers*>();
+    auto* sh                    = p->payload_cast<tcp::ipv4_tcp_headers*>();
     r->hdrs.ip.version_ihl      = 0x45;
     r->hdrs.ip.dscp_ecn         = 0;
     r->hdrs.ip.total_len        = sizeof(ipv4::header) + sizeof(tcp::header);
