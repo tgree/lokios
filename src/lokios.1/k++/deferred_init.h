@@ -1,5 +1,5 @@
-#ifndef __KERNEL_DEFERRED_GLOBAL_H
-#define __KERNEL_DEFERRED_GLOBAL_H
+#ifndef __KERNEL_DEFERRED_INIT_H
+#define __KERNEL_DEFERRED_INIT_H
 
 #include "hdr/compiler.h"
 #include "hdr/types.h"
@@ -71,4 +71,4 @@ namespace kernel
     using deferred_global = deferred_init<T,false>;
 }
 
-#endif /* __KERNEL_DEFERRED_GLOBAL_H */
+#endif /* __KERNEL_DEFERRED_INIT_H */

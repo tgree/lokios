@@ -1,7 +1,7 @@
 #include "buddy_allocator.h"
 #include "sbrk.h"
 #include "../spinlock.h"
-#include "k++/deferred_global.h"
+#include "k++/deferred_init.h"
 
 static kernel::spinlock                                 buddy_pages_lock;
 static kernel::deferred_global<kernel::buddy_allocator> buddy_pages;
