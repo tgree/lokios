@@ -134,8 +134,8 @@ eth::interface::handle_rx_pages(kernel::klist<net::rx_page>& pages)
 {
     while (!pages.empty())
     {
-        auto* p  = klist_front(pages,link);
-        p->flags = 0;
+        auto* p        = klist_front(pages,link);
+        uint64_t flags = 0;
         pages.pop_front();
         --rx_posted_count;
 
@@ -147,11 +147,11 @@ eth::interface::handle_rx_pages(kernel::klist<net::rx_page>& pages)
             p->pay_len    -= sizeof(eth::header);
             switch (h->ether_type)
             {
-                case 0x0800:    handle_rx_ipv4_frame(p);    break;
-                case 0x0806:    handle_rx_arp_frame(p);     break;
+                case 0x0806:         handle_rx_arp_frame(p);    break;
+                case 0x0800: flags = handle_rx_ipv4_frame(p);   break;
             }
         }
-        if (!(p->flags & NRX_FLAG_NO_DELETE))
+        if (!(flags & NRX_FLAG_NO_DELETE))
             delete p;
     }
     refill_rx_pages();

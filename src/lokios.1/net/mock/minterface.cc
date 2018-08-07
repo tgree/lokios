@@ -67,15 +67,15 @@ net::interface::refill_rx_pages()
     mock("net::interface::refill_rx_pages");
 }
 
-void
+uint64_t
 net::interface::handle_rx_ipv4_frame(net::rx_page* p)
 {
-    mock("net::interface::handle_rx_ipv4_frame",p);
+    return (uint64_t)mock("net::interface::handle_rx_ipv4_frame",p);
 }
 
-void
+uint64_t
 net::interface::handle_rx_ipv4_udp_frame(net::rx_page* p)
 {
-    mock("net::interface::handle_rx_ipv4_udp_frame",p);
+    return (uint64_t)mock("net::interface::handle_rx_ipv4_udp_frame",p);
 }
 

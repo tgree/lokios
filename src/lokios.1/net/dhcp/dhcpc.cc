@@ -415,7 +415,7 @@ dhcp::client::handle_rx_expiry(kernel::timer_entry*)
     }
 }
 
-void
+uint64_t
 dhcp::client::handle_rx_dhcp(net::interface*, net::rx_page* p) try
 {
     // Unstrip the eth::header.  This dhcp client only support Ethernet for
@@ -425,11 +425,11 @@ dhcp::client::handle_rx_dhcp(net::interface*, net::rx_page* p) try
 
     auto* resp = (dhcp::eth_message*)(p->payload + p->pay_offset);
     if (resp->uhdr.src_port != 67)
-        return;
+        return 0;
     if (*(eth::addr*)resp->msg.chaddr != intf->hw_mac)
-        return;
+        return 0;
     if (resp->msg.xid != xid)
-        return;
+        return 0;
 
     switch (resp->msg.get_option<message_type_option>())
     {
@@ -444,10 +444,13 @@ dhcp::client::handle_rx_dhcp(net::interface*, net::rx_page* p) try
         case dhcp::DHCP_INFORM:
         break;
     }
+
+    return 0;
 }
 catch (dhcp::option_exception& e)
 {
     printf("DHCP rx error with option %u (%s): %s\n",e.tag,e.type,e.c_str());
+    return 0;
 }
 
 void

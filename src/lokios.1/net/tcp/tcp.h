@@ -10,7 +10,8 @@ namespace net
 
 namespace tcp
 {
-    void handle_rx_ipv4_tcp_frame(net::interface* intf, net::rx_page* p);
+    // Packet handling.
+    uint64_t handle_rx_ipv4_tcp_frame(net::interface* intf, net::rx_page* p);
 }
 
 #endif /* __KERNEL_NET_TCP_TCP_H */

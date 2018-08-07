@@ -112,26 +112,26 @@ net::interface::refill_rx_pages()
     post_rx_pages(pages);
 }
 
-void
+uint64_t
 net::interface::handle_rx_ipv4_frame(net::rx_page* p)
 {
     auto* iph = (ipv4::header*)(p->payload + p->pay_offset);
     if (iph->dst_ip != ip_addr && iph->dst_ip != ipv4::broadcast_addr)
-        return;
+        return 0;
 
     switch (iph->proto)
     {
         case tcp::net_traits::ip_proto:
-            tcp::handle_rx_ipv4_tcp_frame(this,p);
-        break;
+            return tcp::handle_rx_ipv4_tcp_frame(this,p);
 
         case udp::net_traits::ip_proto:
-            handle_rx_ipv4_udp_frame(p);
-        break;
+            return handle_rx_ipv4_udp_frame(p);
     }
+
+    return 0;
 }
 
-void
+uint64_t
 net::interface::handle_rx_ipv4_udp_frame(net::rx_page* p)
 {
     auto* iph = (ipv4::header*)(p->payload + p->pay_offset);
@@ -144,9 +144,10 @@ net::interface::handle_rx_ipv4_udp_frame(net::rx_page* p)
     }
     catch (hash::no_such_key_exception&)
     {
-        return;
+        return 0;
     }
 
     (*ufh)(this,p);
+    return 0;
 }
 

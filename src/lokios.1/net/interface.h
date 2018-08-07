@@ -9,8 +9,8 @@ namespace net
 {
     struct interface;
 
-    // Method delegate for inbound frames.
-    typedef kernel::delegate<void(interface*,rx_page*)> udp_frame_handler;
+    // Method delegate for inbound frames.  Returns a NRX_FLAG_ value.
+    typedef kernel::delegate<uint64_t(interface*,rx_page*)> udp_frame_handler;
 
     // Data structure that gets mapped at the interface's reserved vaddr.
     struct interface_mem
@@ -102,10 +102,14 @@ namespace net
         // efficiently.
         virtual void    post_rx_pages(kernel::klist<net::rx_page>& pages) = 0;
 
-        // Handlers.
-        inline  void    handle_tx_completion(net::tx_op* op) {op->cb(op);}
-                void    handle_rx_ipv4_frame(net::rx_page* p);
-                void    handle_rx_ipv4_udp_frame(net::rx_page* p);
+        // Handlers.  The return value is a set of flags indicating what should
+        // be done with the page after returning.  The normal behavior is to
+        // auto-delete the page, but if it is to go onto a client queue or to
+        // be deleted by someone else then the NRX_FLAG_NO_DELETE flag should
+        // be set in the return code.
+        inline  void        handle_tx_completion(net::tx_op* op) {op->cb(op);}
+                uint64_t    handle_rx_ipv4_frame(net::rx_page* p);
+                uint64_t    handle_rx_ipv4_udp_frame(net::rx_page* p);
 
         // Constructor.
         interface(size_t tx_qlen, size_t rx_qlen);

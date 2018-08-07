@@ -97,13 +97,13 @@ post_rst_ack(net::interface* intf, net::rx_page* p, uint32_t ack_num)
     intf->post_tx_frame(r);
 }
 
-void
+uint64_t
 tcp::handle_rx_ipv4_tcp_frame(net::interface* intf, net::rx_page* p)
 {
     // CLOSED state handling since we don't have any kind of a stack yet.
     auto* h = p->payload_cast<ipv4_tcp_headers*>();
     if (h->tcp.rst)
-        return;
+        return 0;
     if (h->tcp.ack)
         post_rst(intf,p,h->tcp.ack_num);
     else
@@ -111,4 +111,6 @@ tcp::handle_rx_ipv4_tcp_frame(net::interface* intf, net::rx_page* p)
         size_t seg_len = h->ip.total_len - sizeof(h->ip) - 4*h->tcp.offset;
         post_rst_ack(intf,p,h->tcp.seq_num + seg_len);
     }
+
+    return 0;
 }

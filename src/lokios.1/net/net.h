@@ -42,8 +42,7 @@ namespace net
     {
         kernel::klink   link;
         uint16_t        pay_offset;
-        uint16_t        flags   : 4,
-                        pay_len : 12;
+        uint16_t        pay_len;
         uint8_t         payload[4084];
 
         // Get a pointer to the payload in a stripped page.
