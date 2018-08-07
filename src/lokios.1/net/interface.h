@@ -82,8 +82,12 @@ namespace net
                 void    udp_ignore(uint16_t port);
 
         // TCP.
-                void    tcp_listen(uint16_t port, tcp::connection_filter f);
+                void    tcp_listen(uint16_t port,
+                                   tcp::socket_accepted_delegate ad,
+                                   tcp::should_accept_delegate sad =
+                                    kernel::func_delegate(tcp_always_accept));
                 void    tcp_ignore(uint16_t port);
+        static  bool    tcp_always_accept(const tcp::header*) {return true;}
 
         // Activate the interface.
         virtual void    activate();

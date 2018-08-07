@@ -66,9 +66,11 @@ net::interface::udp_ignore(uint16_t port)
 }
 
 void
-net::interface::tcp_listen(uint16_t port, tcp::connection_filter f)
+net::interface::tcp_listen(uint16_t port,
+    tcp::socket_accepted_delegate ad,
+    tcp::should_accept_delegate sad)
 {
-    tcp_listeners.emplace(port,tcp::listener{this,port,f});
+    tcp_listeners.emplace(port,tcp::listener{sad,ad});
 }
 
 void
