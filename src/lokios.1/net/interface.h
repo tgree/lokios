@@ -30,6 +30,7 @@ namespace net
 
         // TCP.
         hash::table<uint16_t,tcp::listener>     tcp_listeners;
+        hash::table<tcp::socket_id,tcp::socket> tcp_sockets;
 
         // Emit log messages.
                 void                 intf_vdbg(const char* fmt, va_list ap);
