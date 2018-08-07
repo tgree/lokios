@@ -33,6 +33,7 @@ namespace tcp
         be_uint16_t window_size;
         be_uint16_t checksum;
         be_uint16_t urgent_pointer;
+        uint8_t options[0];
     } __PACKED__;
     KASSERT(sizeof(header) == 20);
 
