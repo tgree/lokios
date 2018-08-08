@@ -1,6 +1,7 @@
 #ifndef __KERNEL_NET_INTERFACE_H
 #define __KERNEL_NET_INTERFACE_H
 
+#include "cmd_sock.h"
 #include "tcp/socket.h"
 #include "k++/hash_table.h"
 #include <stdarg.h>
@@ -31,6 +32,9 @@ namespace net
         // TCP.
         hash::table<uint16_t,tcp::listener>     tcp_listeners;
         hash::table<tcp::socket_id,tcp::socket> tcp_sockets;
+
+        // Default test sockets.
+        cmd_sock_listener   cmd_listener;
 
         // Emit log messages.
                 void                 intf_vdbg(const char* fmt, va_list ap);

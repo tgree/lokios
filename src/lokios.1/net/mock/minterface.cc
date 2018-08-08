@@ -24,7 +24,8 @@ net::interface::interface(size_t tx_qlen, size_t rx_qlen):
     tx_qlen(tx_qlen),
     rx_qlen(rx_qlen),
     rx_posted_count(0),
-    ip_addr{0,0,0,0}
+    ip_addr{0,0,0,0},
+    cmd_listener(this)
 {
 }
 
