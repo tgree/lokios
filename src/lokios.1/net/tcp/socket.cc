@@ -31,3 +31,9 @@ tcp::socket::socket(net::interface* intf, uint16_t port):
     hdrs.tcp.checksum        = 0;
     hdrs.tcp.urgent_pointer  = 0;
 }
+
+uint64_t
+tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
+{
+    return 0;
+}

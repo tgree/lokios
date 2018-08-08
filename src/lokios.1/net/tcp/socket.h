@@ -40,6 +40,9 @@ namespace tcp
         tcp_state                       state;
         tcp_state                       prev_state;
 
+        // Handlers.
+        uint64_t    handle_rx_ipv4_tcp_frame(net::rx_page* p);
+
         // Passive open.
         socket(net::interface* intf, uint16_t port);
     };
