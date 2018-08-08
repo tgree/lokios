@@ -79,6 +79,18 @@ tcp::post_rst_ack(net::interface* intf, net::rx_page* p, uint32_t ack_num)
     intf->post_tx_frame(r);
 }
 
+void
+tcp::post_ack(net::interface* intf, net::rx_page* p, uint32_t seq_num,
+    uint32_t ack_num, uint16_t window_size)
+{
+    auto* r                 = tcp::alloc_reply(intf,p);
+    r->hdrs.tcp.seq_num     = seq_num;
+    r->hdrs.tcp.ack_num     = ack_num;
+    r->hdrs.tcp.ack         = 1;
+    r->hdrs.tcp.window_size = window_size;
+    intf->post_tx_frame(r);
+}
+
 uint64_t
 tcp::handle_rx_ipv4_tcp_frame(net::interface* intf, net::rx_page* p)
 {
