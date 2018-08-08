@@ -19,6 +19,11 @@ namespace tcp
         uint8_t             options[MAX_TX_OPTIONS_SIZE];
     };
 
+    // Reply handling.
+    tcp::tx_op* alloc_reply(net::interface* intf, net::rx_page* p);
+    void post_rst(net::interface* intf, net::rx_page* p, uint32_t seq_num);
+    void post_rst_ack(net::interface* intf, net::rx_page* p, uint32_t ack_num);
+
     // Packet handling.
     uint64_t handle_rx_ipv4_tcp_frame(net::interface* intf, net::rx_page* p);
 }

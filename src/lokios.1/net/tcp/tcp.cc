@@ -20,8 +20,8 @@ tcp_reply_cb(net::tx_op* op)
     }
 }
 
-static tcp::tx_op*
-tcp_alloc_reply(net::interface* intf, net::rx_page* p)
+tcp::tx_op*
+tcp::alloc_reply(net::interface* intf, net::rx_page* p)
 {
     tcp::tx_op* r;
     with (op_lock)
@@ -59,19 +59,19 @@ tcp_alloc_reply(net::interface* intf, net::rx_page* p)
     return r;
 }
 
-static void
-post_rst(net::interface* intf, net::rx_page* p, uint32_t seq_num)
+void
+tcp::post_rst(net::interface* intf, net::rx_page* p, uint32_t seq_num)
 {
-    auto* r             = tcp_alloc_reply(intf,p);
+    auto* r             = tcp::alloc_reply(intf,p);
     r->hdrs.tcp.seq_num = seq_num;
     r->hdrs.tcp.rst     = 1;
     intf->post_tx_frame(r);
 }
 
-static void
-post_rst_ack(net::interface* intf, net::rx_page* p, uint32_t ack_num)
+void
+tcp::post_rst_ack(net::interface* intf, net::rx_page* p, uint32_t ack_num)
 {
-    auto* r             = tcp_alloc_reply(intf,p);
+    auto* r             = tcp::alloc_reply(intf,p);
     r->hdrs.tcp.seq_num = 0;
     r->hdrs.tcp.ack_num = ack_num;
     r->hdrs.tcp.ack     = 1;
