@@ -94,8 +94,47 @@ tcp::post_ack(net::interface* intf, net::rx_page* p, uint32_t seq_num,
 uint64_t
 tcp::handle_rx_ipv4_tcp_frame(net::interface* intf, net::rx_page* p)
 {
-    // CLOSED state handling since we don't have any kind of a stack yet.
+    // Sanity on the packet.
+    if (p->pay_len < sizeof(ipv4_tcp_headers))
+        return 0;
+
+    // We only handle unicast TCP packets.
     auto* h = p->payload_cast<ipv4_tcp_headers*>();
+    if (h->ip.dst_ip != intf->ip_addr)
+        return 0;
+
+    // Look for an existing tcp::socket first.
+    uint16_t dst_port = h->tcp.dst_port;
+    auto sid          = socket_id{h->ip.src_ip,h->tcp.src_port,dst_port};
+    try
+    {
+        return intf->tcp_sockets[sid].handle_rx_ipv4_tcp_frame(p);
+    }
+    catch (hash::no_such_key_exception&)
+    {
+    }
+
+    // No socket; look for a tcp::listener.
+    try
+    {
+        auto& l = intf->tcp_listeners[dst_port];
+        if (l.should_accept(&h->tcp))
+        {
+            auto& s        = intf->tcp_sockets.emplace(sid,intf,dst_port);
+            uint64_t flags = s.handle_rx_ipv4_tcp_frame(p);
+            if (s.state != tcp::socket::TCP_LISTEN)
+                l.socket_accepted(&s);
+            else
+                intf->tcp_sockets.erase_value(&s);
+            return flags;
+        }
+    }
+    catch (hash::no_such_key_exception&)
+    {
+    }
+
+    // Either there was no listener or the listener chose to reject the SYN.
+    // Treat this as though we were in the TCP CLOSED state.
     if (h->tcp.rst)
         return 0;
     if (h->tcp.ack)
