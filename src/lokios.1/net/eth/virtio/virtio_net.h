@@ -141,6 +141,7 @@ namespace virtio_net
         vqueue                      cq;
 
         net::tx_op*                 tx_table[256];
+        kernel::klist<net::tx_op>   tx_send_queue;
 
         uint64_t    get_device_features();
         void        set_driver_features(uint64_t f);
@@ -151,6 +152,7 @@ namespace virtio_net
         void        issue_set_mac_address();
 
         void        post_tx_frame(net::tx_op* op);
+        void        process_send_queue();
         void        post_rx_pages(kernel::klist<net::rx_page>& pages);
             
         void        handle_timer(kernel::timer_entry*);

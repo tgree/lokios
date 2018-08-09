@@ -149,10 +149,27 @@ virtio_net::dev::issue_set_mac_address()
 void
 virtio_net::dev::post_tx_frame(net::tx_op* op)
 {
-    // Allocate some descriptors.
+    kassert(op->nalps + 1 < NELEMS(tx_table));
+    tx_send_queue.push_back(&op->link);
+    process_send_queue();
+}
+
+void
+virtio_net::dev::process_send_queue()
+{
+    // If there's nothing pending, we're done.
+    if (tx_send_queue.empty())
+        return;
+
+    // Try to allocate the descriptors.
+    net::tx_op* op = klist_front(tx_send_queue,link);
     uint16_t dhead = tq.alloc_descriptors(op->nalps + 1);
-    TODO("Ring overflow");
+    if (dhead == 0xFFFF)
+        return;
+
+    // Save the op in the tx_table.
     kassert(dhead < NELEMS(tx_table));
+    tx_send_queue.pop_front();
     tx_table[dhead] = op;
 
     // First descriptor is 12-bytes of zeroes.
@@ -339,6 +356,7 @@ virtio_net::dev::handle_tq_dsr(kernel::work_entry*)
         intf->handle_tx_completion(tx_table[ue.id]);
         tq.free_descriptors(ue.id);
     }
+    process_send_queue();
 
     enable_msix_vector(tq.index);
 }
