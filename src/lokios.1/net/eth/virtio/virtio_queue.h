@@ -58,6 +58,7 @@ namespace virtio_net
         // Allocates and frees chains of descriptors.  The next fields in the
         // descriptors are linked upon allocation and consulted upon
         // deallocation, so the caller shouldn't manipulate those at all.
+        // Returns 0xFFFF if a descriptor request couldn't be fulfilled.
         uint16_t alloc_descriptors(size_t n);
         void free_descriptors(uint16_t index);
         uint16_t get_free_descriptor_count();
