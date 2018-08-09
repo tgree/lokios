@@ -1109,8 +1109,6 @@ bcm57762::dev::handle_phy_get_link_mode_complete(kernel::work_entry* wqe)
 void
 bcm57762::dev::post_tx_frame(net::tx_op* op)
 {
-    send_bd* bd;
-    net::tx_op** opp;
 
     uint16_t flags = 0;
     if (op->flags & NTX_FLAG_INSERT_IP_CSUM)
@@ -1118,6 +1116,8 @@ bcm57762::dev::post_tx_frame(net::tx_op* op)
     if (op->flags & (NTX_FLAG_INSERT_UDP_CSUM | NTX_FLAG_INSERT_TCP_CSUM))
         flags |= (1<<0);
 
+    send_bd* bd;
+    net::tx_op** opp;
     kassert(op->nalps > 0);
     for (size_t i=0; i<op->nalps; ++i)
     {
