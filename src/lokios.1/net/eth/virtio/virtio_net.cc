@@ -327,7 +327,6 @@ virtio_net::dev::handle_rq_dsr(kernel::work_entry*)
     while (!rq.empty())
     {
         auto ue = rq.pop();
-        printf("virtio_net: rq completion descriptor %u len %u\n",ue.id,ue.len);
 
         auto* d       = &rq.descriptors[ue.id];
         auto* p       = container_of((uint8_t*)phys_to_virt(d->addr),
@@ -352,7 +351,6 @@ virtio_net::dev::handle_tq_dsr(kernel::work_entry*)
     while (!tq.empty())
     {
         auto ue = tq.pop();
-        printf("virtio_net: tq completion descriptor %u len %u\n",ue.id,ue.len);
         intf->handle_tx_completion(tx_table[ue.id]);
         tq.free_descriptors(ue.id);
     }
@@ -367,7 +365,6 @@ virtio_net::dev::handle_cq_dsr(kernel::work_entry*)
     while (!cq.empty())
     {
         auto ue = cq.pop();
-        printf("virtio_net: cq completion descriptor %u len %u\n",ue.id,ue.len);
         handle_cq_completion(ue.id);
         cq.free_descriptors(ue.id);
     }
