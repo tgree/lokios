@@ -107,6 +107,8 @@ namespace bcm57762
         kernel::work_entry*     phy_cqe;
         bool                    phy_autopoll;
 
+        kernel::klist<net::tx_op>   tx_send_queue;
+
         // Synchronous register accessors.
         void        mem_read(void* dst, uint32_t addr, size_t len);
         void        mem_write(uint32_t addr, const void* src, size_t len);
@@ -165,6 +167,7 @@ namespace bcm57762
 
         // Interface API.
         void    post_tx_frame(net::tx_op* op);
+        void    process_send_queue();
         void    post_rx_pages(kernel::klist<net::rx_page>& pages);
 
         dev(const kernel::pci::dev* pd, const bcm57762::driver* owner);

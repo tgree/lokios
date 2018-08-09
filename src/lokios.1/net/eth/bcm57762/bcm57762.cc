@@ -341,6 +341,7 @@ bcm57762::dev::handle_vec0_dsr(kernel::work_entry*)
         if (op)
             intf->handle_tx_completion(op);
     }
+    process_send_queue();
 
     reg_write_32((tag << 24),0x204);
     enable_msix_vector(0);
@@ -1109,6 +1110,22 @@ bcm57762::dev::handle_phy_get_link_mode_complete(kernel::work_entry* wqe)
 void
 bcm57762::dev::post_tx_frame(net::tx_op* op)
 {
+    tx_send_queue.push_back(&op->link);
+    process_send_queue();
+}
+
+void
+bcm57762::dev::process_send_queue()
+{
+    if (tx_send_queue.empty())
+        return;
+
+    uint32_t avail_bds = (tx_bd_consumer_index -
+                          tx_bd_producer_index - 1) % NELEMS(mem->send_bds);
+    net::tx_op* op = klist_front(tx_send_queue,link);
+    if (op->nalps > avail_bds)
+        return;
+    tx_send_queue.pop_front();
 
     uint16_t flags = 0;
     if (op->flags & NTX_FLAG_INSERT_IP_CSUM)
