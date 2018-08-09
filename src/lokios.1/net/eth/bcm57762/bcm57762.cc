@@ -1121,8 +1121,8 @@ bcm57762::dev::post_tx_frame(net::tx_op* op)
     kassert(op->nalps > 0);
     for (size_t i=0; i<op->nalps; ++i)
     {
-        bd = &mem->send_bds[tx_bd_producer_index % NELEMS(mem->send_bds)];
-        opp = &mem->tx_op_table[tx_bd_producer_index % NELEMS(mem->send_bds)];
+        bd  = &mem->send_bds[tx_bd_producer_index];
+        opp = &mem->tx_op_table[tx_bd_producer_index];
 
         bd->host_addr = op->alps[i].paddr;
         bd->len       = op->alps[i].len;
@@ -1131,12 +1131,13 @@ bcm57762::dev::post_tx_frame(net::tx_op* op)
         bd->vlan_tag  = 0;
 
         *opp = NULL;
-        ++tx_bd_producer_index;
+        tx_bd_producer_index = (tx_bd_producer_index + 1) %
+                                    NELEMS(mem->send_bds);
     }
     bd->flags = (bd->flags | (1<<2) | (1<<7));
     *opp = op;
 
-    reg_write_32(tx_bd_producer_index % NELEMS(mem->send_bds),0x304);
+    reg_write_32(tx_bd_producer_index,0x304);
 }
 
 void
