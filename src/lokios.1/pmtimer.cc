@@ -55,7 +55,8 @@ kernel::pmtimer::init()
         kassert(fadt->x_pm_tmr_blk.addr_space_id == 1);
         kassert(fadt->x_pm_tmr_blk.register_bit_width == 32);
         kassert(fadt->x_pm_tmr_blk.register_bit_offset == 0);
-        kassert(fadt->x_pm_tmr_blk.access_size == 3);
+        kassert(fadt->x_pm_tmr_blk.access_size == 3 ||
+                fadt->x_pm_tmr_blk.access_size == 0);
         kassert(fadt->x_pm_tmr_blk.addr < 0x00010000);
         pmtimer_ioaddr = fadt->x_pm_tmr_blk.addr;
     }
