@@ -117,8 +117,11 @@ dma_addr64
 kernel::virt_to_phys(const void* v)
 {
     kassert(v != NULL);
-    kassert(((uintptr_t)v & 0xFFFFF00000000000UL) == 0xFFFF800000000000UL);
-    return (dma_addr64)v & ~0xFFFF800000000000UL;
+    kassert(((uintptr_t)v & 0xFFFFF00000000000UL) == 0xFFFF800000000000UL ||
+            ((uintptr_t)v & 0xFFFFFFFFFF000000UL) == 0xFFFFFFFFC0000000UL);
+    if (((uintptr_t)v & 0xFFFFF00000000000UL) == 0xFFFF800000000000UL)
+        return (dma_addr64)v & ~0xFFFF800000000000UL;
+    return (dma_addr64)v & ~0xFFFFFFFFFF000000UL;
 }
 
 void*
