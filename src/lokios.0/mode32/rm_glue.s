@@ -230,8 +230,8 @@ _a20_enable_int15h:
 #   0(sp)   - return address
 #   4(sp)   - address of e820_io struct
 # On exit:
-#   e820_io struct will be updated and ebx should be consulted to see if we
-#   are at the end - we massage CF into there for you.
+#   e820_io struct will be updated and io.cookie should be consulted to see if
+#   we are at the end - we massage CF into there for you.
 .global e820_iter
 e820_iter:
 .code32
