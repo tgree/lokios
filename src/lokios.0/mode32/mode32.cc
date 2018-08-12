@@ -126,8 +126,7 @@ m32_entry(uint32_t flags)
         console::printf("%u %016llX:%016llX 0x%08X",
                         io.entry_len,io.entry.addr,
                         io.entry.addr + io.entry.len - 1,io.entry.type);
-        if (io.entry_len > 20)
-            console::printf(" 0x%08X",io.entry.extended_attrs);
+        console::printf(" 0x%08X",io.entry.extended_attrs);
         console::printf("\n");
     }
 
