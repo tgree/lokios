@@ -198,7 +198,6 @@ struct pxe_image_stream : public image_stream
 
         // Issue the PXE shutdown sequence.
         uint16_t shutdown_sequence[] = {
-                0x0021, // TFTP Close
             //  0x0007, // UNDI Close - DELL doesn't like this error 0x6A
                 0x0005, // UNDI Shutdown
                 0x0076, // Stop Base
