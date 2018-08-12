@@ -182,7 +182,6 @@ int fputs(const char* s, FILE* stream)
 extern "C"
 int fprintf(FILE* stream, const char* fmt, ...)
 {
-    TODO("fprintf() return value not implemented.");
     // char_stream::printf() doesn't return the number of characters printed,
     // so we can't return it here either.  I doubt libsupc++ relies on that
     // value, though...
