@@ -74,6 +74,14 @@ pxe_find_entry(far_pointer* fp)
 }
 
 static uint16_t
+pxe_generic_cmd(uint16_t opcode)
+{
+    pxe_generic_pb pb;
+    memset(&pb,0,sizeof(pb));
+    return _call_pxe(opcode,&pb,pxe_entry_fp) ?: pb.status;
+}
+
+static uint16_t
 pxe_get_cached_dhcp_ack(far_pointer* fp, uint16_t* size)
 {
     pxe_get_cached_info_pb pb;
@@ -131,17 +139,7 @@ tftp_read(void* buf, uint16_t* packet_num, uint16_t* size)
 static uint16_t
 tftp_close()
 {
-    tftp_close_pb pb;
-    memset(&pb,0,sizeof(pb));
-    return _call_pxe(0x0021,&pb,pxe_entry_fp) ?: pb.status;
-}
-
-static uint16_t
-pxe_generic_cmd(uint16_t opcode)
-{
-    pxe_generic_pb pb;
-    memset(&pb,0,sizeof(pb));
-    return _call_pxe(opcode,&pb,pxe_entry_fp) ?: pb.status;
+    return pxe_generic_cmd(0x0021);
 }
 
 struct pxe_image_stream : public image_stream
