@@ -6,7 +6,7 @@ struct e820_entry
     uint64_t    addr;
     uint64_t    len;
     uint32_t    type;
-    uint32_t    rsrv;
+    uint32_t    extended_attrs;
 };
 KASSERT(sizeof(e820_entry) == 24);
 

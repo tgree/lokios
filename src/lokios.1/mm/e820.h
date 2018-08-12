@@ -27,7 +27,7 @@ namespace kernel
         uint64_t    base;
         uint64_t    len;
         e820_type   type;
-        uint32_t    rsrv;
+        uint32_t    extended_attrs;
     };
     KASSERT(sizeof(e820_entry) == 24);
 
