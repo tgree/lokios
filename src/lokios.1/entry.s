@@ -333,11 +333,11 @@ _interrupt_entry_scheduler_wakeup:
 # counter.
 .globl _interrupt_entry_tlb_shootdown
 _interrupt_entry_tlb_shootdown:
+    incl    %gs:tlb_shootdown_counter_offset
     push    %rbx
     mov     %cr3, %rbx
     mov     %rbx, %cr3
     pop     %rbx
-    incl    %gs:tlb_shootdown_counter_offset
     jmp     _interrupt_entry_scheduler_wakeup
     
 
