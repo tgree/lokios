@@ -2,7 +2,10 @@
 #include "buddy_allocator.h"
 #include "../task.h"
 #include "../cpu.h"
+#include "../console.h"
 #include "k++/local_vector.h"
+
+using kernel::console::printf;
 
 void*
 kernel::page_alloc()
@@ -45,6 +48,19 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr)
     // following the sbrk region.  Record this for later.
     dma_addr64 first_dma = usable_regions[0].first;
     dma_addr64 last_dma  = usable_regions[-1].last + 1;
+
+    // Dump the usable regions and ensure they are sorted.
+    printf("E820 usable RAM regions:\n");
+    bool sorted   = true;
+    uint64_t prev = 0;
+    for (auto& r : usable_regions)
+    {
+        printf("  0x%016lX - 0x%016lX\n",r.first,r.last);
+        if (prev >= r.first)
+            sorted = false;
+        prev = r.last;
+    }
+    kassert(sorted);
 
     // Remove everything above the top bootloader address since those pages,
     // while free, aren't currently mapped.
