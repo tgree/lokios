@@ -57,7 +57,7 @@ namespace kernel
         for (size_t i=0; i<m->nentries; ++i, ++e)
         {
             if (e->len && (mask & (1 << e->type)))
-                c.push_back(region{e->base,e->base + e->len - 1});
+                region_add(c,region{e->base,e->base + e->len - 1});
         }
     }
 }

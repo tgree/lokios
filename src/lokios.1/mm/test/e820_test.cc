@@ -81,7 +81,7 @@ class tmock_test
         tmock::assert_equiv(ram_regions[7].last, 0x40EFFFFFFU);
     }
 
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(is_sorted_test)
+    TMOCK_TEST(is_sorted_test)
     {
         static constexpr e820_map m = {
             5,
@@ -100,7 +100,7 @@ class tmock_test
             TASSERT(ram_regions[i-1].first < ram_regions[i].first);
     }
 
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(is_compressed_test)
+    TMOCK_TEST(is_compressed_test)
     {
         static constexpr e820_map m = {
             5,
