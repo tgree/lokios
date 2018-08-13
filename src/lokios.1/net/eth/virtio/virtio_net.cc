@@ -14,12 +14,66 @@
 #include "kernel/cpu.h"
 #include "kernel/console.h"
 #include "net/udp/udp.h"
+#include "k++/string_stream.h"
 #include <initializer_list>
 
 using kernel::console::printf;
 using kernel::_kassert;
 using kernel::virt_to_phys;
 using kernel::phys_to_virt;
+
+static const char* feature_names[] = {
+    "csum",                   //  0
+    "guest_csum",             //  1
+    "ctrl_guest_offloads",    //  2
+    "undef_3",                //  3
+    "undef_4",                //  4
+    "mac",                    //  5
+    "legacy_gso",             //  6
+    "guest_tso4",             //  7
+    "guest_tso6",             //  8
+    "guest_ecn",              //  9
+    "guest_ufo",              // 10
+    "host_tso4",              // 11
+    "host_tso6",              // 12
+    "host_ecn",               // 13
+    "host_ufo",               // 14
+    "mrg_rxbuf",              // 15
+    "status",                 // 16
+    "ctrl_vq",                // 17
+    "ctrl_rx",                // 18
+    "ctrl_vlan",              // 19
+    "undef_20",               // 20
+    "guest_announce",         // 21
+    "mq",                     // 22
+    "ctrl_mac_addr",          // 23
+    "legacy_notify_on_empty", // 24
+    "undef_25",               // 25
+    "undef_26",               // 26
+    "legacy_any_layout",      // 27
+    "indirect_desc",          // 28
+    "event_idx",              // 29
+    "legacy_unused_30",       // 30
+    "undef_31",               // 31
+    "version1",               // 32
+};
+
+static void
+print_features(const char* prefix, uint64_t f)
+{
+    kernel::fixed_string_stream<2048> fss;
+    for (unsigned int i=0; i<NELEMS(feature_names); ++i)
+    {
+        if (f & (1UL<<i))
+            fss.printf(" %s",feature_names[i]);
+    }
+    for (unsigned int i=NELEMS(feature_names); i<64; ++i)
+    {
+        if (f & (1UL<<i))
+            fss.printf(" undef_%u",i);
+    }
+    printf("virtio_net: %s:%s\n",prefix,fss.storage);
+}
 
 virtio_net::dev::dev(const kernel::pci::dev* pd,
     const virtio_net::driver* owner):
@@ -241,16 +295,19 @@ virtio_net::dev::handle_timer(kernel::timer_entry*)
 
             // Set the features we want.
             uint64_t dev_features = get_device_features();
+            print_features("device features",dev_features);
             kassert(dev_features & VIRTIO_NET_F_MAC);
             kassert(dev_features & VIRTIO_NET_F_CTRL_VQ);
             kassert(dev_features & VIRTIO_NET_F_CTRL_RX);
             kassert(dev_features & VIRTIO_NET_F_CTRL_MAC_ADDR);
             kassert(dev_features & VIRTIO_F_VERSION_1);
-            set_driver_features(VIRTIO_NET_F_MAC |
-                                VIRTIO_NET_F_CTRL_VQ |
-                                VIRTIO_NET_F_CTRL_RX |
-                                VIRTIO_NET_F_CTRL_MAC_ADDR |
-                                VIRTIO_F_VERSION_1);
+            uint64_t driver_features = VIRTIO_NET_F_MAC |
+                                       VIRTIO_NET_F_CTRL_VQ |
+                                       VIRTIO_NET_F_CTRL_RX |
+                                       VIRTIO_NET_F_CTRL_MAC_ADDR |
+                                       VIRTIO_F_VERSION_1;
+            set_driver_features(driver_features);
+            print_features("driver features",driver_features);
 
             // Feature negotiation complete.
             common_cfg->device_status = 0xB;
