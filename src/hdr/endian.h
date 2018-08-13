@@ -98,5 +98,11 @@ typedef be_uint<uint16_t> be_uint16_t;
 typedef le_uint<uint64_t> le_uint64_t;
 typedef le_uint<uint32_t> le_uint32_t;
 typedef le_uint<uint16_t> le_uint16_t;
+KASSERT(sizeof(be_uint64_t) == sizeof(uint64_t));
+KASSERT(sizeof(be_uint32_t) == sizeof(uint32_t));
+KASSERT(sizeof(be_uint16_t) == sizeof(uint16_t));
+KASSERT(sizeof(le_uint64_t) == sizeof(uint64_t));
+KASSERT(sizeof(le_uint32_t) == sizeof(uint32_t));
+KASSERT(sizeof(le_uint16_t) == sizeof(uint16_t));
 
 #endif /* __LOKIOS_ENDIAN_H */
