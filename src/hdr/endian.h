@@ -70,11 +70,11 @@ template<typename T>
 struct be_uint
 {
     T   v;
-    constexpr operator T()          {return to_big_endian(v);}
-    constexpr operator T() const    {return to_big_endian(v);}
-    constexpr operator T() volatile {return to_big_endian(v);}
-    void operator=(T _v)            {v = from_big_endian(_v);}
-    void operator=(T _v) volatile   {v = from_big_endian(_v);}
+    constexpr operator T()          {return from_big_endian(v);}
+    constexpr operator T() const    {return from_big_endian(v);}
+    constexpr operator T() volatile {return from_big_endian(v);}
+    void operator=(T _v)            {v = to_big_endian(_v);}
+    void operator=(T _v) volatile   {v = to_big_endian(_v);}
     constexpr be_uint(T v):v(to_big_endian(v)) {}
     inline be_uint() = default;
 } __PACKED__;
@@ -83,11 +83,11 @@ template<typename T>
 struct le_uint
 {
     T   v;
-    constexpr operator T()          {return to_little_endian(v);}
-    constexpr operator T() const    {return to_little_endian(v);}
-    constexpr operator T() volatile {return to_little_endian(v);}
-    void operator=(T _v)            {v = from_little_endian(_v);}
-    void operator=(T _v) volatile   {v = from_little_endian(_v);}
+    constexpr operator T()          {return from_little_endian(v);}
+    constexpr operator T() const    {return from_little_endian(v);}
+    constexpr operator T() volatile {return from_little_endian(v);}
+    void operator=(T _v)            {v = to_little_endian(_v);}
+    void operator=(T _v) volatile   {v = to_little_endian(_v);}
     constexpr le_uint(T v):v(to_little_endian(v)) {}
     inline le_uint() = default;
 } __PACKED__;
