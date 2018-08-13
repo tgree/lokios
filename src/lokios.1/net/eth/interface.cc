@@ -152,7 +152,7 @@ eth::interface::handle_rx_pages(kernel::klist<net::rx_page>& pages)
             }
         }
         if (!(flags & NRX_FLAG_NO_DELETE))
-            delete p;
+            free_rx_page(p);
     }
     refill_rx_pages();
 }

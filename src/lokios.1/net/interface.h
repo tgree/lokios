@@ -94,6 +94,10 @@ namespace net
                 void    tcp_ignore(uint16_t port);
         static  bool    tcp_always_accept(const tcp::header*) {return true;}
 
+        // Rx page management.
+        inline  rx_page*    alloc_rx_page() {return new rx_page;}
+        inline  void        free_rx_page(net::rx_page* p) {delete p;}
+
         // Activate the interface.
         virtual void    activate();
                 void    refill_rx_pages();

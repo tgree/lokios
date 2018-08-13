@@ -25,12 +25,12 @@ rx_arp_reply(arp::service<hw_traits,proto_traits>* service,
 {
     typedef typeof(*service) arp_service;
 
-    net::rx_page p;
-    memset(p.payload,0,sizeof(p.payload));
+    net::rx_page* p = intf.alloc_rx_page();
+    memset(p->payload,0,sizeof(p->payload));
 
-    auto* f             = (typename arp_service::ll_arp_frame*)p.payload;
-    p.pay_offset        = sizeof(typename hw_traits::header_type);
-    p.pay_len           = sizeof(*f) - p.pay_offset;
+    auto* f             = (typename arp_service::ll_arp_frame*)p->payload;
+    p->pay_offset       = sizeof(typename hw_traits::header_type);
+    p->pay_len          = sizeof(*f) - p->pay_offset;
     f->llhdr.dst_mac    = CLIENT_MAC;
     f->llhdr.src_mac    = hw_addr;
     f->llhdr.ether_type = 0x0806;
@@ -43,7 +43,8 @@ rx_arp_reply(arp::service<hw_traits,proto_traits>* service,
     f->spa              = proto_addr;
     f->tha              = CLIENT_MAC;
 
-    intf.arpc_ipv4->handle_rx_frame(&p);
+    intf.arpc_ipv4->handle_rx_frame(p);
+    intf.free_rx_page(p);
 }
 
 static dhcp::eth_message*
@@ -67,21 +68,23 @@ prepare_rx_message(net::rx_page* p)
 static void
 rx_offer()
 {
-    net::rx_page p;
-    auto* m = prepare_rx_message(&p);
+    net::rx_page* p = intf.alloc_rx_page();
+    auto* m = prepare_rx_message(p);
     m->msg.format_offer(intf.dhcpc->xid,intf.hw_mac,ipv4::addr{0,0,0,0},
                         CLIENT_IP,SERVER_IP,GW_IP);
-    intf.dhcpc->handle_rx_dhcp(&intf,&p);
+    intf.dhcpc->handle_rx_dhcp(&intf,p);
+    intf.free_rx_page(p);
 }
 
 static void
 rx_ack()
 {
-    net::rx_page p;
-    auto* m = prepare_rx_message(&p);
+    net::rx_page* p = intf.alloc_rx_page();
+    auto* m = prepare_rx_message(p);
     m->msg.format_ack(intf.dhcpc->xid,intf.hw_mac,ipv4::addr{0,0,0,0},
                       CLIENT_IP,SERVER_IP,GW_IP,SUBNET_MASK,DNS_IP,LEASE_TIME);
-    intf.dhcpc->handle_rx_dhcp(&intf,&p);
+    intf.dhcpc->handle_rx_dhcp(&intf,p);
+    intf.free_rx_page(p);
 }
 
 static void

@@ -9,6 +9,8 @@
 
 namespace net
 {
+    struct interface;
+
     // Parameters.
 #define TX_COMPLETION_DELAY_10MS    0
 
@@ -71,6 +73,12 @@ namespace net
         {
             return (T)(payload + pay_offset - sizeof(*(T)0));
         }
+
+    private:
+        rx_page() = default;
+        ~rx_page() = default;
+
+        friend class net::interface;
     };
     KASSERT(sizeof(rx_page) == PAGE_SIZE);
 }
