@@ -47,7 +47,7 @@ class tmock_test
         tmock::assert_equiv(u.c[1],0xEF);
     }
 
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_le_uint64_t)
+    TMOCK_TEST(test_le_uint64_t)
     {
         union
         {
@@ -65,7 +65,7 @@ class tmock_test
         tmock::assert_equiv(u.c[7],0x01);
     }
 
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_le_uint32_t)
+    TMOCK_TEST(test_le_uint32_t)
     {
         union
         {
@@ -79,7 +79,7 @@ class tmock_test
         tmock::assert_equiv(u.c[3],0x89);
     }
 
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_le_uint16_t)
+    TMOCK_TEST(test_le_uint16_t)
     {
         union
         {

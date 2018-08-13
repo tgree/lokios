@@ -88,7 +88,7 @@ struct le_uint
     constexpr operator T() volatile {return to_little_endian(v);}
     void operator=(T _v)            {v = from_little_endian(_v);}
     void operator=(T _v) volatile   {v = from_little_endian(_v);}
-    constexpr le_uint(T v):v(to_big_endian(v)) {}
+    constexpr le_uint(T v):v(to_little_endian(v)) {}
     inline le_uint() = default;
 } __PACKED__;
 
