@@ -11,12 +11,14 @@ namespace kernel
     {
         return (l < r ? l : r);
     }
+#define MIN(l,r) kernel::min((l),(r))
 
     template<typename T>
     inline T max(T l, T r)
     {
         return (l < r ? r : l);
     }
+#define MAX(l,r) kernel::max((l),(r))
 
     template<typename T>
     constexpr bool is_pow2(T v)
