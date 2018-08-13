@@ -34,7 +34,7 @@ namespace kernel
     }
 
     template<typename C>
-    void region_add(C& c, typename C::value_type& r)
+    void region_add(C& c, const typename C::value_type& r)
     {
         auto pos = sort::find_insertion_point(r,c.begin(),c.end());
         c.insert(pos,r);
