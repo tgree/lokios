@@ -16,7 +16,7 @@ namespace kernel
         E820_TYPE_BAD_RAM          = 5,
     };
 #define E820_TYPE_RAM_MASK              (1 << E820_TYPE_RAM)
-#define E820_TYPE_RESERVED              (1 << E820_TYPE_RESERVED)
+#define E820_TYPE_RESERVED_MASK         (1 << E820_TYPE_RESERVED)
 #define E820_TYPE_ACPI_RECLAIMABLE_MASK (1 << E820_TYPE_RECLAIMABLE)
 #define E820_TYPE_ACPI_NVS_MASK         (1 << E820_TYPE_ACPI_NVS)
 #define E820_TYPE_BAD_RAM_MASK          (1 << E820_TYPE_BAD_RAM)
