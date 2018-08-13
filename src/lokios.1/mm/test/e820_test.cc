@@ -70,7 +70,7 @@ class tmock_test
 
         vector<region> nonram_regions;
         get_e820_regions(&roel_16g_map,nonram_regions,~E820_TYPE_RAM_MASK);
-        tmock::assert_equiv(nonram_regions.size(),12U);
+        tmock::assert_equiv(nonram_regions.size(),11U);
 
         regions_remove(ram_regions,nonram_regions);
         tmock::assert_equiv(ram_regions.size(),8U);
@@ -120,7 +120,7 @@ class tmock_test
         tmock::assert_equiv(ram_regions[0].last,0x5FFFU);
     }
 
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(reverse_chain_test)
+    TMOCK_TEST(reverse_chain_test)
     {
         static constexpr e820_map m = {
             5,

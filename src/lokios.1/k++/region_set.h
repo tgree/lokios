@@ -23,7 +23,7 @@ namespace kernel
         while (i != c.end())
         {
             auto j = i + 1;
-            while (j != c.end() && j->first <= i->last)
+            while (j != c.end() && j->first <= i->last + 1)
             {
                 i->last = j->last;
                 c.erase(j);
