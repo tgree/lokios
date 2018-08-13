@@ -440,7 +440,10 @@ bcm57762::dev::handle_timer(kernel::timer_entry*)
             }
 
             // Step 16: ERRATA.
-            TODO("BCM57762 errata");
+            // I haven't been able to find any errata documents.  I contacted
+            // Broadcom customer support and they so "go through your FAE",
+            // which of course I don't have.
+            // TODO: Carefully go through the linux driver looking for errata.
 
             // Step 17: enable tagged status mode (optional).  iPXE had this
             // enabled so we'll do the same.
