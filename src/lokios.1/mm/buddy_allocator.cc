@@ -6,22 +6,22 @@
 static kernel::spinlock                                 buddy_pages_lock;
 static kernel::deferred_global<kernel::buddy_allocator> buddy_pages;
 
-void*
-kernel::buddy_alloc(size_t order)
+dma_addr64
+kernel::buddy_palloc(size_t order)
 {
     with (buddy_pages_lock)
     {
-        return phys_to_virt(buddy_pages->alloc_pages(order));
+        return buddy_pages->alloc_pages(order);
     }
 }
 
 void
-kernel::buddy_free(void* p, size_t order)
+kernel::buddy_pfree(dma_addr64 d, size_t order)
 {
-    kassert(((uintptr_t)p & ((1<<(order+12))-1)) == 0);
+    kassert(((uintptr_t)d & ((1<<(order+12))-1)) == 0);
     with (buddy_pages_lock)
     {
-        buddy_pages->free_pages(virt_to_phys(p),order);
+        buddy_pages->free_pages(d,order);
     }
 }
 

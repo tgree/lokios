@@ -50,4 +50,5 @@ hash_table_test.objs := \
     	$(MODULE_TBUILD_DIR)/hash_table_test.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fbuddy_allocator.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fpage.o \
+	$(BUILD_TO_DIR)/lokios.1/mm/mock/fmm.o \
 	$(BUILD_TO_DIR)/lokios.1/mock/fkassert.o

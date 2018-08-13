@@ -170,14 +170,26 @@ namespace kernel
         }
     };
 
-    void* buddy_alloc(size_t order);
+    // Buddy physical allocators.
+    dma_addr64 buddy_palloc(size_t order);
+    void buddy_pfree(dma_addr64 d, size_t order);
+
+    // Buddy virtual allocators.
+    inline void* buddy_alloc(size_t order)
+    {
+        return kernel::phys_to_virt(buddy_palloc(order));
+    }
     inline void* buddy_zalloc(size_t order)
     {
         void* p = buddy_alloc(order);
         memset(p,0,1<<(order+12));
         return p;
     }
-    void buddy_free(void* p, size_t order);
+    inline void buddy_free(void* p, size_t order)
+    {
+        buddy_pfree(kernel::virt_to_phys(p),order);
+    }
+
     size_t buddy_count_free();
 
     void buddy_init(dma_addr64 dma_base, size_t len);
