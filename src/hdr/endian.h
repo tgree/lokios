@@ -66,45 +66,31 @@ KASSERT(from_big_endian<uint32_t>(0x11223344)    == 0x11223344);
 KASSERT(from_big_endian<uint16_t>(0x1122)        == 0x1122);
 #endif
 
-template<typename T>
-struct be_uint
+template<typename T, T (*from_endian)(T), T (*to_endian)(T)>
+struct endian_uint
 {
     T   v;
-    constexpr operator T()          {return from_big_endian(v);}
-    constexpr operator T() const    {return from_big_endian(v);}
-    constexpr operator T() volatile {return from_big_endian(v);}
-    void operator=(T _v)            {v = to_big_endian(_v);}
-    void operator=(T _v) volatile   {v = to_big_endian(_v);}
+    constexpr operator T()          {return from_endian(v);}
+    constexpr operator T() const    {return from_endian(v);}
+    constexpr operator T() volatile {return from_endian(v);}
+    void operator=(T _v)            {v = to_endian(_v);}
+    void operator=(T _v) volatile   {v = to_endian(_v);}
 
-    inline be_uint& operator+=(T _v)
+    inline endian_uint& operator+=(T _v)
     {
-        v = to_big_endian((T)(from_big_endian(v) + _v));
+        v = to_endian((T)(from_endian(v) + _v));
         return *this;
     }
 
-    constexpr be_uint(T v):v(to_big_endian(v)) {}
-    inline be_uint() = default;
+    constexpr endian_uint(T v):v(to_endian(v)) {}
+    inline endian_uint() = default;
 } __PACKED__;
 
 template<typename T>
-struct le_uint
-{
-    T   v;
-    constexpr operator T()          {return from_little_endian(v);}
-    constexpr operator T() const    {return from_little_endian(v);}
-    constexpr operator T() volatile {return from_little_endian(v);}
-    void operator=(T _v)            {v = to_little_endian(_v);}
-    void operator=(T _v) volatile   {v = to_little_endian(_v);}
+using be_uint = endian_uint<T,from_big_endian,to_big_endian>;
 
-    inline le_uint& operator+=(T _v)
-    {
-        v = to_little_endian((T)(from_little_endian(v) + _v));
-        return *this;
-    }
-
-    constexpr le_uint(T v):v(to_little_endian(v)) {}
-    inline le_uint() = default;
-} __PACKED__;
+template<typename T>
+using le_uint = endian_uint<T,from_little_endian,to_little_endian>;
 
 typedef be_uint<uint64_t> be_uint64_t;
 typedef be_uint<uint32_t> be_uint32_t;
