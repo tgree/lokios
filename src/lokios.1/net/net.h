@@ -5,9 +5,13 @@
 #include "k++/delegate.h"
 #include "mm/mm.h"
 #include "mm/page.h"
+#include "kernel/schedule.h"
 
 namespace net
 {
+    // Parameters.
+#define TX_COMPLETION_DELAY_10MS    0
+
     // Transmit parameter block.
 #define NTX_FLAG_INSERT_IP_CSUM     (1<<0)
 #define NTX_FLAG_INSERT_UDP_CSUM    (1<<1)
@@ -16,11 +20,18 @@ namespace net
     {
         kernel::klink                   link;
         kernel::delegate<void(tx_op*)>  cb;
+#if TX_COMPLETION_DELAY_10MS
+        kernel::timer_entry             delay_wqe;
+#endif
         uint32_t                        flags;
         uint32_t                        nalps;
         kernel::dma_alp                 alps[2];
     };
+#if TX_COMPLETION_DELAY_10MS
+    KASSERT(sizeof(tx_op) == 128);
+#else
     KASSERT(sizeof(tx_op) == 64);
+#endif
 
     // Receive parameter block.  The pay_offset and pay_len fields are the
     // offsets from the start of the payload to the beginning of the Link-Layer

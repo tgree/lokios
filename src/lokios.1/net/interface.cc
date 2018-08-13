@@ -3,6 +3,7 @@
 #include "tcp/tcp.h"
 #include "udp/udp.h"
 #include "kernel/console.h"
+#include "kernel/cpu.h"
 #include "mm/vm.h"
 #include "mm/slab.h"
 #include "k++/kmath.h"
@@ -102,6 +103,26 @@ net::interface::refill_rx_pages()
     }
     rx_posted_count = rx_qlen;
     post_rx_pages(pages);
+}
+
+void
+net::interface::handle_tx_completion(net::tx_op* op)
+{
+#if TX_COMPLETION_DELAY_10MS
+    op->delay_wqe.fn      = timer_delegate(handle_delayed_completion);
+    op->delay_wqe.args[0] = (uint64_t)this;
+    op->delay_wqe.args[1] = (uint64_t)op;
+    kernel::cpu::schedule_timer(&op->delay_wqe,TX_COMPLETION_DELAY_10MS);
+#else
+    op->cb(op);
+#endif
+}
+
+void
+net::interface::handle_delayed_completion(kernel::timer_entry* wqe)
+{
+    auto* op = (net::tx_op*)wqe->args[1];
+    op->cb(op);
 }
 
 uint64_t

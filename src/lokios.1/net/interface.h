@@ -111,7 +111,8 @@ namespace net
         // auto-delete the page, but if it is to go onto a client queue or to
         // be deleted by someone else then the NRX_FLAG_NO_DELETE flag should
         // be set in the return code.
-        inline  void        handle_tx_completion(net::tx_op* op) {op->cb(op);}
+                void        handle_tx_completion(net::tx_op* op);
+                void        handle_delayed_completion(kernel::timer_entry* wqe);
                 uint64_t    handle_rx_ipv4_frame(net::rx_page* p);
                 uint64_t    handle_rx_ipv4_udp_frame(net::rx_page* p);
 
