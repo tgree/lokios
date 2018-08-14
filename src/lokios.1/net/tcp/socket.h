@@ -70,6 +70,9 @@ namespace tcp
         void        handle_retransmit_expiry(kernel::timer_entry* wqe);
         uint64_t    handle_rx_ipv4_tcp_frame(net::rx_page* p);
 
+        // Helpers.
+        void        dump_socket();
+
         // Passive open.
         socket(net::interface* intf, net::rx_page* p);
     };

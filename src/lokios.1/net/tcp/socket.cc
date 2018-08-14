@@ -74,3 +74,28 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
 {
     return 0;
 }
+
+void
+tcp::socket::dump_socket()
+{
+    intf->intf_dbg("%u.%u.%u.%u:%u <-> %u.%u.%u.%u:%u state=%u snd_mss=%u "
+                   "snd_window=%u snd_shift=%u rcv_mss=%u rcv_window=%u "
+                   "rcv_shift=%u\n",
+                   hdrs.ip.src_ip[0],
+                   hdrs.ip.src_ip[1],
+                   hdrs.ip.src_ip[2],
+                   hdrs.ip.src_ip[3],
+                   (uint16_t)hdrs.tcp.src_port,
+                   hdrs.ip.dst_ip[0],
+                   hdrs.ip.dst_ip[1],
+                   hdrs.ip.dst_ip[2],
+                   hdrs.ip.dst_ip[3],
+                   (uint16_t)hdrs.tcp.dst_port,
+                   state,
+                   snd_mss,
+                   snd_wnd,
+                   snd_wnd_shift,
+                   rcv_mss,
+                   (uint16_t)(rcv_wnd >> rcv_wnd_shift),
+                   rcv_wnd_shift);
+}
