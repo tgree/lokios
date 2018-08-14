@@ -43,6 +43,8 @@ namespace tmock
     struct expectation
     {
         expectation*    next;
+        const char*     file;
+        size_t          line;
         const char*     fname;
         bool            armed;
         size_t          nconstraints;
@@ -84,11 +86,13 @@ namespace tmock
                               sizeof(tmock::constraint); \
         static struct { \
             tmock::expectation* next; \
+            const char* file; \
+            size_t line; \
             const char* _fname; \
             bool armed; \
             size_t nconstraints; \
             tmock::constraint constraints[nc]; \
-        } e = {NULL,fname,false,nc,{__VA_ARGS__}}; \
+        } e = {NULL,__FILE__,__LINE__,fname,false,nc,{__VA_ARGS__}}; \
         tmock::_expect((tmock::expectation*)&e); \
     } while(false)
 

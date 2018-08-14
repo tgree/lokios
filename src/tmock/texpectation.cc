@@ -83,5 +83,16 @@ tmock::_mock_call(const char* fname, const call* mc)
 void
 tmock::cleanup_expectations()
 {
-    TASSERT(head == NULL);
+    if (head == NULL)
+        return;
+
+    if (!(tmock::internal::mode_flags & TMOCK_MODE_FLAG_SILENT))
+    {
+        for (auto* p = head; p; p = p->next)
+        {
+            printf("Unsatisfied expectation: %s:%zu:%s\n",
+                   p->file,p->line,p->fname);
+        }
+    }
+    ::abort();
 }
