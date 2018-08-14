@@ -33,20 +33,26 @@ struct mock_listener
     }
 };
 
+template<typename... Args>
 static uint32_t
-rx_syn()
+rx_packet(Args ...args)
 {
     intf.refill_rx_pages();
     auto* p       = intf.pop_rx_page();
     p->pay_offset = 0;
     p->pay_len    = sizeof(ipv4::header) + sizeof(tcp::header);
 
-    auto* h = p->payload_cast<tcp::ipv4_tcp_headers*>();
-    h->init(SIP{REMOTE_IP},DIP{intf.ip_addr},SPORT{REMOTE_PORT},
-            DPORT{LOCAL_PORT},SEQ{REMOTE_ISS},CTL{FSYN});
-    h->tcp.window_size = REMOTE_WS;
-
+    p->payload_cast<tcp::ipv4_tcp_headers*>()->init(SIP{REMOTE_IP},
+                                                    DIP{intf.ip_addr},
+                                                    SPORT{REMOTE_PORT},
+                                                    DPORT{LOCAL_PORT},args...);
     return intf.handle_rx_page(p);
+}
+
+static uint32_t
+rx_syn()
+{
+    return rx_packet(SEQ{REMOTE_ISS},CTL{FSYN},WS{REMOTE_WS,0});
 }
 
 static void
