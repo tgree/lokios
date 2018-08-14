@@ -41,13 +41,7 @@ namespace tcp
     {
         ipv4::header    ip;
         tcp::header     tcp;
-    } __PACKED__;
 
-    struct ll_ipv4_tcp_headers
-    {
-        uint8_t         ll[16];
-        ipv4::header    ip;
-        tcp::header     tcp;
     } __PACKED__;
 
     // Sequence number 0 is ordered against all other sequence numbers as

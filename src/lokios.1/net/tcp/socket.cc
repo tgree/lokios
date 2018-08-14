@@ -22,14 +22,14 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p):
     intf(intf),
     state(TCP_LISTEN),
     prev_state(TCP_CLOSED),
-    llsize(intf->format_ll_reply(p,&hdrs.ll,sizeof(hdrs.ll))),
+    llsize(intf->format_ll_reply(p,&llhdr,sizeof(llhdr))),
     tx_ops_slab(sizeof(tcp::tx_op))
 {
-    kassert(llsize <= sizeof(hdrs.ll));
-    uint8_t llh[sizeof(hdrs.ll)];
-    memcpy(llh,hdrs.ll,sizeof(hdrs.ll));
-    memset(hdrs.ll,0xDD,sizeof(hdrs.ll));
-    memcpy(hdrs.ll + sizeof(hdrs.ll) - llsize,llh,llsize);
+    kassert(llsize <= sizeof(llhdr));
+    uint8_t llh[sizeof(llhdr)];
+    memcpy(llh,llhdr,sizeof(llhdr));
+    memset(llhdr,0xDD,sizeof(llhdr));
+    memcpy(llhdr + sizeof(llhdr) - llsize,llh,llsize);
 
     retransmit_wqe.fn      = timer_delegate(handle_retransmit_expiry);
     retransmit_wqe.args[0] = (uint64_t)this;
@@ -67,6 +67,8 @@ tcp::socket::alloc_tx_op()
     top->alps[0].paddr          = kernel::virt_to_phys(&top->hdrs.ip) - llsize;
     top->alps[0].len            = llsize + sizeof(ipv4::header) +
                                   sizeof(tcp::header);
+    memcpy(top->llhdr,llhdr,sizeof(llhdr));
+
     return top;
 }
 

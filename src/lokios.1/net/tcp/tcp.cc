@@ -62,7 +62,7 @@ tcp::tx_op::format_reply(net::interface* intf, net::rx_page* p)
 
     uint8_t llh[16];
     size_t llsize = intf->format_ll_reply(p,llh,sizeof(llh));
-    memcpy(hdrs.ll + sizeof(hdrs.ll) - llsize,llh,llsize);
+    memcpy(llhdr + sizeof(llhdr) - llsize,llh,llsize);
 
     cb            = kernel::func_delegate(tcp_reply_cb);
     flags         = NTX_FLAG_INSERT_IP_CSUM | NTX_FLAG_INSERT_TCP_CSUM;
