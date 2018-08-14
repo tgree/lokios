@@ -121,10 +121,9 @@ class tmock_test
         tmock::assert_equiv(s->rcv_wnd_shift,0);
         tmock::assert_equiv(s->rcv_mss,1460U);
         tmock::assert_equiv(s->irs,REMOTE_ISS);
-        tmock::assert_equiv(s->hdrs.ip.src_ip,LOCAL_IP);
-        tmock::assert_equiv(s->hdrs.ip.dst_ip,REMOTE_IP);
-        tmock::assert_equiv(s->hdrs.tcp.src_port,LOCAL_PORT);
-        tmock::assert_equiv(s->hdrs.tcp.dst_port,REMOTE_PORT);
+        tmock::assert_equiv(s->remote_ip,REMOTE_IP);
+        tmock::assert_equiv(s->local_port,LOCAL_PORT);
+        tmock::assert_equiv(s->remote_port,REMOTE_PORT);
 
         // We should send:
         //  <SEQ=ISS><ACK=RCV.NXT><CTL=SYN,ACK>

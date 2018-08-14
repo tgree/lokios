@@ -23,6 +23,9 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p):
     state(TCP_LISTEN),
     prev_state(TCP_CLOSED),
     llsize(intf->format_ll_reply(p,&llhdr,sizeof(llhdr))),
+    remote_ip(p->payload_cast<tcp::ipv4_tcp_headers*>()->ip.src_ip),
+    local_port(p->payload_cast<tcp::ipv4_tcp_headers*>()->tcp.dst_port),
+    remote_port(p->payload_cast<tcp::ipv4_tcp_headers*>()->tcp.src_port),
     tx_ops_slab(sizeof(tcp::tx_op))
 {
     kassert(llsize <= sizeof(llhdr));
@@ -33,41 +36,20 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p):
 
     retransmit_wqe.fn      = timer_delegate(handle_retransmit_expiry);
     retransmit_wqe.args[0] = (uint64_t)this;
-
-    auto* sh                 = p->payload_cast<tcp::ipv4_tcp_headers*>();
-    hdrs.ip.version_ihl      = 0x45;
-    hdrs.ip.dscp_ecn         = 0;
-    hdrs.ip.total_len        = sizeof(ipv4::header) + sizeof(tcp::header);
-    hdrs.ip.identification   = 0;
-    hdrs.ip.flags_fragoffset = 0x4000;
-    hdrs.ip.ttl              = 64;
-    hdrs.ip.proto            = tcp::net_traits::ip_proto;
-    hdrs.ip.header_checksum  = 0;
-    hdrs.ip.src_ip           = intf->ip_addr;
-    hdrs.ip.dst_ip           = sh->ip.src_ip;
-    hdrs.tcp.src_port        = sh->tcp.dst_port;
-    hdrs.tcp.dst_port        = sh->tcp.src_port;
-    hdrs.tcp.seq_num         = 0;
-    hdrs.tcp.ack_num         = 0;
-    hdrs.tcp.flags_offset    = 0x5000;
-    hdrs.tcp.window_size     = 0;
-    hdrs.tcp.checksum        = 0;
-    hdrs.tcp.urgent_pointer  = 0;
 }
 
 tcp::tx_op*
 tcp::socket::alloc_tx_op()
 {
-    auto* top                   = tx_ops_slab.alloc<tx_op>();
-    top->hdrs                   = hdrs;
-    top->hdrs.ip.identification = kernel::random();
-    top->flags                  = NTX_FLAG_INSERT_IP_CSUM |
-                                  NTX_FLAG_INSERT_TCP_CSUM;
-    top->nalps                  = 1;
-    top->alps[0].paddr          = kernel::virt_to_phys(&top->hdrs.ip) - llsize;
-    top->alps[0].len            = llsize + sizeof(ipv4::header) +
-                                  sizeof(tcp::header);
+    auto* top          = tx_ops_slab.alloc<tx_op>();
+    top->flags         = NTX_FLAG_INSERT_IP_CSUM |
+                         NTX_FLAG_INSERT_TCP_CSUM;
+    top->nalps         = 1;
+    top->alps[0].paddr = kernel::virt_to_phys(&top->hdrs.ip) - llsize;
+    top->alps[0].len   = llsize + sizeof(ipv4::header) + sizeof(tcp::header);
     memcpy(top->llhdr,llhdr,sizeof(llhdr));
+    top->hdrs.init(SIP{intf->ip_addr},DIP{remote_ip},
+                   SPORT{local_port},DPORT{remote_port});
 
     return top;
 }
@@ -90,7 +72,7 @@ void
 tcp::socket::post_rst(uint32_t seq_num)
 {
     auto* top = alloc_tx_op();
-    top->format_rst(seq_num);
+    top->hdrs.format(SEQ{seq_num},CTL{FRST});
     post_op(top);
 }
 
@@ -98,15 +80,17 @@ void
 tcp::socket::post_rst_ack(uint32_t ack_num)
 {
     auto* top = alloc_tx_op();
-    top->format_rst_ack(ack_num);
+    top->hdrs.format(SEQ{0},ACK{ack_num},CTL{FRST|FACK});
     post_op(top);
 }
 
 void
-tcp::socket::post_ack(uint32_t seq_num, uint32_t ack_num, uint16_t window_size)
+tcp::socket::post_ack(uint32_t seq_num, uint32_t ack_num, size_t window_size,
+    uint8_t window_shift)
 {
     auto* top = alloc_tx_op();
-    top->format_ack(seq_num,ack_num,window_size);
+    top->hdrs.format(SEQ{seq_num},ACK{ack_num},CTL{FACK},
+                     WS{window_size,window_shift});
     post_op(top);
 }
 
@@ -167,9 +151,9 @@ tcp::socket::handle_listen_syn_recvd(net::rx_page* p)
 {
     auto* h = p->payload_cast<ipv4_tcp_headers*>();
 
-    // Record the remote addressing info.
-    hdrs.ip.dst_ip    = h->ip.src_ip;
-    hdrs.tcp.dst_port = h->tcp.src_port;
+    // Verify the remote addressing info.
+    kassert(remote_ip == h->ip.src_ip);
+    kassert(remote_port == h->tcp.src_port);
 
     // Sort out sequence numbers.
     rcv_nxt = h->tcp.seq_num + 1;
@@ -272,12 +256,8 @@ tcp::socket::handle_listen_syn_recvd(net::rx_page* p)
     }
 
     // Segment(SEQ=ISS,ACK=RCV.NXT,CTL=SYN/ACK)
-    auto* hop                 = alloc_tx_op();
-    hop->hdrs.tcp.seq_num     = iss;
-    hop->hdrs.tcp.ack_num     = rcv_nxt;
-    hop->hdrs.tcp.syn         = 1;
-    hop->hdrs.tcp.ack         = 1;
-    hop->hdrs.tcp.window_size = MIN(rcv_wnd,0xFFFFU);
+    auto* hop = alloc_tx_op();
+    hop->hdrs.format(SEQ{iss},ACK{rcv_nxt},CTL{FSYN|FACK},WS{rcv_wnd,0});
 
     // Add MSS option.
     opt                      = hop->hdrs.tcp.options;
@@ -322,16 +302,16 @@ tcp::socket::dump_socket()
     intf->intf_dbg("%u.%u.%u.%u:%u <-> %u.%u.%u.%u:%u state=%u snd_mss=%u "
                    "snd_window=%u snd_shift=%u rcv_mss=%u rcv_window=%u "
                    "rcv_shift=%u\n",
-                   hdrs.ip.src_ip[0],
-                   hdrs.ip.src_ip[1],
-                   hdrs.ip.src_ip[2],
-                   hdrs.ip.src_ip[3],
-                   (uint16_t)hdrs.tcp.src_port,
-                   hdrs.ip.dst_ip[0],
-                   hdrs.ip.dst_ip[1],
-                   hdrs.ip.dst_ip[2],
-                   hdrs.ip.dst_ip[3],
-                   (uint16_t)hdrs.tcp.dst_port,
+                   intf->ip_addr[0],
+                   intf->ip_addr[1],
+                   intf->ip_addr[2],
+                   intf->ip_addr[3],
+                   local_port,
+                   remote_ip[0],
+                   remote_ip[1],
+                   remote_ip[2],
+                   remote_ip[3],
+                   remote_port,
                    state,
                    snd_mss,
                    snd_wnd,
