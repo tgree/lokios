@@ -66,7 +66,7 @@ rx_syn()
 
 class tmock_test
 {
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_no_listener_connect)
+    TMOCK_TEST(test_no_listener_connect)
     {
         tmock::assert_equiv(rx_syn(),0U);
 

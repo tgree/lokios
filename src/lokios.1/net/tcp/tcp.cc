@@ -141,7 +141,8 @@ tcp::handle_rx_ipv4_tcp_frame(net::interface* intf, net::rx_page* p)
         post_rst(intf,p,h->tcp.ack_num);
     else
     {
-        size_t seg_len = h->ip.total_len - sizeof(h->ip) - 4*h->tcp.offset;
+        size_t seg_len = h->ip.total_len - sizeof(h->ip) - 4*h->tcp.offset +
+                         h->tcp.syn + h->tcp.fin;
         post_rst_ack(intf,p,h->tcp.seq_num + seg_len);
     }
 
