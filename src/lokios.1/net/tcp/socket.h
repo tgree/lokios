@@ -36,15 +36,16 @@ namespace tcp
         };
 
         net::interface*                 intf;
-        tcp::ll_ipv4_tcp_headers        hdrs;
         tcp_state                       state;
         tcp_state                       prev_state;
+        tcp::ll_ipv4_tcp_headers        hdrs;
+        const size_t                    llsize;
 
         // Handlers.
         uint64_t    handle_rx_ipv4_tcp_frame(net::rx_page* p);
 
         // Passive open.
-        socket(net::interface* intf, uint16_t port);
+        socket(net::interface* intf, net::rx_page* p);
     };
 
     struct socket_id

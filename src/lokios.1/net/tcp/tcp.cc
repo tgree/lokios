@@ -123,7 +123,7 @@ tcp::handle_rx_ipv4_tcp_frame(net::interface* intf, net::rx_page* p)
         auto& l = intf->tcp_listeners[dst_port];
         if (l.should_accept(&h->tcp))
         {
-            auto& s        = intf->tcp_sockets.emplace(sid,intf,dst_port);
+            auto& s        = intf->tcp_sockets.emplace(sid,intf,p);
             uint64_t flags = s.handle_rx_ipv4_tcp_frame(p);
             if (s.state != tcp::socket::TCP_LISTEN)
                 l.socket_accepted(&s);

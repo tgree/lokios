@@ -2,16 +2,21 @@
 #include "traits.h"
 #include "net/interface.h"
 
-tcp::socket::socket(net::interface* intf, uint16_t port):
+using kernel::_kassert;
+
+tcp::socket::socket(net::interface* intf, net::rx_page* p):
     intf(intf),
     state(TCP_LISTEN),
-    prev_state(TCP_CLOSED)
+    prev_state(TCP_CLOSED),
+    llsize(intf->format_ll_reply(p,&hdrs.ll,sizeof(hdrs.ll)))
 {
-#if 0
-    hdrs.ll.dst_mac          = eth::net_traits::zero_addr;
-    hdrs.ll.src_mac          = intf->hw_mac;
-    hdrs.ll.ether_type       = ipv4::net_traits::ether_type;
-#endif
+    kassert(llsize <= sizeof(hdrs.ll));
+    uint8_t llh[sizeof(hdrs.ll)];
+    memcpy(llh,hdrs.ll,sizeof(hdrs.ll));
+    memset(hdrs.ll,0xDD,sizeof(hdrs.ll));
+    memcpy(hdrs.ll + sizeof(hdrs.ll) - llsize,llh,llsize);
+
+    auto* sh                 = p->payload_cast<tcp::ipv4_tcp_headers*>();
     hdrs.ip.version_ihl      = 0x45;
     hdrs.ip.dscp_ecn         = 0;
     hdrs.ip.total_len        = sizeof(ipv4::header) + sizeof(tcp::header);
@@ -21,9 +26,9 @@ tcp::socket::socket(net::interface* intf, uint16_t port):
     hdrs.ip.proto            = tcp::net_traits::ip_proto;
     hdrs.ip.header_checksum  = 0;
     hdrs.ip.src_ip           = intf->ip_addr;
-    hdrs.ip.dst_ip           = ipv4::addr{0,0,0,0};
-    hdrs.tcp.src_port        = port;
-    hdrs.tcp.dst_port        = 0;
+    hdrs.ip.dst_ip           = sh->ip.src_ip;
+    hdrs.tcp.src_port        = sh->tcp.dst_port;
+    hdrs.tcp.dst_port        = sh->tcp.src_port;
     hdrs.tcp.seq_num         = 0;
     hdrs.tcp.ack_num         = 0;
     hdrs.tcp.flags_offset    = 0;
