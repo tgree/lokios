@@ -10,87 +10,105 @@
 static kernel::spinlock op_lock;
 static kernel::slab     op_slab(sizeof(tcp::tx_op));
 
-static void
-tcp_reply_cb(net::tx_op* op)
+static tcp::tx_op*
+alloc_reply(net::interface* intf, net::rx_page* p)
 {
-    auto* top = static_cast<tcp::tx_op*>(op);
+    tcp::tx_op* top;
+    with (op_lock)
+    {
+        top = op_slab.alloc<tcp::tx_op>();
+    }
+    top->format_reply(intf,p);
+    return top;
+}
+
+static void
+free_reply(tcp::tx_op* top)
+{
     with (op_lock)
     {
         op_slab.free(top);
     }
 }
 
-tcp::tx_op*
-tcp::alloc_reply(net::interface* intf, net::rx_page* p)
+static void
+tcp_reply_cb(net::tx_op* op)
 {
-    tcp::tx_op* r;
-    with (op_lock)
-    {
-        r = op_slab.alloc<tcp::tx_op>();
-    }
+    free_reply(static_cast<tcp::tx_op*>(op));
+}
 
-    auto* sh                    = p->payload_cast<tcp::ipv4_tcp_headers*>();
-    r->hdrs.ip.version_ihl      = 0x45;
-    r->hdrs.ip.dscp_ecn         = 0;
-    r->hdrs.ip.total_len        = sizeof(ipv4::header) + sizeof(tcp::header);
-    r->hdrs.ip.identification   = kernel::random();
-    r->hdrs.ip.flags_fragoffset = 0x4000;
-    r->hdrs.ip.ttl              = 64;
-    r->hdrs.ip.proto            = tcp::net_traits::ip_proto;
-    r->hdrs.ip.header_checksum  = 0;
-    r->hdrs.ip.src_ip           = sh->ip.dst_ip;
-    r->hdrs.ip.dst_ip           = sh->ip.src_ip;
-    r->hdrs.tcp.src_port        = sh->tcp.dst_port;
-    r->hdrs.tcp.dst_port        = sh->tcp.src_port;
-    r->hdrs.tcp.seq_num         = 0;
-    r->hdrs.tcp.ack_num         = 0;
-    r->hdrs.tcp.flags_offset    = 0x5000;
-    r->hdrs.tcp.window_size     = 0;
-    r->hdrs.tcp.checksum        = 0;
-    r->hdrs.tcp.urgent_pointer  = 0;
+void
+tcp::tx_op::format_reply(net::interface* intf, net::rx_page* p)
+{
+    auto* sh                 = p->payload_cast<tcp::ipv4_tcp_headers*>();
+    hdrs.ip.version_ihl      = 0x45;
+    hdrs.ip.dscp_ecn         = 0;
+    hdrs.ip.total_len        = sizeof(ipv4::header) + sizeof(tcp::header);
+    hdrs.ip.identification   = kernel::random();
+    hdrs.ip.flags_fragoffset = 0x4000;
+    hdrs.ip.ttl              = 64;
+    hdrs.ip.proto            = tcp::net_traits::ip_proto;
+    hdrs.ip.header_checksum  = 0;
+    hdrs.ip.src_ip           = sh->ip.dst_ip;
+    hdrs.ip.dst_ip           = sh->ip.src_ip;
+    hdrs.tcp.src_port        = sh->tcp.dst_port;
+    hdrs.tcp.dst_port        = sh->tcp.src_port;
+    hdrs.tcp.seq_num         = 0;
+    hdrs.tcp.ack_num         = 0;
+    hdrs.tcp.flags_offset    = 0x5000;
+    hdrs.tcp.window_size     = 0;
+    hdrs.tcp.checksum        = 0;
+    hdrs.tcp.urgent_pointer  = 0;
 
     uint8_t llh[16];
     size_t llsize = intf->format_ll_reply(p,llh,sizeof(llh));
-    memcpy(r->hdrs.ll + sizeof(r->hdrs.ll) - llsize,llh,llsize);
+    memcpy(hdrs.ll + sizeof(hdrs.ll) - llsize,llh,llsize);
 
-    r->cb            = kernel::func_delegate(tcp_reply_cb);
-    r->flags         = NTX_FLAG_INSERT_IP_CSUM | NTX_FLAG_INSERT_TCP_CSUM;
-    r->nalps         = 1;
-    r->alps[0].paddr = kernel::virt_to_phys(&r->hdrs.ip) - llsize;
-    r->alps[0].len   = llsize + sizeof(ipv4::header) + sizeof(tcp::header);
-
-    return r;
+    cb            = kernel::func_delegate(tcp_reply_cb);
+    flags         = NTX_FLAG_INSERT_IP_CSUM | NTX_FLAG_INSERT_TCP_CSUM;
+    nalps         = 1;
+    alps[0].paddr = kernel::virt_to_phys(&hdrs.ip) - llsize;
+    alps[0].len   = llsize + sizeof(ipv4::header) + sizeof(tcp::header);
 }
 
 void
-tcp::post_rst(net::interface* intf, net::rx_page* p, uint32_t seq_num)
+tcp::tx_op::format_rst(uint32_t seq_num)
 {
-    auto* r             = tcp::alloc_reply(intf,p);
-    r->hdrs.tcp.seq_num = seq_num;
-    r->hdrs.tcp.rst     = 1;
+    hdrs.tcp.seq_num = seq_num;
+    hdrs.tcp.rst     = 1;
+}
+
+void
+tcp::tx_op::format_rst_ack(uint32_t ack_num)
+{
+    hdrs.tcp.seq_num = 0;
+    hdrs.tcp.ack_num = ack_num;
+    hdrs.tcp.ack     = 1;
+    hdrs.tcp.rst     = 1;
+}
+
+void
+tcp::tx_op::format_ack(uint32_t seq_num, uint32_t ack_num, uint16_t window_size)
+{
+    hdrs.tcp.seq_num     = seq_num;
+    hdrs.tcp.ack_num     = ack_num;
+    hdrs.tcp.ack         = 1;
+    hdrs.tcp.window_size = window_size;
+}
+
+static void
+post_rst(net::interface* intf, net::rx_page* p, uint32_t seq_num)
+{
+    auto* r = alloc_reply(intf,p);
+    r->format_rst(seq_num);
     intf->post_tx_frame(r);
 }
 
-void
-tcp::post_rst_ack(net::interface* intf, net::rx_page* p, uint32_t ack_num)
+static void
+post_rst_ack(net::interface* intf, net::rx_page* p, uint32_t ack_num)
 {
-    auto* r             = tcp::alloc_reply(intf,p);
-    r->hdrs.tcp.seq_num = 0;
-    r->hdrs.tcp.ack_num = ack_num;
-    r->hdrs.tcp.ack     = 1;
-    r->hdrs.tcp.rst     = 1;
-    intf->post_tx_frame(r);
-}
-
-void
-tcp::post_ack(net::interface* intf, net::rx_page* p, uint32_t seq_num,
-    uint32_t ack_num, uint16_t window_size)
-{
-    auto* r                 = tcp::alloc_reply(intf,p);
-    r->hdrs.tcp.seq_num     = seq_num;
-    r->hdrs.tcp.ack_num     = ack_num;
-    r->hdrs.tcp.ack         = 1;
-    r->hdrs.tcp.window_size = window_size;
+    auto* r = alloc_reply(intf,p);
+    r->format_rst_ack(ack_num);
     intf->post_tx_frame(r);
 }
 
