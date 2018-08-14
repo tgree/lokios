@@ -11,6 +11,8 @@
 #define REMOTE_ISS  1234U
 #define REMOTE_WS   4096U
 
+using namespace tcp;
+
 static net::finterface intf(LOCAL_IP);
 
 struct mock_listener
@@ -40,25 +42,9 @@ rx_syn()
     p->pay_len    = sizeof(ipv4::header) + sizeof(tcp::header);
 
     auto* h = p->payload_cast<tcp::ipv4_tcp_headers*>();
-    h->ip.version_ihl      = 0x45;
-    h->ip.dscp_ecn         = 0;
-    h->ip.total_len        = p->pay_len;
-    h->ip.identification   = kernel::random();
-    h->ip.flags_fragoffset = 0x4000;
-    h->ip.ttl              = 64;
-    h->ip.proto            = tcp::net_traits::ip_proto;
-    h->ip.header_checksum  = 0;
-    h->ip.src_ip           = REMOTE_IP;
-    h->ip.dst_ip           = intf.ip_addr;
-    h->tcp.src_port        = REMOTE_PORT;
-    h->tcp.dst_port        = LOCAL_PORT;
-    h->tcp.seq_num         = REMOTE_ISS;
-    h->tcp.ack_num         = 0;
-    h->tcp.flags_offset    = 0x5000;
-    h->tcp.window_size     = REMOTE_WS;
-    h->tcp.checksum        = 0;
-    h->tcp.urgent_pointer  = 0;
-    h->tcp.syn             = 1;
+    h->init(SIP{REMOTE_IP},DIP{intf.ip_addr},SPORT{REMOTE_PORT},
+            DPORT{LOCAL_PORT},SEQ{REMOTE_ISS},CTL{FSYN});
+    h->tcp.window_size = REMOTE_WS;
 
     return intf.handle_rx_page(p);
 }
