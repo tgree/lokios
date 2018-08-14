@@ -1,6 +1,5 @@
 #include "../socket.h"
 #include "../traits.h"
-#include "../tcp.h"
 #include "net/mock/finterface.h"
 #include "k++/random.h"
 #include <tmock/tmock.h>
@@ -90,6 +89,61 @@ class tmock_test
         tmock::assert_equiv(op->hdrs.tcp.urgent_pointer,0U);
         tmock::assert_equiv((op->hdrs.tcp.flags_offset & 0x0FFF),0x0014U);
         tmock::assert_equiv(op->hdrs.tcp.offset,5U);
+        intf.handle_tx_completion(op);
+    }
+
+    TMOCK_TEST(test_passive_connect)
+    {
+        mock_listener ml;
+        ml.listen(LOCAL_PORT);
+
+        tcp::socket* s = NULL;
+        texpect("mock_listener::socket_accepted",capture(s,(uintptr_t*)&s));
+        tmock::assert_equiv(rx_syn(),0U);
+
+        // We should set:
+        //  RCV.NXT = SEG.SEQ+1
+        //  IRS     = SEG.SEQ
+        tmock::assert_equiv(s->state,tcp::socket::TCP_SYN_RECVD);
+        tmock::assert_equiv(s->snd_una,s->iss);
+        tmock::assert_equiv(s->snd_nxt,s->iss+1U);
+        tmock::assert_equiv(s->snd_wnd,REMOTE_WS);
+        tmock::assert_equiv(s->snd_wnd_shift,0);
+        tmock::assert_equiv(s->rcv_nxt,REMOTE_ISS+1);
+        tmock::assert_equiv(s->rcv_wnd,MAX_RX_WINDOW);
+        tmock::assert_equiv(s->rcv_wnd_shift,0);
+        tmock::assert_equiv(s->rcv_mss,1460U);
+        tmock::assert_equiv(s->irs,REMOTE_ISS);
+        tmock::assert_equiv(s->hdrs.ip.src_ip,LOCAL_IP);
+        tmock::assert_equiv(s->hdrs.ip.dst_ip,REMOTE_IP);
+        tmock::assert_equiv(s->hdrs.tcp.src_port,LOCAL_PORT);
+        tmock::assert_equiv(s->hdrs.tcp.dst_port,REMOTE_PORT);
+
+        // We should send:
+        //  <SEQ=ISS><ACK=RCV.NXT><CTL=SYN,ACK>
+        auto* op = static_cast<tcp::tx_op*>(intf.pop_tx_op());
+        tmock::assert_equiv(op->hdrs.ip.version_ihl,0x45U);
+        tmock::assert_equiv(op->hdrs.ip.dscp_ecn,0U);
+        tmock::assert_equiv((size_t)op->hdrs.ip.total_len,
+                            sizeof(ipv4::header) + op->hdrs.tcp.offset*4);
+        tmock::assert_equiv(op->hdrs.ip.flags_fragoffset,0x4000U);
+        tmock::assert_equiv(op->hdrs.ip.ttl,64U);
+        tmock::assert_equiv(op->hdrs.ip.proto,tcp::net_traits::ip_proto);
+        tmock::assert_equiv(op->hdrs.ip.src_ip,LOCAL_IP);
+        tmock::assert_equiv(op->hdrs.ip.dst_ip,REMOTE_IP);
+        tmock::assert_equiv(op->hdrs.tcp.src_port,LOCAL_PORT);
+        tmock::assert_equiv(op->hdrs.tcp.dst_port,REMOTE_PORT);
+        tmock::assert_equiv((uint32_t)op->hdrs.tcp.seq_num,s->iss);
+        tmock::assert_equiv((uint32_t)op->hdrs.tcp.ack_num,REMOTE_ISS+1);
+        tmock::assert_equiv(op->hdrs.tcp.window_size,0xFFFFU);
+        tmock::assert_equiv(op->hdrs.tcp.urgent_pointer,0U);
+        tmock::assert_equiv((op->hdrs.tcp.flags_offset & 0x0FFF),0x0012U);
+        tmock::assert_equiv(op->hdrs.tcp.offset,6U);
+
+        uint8_t* opt = op->hdrs.tcp.options;
+        tmock::assert_equiv(opt[0],2U);
+        tmock::assert_equiv(opt[1],4U);
+        tmock::assert_equiv(*(be_uint16_t*)(opt + 2),1460U);
         intf.handle_tx_completion(op);
     }
 };

@@ -6,6 +6,10 @@
 #include "mm/slab.h"
 #include "k++/delegate.h"
 
+// Socket parameters.
+#define MAX_RX_WINDOW           0x01FFFFFF  // 32M
+#define RX_WINDOW_SHIFT         9
+
 namespace net
 {
     struct interface;
@@ -34,6 +38,7 @@ namespace tcp
         {
             TCP_CLOSED,
             TCP_LISTEN,
+            TCP_SYN_RECVD,
         };
 
         net::interface*                 intf;
@@ -77,6 +82,7 @@ namespace tcp
         // Handlers.
         void        handle_retransmit_expiry(kernel::timer_entry* wqe);
         uint64_t    handle_rx_ipv4_tcp_frame(net::rx_page* p);
+        uint64_t    handle_listen_syn_recvd(net::rx_page* p);
 
         // Helpers.
         void        dump_socket();
