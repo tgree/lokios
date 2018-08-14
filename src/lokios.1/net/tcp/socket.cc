@@ -64,6 +64,47 @@ tcp::socket::free_tx_op(tcp::tx_op* top)
 }
 
 void
+tcp::socket::post_op(tcp::tx_op* top)
+{
+    top->cb = method_delegate(send_complete);
+    posted_ops.push_back(&top->tcp_link);
+    intf->post_tx_frame(top);
+}
+
+void
+tcp::socket::post_rst(uint32_t seq_num)
+{
+    auto* top = alloc_tx_op();
+    top->format_rst(seq_num);
+    post_op(top);
+}
+
+void
+tcp::socket::post_rst_ack(uint32_t ack_num)
+{
+    auto* top = alloc_tx_op();
+    top->format_rst_ack(ack_num);
+    post_op(top);
+}
+
+void
+tcp::socket::post_ack(uint32_t seq_num, uint32_t ack_num, uint16_t window_size)
+{
+    auto* top = alloc_tx_op();
+    top->format_ack(seq_num,ack_num,window_size);
+    post_op(top);
+}
+
+void
+tcp::socket::send_complete(net::tx_op* nop)
+{
+    auto* top = static_cast<tcp::tx_op*>(nop);
+    kassert(klist_front(posted_ops,tcp_link) == top);
+    posted_ops.pop_front();
+    free_tx_op(top);
+}
+
+void
 tcp::socket::handle_retransmit_expiry(kernel::timer_entry*)
 {
     kernel::panic("unexpected retransmit timer expiry");

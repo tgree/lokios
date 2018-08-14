@@ -15,6 +15,7 @@ namespace tcp
 {
     struct tx_op : public net::tx_op
     {
+        kernel::klink       tcp_link;
         ll_ipv4_tcp_headers hdrs;
         uint8_t             options[MAX_TX_OPTIONS_SIZE];
 
