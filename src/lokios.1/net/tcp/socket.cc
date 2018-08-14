@@ -3,6 +3,19 @@
 #include "net/interface.h"
 #include "k++/random.h"
 
+#define DEBUG_TRANSITIONS 1
+
+#if DEBUG_TRANSITIONS
+#define TRANSITION(s) \
+    do                                                                   \
+    {                                                                    \
+        intf->intf_dbg("%s:%u: %u -> " #s "\n",__FILE__,__LINE__,state); \
+        state = (s);                                                     \
+    } while(0)
+#else
+#define TRANSITION(s) state = (s)
+#endif
+
 using kernel::_kassert;
 
 tcp::socket::socket(net::interface* intf, net::rx_page* p):
