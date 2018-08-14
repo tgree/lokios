@@ -47,6 +47,21 @@ namespace tcp
         kernel::klist<tcp::tx_op>       posted_ops;
         kernel::timer_entry             retransmit_wqe;
 
+        // Send sequence variables.
+        uint32_t                        snd_una;
+        uint32_t                        snd_nxt;
+        uint32_t                        snd_wnd;
+        uint16_t                        snd_mss;
+        uint8_t                         snd_wnd_shift;
+        uint32_t                        iss;
+
+        // Receive sequence variables.
+        uint32_t                        rcv_nxt;
+        uint32_t                        rcv_wnd;
+        uint8_t                         rcv_wnd_shift;
+        uint16_t                        rcv_mss;
+        uint32_t                        irs;
+
         // Allocate send ops.
         tcp::tx_op* alloc_tx_op();
         void free_tx_op(tcp::tx_op* top);
