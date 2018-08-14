@@ -20,6 +20,7 @@ namespace tmock
         {
             ARGUMENT,
             RETURN_VALUE,
+            CAPTURE,
         } type;
 
         union
@@ -30,6 +31,12 @@ namespace tmock
             {
                 uintptr_t value;
             } return_value;
+
+            struct
+            {
+                const char* name;
+                uintptr_t* dst;
+            } capture_arg;
         };
     };
 
@@ -68,6 +75,9 @@ namespace tmock
 #define returns(val) \
     tmock::constraint{tmock::constraint::RETURN_VALUE, \
                       {.return_value = {(uintptr_t)val}}}
+#define capture(name,dst) \
+    tmock::constraint{tmock::constraint::CAPTURE, \
+                      {.capture_arg = {#name,dst}}}
 #define texpect(fname,...) \
     do { \
         constexpr size_t nc = sizeof((tmock::constraint[]){__VA_ARGS__})/ \

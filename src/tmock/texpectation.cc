@@ -61,6 +61,14 @@ tmock::_mock_call(const char* fname, const call* mc)
             case constraint::RETURN_VALUE:
                 rv = c->return_value.value;
             break;
+
+            case constraint::CAPTURE:
+            {
+                auto* pc = mc->find_arg(c->capture_arg.name);
+                TASSERT(pc != NULL);
+                *c->capture_arg.dst = pc->value;
+            }
+            break;
         }
     }
 
