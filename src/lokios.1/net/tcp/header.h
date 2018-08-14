@@ -45,7 +45,7 @@ namespace tcp
 
     struct ll_ipv4_tcp_headers
     {
-        uint8_t         ll[64];
+        uint8_t         ll[16];
         ipv4::header    ip;
         tcp::header     tcp;
     } __PACKED__;
