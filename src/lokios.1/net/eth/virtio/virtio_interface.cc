@@ -35,7 +35,13 @@ virtio_net::interface::post_tx_frame(net::tx_op* op)
 {
 #if DUMP_TX_PACKETS
     kernel::console::printf("Transmitting packet:\n");
-    kernel::console::hexdump((void*)op->alps[0].paddr,op->alps[0].len,0);
+    size_t offset = 0;
+    for (size_t i=0; i<op->nalps; ++i)
+    {
+        kernel::console::hexdump(kernel::phys_to_virt(op->alps[i].paddr),
+                                 op->alps[i].len,offset);
+        offset += op->alps[i].len;
+    }
 #endif
     eth::insert_checksums(op);
     vdev->post_tx_frame(op);
