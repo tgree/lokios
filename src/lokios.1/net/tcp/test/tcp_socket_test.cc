@@ -63,6 +63,29 @@ rx_syn()
     return intf.handle_rx_page(p);
 }
 
+static void
+validate_tx_op(const tcp::tx_op* op, uint32_t seq_num, uint32_t ack_num,
+    uint16_t window_size, uint16_t flags, uint8_t offset = 5)
+{
+    tmock::assert_equiv(op->hdrs.ip.version_ihl,0x45U);
+    tmock::assert_equiv(op->hdrs.ip.dscp_ecn,0U);
+    tmock::assert_equiv((size_t)op->hdrs.ip.total_len,
+                        sizeof(ipv4::header) + op->hdrs.tcp.offset*4);
+    tmock::assert_equiv(op->hdrs.ip.flags_fragoffset,0x4000U);
+    tmock::assert_equiv(op->hdrs.ip.ttl,64U);
+    tmock::assert_equiv(op->hdrs.ip.proto,tcp::net_traits::ip_proto);
+    tmock::assert_equiv(op->hdrs.ip.src_ip,LOCAL_IP);
+    tmock::assert_equiv(op->hdrs.ip.dst_ip,REMOTE_IP);
+    tmock::assert_equiv(op->hdrs.tcp.src_port,LOCAL_PORT);
+    tmock::assert_equiv(op->hdrs.tcp.dst_port,REMOTE_PORT);
+    tmock::assert_equiv((uint32_t)op->hdrs.tcp.seq_num,seq_num);
+    tmock::assert_equiv((uint32_t)op->hdrs.tcp.ack_num,ack_num);
+    tmock::assert_equiv(op->hdrs.tcp.window_size,window_size);
+    tmock::assert_equiv(op->hdrs.tcp.urgent_pointer,0U);
+    tmock::assert_equiv((uint16_t)(op->hdrs.tcp.flags_offset & 0x0FFF),flags);
+    tmock::assert_equiv((uint8_t)op->hdrs.tcp.offset,offset);
+}
+
 class tmock_test
 {
     TMOCK_TEST(test_no_listener_connect)
@@ -72,23 +95,7 @@ class tmock_test
         // We should send:
         //  <SEQ=0><ACK=SEG.SEQ+SEG.LEN><CTL=RST,ACK>
         auto* op = static_cast<tcp::tx_op*>(intf.pop_tx_op());
-        tmock::assert_equiv(op->hdrs.ip.version_ihl,0x45U);
-        tmock::assert_equiv(op->hdrs.ip.dscp_ecn,0U);
-        tmock::assert_equiv((size_t)op->hdrs.ip.total_len,
-                            sizeof(ipv4::header) + op->hdrs.tcp.offset*4);
-        tmock::assert_equiv(op->hdrs.ip.flags_fragoffset,0x4000U);
-        tmock::assert_equiv(op->hdrs.ip.ttl,64U);
-        tmock::assert_equiv(op->hdrs.ip.proto,tcp::net_traits::ip_proto);
-        tmock::assert_equiv(op->hdrs.ip.src_ip,LOCAL_IP);
-        tmock::assert_equiv(op->hdrs.ip.dst_ip,REMOTE_IP);
-        tmock::assert_equiv(op->hdrs.tcp.src_port,LOCAL_PORT);
-        tmock::assert_equiv(op->hdrs.tcp.dst_port,REMOTE_PORT);
-        tmock::assert_equiv((uint32_t)op->hdrs.tcp.seq_num,0U);
-        tmock::assert_equiv((uint32_t)op->hdrs.tcp.ack_num,REMOTE_ISS+1);
-        tmock::assert_equiv(op->hdrs.tcp.window_size,0U);
-        tmock::assert_equiv(op->hdrs.tcp.urgent_pointer,0U);
-        tmock::assert_equiv((op->hdrs.tcp.flags_offset & 0x0FFF),0x0014U);
-        tmock::assert_equiv(op->hdrs.tcp.offset,5U);
+        validate_tx_op(op,0,REMOTE_ISS+1,0,0x0014);
         intf.handle_tx_completion(op);
     }
 
@@ -122,23 +129,7 @@ class tmock_test
         // We should send:
         //  <SEQ=ISS><ACK=RCV.NXT><CTL=SYN,ACK>
         auto* op = static_cast<tcp::tx_op*>(intf.pop_tx_op());
-        tmock::assert_equiv(op->hdrs.ip.version_ihl,0x45U);
-        tmock::assert_equiv(op->hdrs.ip.dscp_ecn,0U);
-        tmock::assert_equiv((size_t)op->hdrs.ip.total_len,
-                            sizeof(ipv4::header) + op->hdrs.tcp.offset*4);
-        tmock::assert_equiv(op->hdrs.ip.flags_fragoffset,0x4000U);
-        tmock::assert_equiv(op->hdrs.ip.ttl,64U);
-        tmock::assert_equiv(op->hdrs.ip.proto,tcp::net_traits::ip_proto);
-        tmock::assert_equiv(op->hdrs.ip.src_ip,LOCAL_IP);
-        tmock::assert_equiv(op->hdrs.ip.dst_ip,REMOTE_IP);
-        tmock::assert_equiv(op->hdrs.tcp.src_port,LOCAL_PORT);
-        tmock::assert_equiv(op->hdrs.tcp.dst_port,REMOTE_PORT);
-        tmock::assert_equiv((uint32_t)op->hdrs.tcp.seq_num,s->iss);
-        tmock::assert_equiv((uint32_t)op->hdrs.tcp.ack_num,REMOTE_ISS+1);
-        tmock::assert_equiv(op->hdrs.tcp.window_size,0xFFFFU);
-        tmock::assert_equiv(op->hdrs.tcp.urgent_pointer,0U);
-        tmock::assert_equiv((op->hdrs.tcp.flags_offset & 0x0FFF),0x0012U);
-        tmock::assert_equiv(op->hdrs.tcp.offset,6U);
+        validate_tx_op(op,s->iss,REMOTE_ISS+1,0xFFFF,0x0012,6);
 
         uint8_t* opt = op->hdrs.tcp.options;
         tmock::assert_equiv(opt[0],2U);
