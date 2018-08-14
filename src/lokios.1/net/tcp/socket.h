@@ -1,8 +1,9 @@
 #ifndef __KERNEL_NET_TCP_SOCKET_H
 #define __KERNEL_NET_TCP_SOCKET_H
 
-#include "header.h"
+#include "tcp.h"
 #include "net/ip/ip.h"
+#include "mm/slab.h"
 #include "k++/delegate.h"
 
 namespace net
@@ -40,6 +41,14 @@ namespace tcp
         tcp_state                       prev_state;
         tcp::ll_ipv4_tcp_headers        hdrs;
         const size_t                    llsize;
+
+        // Send queue.
+        kernel::slab                    tx_ops_slab;
+        kernel::klist<tcp::tx_op>       posted_ops;
+
+        // Allocate send ops.
+        tcp::tx_op* alloc_tx_op();
+        void free_tx_op(tcp::tx_op* top);
 
         // Handlers.
         uint64_t    handle_rx_ipv4_tcp_frame(net::rx_page* p);
