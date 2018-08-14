@@ -87,6 +87,7 @@ namespace net
         static  bool    tcp_always_accept(const tcp::header*) {return true;}
         tcp::socket*    tcp_connect(ipv4::addr remote_ip, uint16_t remote_port,
                                     tcp::socket_connect_delegate scd);
+                void    tcp_delete(tcp::socket* s);
 
         // Rx page management.
         inline  rx_page*    alloc_rx_page() {return new rx_page;}

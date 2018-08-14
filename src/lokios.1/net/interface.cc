@@ -98,6 +98,15 @@ net::interface::tcp_connect(ipv4::addr remote_ip, uint16_t remote_port,
 }
 
 void
+net::interface::tcp_delete(tcp::socket* s)
+{
+    intf_dbg("deleting socket\n");
+    if (s->local_port >= FIRST_EPHEMERAL_PORT)
+        tcp_ephemeral_ports.emplace_back(s->local_port);
+    tcp_sockets.erase_value(s);
+}
+
+void
 net::interface::activate()
 {
     // Post receive buffers.
