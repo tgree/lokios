@@ -31,7 +31,7 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p):
     hdrs.tcp.dst_port        = sh->tcp.src_port;
     hdrs.tcp.seq_num         = 0;
     hdrs.tcp.ack_num         = 0;
-    hdrs.tcp.flags_offset    = 0;
+    hdrs.tcp.flags_offset    = 0x5000;
     hdrs.tcp.window_size     = 0;
     hdrs.tcp.checksum        = 0;
     hdrs.tcp.urgent_pointer  = 0;
