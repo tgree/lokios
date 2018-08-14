@@ -1,11 +1,32 @@
 #ifndef __KERNEL_NET_TCP_HEADER_H
 #define __KERNEL_NET_TCP_HEADER_H
 
+#include "traits.h"
 #include "net/net.h"
 #include "net/ip/ip.h"
+#include "k++/random.h"
 
 namespace tcp
 {
+    static constexpr uint16_t FFIN = (1<<0);
+    static constexpr uint16_t FSYN = (1<<1);
+    static constexpr uint16_t FRST = (1<<2);
+    static constexpr uint16_t FPSH = (1<<3);
+    static constexpr uint16_t FACK = (1<<4);
+    static constexpr uint16_t FURG = (1<<5);
+    static constexpr uint16_t FECE = (1<<6);
+    static constexpr uint16_t FCWR = (1<<7);
+    static constexpr uint16_t FNS  = (1<<8);
+
+    struct SEQ   {uint32_t seq_num;};
+    struct ACK   {uint32_t ack_num;};
+    struct CTL   {uint16_t flags;};
+    struct SIP   {ipv4::addr ip;};
+    struct DIP   {ipv4::addr ip;};
+    struct SPORT {uint16_t port;};
+    struct DPORT {uint16_t port;};
+    struct WS    {size_t window_size; uint8_t window_shift;};
+
     struct header
     {
         be_uint16_t src_port;
@@ -34,6 +55,54 @@ namespace tcp
         be_uint16_t checksum;
         be_uint16_t urgent_pointer;
         uint8_t options[0];
+
+        inline void _format(SEQ s)   {seq_num  = s.seq_num;}
+        inline void _format(ACK a)   {ack_num  = a.ack_num;}
+        inline void _format(SPORT p) {src_port = p.port;}
+        inline void _format(DPORT p) {dst_port = p.port;}
+
+        inline void _format(CTL c)
+        {
+            flags_offset = ((flags_offset & 0xF000) | c.flags);
+        }
+
+        inline void _format(WS ws)
+        {
+            kernel::kassert(ws.window_shift <= 14);
+            window_size = MIN(ws.window_size >> ws.window_shift,0xFFFFUL);
+        }
+
+        template<typename T, typename ...Args>
+        inline void _format(T arg0, Args... args)
+        {
+            _format(arg0);
+            _format(args...);
+        }
+
+        template<typename ...Args>
+        inline void format(Args... args)
+        {
+            _format(args...);
+        }
+
+        inline void _init()
+        {
+            src_port        = 0;
+            dst_port        = 0;
+            seq_num         = 0;
+            ack_num         = 0;
+            flags_offset    = 0x5000;
+            window_size     = 0;
+            checksum        = 0;
+            urgent_pointer  = 0;
+        }
+
+        template<typename ...Args>
+        inline void init(Args... args)
+        {
+            _init();
+            format(args...);
+        }
     } __PACKED__;
     KASSERT(sizeof(header) == 20);
 
@@ -42,6 +111,49 @@ namespace tcp
         ipv4::header    ip;
         tcp::header     tcp;
 
+        inline void _format(SIP i) {ip.src_ip = i.ip;}
+        inline void _format(DIP i) {ip.dst_ip = i.ip;}
+
+        template<typename T>
+        inline void _format(T t)
+        {
+            tcp._format(t);
+        }
+
+        template<typename T, typename ...Args>
+        inline void _format(T arg0, Args... args)
+        {
+            _format(arg0);
+            _format(args...);
+        }
+
+        template<typename ...Args>
+        inline void format(Args... args)
+        {
+            _format(args...);
+        }
+
+        inline void _init()
+        {
+            ip.version_ihl      = 0x45;
+            ip.dscp_ecn         = 0;
+            ip.total_len        = sizeof(ipv4::header) + sizeof(tcp::header);
+            ip.identification   = kernel::random(0,0xFFFF);
+            ip.flags_fragoffset = 0x4000;
+            ip.ttl              = 64;
+            ip.proto            = tcp::net_traits::ip_proto;
+            ip.header_checksum  = 0;
+            ip.src_ip           = ipv4::addr{0,0,0,0};
+            ip.dst_ip           = ipv4::addr{0,0,0,0};
+            tcp._init();
+        }
+
+        template<typename ...Args>
+        inline void init(Args... args)
+        {
+            _init();
+            format(args...);
+        }
     } __PACKED__;
 
     // Sequence number 0 is ordered against all other sequence numbers as
