@@ -45,12 +45,14 @@ namespace tcp
         // Send queue.
         kernel::slab                    tx_ops_slab;
         kernel::klist<tcp::tx_op>       posted_ops;
+        kernel::timer_entry             retransmit_wqe;
 
         // Allocate send ops.
         tcp::tx_op* alloc_tx_op();
         void free_tx_op(tcp::tx_op* top);
 
         // Handlers.
+        void        handle_retransmit_expiry(kernel::timer_entry* wqe);
         uint64_t    handle_rx_ipv4_tcp_frame(net::rx_page* p);
 
         // Passive open.

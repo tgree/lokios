@@ -18,6 +18,9 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p):
     memset(hdrs.ll,0xDD,sizeof(hdrs.ll));
     memcpy(hdrs.ll + sizeof(hdrs.ll) - llsize,llh,llsize);
 
+    retransmit_wqe.fn      = timer_delegate(handle_retransmit_expiry);
+    retransmit_wqe.args[0] = (uint64_t)this;
+
     auto* sh                 = p->payload_cast<tcp::ipv4_tcp_headers*>();
     hdrs.ip.version_ihl      = 0x45;
     hdrs.ip.dscp_ecn         = 0;
@@ -58,6 +61,12 @@ void
 tcp::socket::free_tx_op(tcp::tx_op* top)
 {
     tx_ops_slab.free(top);
+}
+
+void
+tcp::socket::handle_retransmit_expiry(kernel::timer_entry*)
+{
+    kernel::panic("unexpected retransmit timer expiry");
 }
 
 uint64_t
