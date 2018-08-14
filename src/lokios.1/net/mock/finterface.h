@@ -10,7 +10,8 @@ namespace net
         kernel::klist<net::tx_op>   posted_ops;
         kernel::klist<net::rx_page> posted_pages;
 
-        virtual size_t  format_ll_reply(net::rx_page* p, void* reply_payload);
+        virtual size_t  format_ll_reply(net::rx_page* p, void* ll_hdr,
+                                        size_t ll_hdr_len);
         virtual size_t  format_arp_broadcast(void* arp_payload);
         virtual void    post_tx_frame(net::tx_op* op);
         virtual void    post_rx_pages(kernel::klist<net::rx_page>& pages);

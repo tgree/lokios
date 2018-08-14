@@ -190,7 +190,10 @@ namespace arp
                 serv(serv)
             {
                 auto* h = p->payload_cast<arp_frame*>();
-                serv->intf->format_ll_reply(p,&frame.hdr);
+                kernel::kassert(
+                    serv->intf->format_ll_reply(p,&frame.llhdr,
+                                                sizeof(frame.llhdr)) ==
+                    sizeof(frame.llhdr));
                 frame.hdr.htype     = h->hdr.htype;
                 frame.hdr.ptype     = h->hdr.ptype;
                 frame.hdr.hlen      = h->hdr.hlen;

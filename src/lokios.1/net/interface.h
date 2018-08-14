@@ -46,35 +46,14 @@ namespace net
             va_end(ap);
         }
 
-        // Format the link-layer part of a reply packet.  It's assumed that in
+        // Format the link-layer header of a reply packet.  It's assumed that in
         // the rx_page parameter we've received some sort of packet (of
         // unspecified type, but it includes a link-layer header) that we need
-        // to format a reply to.
-        //
-        // Furthermore, it's assumed that you have some sort of payload after
-        // the link-layer header that you want to transmit; the address of that
-        // payload is what's passed in via the payload pointer.
-        //
-        // For instance, for an ipv4 packet you might have something like:
-        //
-        //      struct packet
-        //      {
-        //          uint8_t         ll[64];
-        //          ipv4::header    ip;
-        //          ...
-        //      };
-        //
-        // In this example, the payload pointer would be set to the address of
-        // the ipv4 header and we've provided up to 64 bytes before the ip
-        // header to hold the link-layer header.  The net::interface subclass
-        // will prefix the payload with an appropriate-sized link-layer header
-        // and return the header size (since it may not use the full 64 bytes -
-        // i.e. Ethernet only uses 12 bytes).
-        // 
-        // Finally, it's assumed that the rx_page you are replying to is in the
-        // link-layer-stripped form.
-        virtual size_t  format_ll_reply(net::rx_page* p, 
-                                        void* reply_payload) = 0;
+        // to format a reply to.  It's also assumed that the rx_page you are
+        // replying to is in the link-layer-stripped form.  Returns the actual
+        // length of the link-layer header.
+        virtual size_t  format_ll_reply(net::rx_page* p, void* ll_hdr,
+                                        size_t ll_hdr_len) = 0;
 
         // Format an ARP request's link-layer header.  This will be a broadcast
         // packet of some sort.  This works similarly to format_ll_reply where

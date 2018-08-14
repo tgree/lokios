@@ -21,7 +21,8 @@ net::finterface::~finterface()
 }
 
 size_t
-net::finterface::format_ll_reply(net::rx_page* p, void* reply_payload)
+net::finterface::format_ll_reply(net::rx_page* p, void* ll_hdr,
+    size_t ll_hdr_len)
 {
     return 0;
 }

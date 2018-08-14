@@ -19,9 +19,10 @@ eth::interface::~interface()
 }
 
 size_t
-eth::interface::format_ll_reply(net::rx_page* p, void* reply)
+eth::interface::format_ll_reply(net::rx_page* p, void* ll_hdr,
+    size_t ll_hdr_len)
 {
-    return (size_t)mock("eth::interface::format_ll_reply",p,reply);
+    return (size_t)mock("eth::interface::format_ll_reply",p,ll_hdr,ll_hdr_len);
 }
 
 size_t

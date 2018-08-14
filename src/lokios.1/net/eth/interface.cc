@@ -38,15 +38,18 @@ eth::interface::~interface()
 }
 
 size_t
-eth::interface::format_ll_reply(net::rx_page* p, void* reply)
+eth::interface::format_ll_reply(net::rx_page* p, void* ll_hdr,
+    size_t ll_hdr_len)
 {
+    kassert(ll_hdr_len >= sizeof(eth::header));
+
     // Unstrip the rx_page to find the request header.
     auto* h = p->llhdr_cast<eth::header*>();
     kassert(h->dst_mac == hw_mac ||
             h->dst_mac == eth::net_traits::broadcast_addr);
     
     // Format the reply header.
-    auto* rh       = (eth::header*)((char*)reply - sizeof(eth::header));
+    auto* rh       = (eth::header*)ll_hdr;
     rh->src_mac    = hw_mac;
     rh->dst_mac    = h->src_mac;
     rh->ether_type = h->ether_type;

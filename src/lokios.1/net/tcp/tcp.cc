@@ -49,7 +49,10 @@ tcp::alloc_reply(net::interface* intf, net::rx_page* p)
     r->hdrs.tcp.checksum        = 0;
     r->hdrs.tcp.urgent_pointer  = 0;
 
-    size_t llsize    = intf->format_ll_reply(p,&r->hdrs.ip);
+    uint8_t llh[16];
+    size_t llsize = intf->format_ll_reply(p,llh,sizeof(llh));
+    memcpy(r->hdrs.ll + sizeof(r->hdrs.ll) - llsize,llh,llsize);
+
     r->cb            = kernel::func_delegate(tcp_reply_cb);
     r->flags         = NTX_FLAG_INSERT_IP_CSUM | NTX_FLAG_INSERT_TCP_CSUM;
     r->nalps         = 1;
