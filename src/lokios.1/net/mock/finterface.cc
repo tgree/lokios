@@ -79,3 +79,59 @@ net::finterface::handle_rx_page(net::rx_page* p)
     refill_rx_pages();
     return flags;
 }
+
+static void
+copy_top_to_rxp(const net::tx_op* op, net::rx_page* rp)
+{
+    rp->pay_offset = 0;
+    rp->pay_len    = 0;
+    uint8_t* p     = rp->payload;
+    for (size_t i=0; i<op->nalps; ++i)
+    {
+        auto* alp = &op->alps[i];
+        memcpy(p,kernel::phys_to_virt(alp->paddr),alp->len);
+        p           += alp->len;
+        rp->pay_len += alp->len;
+    }
+}
+
+net::fpipe::fpipe(finterface* intf0, finterface* intf1)
+{
+    intfs[0] = intf0;
+    intfs[1] = intf1;
+}
+
+size_t
+net::fpipe::process_queues()
+{
+    size_t npackets = 0;
+
+    kernel::klist<net::tx_op> posted_ops[2];
+    posted_ops[0].append(intfs[0]->posted_ops);
+    posted_ops[1].append(intfs[1]->posted_ops);
+
+    while (!posted_ops[0].empty() || !posted_ops[1].empty())
+    {
+        if (!posted_ops[0].empty())
+        {
+            auto* rp = intfs[1]->pop_rx_page();
+            auto* op = klist_front(posted_ops[0],link);
+            posted_ops[0].pop_front();
+            copy_top_to_rxp(op,rp);
+            intfs[1]->handle_rx_page(rp);
+            ++npackets;
+        }
+
+        if (!posted_ops[1].empty())
+        {
+            auto* rp = intfs[0]->pop_rx_page();
+            auto* op = klist_front(posted_ops[1],link);
+            posted_ops[1].pop_front();
+            copy_top_to_rxp(op,rp);
+            intfs[0]->handle_rx_page(rp);
+            ++npackets;
+        }
+    }
+
+    return npackets;
+}

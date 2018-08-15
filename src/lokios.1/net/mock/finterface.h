@@ -24,6 +24,15 @@ namespace net
         finterface(ipv4::addr ip_addr);
         virtual ~finterface();
     };
+
+    struct fpipe
+    {
+        finterface* intfs[2];
+
+        size_t  process_queues();
+
+        fpipe(finterface* intf0, finterface* intf1);
+    };
 }
 
 #endif /* __KERNEL_NET_MOCK_FINTERFACE_H */
