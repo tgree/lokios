@@ -116,11 +116,11 @@ uint64_t
 tcp::handle_rx_ipv4_tcp_frame(net::interface* intf, net::rx_page* p)
 {
     // Sanity on the packet.
-    if (p->pay_len < sizeof(ipv4_tcp_headers))
+    auto* h = p->payload_cast<ipv4_tcp_headers*>();
+    if (h->ip.total_len < sizeof(ipv4_tcp_headers))
         return 0;
 
     // We only handle unicast TCP packets.
-    auto* h = p->payload_cast<ipv4_tcp_headers*>();
     if (h->ip.dst_ip != intf->ip_addr)
         return 0;
 
