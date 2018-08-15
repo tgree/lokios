@@ -193,6 +193,15 @@ namespace kernel
     size_t buddy_count_free();
 
     void buddy_init(dma_addr64 dma_base, size_t len);
+
+    template<size_t Order>
+    struct buddy_block
+    {
+        static constexpr const size_t len = (PAGE_SIZE << Order);
+        void* const addr;
+        buddy_block():addr(buddy_alloc(Order)) {}
+        ~buddy_block() {buddy_free(addr,Order);}
+    };
 }
 
 #endif /* __MM_BUDDY_ALLOCATOR_H */
