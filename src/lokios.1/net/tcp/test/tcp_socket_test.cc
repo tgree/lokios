@@ -107,6 +107,17 @@ class tmock_test
         intf.handle_tx_completion(op);
     }
 
+    TMOCK_TEST(test_no_listener_ack)
+    {
+        tmock::assert_equiv(rx_packet(SEQ{12345},ACK{67890},CTL{FACK}),0U);
+
+        // We should send:
+        //  <SEQ=SEG.ACK><CTL=RST>
+        auto* op = static_cast<tcp::tx_op*>(intf.pop_tx_op());
+        validate_tx_op(op,67890,0,0,FRST);
+        intf.handle_tx_completion(op);
+    }
+
     TMOCK_TEST(test_passive_connect)
     {
         mock_listener ml;
