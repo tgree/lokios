@@ -85,6 +85,8 @@ namespace net
                                     kernel::func_delegate(tcp_always_accept));
                 void    tcp_ignore(uint16_t port);
         static  bool    tcp_always_accept(const tcp::header*) {return true;}
+        tcp::socket*    tcp_connect(ipv4::addr remote_ip, uint16_t remote_port,
+                                    tcp::socket_connect_delegate scd);
 
         // Rx page management.
         inline  rx_page*    alloc_rx_page() {return new rx_page;}
