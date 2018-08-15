@@ -169,8 +169,8 @@ tcp::socket::handle_listen_syn_recvd(net::rx_page* p)
     kassert(remote_port == h->tcp.src_port);
 
     // Sort out sequence numbers.
-    rcv_nxt = h->tcp.seq_num + 1;
     irs     = h->tcp.seq_num;
+    rcv_nxt = irs + 1;
 
     // Compute window sizes.  Note that window scaling does not apply to syn
     // packets.
