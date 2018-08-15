@@ -36,6 +36,19 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p):
 
     retransmit_wqe.fn      = timer_delegate(handle_retransmit_expiry);
     retransmit_wqe.args[0] = (uint64_t)this;
+
+    iss           = kernel::random(0,0xFFFF);
+    snd_una       = iss;
+    snd_nxt       = iss + 1;
+    snd_wnd       = 0;
+    snd_wnd_shift = 0;
+    snd_mss       = 1460;
+
+    irs           = 0;
+    rcv_nxt       = 0;
+    rcv_wnd       = MAX_RX_WINDOW;
+    rcv_wnd_shift = 0;
+    rcv_mss       = 1460;
 }
 
 tcp::tx_op*
@@ -158,20 +171,10 @@ tcp::socket::handle_listen_syn_recvd(net::rx_page* p)
     // Sort out sequence numbers.
     rcv_nxt = h->tcp.seq_num + 1;
     irs     = h->tcp.seq_num;
-    iss     = kernel::random(0,0xFFFF);
-    snd_nxt = iss + 1;
-    snd_una = iss;
 
     // Compute window sizes.  Note that window scaling does not apply to syn
     // packets.
     snd_wnd = h->tcp.window_size;
-    rcv_wnd = MAX_RX_WINDOW;
-
-    // Option default values.
-    snd_wnd_shift = 0;
-    rcv_wnd_shift = 0;
-    snd_mss       = 1460;
-    rcv_mss       = 1460;
 
     // Parse options.
     size_t rem         = h->tcp.offset*4 - sizeof(tcp::header);
