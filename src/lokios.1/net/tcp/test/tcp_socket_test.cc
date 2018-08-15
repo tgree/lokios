@@ -37,7 +37,6 @@ template<typename... Args>
 static uint32_t
 rx_packet(Args ...args)
 {
-    intf.refill_rx_pages();
     auto* p       = intf.pop_rx_page();
     p->pay_offset = 0;
     p->pay_len    = sizeof(ipv4::header) + sizeof(tcp::header);
