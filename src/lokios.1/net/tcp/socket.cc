@@ -82,6 +82,21 @@ tcp::socket::post_op(tcp::tx_op* top)
 }
 
 void
+tcp::socket::post_syn(uint32_t seq_num, uint16_t mss, size_t window_size)
+{
+    auto* top = alloc_tx_op();
+    top->hdrs.format(SEQ{seq_num},CTL{FSYN},WS{window_size,0});
+    auto* opt                = top->hdrs.tcp.options;
+    opt[0]                   = 2;
+    opt[1]                   = 4;
+    *(be_uint16_t*)(opt + 2) = mss;
+    top->hdrs.ip.total_len  += 4;
+    top->hdrs.tcp.offset    += 1;
+    top->alps[0].len        += 4;
+    post_op(top);
+}
+
+void
 tcp::socket::post_rst(uint32_t seq_num)
 {
     auto* top = alloc_tx_op();
