@@ -80,6 +80,22 @@ validate_tx_op(const tcp::tx_op* op, uint32_t seq_num, uint32_t ack_num,
 
 class tmock_test
 {
+    TMOCK_TEST(test_not_my_ip)
+    {
+        tmock::assert_equiv(rx_packet(DIP{0,0,0,0}),0U);
+
+        // We should drop the packet.
+        TASSERT(intf.posted_ops.empty());
+    }
+
+    TMOCK_TEST(test_broadcast_ip)
+    {
+        tmock::assert_equiv(rx_packet(DIP{ipv4::broadcast_addr}),0U);
+
+        // We should drop the packet.
+        TASSERT(intf.posted_ops.empty());
+    }
+
     TMOCK_TEST(test_no_listener_connect)
     {
         tmock::assert_equiv(rx_syn(),0U);
