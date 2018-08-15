@@ -4,7 +4,18 @@
 #include "cmd_sock.h"
 #include "tcp/socket.h"
 #include "k++/hash_table.h"
+#include "k++/ring.h"
+#include "k++/kmath.h"
 #include <stdarg.h>
+
+#define NUM_EPHEMERAL_PORTS 2048
+KASSERT(kernel::is_pow2(NUM_EPHEMERAL_PORTS));
+
+#define EPHEMERAL_ORDER \
+    kernel::ulog2(NUM_EPHEMERAL_PORTS*sizeof(uint16_t)/PAGE_SIZE)
+KASSERT((PAGE_SIZE << EPHEMERAL_ORDER) == sizeof(uint16_t)*NUM_EPHEMERAL_PORTS);
+
+#define FIRST_EPHEMERAL_PORT (65536-NUM_EPHEMERAL_PORTS)
 
 namespace net
 {
@@ -32,6 +43,8 @@ namespace net
         // TCP.
         hash::table<uint16_t,tcp::listener>     tcp_listeners;
         hash::table<tcp::socket_id,tcp::socket> tcp_sockets;
+        kernel::buddy_block<EPHEMERAL_ORDER>    tcp_ephemeral_ports_mem;
+        kernel::ring<uint16_t>                  tcp_ephemeral_ports;
 
         // Default test sockets.
         cmd_sock_listener   cmd_listener;

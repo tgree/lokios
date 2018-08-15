@@ -40,8 +40,12 @@ net::interface::interface(size_t tx_qlen, size_t rx_qlen):
     rx_qlen(rx_qlen),
     rx_posted_count(0),
     ip_addr{0,0,0,0},
+    tcp_ephemeral_ports((uint16_t*)tcp_ephemeral_ports_mem.addr,
+                        tcp_ephemeral_ports_mem.len/sizeof(uint16_t)),
     cmd_listener(this)
 {
+    for (size_t i=FIRST_EPHEMERAL_PORT; i<65536; ++i)
+        tcp_ephemeral_ports.emplace_back(i);
 }
 
 net::interface::~interface()
@@ -72,6 +76,7 @@ net::interface::tcp_listen(uint16_t port,
     tcp::socket_accepted_delegate ad,
     tcp::should_accept_delegate sad)
 {
+    kassert(port < FIRST_EPHEMERAL_PORT);
     tcp_listeners.emplace(port,tcp::listener{sad,ad});
 }
 

@@ -25,6 +25,8 @@ net::interface::interface(size_t tx_qlen, size_t rx_qlen):
     rx_qlen(rx_qlen),
     rx_posted_count(0),
     ip_addr{0,0,0,0},
+    tcp_ephemeral_ports((uint16_t*)tcp_ephemeral_ports_mem.addr,
+                        tcp_ephemeral_ports_mem.len/sizeof(uint16_t)),
     cmd_listener(this)
 {
 }
