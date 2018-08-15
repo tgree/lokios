@@ -142,16 +142,19 @@ eth::interface::handle_rx_pages(kernel::klist<net::rx_page>& pages)
         pages.pop_front();
         --rx_posted_count;
 
-        auto* h = (eth::header*)(p->payload + p->pay_offset);
-        if (h->dst_mac == hw_mac || h->dst_mac == eth::broadcast_addr)
+        if (p->pay_len >= sizeof(eth::header))
         {
-            // Strip the eth::header.
-            p->pay_offset += sizeof(eth::header);
-            p->pay_len    -= sizeof(eth::header);
-            switch (h->ether_type)
+            auto* h = (eth::header*)(p->payload + p->pay_offset);
+            if (h->dst_mac == hw_mac || h->dst_mac == eth::broadcast_addr)
             {
-                case 0x0806:         handle_rx_arp_frame(p);    break;
-                case 0x0800: flags = handle_rx_ipv4_frame(p);   break;
+                // Strip the eth::header.
+                p->pay_offset += sizeof(eth::header);
+                p->pay_len    -= sizeof(eth::header);
+                switch (h->ether_type)
+                {
+                    case 0x0806:         handle_rx_arp_frame(p);    break;
+                    case 0x0800: flags = handle_rx_ipv4_frame(p);   break;
+                }
             }
         }
         if (!(flags & NRX_FLAG_NO_DELETE))
