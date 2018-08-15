@@ -7,6 +7,7 @@ net::finterface::finterface(ipv4::addr _ip_addr):
     net::interface::interface(16,16)
 {
     ip_addr = _ip_addr;
+    refill_rx_pages();
 }
 
 net::finterface::~finterface()
