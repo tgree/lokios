@@ -32,12 +32,15 @@ namespace tcp
     typedef typeof_field(listener,should_accept)   should_accept_delegate;
     typedef typeof_field(listener,socket_accepted) socket_accepted_delegate;
 
+    typedef kernel::delegate<void(socket*)> socket_connect_delegate;
+
     struct socket
     {
         enum tcp_state
         {
             TCP_CLOSED,
             TCP_LISTEN,
+            TCP_SYN_SENT,
             TCP_SYN_RECVD,
         };
 
@@ -50,6 +53,7 @@ namespace tcp
         const ipv4::addr                remote_ip;
         const uint16_t                  local_port;
         const uint16_t                  remote_port;
+        socket_connect_delegate         connect_delegate;
 
         // Send queue.
         kernel::slab                    tx_ops_slab;
@@ -94,6 +98,11 @@ namespace tcp
 
         // Passive open.
         socket(net::interface* intf, net::rx_page* p);
+
+        // Active open.
+        socket(net::interface* intf, ipv4::addr remote_ip, uint16_t local_port,
+               uint16_t remote_port, const void* llhdr, size_t llsize,
+               socket_connect_delegate scd);
     };
 
     struct socket_id

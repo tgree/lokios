@@ -51,6 +51,43 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p):
     rcv_mss       = 1460;
 }
 
+tcp::socket::socket(net::interface* intf, ipv4::addr remote_ip,
+    uint16_t local_port, uint16_t remote_port, const void* llh,
+    size_t llsize, socket_connect_delegate scd):
+        intf(intf),
+        state(TCP_CLOSED),
+        prev_state(TCP_CLOSED),
+        llsize(llsize),
+        remote_ip(remote_ip),
+        local_port(local_port),
+        remote_port(remote_port),
+        connect_delegate(scd),
+        tx_ops_slab(sizeof(tcp::tx_op))
+{
+    kassert(llsize <= sizeof(llhdr));
+    memset(llhdr,0xDD,sizeof(llhdr));
+    memcpy(llhdr + sizeof(llhdr) - llsize,llh,llsize);
+
+    retransmit_wqe.fn      = timer_delegate(handle_retransmit_expiry);
+    retransmit_wqe.args[0] = (uint64_t)this;
+
+    iss           = kernel::random(0,0xFFFF);
+    snd_una       = iss;
+    snd_nxt       = iss + 1;
+    snd_wnd       = 0;
+    snd_wnd_shift = 0;
+    snd_mss       = 1460;
+
+    irs           = 0;
+    rcv_nxt       = 0;
+    rcv_wnd       = MAX_RX_WINDOW;
+    rcv_wnd_shift = 0;
+    rcv_mss       = 1460;
+
+    post_syn(iss,rcv_mss,rcv_wnd);
+    TRANSITION(TCP_SYN_SENT);
+}
+
 tcp::tx_op*
 tcp::socket::alloc_tx_op()
 {
@@ -166,6 +203,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
         break;
 
         case TCP_CLOSED:
+        case TCP_SYN_SENT:
         case TCP_SYN_RECVD:
             intf->intf_dbg("dropping packet\n");
         break;
