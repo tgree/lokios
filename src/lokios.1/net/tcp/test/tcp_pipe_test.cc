@@ -5,9 +5,9 @@
 #define LOCAL_IP1   ipv4::addr{2,2,2,2}
 #define LISTEN_PORT 3333
 
-static net::finterface* intf0 = new net::finterface(LOCAL_IP0);
-static net::finterface* intf1 = new net::finterface(LOCAL_IP1);
-static net::fpipe intf_pipe(intf0,intf1);
+static net::finterface intf0(LOCAL_IP0);
+static net::finterface intf1(LOCAL_IP1);
+static net::fpipe intf_pipe(&intf0,&intf1);
 tcp::socket* passive_socket;
 tcp::socket* active_socket;
 
@@ -40,12 +40,12 @@ class tmock_test
     TMOCK_TEST(test_connect)
     {
         mock_listener ml;
-        ml.listen(intf0,3333);
+        ml.listen(&intf0,3333);
 
         texpect("mock_listener::socket_accepted",
                 capture(s,(uintptr_t*)&passive_socket));
 
-        active_socket = intf1->tcp_connect(intf0->ip_addr,LISTEN_PORT,
+        active_socket = intf1.tcp_connect(intf0.ip_addr,LISTEN_PORT,
                               kernel::func_delegate(mock_socket_connected));
 
         TASSERT(!passive_socket);
