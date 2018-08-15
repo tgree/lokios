@@ -87,7 +87,7 @@ class tmock_test
         // We should send:
         //  <SEQ=0><ACK=SEG.SEQ+SEG.LEN><CTL=RST,ACK>
         auto* op = static_cast<tcp::tx_op*>(intf.pop_tx_op());
-        validate_tx_op(op,0,REMOTE_ISS+1,0,0x0014);
+        validate_tx_op(op,0,REMOTE_ISS+1,0,FRST|FACK);
         intf.handle_tx_completion(op);
     }
 
@@ -120,7 +120,7 @@ class tmock_test
         // We should send:
         //  <SEQ=ISS><ACK=RCV.NXT><CTL=SYN,ACK>
         auto* op = static_cast<tcp::tx_op*>(intf.pop_tx_op());
-        validate_tx_op(op,s->iss,REMOTE_ISS+1,0xFFFF,0x0012,6);
+        validate_tx_op(op,s->iss,REMOTE_ISS+1,0xFFFF,FSYN|FACK,6);
 
         uint8_t* opt = op->hdrs.tcp.options;
         tmock::assert_equiv(opt[0],2U);
