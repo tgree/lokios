@@ -119,6 +119,7 @@ net::fpipe::process_queues()
             auto* op = klist_front(posted_ops[0],link);
             posted_ops[0].pop_front();
             copy_top_to_rxp(op,rp);
+            intfs[0]->handle_tx_completion(op);
             intfs[1]->handle_rx_page(rp);
             ++npackets;
         }
@@ -129,6 +130,7 @@ net::fpipe::process_queues()
             auto* op = klist_front(posted_ops[1],link);
             posted_ops[1].pop_front();
             copy_top_to_rxp(op,rp);
+            intfs[1]->handle_tx_completion(op);
             intfs[0]->handle_rx_page(rp);
             ++npackets;
         }
