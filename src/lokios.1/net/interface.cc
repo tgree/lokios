@@ -128,7 +128,13 @@ net::interface::handle_delayed_completion(kernel::timer_entry* wqe)
 uint64_t
 net::interface::handle_rx_ipv4_frame(net::rx_page* p)
 {
+    if (p->pay_len < sizeof(ipv4::header))
+        return 0;
+
     auto* iph = p->payload_cast<ipv4::header*>();
+    if (p->pay_len < iph->total_len)
+        return 0;
+
     if (iph->dst_ip != ip_addr && iph->dst_ip != ipv4::broadcast_addr)
         return 0;
 
