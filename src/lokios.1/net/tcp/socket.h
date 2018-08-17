@@ -71,6 +71,7 @@ namespace tcp
 
         // Send queue.
         kernel::slab                    tx_ops_slab;
+        tcp::tx_op*                     retransmit_op;
         kernel::klist<tcp::tx_op>       posted_ops;
         kernel::timer_entry             retransmit_wqe;
 

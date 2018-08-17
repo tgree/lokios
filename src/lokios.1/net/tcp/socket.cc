@@ -2,6 +2,9 @@
 #include "traits.h"
 #include "net/interface.h"
 #include "k++/random.h"
+#include "kernel/cpu.h"
+
+#define RETRANSMIT_TIMEOUT_MS   1000
 
 #define DEBUG_TRANSITIONS 1
 
@@ -27,7 +30,8 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p):
     local_port(p->payload_cast<tcp::ipv4_tcp_headers*>()->tcp.dst_port),
     remote_port(p->payload_cast<tcp::ipv4_tcp_headers*>()->tcp.src_port),
     observer(NULL),
-    tx_ops_slab(sizeof(tcp::tx_op))
+    tx_ops_slab(sizeof(tcp::tx_op)),
+    retransmit_op(NULL)
 {
     kassert(llsize <= sizeof(llhdr));
     uint8_t llh[sizeof(llhdr)];
@@ -63,7 +67,8 @@ tcp::socket::socket(net::interface* intf, ipv4::addr remote_ip,
         local_port(local_port),
         remote_port(remote_port),
         observer(observer),
-        tx_ops_slab(sizeof(tcp::tx_op))
+        tx_ops_slab(sizeof(tcp::tx_op)),
+        retransmit_op(NULL)
 {
     kassert(llsize <= sizeof(llhdr));
     memset(llhdr,0xDD,sizeof(llhdr));
@@ -158,13 +163,43 @@ tcp::socket::send_complete(net::tx_op* nop)
     auto* top = static_cast<tcp::tx_op*>(nop);
     kassert(klist_front(posted_ops,tcp_link) == top);
     posted_ops.pop_front();
-    free_tx_op(top);
+
+    switch (state)
+    {
+        case TCP_SYN_RECVD:
+        case TCP_SYN_SENT:
+            if (top->hdrs.segment_len())
+            {
+                retransmit_op = top;
+                kernel::cpu::schedule_timer_ms(&retransmit_wqe,
+                                               RETRANSMIT_TIMEOUT_MS);
+            }
+            else
+                free_tx_op(top);
+        break;
+
+        default:
+            free_tx_op(top);
+        break;
+    }
 }
 
 void
 tcp::socket::handle_retransmit_expiry(kernel::timer_entry*)
 {
-    kernel::panic("unexpected retransmit timer expiry");
+    switch (state)
+    {
+        case TCP_SYN_RECVD:
+        case TCP_SYN_SENT:
+            post_op(retransmit_op);
+            retransmit_op = NULL;
+        break;
+
+        case TCP_CLOSED:
+        case TCP_LISTEN:
+            kernel::panic("unexpected retransmit timer expiry");
+        break;
+    }
 }
 
 uint64_t

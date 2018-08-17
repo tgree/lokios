@@ -142,6 +142,7 @@ class tmock_test
         tmock::assert_equiv(s->remote_ip,REMOTE_IP);
         tmock::assert_equiv(s->local_port,LOCAL_PORT);
         tmock::assert_equiv(s->remote_port,REMOTE_PORT);
+        TASSERT(!s->retransmit_wqe.is_armed());
 
         // We should send:
         //  <SEQ=ISS><ACK=RCV.NXT><CTL=SYN,ACK>
@@ -153,6 +154,10 @@ class tmock_test
         tmock::assert_equiv(opt[1],4U);
         tmock::assert_equiv(*(be_uint16_t*)(opt + 2),1460U);
         intf.handle_tx_completion(op);
+        TASSERT(s->retransmit_wqe.is_armed());
+
+        // Cleanup.
+        s->free_tx_op(s->retransmit_op);
     }
 
     TMOCK_TEST(test_active_connect)
@@ -176,6 +181,7 @@ class tmock_test
         tmock::assert_equiv(s.remote_ip,REMOTE_IP);
         tmock::assert_equiv(s.local_port,LOCAL_PORT);
         tmock::assert_equiv(s.remote_port,REMOTE_PORT);
+        TASSERT(!s.retransmit_wqe.is_armed());
 
         // We should send:
         //  <SEQ=ISS><CTL=SYN>
@@ -187,6 +193,10 @@ class tmock_test
         tmock::assert_equiv(opt[1],4U);
         tmock::assert_equiv(*(be_uint16_t*)(opt + 2),1460U);
         intf.handle_tx_completion(op);
+        TASSERT(s.retransmit_wqe.is_armed());
+
+        // Cleanup.
+        s.free_tx_op(s.retransmit_op);
     }
 };
 
