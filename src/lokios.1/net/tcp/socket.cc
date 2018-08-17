@@ -177,7 +177,7 @@ tcp::socket::handle_retransmit_expiry(kernel::timer_entry*)
 uint64_t
 tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
 {
-    auto* h        = p->payload_cast<ipv4_tcp_headers*>();
+    auto* h = p->payload_cast<ipv4_tcp_headers*>();
     switch (state)
     {
         case TCP_LISTEN:
