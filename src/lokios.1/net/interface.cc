@@ -88,13 +88,13 @@ net::interface::tcp_ignore(uint16_t port)
 
 tcp::socket*
 net::interface::tcp_connect(ipv4::addr remote_ip, uint16_t remote_port,
-    tcp::socket_connect_delegate scd)
+    tcp::socket_observer* observer)
 {
     uint16_t local_port = tcp_ephemeral_ports[0];
     tcp_ephemeral_ports.pop_front();
     auto sid = tcp::socket_id{remote_ip,remote_port,local_port};
     return &tcp_sockets.emplace(sid,this,remote_ip,local_port,remote_port,
-                                nullptr,0,scd);
+                                nullptr,0,observer);
 }
 
 void

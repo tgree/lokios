@@ -86,7 +86,7 @@ namespace net
                 void    tcp_ignore(uint16_t port);
         static  bool    tcp_always_accept(const tcp::header*) {return true;}
         tcp::socket*    tcp_connect(ipv4::addr remote_ip, uint16_t remote_port,
-                                    tcp::socket_connect_delegate scd);
+                                    tcp::socket_observer* observer);
                 void    tcp_delete(tcp::socket* s);
 
         // Rx page management.

@@ -24,15 +24,20 @@ namespace tcp
         // Decide whether or not to accept a SYN connection request.
         kernel::delegate<bool(const header* syn)>   should_accept;
 
-        // Called when a new connection has been accepted.  The client can
-        // fill out the rx_readable delegate on the socket if they wish to get
-        // rx packet notifications.
+        // Called when a new connection has been accepted.  The client should
+        // fill out the observer delegate on the socket.
         kernel::delegate<void(socket*)>             socket_accepted;
     };
     typedef typeof_field(listener,should_accept)   should_accept_delegate;
     typedef typeof_field(listener,socket_accepted) socket_accepted_delegate;
 
-    typedef kernel::delegate<void(socket*)> socket_connect_delegate;
+    // Async socket notifications.
+    struct socket_observer
+    {
+        virtual void socket_established(socket*) = 0;
+        virtual void socket_readable(socket*) = 0;
+        virtual void socket_reset(socket*) = 0;
+    };
 
 #define OPTION_SND_MSS_PRESENT          (1<<0)
 #define OPTION_SND_WND_SHIFT_PRESENT    (1<<1)
@@ -62,7 +67,7 @@ namespace tcp
         const ipv4::addr                remote_ip;
         const uint16_t                  local_port;
         const uint16_t                  remote_port;
-        socket_connect_delegate         connect_delegate;
+        socket_observer*                observer;
 
         // Send queue.
         kernel::slab                    tx_ops_slab;
@@ -111,7 +116,7 @@ namespace tcp
         // Active open.
         socket(net::interface* intf, ipv4::addr remote_ip, uint16_t local_port,
                uint16_t remote_port, const void* llhdr, size_t llsize,
-               socket_connect_delegate scd);
+               socket_observer* observer);
     };
 
     struct socket_id

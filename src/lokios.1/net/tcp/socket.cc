@@ -26,6 +26,7 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p):
     remote_ip(p->payload_cast<tcp::ipv4_tcp_headers*>()->ip.src_ip),
     local_port(p->payload_cast<tcp::ipv4_tcp_headers*>()->tcp.dst_port),
     remote_port(p->payload_cast<tcp::ipv4_tcp_headers*>()->tcp.src_port),
+    observer(NULL),
     tx_ops_slab(sizeof(tcp::tx_op))
 {
     kassert(llsize <= sizeof(llhdr));
@@ -53,7 +54,7 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p):
 
 tcp::socket::socket(net::interface* intf, ipv4::addr remote_ip,
     uint16_t local_port, uint16_t remote_port, const void* llh,
-    size_t llsize, socket_connect_delegate scd):
+    size_t llsize, socket_observer* observer):
         intf(intf),
         state(TCP_CLOSED),
         prev_state(TCP_CLOSED),
@@ -61,7 +62,7 @@ tcp::socket::socket(net::interface* intf, ipv4::addr remote_ip,
         remote_ip(remote_ip),
         local_port(local_port),
         remote_port(remote_port),
-        connect_delegate(scd),
+        observer(observer),
         tx_ops_slab(sizeof(tcp::tx_op))
 {
     kassert(llsize <= sizeof(llhdr));
