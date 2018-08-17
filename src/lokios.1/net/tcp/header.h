@@ -172,10 +172,9 @@ namespace tcp
     //
     //      cmp(A,B)
     //      cmp(A,A+X)
-    //      cmp(0,X)
-    //      A <  B if X <  0
+    //      A <  B if X >  0
     //      A == B if X == 0
-    //      A >  B if X >  0
+    //      A >  B if X <  0
     //
     // So, seq_order returns:
     //      <0 if b <  a
@@ -183,6 +182,20 @@ namespace tcp
     //      >0 if b >  a
     constexpr int32_t seq_order(uint32_t a, uint32_t b)
     {
+        // TODO: This works for all cases except when a - b = 0x80000000.
+        // It seems as though seq_order is actually impossible to implement
+        // because there are more numbers below 0 than above 0.  That becomes
+        // a problem because seq_order(A,B) != -seq_order(B,A) for all A,B.
+        // An example is seen in the KASSERTs below:
+        //
+        //  KASSERT(seq_order(0,0x80000000) <  0);
+        //  KASSERT(seq_order(0x80000000,0) <  0);
+        //
+        // I think this means we probably need to change the TCP stack to use
+        // window comparisons instead of sequence comparisons.  See for
+        // instance:
+        //
+        //  https://www.rfc-editor.org/ien/ien74.txt
         return (int32_t)(b - a);
     }
     KASSERT(seq_order(1,2)          >  0);
