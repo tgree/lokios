@@ -154,6 +154,21 @@ namespace tcp
             _init();
             format(args...);
         }
+
+        uint32_t payload_len() const
+        {
+            return ip.total_len - sizeof(ipv4::header) - 4*tcp.offset;
+        }
+
+        uint32_t segment_len() const
+        {
+            return tcp.syn + tcp.fin + payload_len();
+        }
+
+        void* get_payload() const
+        {
+            return (char*)&tcp + 4*tcp.offset;
+        }
     } __PACKED__;
 
     // Sequence number 0 is ordered against all other sequence numbers as
