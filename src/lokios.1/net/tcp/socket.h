@@ -56,6 +56,8 @@ namespace tcp
             TCP_LISTEN,
             TCP_SYN_SENT,
             TCP_SYN_RECVD,
+            TCP_ESTABLISHED,
+            TCP_CLOSE_WAIT,
         };
 
         net::interface*                 intf;
@@ -109,6 +111,7 @@ namespace tcp
 
         // Helpers.
         void        dump_socket();
+        void        process_fin(uint32_t seq_num);
         int         parse_options(ipv4_tcp_headers* h, parsed_options* opts);
 
         // Passive open.

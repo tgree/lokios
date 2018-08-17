@@ -197,6 +197,8 @@ tcp::socket::handle_retransmit_expiry(kernel::timer_entry*)
 
         case TCP_CLOSED:
         case TCP_LISTEN:
+        case TCP_ESTABLISHED:
+        case TCP_CLOSE_WAIT:
             kernel::panic("unexpected retransmit timer expiry");
         break;
     }
@@ -230,9 +232,122 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
             dump_socket();
         break;
 
-        case TCP_CLOSED:
-        case TCP_SYN_SENT:
         case TCP_SYN_RECVD:
+            if (!seq_check(rcv_nxt,h->tcp.seq_num,h->segment_len(),rcv_wnd))
+            {
+                if (!h->tcp.rst)
+                    post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
+                break;
+            }
+            if (h->tcp.rst)
+            {
+                if (prev_state == TCP_LISTEN)
+                    intf->intf_dbg("passive open failed, deleting socket\n");
+                else
+                    kernel::panic("active open failed - notify client!\n");
+                TRANSITION(TCP_CLOSED);
+                intf->tcp_delete(this);
+                break;
+            }
+            if (h->tcp.syn)
+            {
+                // We're just going to close the socket; the packet could get
+                // dropped.  It seems like this is unnecessary.
+                post_rst(snd_nxt);
+                TRANSITION(TCP_CLOSED);
+                intf->tcp_delete(this);
+                break;
+            }
+            if (!h->tcp.ack)
+                break;
+            if (seq_le(snd_una,h->tcp.ack_num) &&
+                seq_le(h->tcp.ack_num,snd_nxt))
+            {
+                // Process the SYN ACK.
+                if (seq_lt(snd_una,h->tcp.ack_num))
+                    ++snd_una;
+                if (retransmit_wqe.is_armed())
+                {
+                    kernel::cpu::cancel_timer(&retransmit_wqe);
+                    free_tx_op(retransmit_op);
+                    retransmit_op = NULL;
+                }
+                TRANSITION(TCP_ESTABLISHED);
+                observer->socket_established(this);
+                break;
+            }
+            if (h->tcp.fin)
+            {
+                process_fin(h->tcp.seq_num);
+                TRANSITION(TCP_CLOSE_WAIT);
+                break;
+            }
+
+            // We're just going to close the socket; the packet could
+            // get dropped.  It seems like this is unnecessary.
+            post_rst(snd_nxt);
+            TRANSITION(TCP_CLOSED);
+            intf->tcp_delete(this);
+        break;
+
+        case TCP_SYN_SENT:
+            if (h->tcp.ack)
+            {
+                if (seq_le(h->tcp.ack_num,iss) ||
+                    seq_gt(h->tcp.ack_num,snd_nxt))
+                {
+                    post_rst(h->tcp.ack_num);
+                    break;
+                }
+                if (h->tcp.rst)
+                {
+                    intf->intf_dbg("error: connection reset\n");
+                    TRANSITION(TCP_CLOSED);
+                    intf->tcp_delete(this);
+                    break;
+                }
+                if (!h->tcp.syn)
+                    break;
+
+                snd_wnd = h->tcp.window_size;
+                parsed_options opts;
+                if (parse_options(h,&opts))
+                {
+                    intf->intf_dbg("error: bad options\n");
+                    break;
+                }
+                if (opts.flags & OPTION_SND_MSS_PRESENT)
+                    snd_mss = opts.snd_mss;
+                if (opts.flags & OPTION_SND_WND_SHIFT_PRESENT)
+                    snd_wnd_shift = opts.snd_wnd_shift;
+                else
+                    rcv_wnd_shift = 0;
+
+                irs     = h->tcp.seq_num;
+                rcv_nxt = irs + 1;
+                snd_una = h->tcp.ack_num;
+                if (seq_gt(snd_una,iss))
+                {
+                    if (retransmit_wqe.is_armed())
+                    {
+                        kernel::cpu::cancel_timer(&retransmit_wqe);
+                        free_tx_op(retransmit_op);
+                        retransmit_op = NULL;
+                    }
+                    post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
+                    TRANSITION(TCP_ESTABLISHED);
+                    observer->socket_established(this);
+                    break;
+                }
+            }
+            else if (h->tcp.rst || !h->tcp.syn)
+                break;
+            return handle_listen_syn_recvd(p);
+        break;
+
+        case TCP_ESTABLISHED:
+        case TCP_CLOSED:
+        case TCP_CLOSE_WAIT:
             intf->intf_dbg("dropping packet\n");
         break;
     }
@@ -330,6 +445,13 @@ tcp::socket::dump_socket()
                    rcv_mss,
                    (uint16_t)(rcv_wnd >> rcv_wnd_shift),
                    rcv_wnd_shift);
+}
+
+void
+tcp::socket::process_fin(uint32_t seq_num)
+{
+    rcv_nxt = seq_num + 1;
+    post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
 }
 
 int
