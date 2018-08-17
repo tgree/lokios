@@ -31,7 +31,8 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p):
     remote_port(p->payload_cast<tcp::ipv4_tcp_headers*>()->tcp.src_port),
     observer(NULL),
     tx_ops_slab(sizeof(tcp::tx_op)),
-    retransmit_op(NULL)
+    retransmit_op(NULL),
+    rx_avail_bytes(0)
 {
     kassert(llsize <= sizeof(llhdr));
     uint8_t llh[sizeof(llhdr)];
@@ -68,7 +69,8 @@ tcp::socket::socket(net::interface* intf, ipv4::addr remote_ip,
         remote_port(remote_port),
         observer(observer),
         tx_ops_slab(sizeof(tcp::tx_op)),
-        retransmit_op(NULL)
+        retransmit_op(NULL),
+        rx_avail_bytes(0)
 {
     kassert(llsize <= sizeof(llhdr));
     memset(llhdr,0xDD,sizeof(llhdr));
@@ -420,6 +422,39 @@ tcp::socket::handle_listen_syn_recvd(net::rx_page* p)
     post_op(hop);
     TRANSITION(TCP_SYN_RECVD);
     return 0;
+}
+
+void
+tcp::socket::rx_append(net::rx_page* p)
+{
+    rx_pages.push_back(&p->link);
+    rx_avail_bytes += p->client_len;
+    observer->socket_readable(this);
+}
+
+void
+tcp::socket::read(void* _dst, uint32_t rem)
+{
+    kassert(rem <= rx_avail_bytes);
+    rx_avail_bytes -= rem;
+
+    char* dst = (char*)_dst;
+    while (rem)
+    {
+        net::rx_page* p = klist_front(rx_pages,link);
+        uint32_t len    = MIN(rem,(uint32_t)p->client_len);
+        memcpy(dst,p->payload + p->client_offset,len);
+        p->client_offset += len;
+        p->client_len    -= len;
+        dst              += len;
+        rem              -= len;
+
+        if (!p->client_len)
+        {
+            rx_pages.pop_front();
+            intf->free_rx_page(p);
+        }
+    }
 }
 
 void

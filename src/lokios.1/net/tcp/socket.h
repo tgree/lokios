@@ -77,6 +77,10 @@ namespace tcp
         kernel::klist<tcp::tx_op>       posted_ops;
         kernel::timer_entry             retransmit_wqe;
 
+        // Receive queue.
+        kernel::klist<net::rx_page>     rx_pages;
+        size_t                          rx_avail_bytes;
+
         // Send sequence variables.
         uint32_t                        snd_una;
         uint32_t                        snd_nxt;
@@ -108,6 +112,10 @@ namespace tcp
         void        handle_retransmit_expiry(kernel::timer_entry* wqe);
         uint64_t    handle_rx_ipv4_tcp_frame(net::rx_page* p);
         uint64_t    handle_listen_syn_recvd(net::rx_page* p);
+
+        // Access the receive queue.
+        void    rx_append(net::rx_page* p);
+        void    read(void* dst, uint32_t len);
 
         // Helpers.
         void        dump_socket();
