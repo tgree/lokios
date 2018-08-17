@@ -138,3 +138,25 @@ net::fpipe::process_queues()
 
     return npackets;
 }
+
+size_t
+net::fpipe::drop_queues()
+{
+    size_t npackets = 0;
+
+    for (size_t i=0; i<2; ++i)
+    {
+        kernel::klist<net::tx_op> posted_ops;
+        posted_ops.append(intfs[i]->posted_ops);
+
+        while (!posted_ops.empty())
+        {
+            auto* op = klist_front(posted_ops,link);
+            posted_ops.pop_front();
+            intfs[i]->handle_tx_completion(op);
+            ++npackets;
+        }
+    }
+
+    return npackets;
+}

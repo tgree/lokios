@@ -30,6 +30,7 @@ namespace net
         finterface* intfs[2];
 
         size_t  process_queues();
+        size_t  drop_queues();
 
         fpipe(finterface* intf0, finterface* intf1);
     };
