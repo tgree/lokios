@@ -112,11 +112,7 @@ tcp::handle_rx_ipv4_tcp_frame(net::interface* intf, net::rx_page* p)
     if (h->tcp.ack)
         post(intf,p,SEQ{h->tcp.ack_num},CTL{FRST});
     else
-    {
-        uint32_t seg_len = h->ip.total_len - sizeof(h->ip) - 4*h->tcp.offset +
-                           h->tcp.syn + h->tcp.fin;
-        post(intf,p,ACK{h->tcp.seq_num + seg_len},CTL{FRST|FACK});
-    }
+        post(intf,p,ACK{h->tcp.seq_num + h->segment_len()},CTL{FRST|FACK});
 
     return 0;
 }
