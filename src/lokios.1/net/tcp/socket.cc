@@ -74,6 +74,7 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p):
     remote_port(p->payload_cast<tcp::ipv4_tcp_headers*>()->tcp.src_port),
     observer(NULL),
     tx_ops_slab(sizeof(tcp::tx_op)),
+    send_ops_slab(sizeof(tcp::send_op)),
     retransmit_op(NULL),
     rx_avail_bytes(0)
 {
@@ -112,6 +113,7 @@ tcp::socket::socket(net::interface* intf, ipv4::addr remote_ip,
         remote_port(remote_port),
         observer(observer),
         tx_ops_slab(sizeof(tcp::tx_op)),
+        send_ops_slab(sizeof(tcp::send_op)),
         retransmit_op(NULL),
         rx_avail_bytes(0)
 {
