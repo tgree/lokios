@@ -48,6 +48,31 @@ namespace tcp
         uint8_t     snd_wnd_shift;
     };
 
+#define SEND_OP_FLAG_SYN        (1<<0)   // SYN before any payload alps.
+#define SEND_OP_FLAG_FIN        (1<<1)   // FIN after any payload alps.
+#define SEND_OP_FLAG_SET_ACK    (1<<2)   // Set the ACK bit on the SYN.
+#define SEND_OP_FLAG_SET_SCALE  (1<<3)   // Set window scaling option on SYN.
+    struct send_op
+    {
+        kernel::kdlink                      link;
+        kernel::delegate<void(send_op*)>    cb;
+        uint64_t                            flags;
+        size_t                              refcount;
+        size_t                              nalps;
+        size_t                              unacked_alp_index;
+        size_t                              unsent_alp_index;
+        size_t                              unacked_alp_offset;
+        size_t                              unsent_alp_offset;
+        kernel::dma_alp*                    alps;
+
+        // Marks as many bytes ACKed as possible and returns the remainder of
+        // ack_len.
+        uint32_t    mark_acked(uint32_t ack_len);
+
+        // Determines if the op has been fully acked.
+        bool        is_fully_acked() const;
+    };
+
     struct socket
     {
         enum tcp_state

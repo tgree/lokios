@@ -21,6 +21,49 @@
 
 using kernel::_kassert;
 
+uint32_t
+tcp::send_op::mark_acked(uint32_t ack_len)
+{
+    kassert(ack_len != 0);
+
+    if (flags & SEND_OP_FLAG_SYN)
+    {
+        flags &= ~SEND_OP_FLAG_SYN;
+        --ack_len;
+    }
+
+    auto* alp = &alps[unacked_alp_index];
+    while (ack_len && unacked_alp_index != nalps)
+    {
+        auto len = MIN(ack_len,(uint32_t)(alp->len - unacked_alp_offset));
+
+        unacked_alp_offset += len;
+        ack_len            -= len;
+        if (unacked_alp_offset == alp->len)
+        {
+            ++alp;
+            ++unacked_alp_index;
+            unacked_alp_offset = 0;
+        }
+    }
+
+    if (ack_len && (flags & SEND_OP_FLAG_FIN))
+    {
+        flags &= ~SEND_OP_FLAG_FIN;
+        --ack_len;
+    }
+
+    return ack_len; 
+}
+
+bool
+tcp::send_op::is_fully_acked() const
+{
+    if (flags & (SEND_OP_FLAG_SYN | SEND_OP_FLAG_FIN))
+        return false;
+    return unacked_alp_index == nalps;
+}
+
 tcp::socket::socket(net::interface* intf, net::rx_page* p):
     intf(intf),
     state(TCP_LISTEN),
