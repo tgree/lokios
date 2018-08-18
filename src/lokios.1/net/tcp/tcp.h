@@ -13,9 +13,12 @@ namespace net
 
 namespace tcp
 {
+    struct send_op;
+
     struct tx_op : public net::tx_op
     {
         kernel::klink       tcp_link;
+        send_op*            sop;
 
         uint8_t             llhdr[16];
         ipv4_tcp_headers    hdrs;

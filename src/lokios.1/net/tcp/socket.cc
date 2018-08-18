@@ -140,9 +140,10 @@ tcp::socket::socket(net::interface* intf, ipv4::addr remote_ip,
 }
 
 tcp::tx_op*
-tcp::socket::alloc_tx_op()
+tcp::socket::alloc_tx_op(tcp::send_op* sop)
 {
     auto* top          = tx_ops_slab.alloc<tx_op>();
+    top->sop           = sop;
     top->flags         = NTX_FLAG_INSERT_IP_CSUM |
                          NTX_FLAG_INSERT_TCP_CSUM;
     top->nalps         = 1;

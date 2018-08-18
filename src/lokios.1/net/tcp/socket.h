@@ -122,7 +122,7 @@ namespace tcp
         uint32_t                        irs;
 
         // Allocate send ops.
-        tcp::tx_op* alloc_tx_op();
+        tcp::tx_op* alloc_tx_op(tcp::send_op* sop = NULL);
         void free_tx_op(tcp::tx_op* top);
 
         // Post send ops.
