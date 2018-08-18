@@ -7,31 +7,31 @@
 namespace kernel
 {
     template<typename T>
-    constexpr T min(T v)
+    constexpr T _min(T v)
     {
         return v;
     }
     template<typename T, typename ...Args>
-    constexpr T min(T l, T r, Args... args)
+    constexpr T _min(T l, T r, Args... args)
     {
-        return (l < r) ? min(l,args...) : min(r,args...);
+        return (l < r) ? _min(l,args...) : _min(r,args...);
     }
-#define MIN kernel::min
+#define MIN kernel::_min
     KASSERT(MIN(1,2,3,4,5)   == 1);
     KASSERT(MIN(1,-2,3,4,5)  == -2);
     KASSERT(MIN(1,-2,3,4,-5) == -5);
 
     template<typename T>
-    constexpr T max(T v)
+    constexpr T _max(T v)
     {
         return v;
     }
     template<typename T, typename ...Args>
-    constexpr T max(T l, T r, Args... args)
+    constexpr T _max(T l, T r, Args... args)
     {
-        return (l > r) ? max(l,args...) : max(r,args...);
+        return (l > r) ? _max(l,args...) : _max(r,args...);
     }
-#define MAX kernel::max
+#define MAX kernel::_max
     KASSERT(MAX(1,2,3,4,5)     == 5);
     KASSERT(MAX(1,2,3,4,-5)    == 4);
     KASSERT(MAX(1,-2,-3,-4,-5) == 1);
