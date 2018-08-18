@@ -32,6 +32,8 @@ class tmock_test
             kassert(e != NULL);
             kassert(page_alloc_count == 1);
             kassert(page_free_count  == 0);
+
+            s.free(e);
         }
         kassert(page_free_count == 1);
     }
@@ -47,6 +49,8 @@ class tmock_test
             kassert(e->b == 2);
             kassert(page_alloc_count == 1);
             kassert(page_free_count  == 0);
+
+            s.free(e);
         }
         kassert(page_free_count == 1);
     }
@@ -65,6 +69,9 @@ class tmock_test
                 elems.insert(s._alloc());
             kassert(elems.size() == alloc_count);
             kassert(page_alloc_count == expected_pages);
+
+            for (void* e : elems)
+                s.free(e);
         }
         kassert(page_alloc_count == expected_pages);
         kassert(page_free_count  == expected_pages);
@@ -98,6 +105,9 @@ class tmock_test
             kassert(elems.size()     == alloc_count);
             kassert(page_alloc_count == expected_pages);
             kassert(page_free_count  == 0);
+
+            for (void* e : elems)
+                s.free(e);
         }
         kassert(page_alloc_count == expected_pages);
         kassert(page_free_count  == expected_pages);
@@ -113,7 +123,7 @@ class tmock_test
         test_slab_many_zallocs_and_frees(20);
     }
 
-    TMOCK_TEST_EXPECT_PASS_SHOULD_FAIL(test_leak_fails)
+    TMOCK_TEST_EXPECT_FAILURE(test_leak_fails)
     {
         kernel::slab s(8);
         s._alloc();

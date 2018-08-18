@@ -28,6 +28,11 @@ namespace kernel
             slab(slab)
         {
         }
+
+        inline ~slab_page_footer()
+        {
+            kassert(usage_count == 0);
+        }
     };
     KASSERT(sizeof(slab_page_footer) == 64);
 
@@ -70,6 +75,12 @@ namespace kernel
             }
 
             pages.push_back(&p->footer.link);
+        }
+
+        inline void page_free(slab_page* p)
+        {
+            p->~slab_page();
+            kernel::page_free(p);
         }
 
     public:
@@ -133,7 +144,7 @@ namespace kernel
             {
                 slab_page* p = klist_front(pages,footer.link);
                 pages.pop_front();
-                kernel::page_free(p);
+                page_free(p);
             }
         }
     };
