@@ -1,4 +1,5 @@
 #include "net/mock/finterface.h"
+#include "kernel/mock/fschedule.h"
 #include <tmock/tmock.h>
 
 #define LOCAL_IP0   ipv4::addr{1,1,1,1}
@@ -103,6 +104,97 @@ class tmock_test
 
         // Queue should be idle.
         tmock::assert_equiv(intf_pipe.process_queues(),0U);
+    }
+
+    TMOCK_TEST(test_connect_with_retransmits)
+    {
+        mock_listener ml;
+        ml.listen(&intf0,3333);
+
+        texpect("mock_listener::socket_accepted",
+                capture(s,(uintptr_t*)&passive_socket));
+
+        // Active socket:
+        //  - post SYN
+        active_socket = intf1.tcp_connect(intf0.ip_addr,LISTEN_PORT,&observer);
+
+        TASSERT(!passive_socket);
+        tmock::assert_equiv(active_socket->state,tcp::socket::TCP_SYN_SENT);
+
+        // Active socket:
+        //  - send comp for SYN -> arm retransmit timer
+        //  - SYN dropped on tx
+        TASSERT(!active_socket->retransmit_wqe.is_armed());
+        tmock::assert_equiv(intf_pipe.drop_queues(),1U);
+        TASSERT(active_socket->retransmit_wqe.is_armed());
+        TASSERT(!passive_socket);
+        tmock::assert_equiv(active_socket->state,tcp::socket::TCP_SYN_SENT);
+
+        // Active socket:
+        //  - post SYN
+        //  - retransmit timer cleared
+        kernel::fire_timer(&active_socket->retransmit_wqe);
+        TASSERT(!active_socket->retransmit_wqe.is_armed());
+
+        // Active socket:
+        //  - send comp for SYN -> arm retransmit timer
+        // Passive socket:
+        //  - rx SYN -> post SYN/ACK
+        tmock::assert_equiv(intf_pipe.process_queues(),1U);
+        TASSERT(active_socket->retransmit_wqe.is_armed());
+        TASSERT(!passive_socket->retransmit_wqe.is_armed());
+        tmock::assert_equiv(passive_socket->state,tcp::socket::TCP_SYN_RECVD);
+        tmock::assert_equiv(active_socket->state,tcp::socket::TCP_SYN_SENT);
+
+        // Active socket:
+        //  - nothing
+        // Passive socket:
+        //  - send comp for SYN/ACK -> arm retransmit timer
+        //  - SYN/ACK dropped on tx
+        tmock::assert_equiv(intf_pipe.drop_queues(),1U);
+        TASSERT(active_socket->retransmit_wqe.is_armed());
+        TASSERT(passive_socket->retransmit_wqe.is_armed());
+        tmock::assert_equiv(passive_socket->state,tcp::socket::TCP_SYN_RECVD);
+        tmock::assert_equiv(active_socket->state,tcp::socket::TCP_SYN_SENT);
+
+        // Active socket:
+        //  - post SYN
+        //  - retransmit timer cleared
+        // Passive socket:
+        //  - post SYN/ACK
+        //  - retransmit timer cleared
+        // Invoke both retransmit timers.  Post both the SYN and the SYN/ACK.
+        kernel::fire_timer(&active_socket->retransmit_wqe);
+        kernel::fire_timer(&passive_socket->retransmit_wqe);
+        TASSERT(!active_socket->retransmit_wqe.is_armed());
+        TASSERT(!passive_socket->retransmit_wqe.is_armed());
+
+        // Active socket:
+        //  - send comp for SYN -> arm retransmit timer
+        //  - rx SYN/ACK -> post ACK -> go to ESTABLISHED
+        //    -> disarm retransmit timer
+        // Passive socket:
+        //  - send comp for SYN/ACK -> arm retransmit timer
+        //  - rx dup SYN -> post an ACK
+        texpect("mock_observer::socket_established",want(s,active_socket));
+        tmock::assert_equiv(intf_pipe.process_queues(),2U);
+        tmock::assert_equiv(passive_socket->state,tcp::socket::TCP_SYN_RECVD);
+        tmock::assert_equiv(active_socket->state,tcp::socket::TCP_ESTABLISHED);
+        TASSERT(!active_socket->retransmit_wqe.is_armed());
+        TASSERT(passive_socket->retransmit_wqe.is_armed());
+
+        // Active socket:
+        //  - send comp for ACK
+        //  - rx ACK -> do nothing
+        // Passive socket:
+        //  - send comp for ACK
+        //  - rx ACK -> go to ESTABLISHED -> disarm retransmit timer
+        texpect("mock_observer::socket_established",want(s,passive_socket));
+        tmock::assert_equiv(intf_pipe.process_queues(),2U);
+        tmock::assert_equiv(passive_socket->state,tcp::socket::TCP_ESTABLISHED);
+        tmock::assert_equiv(active_socket->state,tcp::socket::TCP_ESTABLISHED);
+        TASSERT(!active_socket->retransmit_wqe.is_armed());
+        TASSERT(!passive_socket->retransmit_wqe.is_armed());
     }
 };
 
