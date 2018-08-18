@@ -276,7 +276,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
                 }
                 TRANSITION(TCP_ESTABLISHED);
                 observer->socket_established(this);
-                break;
+                return handle_established_segment_recvd(p);
             }
             if (h->tcp.fin)
             {
@@ -348,6 +348,9 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
         break;
 
         case TCP_ESTABLISHED:
+            return handle_established_segment_recvd(p);
+        break;
+
         case TCP_CLOSED:
         case TCP_CLOSE_WAIT:
             intf->intf_dbg("dropping packet\n");
@@ -422,6 +425,78 @@ tcp::socket::handle_listen_syn_recvd(net::rx_page* p)
     post_op(hop);
     TRANSITION(TCP_SYN_RECVD);
     return 0;
+}
+
+uint64_t
+tcp::socket::handle_established_segment_recvd(net::rx_page* p)
+{
+    auto* h = p->payload_cast<ipv4_tcp_headers*>();
+    if (!seq_check(rcv_nxt,h->tcp.seq_num,h->segment_len(),rcv_wnd))
+    {
+        if (!h->tcp.rst)
+            post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
+        return 0;
+    }
+    if (h->tcp.rst)
+    {
+        TRANSITION(TCP_CLOSED);
+        intf->tcp_delete(this);
+        return 0;
+    }
+    if (h->tcp.syn)
+    {
+        post_rst(snd_nxt);
+        TRANSITION(TCP_CLOSED);
+        intf->tcp_delete(this);
+        return 0;
+    }
+    // ES2:
+    if (!h->tcp.ack)
+        return 0;
+    if (seq_lt(snd_una,h->tcp.ack_num) &&
+        seq_le(h->tcp.ack_num,snd_nxt))
+    {
+        snd_wnd = h->tcp.window_size << snd_wnd_shift;
+        snd_una = h->tcp.ack_num;
+        // TODO: "Release REXMT timer"?????
+    }
+    else if (seq_ne(h->tcp.ack_num,snd_una))
+        return 0;
+
+    // ES3:
+    uint64_t flags   = 0;
+    bool fin         = h->tcp.fin;
+    uint32_t fin_seq = h->tcp.seq_num;
+    if (h->segment_len()) // TERRY ADDED THIS CHECK TO SUPPRESS DUPLICATE ACKS
+    {
+        if (h->tcp.seq_num == rcv_nxt)
+        {
+            // TODO: Consume from OO RCV Buffer here.
+            rcv_nxt = h->tcp.seq_num + h->segment_len();
+            post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
+
+            // BAH!  The packet can get deleted if we let rx_append call out
+            // to the client in context.
+            p->client_offset = (uint8_t*)h->get_payload() - p->payload;
+            p->client_len    = h->payload_len();
+            flags            = NRX_FLAG_NO_DELETE;
+            rx_append(p);
+
+            // Though shalt not touch packet memory again.
+            h = NULL;
+            p = NULL;
+        }
+        else
+            post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
+    }
+    if (fin)
+    {
+        process_fin(fin_seq);
+        TRANSITION(TCP_CLOSE_WAIT);
+        return flags;
+    }
+
+    return flags;
 }
 
 void

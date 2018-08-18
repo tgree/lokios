@@ -112,6 +112,7 @@ namespace tcp
         void        handle_retransmit_expiry(kernel::timer_entry* wqe);
         uint64_t    handle_rx_ipv4_tcp_frame(net::rx_page* p);
         uint64_t    handle_listen_syn_recvd(net::rx_page* p);
+        uint64_t    handle_established_segment_recvd(net::rx_page* p);
 
         // Access the receive queue.
         void    rx_append(net::rx_page* p);
