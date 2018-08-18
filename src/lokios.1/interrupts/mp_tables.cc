@@ -10,7 +10,7 @@ static const kernel::mpfp_struct*
 mpfp_search(dma_addr64 _base, size_t len)
 {
     dma_addr64 end = _base + len;
-    end = kernel::min(end,(dma_addr64)0x00100000);
+    end = MIN(end,(dma_addr64)0x00100000);
     dma_addr64 start = kernel::round_up_pow2(_base,16);
     while (start < end)
     {

@@ -12,7 +12,7 @@ kernel::tlb_shootdown()
     size_t rem = kernel::cpus.size();
     while (rem)
     {
-        size_t batch_size = min(rem,BATCH_SIZE);
+        size_t batch_size = MIN(rem,BATCH_SIZE);
 
         for (size_t i=0; i<batch_size; ++i)
         {

@@ -5,7 +5,6 @@
 #include <elf.h>
 #include <string.h>
 
-using kernel::max;
 using kernel::round_up_pow2;
 
 extern uint8_t _elf_base[];
@@ -72,7 +71,7 @@ process_elf_image(image_stream* is, void* sector0, uintptr_t* image_end)
     uint64_t ehdr_end = ehdr->e_ehsize;
     uint64_t ph_end   = ehdr->e_phoff + ehdr->e_phentsize*ehdr->e_phnum;
     uint64_t sh_end   = ehdr->e_shoff + ehdr->e_shentsize*ehdr->e_shnum;
-    uint64_t limit    = max(ehdr_end,max(ph_end,sh_end));
+    uint64_t limit    = MAX(ehdr_end,ph_end,sh_end);
     limit             = round_up_pow2(limit,512);
     console::printf("Headers limit: 0x%08llX\n",limit);
 
@@ -97,14 +96,14 @@ process_elf_image(image_stream* is, void* sector0, uintptr_t* image_end)
                             "memsize %llu.\n",i,phdr->p_filesz,phdr->p_memsz);
             return -9;
         }
-        limit = max(limit,phdr->p_offset + phdr->p_filesz);
+        limit = MAX(limit,phdr->p_offset + phdr->p_filesz);
     }
 
     // Iterate over all the section headers looking for the highest limit.
     auto* shdr = (Elf64_Shdr*)((char*)ehdr + ehdr->e_shoff);
     for (size_t i=0; i<ehdr->e_shnum; ++i)
     {
-        limit = max(limit,shdr->sh_offset + shdr->sh_size);
+        limit = MAX(limit,shdr->sh_offset + shdr->sh_size);
         shdr  = (Elf64_Shdr*)((char*)shdr + ehdr->e_shentsize);
     }
 

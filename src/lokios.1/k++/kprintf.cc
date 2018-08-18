@@ -7,7 +7,6 @@
 #include <unistd.h>
 
 using kernel::putc_func;
-using kernel::min;
 
 // Flag characters.
 #define PRINTF_FLAG_ALTERNATE_FORM  (1<<0)
@@ -200,7 +199,7 @@ print_string(putc_func _putc, void* cookie, const char* s, unsigned int flags,
     if (flags & PRINTF_FLAG_OMIT_PRECISION)
         digits = strlen(s);
     else
-        digits = min<size_t>(strnlen(s,precision),precision);
+        digits = MIN(strnlen(s,precision),(size_t)precision);
     flags &= ~PRINTF_FLAG_ZERO_PADDED;
 
     print_field(_putc,cookie,s,digits,flags,width,0);

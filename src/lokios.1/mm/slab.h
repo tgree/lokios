@@ -121,7 +121,7 @@ namespace kernel
         }
 
         inline slab(size_t elem_size):
-            elem_size(max(elem_size,sizeof(free_elem))),
+            elem_size(MAX(elem_size,sizeof(free_elem))),
             page_elem_count(slab_page::elem_count_for_elem_size(elem_size))
         {
         }

@@ -47,7 +47,7 @@ namespace kernel
         auto i = c.begin();
         while (i != c.end())
         {
-            region intersection = {max(first,i->first),min(last,i->last)};
+            region intersection = {MAX(first,i->first),MIN(last,i->last)};
             if (intersection.first > i->last || intersection.last < i->first)
                 ++i;
             else if (intersection.first > i->first &&

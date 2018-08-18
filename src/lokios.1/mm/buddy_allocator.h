@@ -100,8 +100,8 @@ namespace kernel
                 return;
 
             bpage* bp2    = (bpage*)((uintptr_t)bp ^ (1 << (order+12)));
-            bpage* first  = kernel::min(bp,bp2);
-            bpage* second = kernel::max(bp,bp2);
+            bpage* first  = MIN(bp,bp2);
+            bpage* second = MAX(bp,bp2);
             second->link.unlink();
             second->~bpage();
 

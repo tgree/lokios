@@ -98,7 +98,7 @@ bcm57762::dev::mem_read(void* _dst, uint32_t addr, size_t len)
     {
         uint32_t window_addr = (addr & 0x00FF8000);
         size_t window_rem    = (window_addr + 0x8000 - addr);
-        size_t rem           = kernel::min(window_rem,len);
+        size_t rem           = MIN(window_rem,len);
         config_write_32(window_addr,0x7C);
 
         for (size_t i=0; i<rem; ++i)
@@ -117,7 +117,7 @@ bcm57762::dev::mem_write(uint32_t addr, const void* _src, size_t len)
     {
         uint32_t window_addr = (addr & 0x00FF8000);
         size_t window_rem    = (window_addr + 0x8000 - addr);
-        size_t rem           = kernel::min(window_rem,len);
+        size_t rem           = MIN(window_rem,len);
         config_write_32(window_addr, 0x7C);
 
         for (size_t i=0; i<rem; ++i)
