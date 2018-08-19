@@ -83,7 +83,6 @@ namespace tcp
         void    post_op(tcp::tx_op* top);
         void    post_syn(uint32_t seq_num, uint16_t mss, size_t window_size);
         void    post_rst(uint32_t seq_num);
-        void    post_rst_ack(uint32_t ack_num);
         void    post_ack(uint32_t seq_num, uint32_t ack_num,
                          size_t window_size, uint8_t window_shift);
         void    send_complete(net::tx_op* nop);

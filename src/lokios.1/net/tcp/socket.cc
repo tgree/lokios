@@ -142,14 +142,6 @@ tcp::socket::post_rst(uint32_t seq_num)
 }
 
 void
-tcp::socket::post_rst_ack(uint32_t ack_num)
-{
-    auto* top = alloc_tx_op();
-    top->hdrs.format(SEQ{0},ACK{ack_num},CTL{FRST|FACK});
-    post_op(top);
-}
-
-void
 tcp::socket::post_ack(uint32_t seq_num, uint32_t ack_num, size_t window_size,
     uint8_t window_shift)
 {
