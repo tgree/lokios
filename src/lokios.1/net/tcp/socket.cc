@@ -21,6 +21,11 @@
 
 using kernel::_kassert;
 
+static void
+syn_sent_send_op_cb(tcp::send_op*)
+{
+}
+
 uint32_t
 tcp::send_op::mark_acked(uint32_t ack_len)
 {
@@ -75,7 +80,6 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p):
     observer(NULL),
     tx_ops_slab(sizeof(tcp::tx_op)),
     send_ops_slab(sizeof(tcp::send_op)),
-    retransmit_op(NULL),
     rx_avail_bytes(0)
 {
     kassert(llsize <= sizeof(llhdr));
@@ -89,7 +93,7 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p):
 
     iss           = kernel::random(0,0xFFFF);
     snd_una       = iss;
-    snd_nxt       = iss + 1;
+    snd_nxt       = iss;
     snd_wnd       = 0;
     snd_wnd_shift = 0;
     snd_mss       = 1460;
@@ -114,7 +118,6 @@ tcp::socket::socket(net::interface* intf, ipv4::addr remote_ip,
         observer(observer),
         tx_ops_slab(sizeof(tcp::tx_op)),
         send_ops_slab(sizeof(tcp::send_op)),
-        retransmit_op(NULL),
         rx_avail_bytes(0)
 {
     kassert(llsize <= sizeof(llhdr));
@@ -126,18 +129,19 @@ tcp::socket::socket(net::interface* intf, ipv4::addr remote_ip,
 
     iss           = kernel::random(0,0xFFFF);
     snd_una       = iss;
-    snd_nxt       = iss + 1;
-    snd_wnd       = 0;
+    snd_nxt       = iss;
+    snd_wnd       = 1;
     snd_wnd_shift = 0;
     snd_mss       = 1460;
 
     irs           = 0;
     rcv_nxt       = 0;
     rcv_wnd       = MAX_RX_WINDOW;
-    rcv_wnd_shift = 0;
+    rcv_wnd_shift = RX_WINDOW_SHIFT;
     rcv_mss       = 1460;
 
-    post_syn(iss,rcv_mss,rcv_wnd);
+    send(0,NULL,kernel::func_delegate(syn_sent_send_op_cb),
+         SEND_OP_FLAG_SYN | SEND_OP_FLAG_SET_SCALE);
     TRANSITION(TCP_SYN_SENT);
 }
 
@@ -186,18 +190,11 @@ tcp::socket::post_op(tcp::tx_op* top)
 }
 
 void
-tcp::socket::post_syn(uint32_t seq_num, uint16_t mss, size_t window_size)
+tcp::socket::post_retransmittable_op(tcp::tx_op* top)
 {
-    auto* top = alloc_tx_op();
-    top->hdrs.format(SEQ{seq_num},CTL{FSYN},WS{window_size,0});
-    auto* opt                = top->hdrs.tcp.options;
-    opt[0]                   = 2;
-    opt[1]                   = 4;
-    *(be_uint16_t*)(opt + 2) = mss;
-    top->hdrs.ip.total_len  += 4;
-    top->hdrs.tcp.offset    += 1;
-    top->alps[0].len        += 4;
-    post_op(top);
+    top->cb = method_delegate(send_complete_arm_retransmit);
+    posted_ops.push_back(&top->tcp_link);
+    intf->post_tx_frame(top);
 }
 
 void
@@ -224,45 +221,118 @@ tcp::socket::send_complete(net::tx_op* nop)
     auto* top = static_cast<tcp::tx_op*>(nop);
     kassert(klist_front(posted_ops,tcp_link) == top);
     posted_ops.pop_front();
+    free_tx_op(top);
+}
+
+void
+tcp::socket::send_complete_arm_retransmit(net::tx_op* nop)
+{
+    auto* top = static_cast<tcp::tx_op*>(nop);
+    if (!retransmit_wqe.is_armed() && !top->sop->is_fully_acked())
+        kernel::cpu::schedule_timer_ms(&retransmit_wqe,RETRANSMIT_TIMEOUT_MS);
+    send_complete(nop);
+}
+
+tcp::send_op*
+tcp::socket::send(size_t nalps, kernel::dma_alp* alps,
+    kernel::delegate<void(send_op*)> cb, uint64_t flags)
+{
+    auto* sop               = send_ops_slab.alloc<tcp::send_op>();
+    sop->cb                 = cb;
+    sop->flags              = flags;
+    sop->refcount           = 0;
+    sop->nalps              = nalps;
+    sop->unacked_alp_index  = 0;
+    sop->unsent_alp_index   = 0;
+    sop->unacked_alp_offset = 0;
+    sop->unsent_alp_offset  = 0;
+    sop->alps               = alps;
 
     switch (state)
     {
-        case TCP_SYN_RECVD:
-        case TCP_SYN_SENT:
-            if (top->hdrs.segment_len())
-            {
-                retransmit_op = top;
-                kernel::cpu::schedule_timer_ms(&retransmit_wqe,
-                                               RETRANSMIT_TIMEOUT_MS);
-            }
-            else
-                free_tx_op(top);
+        case TCP_LISTEN:
+            kassert(flags & SEND_OP_FLAG_SET_ACK);
+        case TCP_CLOSED:
+            kassert(flags & SEND_OP_FLAG_SYN);
+            unsent_send_ops.push_back(&sop->link);
+            process_send_queue();
         break;
 
         default:
-            free_tx_op(top);
+            kernel::panic("Bad state for send!");
         break;
+    }
+
+    return sop;
+}
+
+tcp::tx_op*
+tcp::socket::make_one_packet(tcp::send_op* sop)
+{
+    kassert(sop->flags & SEND_OP_FLAG_SYN);
+
+    auto avail_len = MIN(snd_una + snd_wnd - snd_nxt,(uint32_t)snd_mss);
+    kassert(avail_len > 0);
+
+    // Format the header based on if this is the SYN packet or not.
+    tcp::tx_op* top = alloc_tx_op(sop);
+    top->hdrs.format(SEQ{snd_nxt},CTL{FSYN},WS{rcv_wnd,0});
+    if (sop->flags & SEND_OP_FLAG_SET_ACK)
+        top->hdrs.format(ACK{rcv_nxt},CTL{FSYN|FACK});
+    --avail_len;
+
+    auto* opt                = top->hdrs.tcp.options;
+    opt[0]                   = 2;
+    opt[1]                   = 4;
+    *(be_uint16_t*)(opt + 2) = rcv_mss;
+    opt                     += 4;
+
+    if (sop->flags & SEND_OP_FLAG_SET_SCALE)
+    {
+        opt[0] = 3;
+        opt[1] = 3;
+        opt[2] = rcv_wnd_shift;
+        opt[3] = 1;
+        opt   += 4;
+    }
+
+    size_t opt_len          = opt - top->hdrs.tcp.options;
+    top->hdrs.ip.total_len += opt_len;
+    top->hdrs.tcp.offset   += opt_len/4;
+    top->alps[0].len       += opt_len;
+
+    unsent_send_ops.pop_front();
+    sent_send_ops.push_back(&sop->link);
+
+    return top;
+}
+
+void
+tcp::socket::process_send_queue()
+{
+    if (seq_ge(snd_nxt,snd_una + snd_wnd))
+    {
+        intf->intf_dbg("snd window empty snd_nxt %u snd_una %u snd_wnd %u\n",
+                       snd_nxt,snd_una,snd_wnd);
+        return;
+    }
+
+    while (!unsent_send_ops.empty() && snd_nxt != snd_una + snd_wnd)
+    {
+        tcp::send_op* sop = klist_front(unsent_send_ops,link);
+        tcp::tx_op* top   = make_one_packet(sop);
+        snd_nxt          += top->hdrs.segment_len();
+        post_retransmittable_op(top);
     }
 }
 
 void
 tcp::socket::handle_retransmit_expiry(kernel::timer_entry*)
 {
-    switch (state)
-    {
-        case TCP_SYN_RECVD:
-        case TCP_SYN_SENT:
-            post_op(retransmit_op);
-            retransmit_op = NULL;
-        break;
-
-        case TCP_CLOSED:
-        case TCP_LISTEN:
-        case TCP_ESTABLISHED:
-        case TCP_CLOSE_WAIT:
-            kernel::panic("unexpected retransmit timer expiry");
-        break;
-    }
+    sent_send_ops.append(unsent_send_ops);
+    unsent_send_ops.append(sent_send_ops);
+    snd_nxt = snd_una;
+    process_send_queue();
 }
 
 uint64_t
@@ -324,15 +394,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
             if (seq_le(snd_una,h->tcp.ack_num) &&
                 seq_le(h->tcp.ack_num,snd_nxt))
             {
-                // Process the SYN ACK.
-                if (seq_lt(snd_una,h->tcp.ack_num))
-                    ++snd_una;
-                if (retransmit_wqe.is_armed())
-                {
-                    kernel::cpu::cancel_timer(&retransmit_wqe);
-                    free_tx_op(retransmit_op);
-                    retransmit_op = NULL;
-                }
+                process_ack(h->tcp.ack_num);
                 TRANSITION(TCP_ESTABLISHED);
                 observer->socket_established(this);
                 return handle_established_segment_recvd(p);
@@ -367,6 +429,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
                     intf->tcp_delete(this);
                     break;
                 }
+                process_ack(h->tcp.ack_num);
                 if (!h->tcp.syn)
                     break;
 
@@ -386,15 +449,8 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
 
                 irs     = h->tcp.seq_num;
                 rcv_nxt = irs + 1;
-                snd_una = h->tcp.ack_num;
                 if (seq_gt(snd_una,iss))
                 {
-                    if (retransmit_wqe.is_armed())
-                    {
-                        kernel::cpu::cancel_timer(&retransmit_wqe);
-                        free_tx_op(retransmit_op);
-                        retransmit_op = NULL;
-                    }
                     post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
                     TRANSITION(TCP_ESTABLISHED);
                     observer->socket_established(this);
@@ -446,42 +502,18 @@ tcp::socket::handle_listen_syn_recvd(net::rx_page* p)
         snd_wnd_shift = opts.snd_wnd_shift;
 
     // Segment(SEQ=ISS,ACK=RCV.NXT,CTL=SYN/ACK)
-    auto* hop = alloc_tx_op();
-    hop->hdrs.format(SEQ{iss},ACK{rcv_nxt},CTL{FSYN|FACK},WS{rcv_wnd,0});
-
-    // Add MSS option.
-    uint8_t* opt             = hop->hdrs.tcp.options;
-    uint8_t* start           = opt;
-    opt[0]                   = 2;
-    opt[1]                   = 4;
-    *(be_uint16_t*)(opt + 2) = rcv_mss;
-    opt                     += 4;
-
-    // Add window scaling option if we can.
     if (opts.flags & OPTION_SND_WND_SHIFT_PRESENT)
     {
         rcv_wnd_shift = RX_WINDOW_SHIFT;
-        opt[0]        = 3;
-        opt[1]        = 3;
-        opt[2]        = rcv_wnd_shift;
-        opt          += 3;
-
-        opt[0]        = 1;
-        opt          += 1;
+        send(0,NULL,kernel::func_delegate(syn_sent_send_op_cb),
+             SEND_OP_FLAG_SYN | SEND_OP_FLAG_SET_ACK | SEND_OP_FLAG_SET_SCALE);
+    }
+    else
+    {
+        send(0,NULL,kernel::func_delegate(syn_sent_send_op_cb),
+             SEND_OP_FLAG_SYN | SEND_OP_FLAG_SET_ACK);
     }
 
-    // Padding.
-    while ((opt - start) % 4)
-        *opt++ = 0;
-
-    // Increment lengths.
-    size_t opt_len         = (opt - start);
-    hop->hdrs.ip.total_len = hop->hdrs.ip.total_len + opt_len;
-    hop->alps[0].len      += opt_len;
-    hop->hdrs.tcp.offset  += opt_len/4;
-
-    // Post it.
-    post_op(hop);
     TRANSITION(TCP_SYN_RECVD);
     return 0;
 }
@@ -516,7 +548,8 @@ tcp::socket::handle_established_segment_recvd(net::rx_page* p)
         seq_le(h->tcp.ack_num,snd_nxt))
     {
         snd_wnd = h->tcp.window_size << snd_wnd_shift;
-        snd_una = h->tcp.ack_num;
+        process_ack(h->tcp.ack_num);
+        process_send_queue();
         // TODO: "Release REXMT timer"?????
     }
     else if (seq_ne(h->tcp.ack_num,snd_una))
@@ -621,6 +654,54 @@ tcp::socket::process_fin(uint32_t seq_num)
 {
     rcv_nxt = seq_num + 1;
     post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
+}
+
+void
+tcp::socket::process_ack(uint32_t ack_num)
+{
+    // snd_una is the first unacknowledged byte and corresponds to the head of
+    // the sent_send_ops queue.
+    //
+    // ack_num is the first unseen sequence number by the remote guy.  So he
+    // is acking [snd_una,ack_num).  I.e. sequence number ack_num is NOT being
+    // acknowledged yet.
+    uint32_t ack_len = ack_num - snd_una;
+    if (ack_len && retransmit_wqe.is_armed())
+    {
+        kernel::cpu::cancel_timer(&retransmit_wqe);
+        kernel::cpu::schedule_timer_ms(&retransmit_wqe,RETRANSMIT_TIMEOUT_MS);
+    }
+
+    while (ack_len && !sent_send_ops.empty())
+    {
+        auto* sop = klist_front(sent_send_ops,link);
+        ack_len   = sop->mark_acked(ack_len);
+
+        if (sop->is_fully_acked())
+        {
+            sent_send_ops.pop_front();
+            if (!sop->refcount)
+            {
+                sop->cb(sop);
+                send_ops_slab.free(sop);
+            }
+            else
+                acked_send_ops.push_back(&sop->link);
+        }
+    }
+    if (ack_len && !unsent_send_ops.empty())
+    {
+        auto* sop = klist_front(unsent_send_ops,link);
+        ack_len   = sop->mark_acked(ack_len);
+        kassert(sop->unacked_alp_index < sop->nalps-1 ||
+                sop->unacked_alp_offset < sop->alps[sop->nalps-1].len);
+    }
+    kassert(ack_len == 0);
+
+    snd_una = ack_num;
+
+    if (snd_una == snd_nxt && retransmit_wqe.is_armed())
+        kernel::cpu::cancel_timer(&retransmit_wqe);
 }
 
 int

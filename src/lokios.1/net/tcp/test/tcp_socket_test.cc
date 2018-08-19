@@ -156,8 +156,10 @@ class tmock_test
         intf.handle_tx_completion(op);
         TASSERT(s->retransmit_wqe.is_armed());
 
-        // Cleanup.
-        s->free_tx_op(s->retransmit_op);
+        // Clean up.
+        auto* sop = klist_front(s->sent_send_ops,link);
+        s->sent_send_ops.pop_front();
+        s->send_ops_slab.free(sop);
     }
 
     TMOCK_TEST(test_active_connect)
@@ -171,11 +173,11 @@ class tmock_test
         tmock::assert_equiv(s.state,tcp::socket::TCP_SYN_SENT);
         tmock::assert_equiv(s.snd_una,s.iss);
         tmock::assert_equiv(s.snd_nxt,s.iss+1U);
-        tmock::assert_equiv(s.snd_wnd,0U);
+        tmock::assert_equiv(s.snd_wnd,1U);
         tmock::assert_equiv(s.snd_wnd_shift,0U);
         tmock::assert_equiv(s.rcv_nxt,0U);
         tmock::assert_equiv(s.rcv_wnd,MAX_RX_WINDOW);
-        tmock::assert_equiv(s.rcv_wnd_shift,0U);
+        tmock::assert_equiv(s.rcv_wnd_shift,RX_WINDOW_SHIFT);
         tmock::assert_equiv(s.rcv_mss,1460U);
         tmock::assert_equiv(s.irs,0U);
         tmock::assert_equiv(s.remote_ip,REMOTE_IP);
@@ -185,18 +187,27 @@ class tmock_test
 
         // We should send:
         //  <SEQ=ISS><CTL=SYN>
+        // Options:
+        //  MSS - 1460
+        //  Window Shift - RX_WINDOW_SHIFT
         auto* op = static_cast<tcp::tx_op*>(intf.pop_tx_op());
-        validate_tx_op(op,s.iss,0,0xFFFF,FSYN,6);
+        validate_tx_op(op,s.iss,0,0xFFFF,FSYN,7);
 
         uint8_t* opt = op->hdrs.tcp.options;
         tmock::assert_equiv(opt[0],2U);
         tmock::assert_equiv(opt[1],4U);
         tmock::assert_equiv(*(be_uint16_t*)(opt + 2),1460U);
+        tmock::assert_equiv(opt[4],3U);
+        tmock::assert_equiv(opt[5],3U);
+        tmock::assert_equiv(opt[6],RX_WINDOW_SHIFT);
+        tmock::assert_equiv(opt[7],1U);
         intf.handle_tx_completion(op);
         TASSERT(s.retransmit_wqe.is_armed());
 
-        // Cleanup.
-        s.free_tx_op(s.retransmit_op);
+        // Clean up.
+        auto* sop = klist_front(s.sent_send_ops,link);
+        s.sent_send_ops.pop_front();
+        s.send_ops_slab.free(sop);
     }
 };
 

@@ -97,10 +97,20 @@ namespace tcp
         socket_observer*                observer;
 
         // Send queue.
+        // Send ops transition between queues as follows:
+        // - unsent_send_ops - these ops have bytes that haven't even been
+        //                     posted to the chip yet.
+        // - sent_send_ops   - the bytes for these ops have all been posted to
+        //                     the chip but some are still unacknowledged
+        // - acked_send_ops  - the bytes for these ops have all been posted and
+        //                     acked but the op still has a non-zero refcount
+        //                     (missing send completions from the chip).
         kernel::slab                    tx_ops_slab;
         kernel::slab                    send_ops_slab;
-        tcp::tx_op*                     retransmit_op;
         kernel::klist<tcp::tx_op>       posted_ops;
+        kernel::kdlist<tcp::send_op>    unsent_send_ops;
+        kernel::kdlist<tcp::send_op>    sent_send_ops;
+        kernel::kdlist<tcp::send_op>    acked_send_ops;
         kernel::timer_entry             retransmit_wqe;
 
         // Receive queue.
@@ -128,11 +138,20 @@ namespace tcp
 
         // Post send ops.
         void    post_op(tcp::tx_op* top);
-        void    post_syn(uint32_t seq_num, uint16_t mss, size_t window_size);
+        void    post_retransmittable_op(tcp::tx_op* top);
         void    post_rst(uint32_t seq_num);
         void    post_ack(uint32_t seq_num, uint32_t ack_num,
                          size_t window_size, uint8_t window_shift);
         void    send_complete(net::tx_op* nop);
+        void    send_complete_arm_retransmit(net::tx_op* nop);
+
+        // Send data.  This is async; the alps and data must remain valid until
+        // after the callback is invoked.
+        tcp::send_op*   send(size_t nalps, kernel::dma_alp* alps,
+                             kernel::delegate<void(send_op*)> cb,
+                             uint64_t flags = 0);
+        tcp::tx_op*     make_one_packet(tcp::send_op* sop);
+        void            process_send_queue();
 
         // Handlers.
         void        handle_retransmit_expiry(kernel::timer_entry* wqe);
@@ -147,6 +166,7 @@ namespace tcp
         // Helpers.
         void        dump_socket();
         void        process_fin(uint32_t seq_num);
+        void        process_ack(uint32_t ack_num);
         int         parse_options(ipv4_tcp_headers* h, parsed_options* opts);
 
         // Passive open.
