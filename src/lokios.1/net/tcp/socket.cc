@@ -254,6 +254,7 @@ tcp::socket::send(size_t nalps, kernel::dma_alp* alps,
             kassert(flags & SEND_OP_FLAG_SET_ACK);
         case TCP_CLOSED:
             kassert(flags & SEND_OP_FLAG_SYN);
+        case TCP_ESTABLISHED:
             unsent_send_ops.push_back(&sop->link);
             process_send_queue();
         break;
@@ -269,40 +270,94 @@ tcp::socket::send(size_t nalps, kernel::dma_alp* alps,
 tcp::tx_op*
 tcp::socket::make_one_packet(tcp::send_op* sop)
 {
-    kassert(sop->flags & SEND_OP_FLAG_SYN);
-
     auto avail_len = MIN(snd_una + snd_wnd - snd_nxt,(uint32_t)snd_mss);
     kassert(avail_len > 0);
 
     // Format the header based on if this is the SYN packet or not.
     tcp::tx_op* top = alloc_tx_op(sop);
-    top->hdrs.format(SEQ{snd_nxt},CTL{FSYN},WS{rcv_wnd,0});
-    if (sop->flags & SEND_OP_FLAG_SET_ACK)
-        top->hdrs.format(ACK{rcv_nxt},CTL{FSYN|FACK});
-    --avail_len;
-
-    auto* opt                = top->hdrs.tcp.options;
-    opt[0]                   = 2;
-    opt[1]                   = 4;
-    *(be_uint16_t*)(opt + 2) = rcv_mss;
-    opt                     += 4;
-
-    if (sop->flags & SEND_OP_FLAG_SET_SCALE)
+    top->hdrs.format(SEQ{snd_nxt});
+    if (!(sop->flags & SEND_OP_FLAG_SYN) ||
+        sop->unsent_alp_index > 0 ||
+        sop->unsent_alp_offset > 0)
     {
-        opt[0] = 3;
-        opt[1] = 3;
-        opt[2] = rcv_wnd_shift;
-        opt[3] = 1;
-        opt   += 4;
+        top->hdrs.format(ACK{rcv_nxt},CTL{FACK},WS{rcv_wnd,rcv_wnd_shift});
+    }
+    else
+    {
+        top->hdrs.format(CTL{FSYN},WS{rcv_wnd,0});
+        if (sop->flags & SEND_OP_FLAG_SET_ACK)
+            top->hdrs.format(ACK{rcv_nxt},CTL{FSYN|FACK});
+        --avail_len;
+
+        auto* opt                = top->hdrs.tcp.options;
+        opt[0]                   = 2;
+        opt[1]                   = 4;
+        *(be_uint16_t*)(opt + 2) = rcv_mss;
+        opt                     += 4;
+
+        if (sop->flags & SEND_OP_FLAG_SET_SCALE)
+        {
+            opt[0] = 3;
+            opt[1] = 3;
+            opt[2] = rcv_wnd_shift;
+            opt[3] = 1;
+            opt   += 4;
+        }
+
+        size_t opt_len          = opt - top->hdrs.tcp.options;
+        top->hdrs.ip.total_len += opt_len;
+        top->hdrs.tcp.offset   += opt_len/4;
+        top->alps[0].len       += opt_len;
     }
 
-    size_t opt_len          = opt - top->hdrs.tcp.options;
-    top->hdrs.ip.total_len += opt_len;
-    top->hdrs.tcp.offset   += opt_len/4;
-    top->alps[0].len       += opt_len;
+    // Drop some alps in if we have payload remaining to process.
+    kassert(top->nalps == 1);
+    kernel::dma_alp* salp = &sop->alps[sop->unsent_alp_index];
+    kernel::dma_alp* dalp = &top->alps[1];
+    while (avail_len &&
+           sop->unsent_alp_index < sop->nalps &&
+           top->nalps < NELEMS(top->alps))
+    {
+        dalp->paddr = salp->paddr + sop->unsent_alp_offset;
+        dalp->len   = MIN(salp->len - sop->unsent_alp_offset,(size_t)avail_len);
 
-    unsent_send_ops.pop_front();
-    sent_send_ops.push_back(&sop->link);
+        sop->unsent_alp_offset += dalp->len;
+        if (sop->unsent_alp_offset == salp->len)
+        {
+            sop->unsent_alp_offset = 0;
+            ++sop->unsent_alp_index;
+            ++salp;
+        }
+
+        if (dalp->len)
+        {
+            top->hdrs.ip.total_len += dalp->len;
+            avail_len              -= dalp->len;
+            ++top->nalps;
+            ++dalp;
+        }
+    }
+
+    // Do PSH and FIN processing if we're at the end of the send op.
+    if (sop->unsent_alp_index == sop->nalps)
+    {
+        if (sop->nalps)
+            top->hdrs.tcp.psh = 1;
+        if (sop->flags & SEND_OP_FLAG_FIN)
+        {
+            if (avail_len)
+            {
+                top->hdrs.tcp.fin = 1;
+                unsent_send_ops.pop_front();
+                sent_send_ops.push_back(&sop->link);
+            }
+        }
+        else
+        {
+            unsent_send_ops.pop_front();
+            sent_send_ops.push_back(&sop->link);
+        }
+    }
 
     return top;
 }
@@ -329,6 +384,17 @@ tcp::socket::process_send_queue()
 void
 tcp::socket::handle_retransmit_expiry(kernel::timer_entry*)
 {
+    if (!unsent_send_ops.empty())
+    {
+        auto* sop = klist_front(unsent_send_ops,link);
+        unsent_send_ops.pop_front();
+        sent_send_ops.push_back(&sop->link);
+    }
+    for (auto& sop : klist_elems(sent_send_ops,link))
+    {
+        sop.unsent_alp_index  = sop.unacked_alp_index;
+        sop.unsent_alp_offset = sop.unacked_alp_offset;
+    }
     sent_send_ops.append(unsent_send_ops);
     unsent_send_ops.append(sent_send_ops);
     snd_nxt = snd_una;
@@ -391,7 +457,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
             }
             if (!h->tcp.ack)
                 break;
-            if (seq_le(snd_una,h->tcp.ack_num) &&
+            if (seq_lt(snd_una,h->tcp.ack_num) &&
                 seq_le(h->tcp.ack_num,snd_nxt))
             {
                 process_ack(h->tcp.ack_num);

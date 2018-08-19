@@ -26,17 +26,43 @@ struct mock_observer : public tcp::socket_observer
 
 static mock_observer observer;
 
-struct mock_listener
+static tcp::socket* passive_socket;
+static tcp::socket* active_socket;
+
+static uint8_t snd_data[16384];
+static uint8_t rcv_data[16384];
+static size_t rcv_pos;
+
+struct fake_observer : public tcp::socket_observer
+{
+    virtual void socket_established(tcp::socket* s)
+    {
+        mock("fake_observer::socket_established",s);
+    }
+
+    virtual void socket_readable(tcp::socket* s)
+    {
+        size_t rem = NELEMS(rcv_data) - rcv_pos;
+        size_t count = s->rx_avail_bytes;
+        TASSERT(rem >= count);
+        s->read(rcv_data + rcv_pos,count);
+        rcv_pos += count;
+    }
+
+    virtual void socket_reset(tcp::socket* s)
+    {
+        mock("fake_observer::socket_reset",s);
+    }
+};
+
+static fake_observer fobserver;
+
+struct fake_listener
 {
     void socket_accepted(tcp::socket* s)
     {
-        s->observer = &observer;
-        mock("mock_listener::socket_accepted",s);
-    }
-
-    void socket_readable(tcp::socket* s)
-    {
-        mock("mock_listener::socket_readable",s);
+        s->observer    = &fobserver;
+        passive_socket = s;
     }
 
     void listen(net::interface* intf, uint16_t port)
@@ -48,18 +74,19 @@ struct mock_listener
 static net::finterface intf0(LOCAL_IP0);
 static net::finterface intf1(LOCAL_IP1);
 static net::fpipe intf_pipe(&intf0,&intf1);
-static tcp::socket* passive_socket;
-static tcp::socket* active_socket;
+
+static void
+send_complete(tcp::send_op* sop)
+{
+    mock("send_complete",sop);
+}
 
 class tmock_test
 {
     TMOCK_TEST(test_connect)
     {
-        mock_listener ml;
+        fake_listener ml;
         ml.listen(&intf0,3333);
-
-        texpect("mock_listener::socket_accepted",
-                capture(s,(uintptr_t*)&passive_socket));
 
         // Active socket:
         //  - post SYN
@@ -95,7 +122,7 @@ class tmock_test
         //  - send comp for ACK
         // Passive socket:
         //  - rx ACK -> go to ESTABLISHED -> disarm retransmit timer
-        texpect("mock_observer::socket_established",want(s,passive_socket));
+        texpect("fake_observer::socket_established",want(s,passive_socket));
         tmock::assert_equiv(intf_pipe.process_queues(),1U);
         TASSERT(!active_socket->retransmit_wqe.is_armed());
         TASSERT(!passive_socket->retransmit_wqe.is_armed());
@@ -104,15 +131,29 @@ class tmock_test
 
         // Queue should be idle.
         tmock::assert_equiv(intf_pipe.process_queues(),0U);
+
+        // Generate some random data.
+        for (size_t i=0; i<NELEMS(snd_data); ++i)
+            snd_data[i] = random();
+
+        // Transmit.
+        kernel::dma_alp alps[1] = {{kernel::virt_to_phys(snd_data),
+                                    sizeof(snd_data)}};
+        auto* sop = active_socket->send(NELEMS(alps),alps,
+                                        kernel::func_delegate(send_complete));
+        texpect("send_complete",want(sop,sop));
+        while (intf_pipe.process_queues())
+            ;
+
+        // Validate data.
+        tmock::assert_equiv(rcv_pos,sizeof(rcv_data));
+        TASSERT(memcmp(snd_data,rcv_data,sizeof(rcv_data)) == 0);
     }
 
     TMOCK_TEST(test_connect_with_retransmits)
     {
-        mock_listener ml;
+        fake_listener ml;
         ml.listen(&intf0,3333);
-
-        texpect("mock_listener::socket_accepted",
-                capture(s,(uintptr_t*)&passive_socket));
 
         // Active socket:
         //  - post SYN
@@ -189,12 +230,39 @@ class tmock_test
         // Passive socket:
         //  - send comp for ACK
         //  - rx ACK -> go to ESTABLISHED -> disarm retransmit timer
-        texpect("mock_observer::socket_established",want(s,passive_socket));
+        texpect("fake_observer::socket_established",want(s,passive_socket));
         tmock::assert_equiv(intf_pipe.process_queues(),2U);
         tmock::assert_equiv(passive_socket->state,tcp::socket::TCP_ESTABLISHED);
         tmock::assert_equiv(active_socket->state,tcp::socket::TCP_ESTABLISHED);
         TASSERT(!active_socket->retransmit_wqe.is_armed());
         TASSERT(!passive_socket->retransmit_wqe.is_armed());
+
+        // Generate some random data.
+        for (size_t i=0; i<NELEMS(snd_data); ++i)
+            snd_data[i] = random();
+
+        // Queue.
+        kernel::dma_alp alps[1] = {{kernel::virt_to_phys(snd_data),
+                                    sizeof(snd_data)}};
+        auto* sop = active_socket->send(NELEMS(alps),alps,
+                                        kernel::func_delegate(send_complete));
+
+        // Drop everything, trigger the retransmit timer.
+        TASSERT(!active_socket->retransmit_wqe.is_armed());
+        TASSERT(!passive_socket->retransmit_wqe.is_armed());
+        TASSERT(intf_pipe.drop_queues() > 0);
+        tmock::assert_equiv(intf_pipe.process_queues(),0U);
+        TASSERT(active_socket->retransmit_wqe.is_armed());
+        kernel::fire_timer(&active_socket->retransmit_wqe);
+        
+        // No more drops.
+        texpect("send_complete",want(sop,sop));
+        while (intf_pipe.process_queues())
+            ;
+
+        // Validate data.
+        tmock::assert_equiv(rcv_pos,sizeof(rcv_data));
+        TASSERT(memcmp(snd_data,rcv_data,sizeof(rcv_data)) == 0);
     }
 };
 
