@@ -34,6 +34,15 @@ namespace tcp
 
     typedef kernel::delegate<void(socket*)> socket_connect_delegate;
 
+#define OPTION_SND_MSS_PRESENT          (1<<0)
+#define OPTION_SND_WND_SHIFT_PRESENT    (1<<1)
+    struct parsed_options
+    {
+        uint32_t    flags;
+        uint32_t    snd_mss;
+        uint8_t     snd_wnd_shift;
+    };
+
     struct socket
     {
         enum tcp_state
@@ -94,6 +103,7 @@ namespace tcp
 
         // Helpers.
         void        dump_socket();
+        int         parse_options(ipv4_tcp_headers* h, parsed_options* opts);
 
         // Passive open.
         socket(net::interface* intf, net::rx_page* p);
