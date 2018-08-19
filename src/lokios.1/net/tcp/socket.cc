@@ -155,12 +155,25 @@ tcp::socket::alloc_tx_op(tcp::send_op* sop)
     top->hdrs.init(SIP{intf->ip_addr},DIP{remote_ip},
                    SPORT{local_port},DPORT{remote_port});
 
+    if (sop)
+        ++sop->refcount;
     return top;
 }
 
 void
 tcp::socket::free_tx_op(tcp::tx_op* top)
 {
+    auto* sop = top->sop;
+    if (sop)
+    {
+        kassert(sop->refcount != 0);
+        if (!--sop->refcount && sop->is_fully_acked())
+        {
+            sop->link.unlink();
+            sop->cb(sop);
+            send_ops_slab.free(sop);
+        }
+    }
     tx_ops_slab.free(top);
 }
 
