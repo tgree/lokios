@@ -27,12 +27,12 @@ namespace net
 #endif
         uint32_t                        flags;
         uint32_t                        nalps;
-        kernel::dma_alp                 alps[2];
+        kernel::dma_alp                 alps[6];
     };
 #if TX_COMPLETION_DELAY_10MS
-    KASSERT(sizeof(tx_op) == 128);
+    KASSERT(sizeof(tx_op) == 192);
 #else
-    KASSERT(sizeof(tx_op) == 64);
+    KASSERT(sizeof(tx_op) == 128);
 #endif
 
     // Receive parameter block.  The pay_offset and pay_len fields are the
