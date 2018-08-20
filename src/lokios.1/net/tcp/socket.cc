@@ -103,7 +103,7 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p):
     rcv_nxt       = 0;
     rcv_wnd       = MAX_RX_WINDOW;
     rcv_wnd_shift = 0;
-    rcv_mss       = 1460;
+    rcv_mss       = intf->rx_mtu - sizeof(ipv4_tcp_headers);
 }
 
 tcp::socket::socket(net::interface* intf, ipv4::addr remote_ip,
@@ -140,7 +140,7 @@ tcp::socket::socket(net::interface* intf, ipv4::addr remote_ip,
     rcv_nxt       = 0;
     rcv_wnd       = MAX_RX_WINDOW;
     rcv_wnd_shift = RX_WINDOW_SHIFT;
-    rcv_mss       = 1460;
+    rcv_mss       = intf->rx_mtu - sizeof(ipv4_tcp_headers);
 
     send(0,NULL,kernel::func_delegate(syn_sent_send_op_cb),
          SEND_OP_FLAG_SYN | SEND_OP_FLAG_SET_SCALE);

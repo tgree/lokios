@@ -138,7 +138,7 @@ class tmock_test
         tmock::assert_equiv(s->rcv_nxt,REMOTE_ISS+1);
         tmock::assert_equiv(s->rcv_wnd,MAX_RX_WINDOW);
         tmock::assert_equiv(s->rcv_wnd_shift,0);
-        tmock::assert_equiv(s->rcv_mss,1460U);
+        tmock::assert_equiv(s->rcv_mss,intf.rx_mtu-40U);
         tmock::assert_equiv(s->irs,REMOTE_ISS);
         tmock::assert_equiv(s->remote_ip,REMOTE_IP);
         tmock::assert_equiv(s->local_port,LOCAL_PORT);
@@ -180,7 +180,7 @@ class tmock_test
         tmock::assert_equiv(s.rcv_nxt,0U);
         tmock::assert_equiv(s.rcv_wnd,MAX_RX_WINDOW);
         tmock::assert_equiv(s.rcv_wnd_shift,RX_WINDOW_SHIFT);
-        tmock::assert_equiv(s.rcv_mss,1460U);
+        tmock::assert_equiv(s.rcv_mss,intf.rx_mtu-40U);
         tmock::assert_equiv(s.irs,0U);
         tmock::assert_equiv(s.remote_ip,REMOTE_IP);
         tmock::assert_equiv(s.local_port,LOCAL_PORT);
