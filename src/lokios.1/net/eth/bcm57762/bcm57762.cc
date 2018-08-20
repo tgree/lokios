@@ -35,6 +35,7 @@
  *      we can make everything work by munging and swapping.
  */
 #include "bcm57762.h"
+#include "config.h"
 #include "../phy/phy.h"
 #include "kernel/console.h"
 #include "kernel/cpu.h"
@@ -580,9 +581,8 @@ bcm57762::dev::handle_timer(kernel::timer_entry*)
             reg_write_32((mac[0] + mac[1] + mac[2] + mac[3] + mac[4] + mac[5])
                          & 0x3FF,0x438);
 
-            // Step 40: configure the MTU.  We set it to 4K since our receive
-            // buffers are page-sized.
-            reg_write_32(4096,0x43C);
+            // Step 40: configure the MTU.
+            reg_write_32(BCM57762_RX_MTU + 18,0x43C);
 
             // Step 41: configure the inter-packet gap to the recommended value
             // of 0x2620.
