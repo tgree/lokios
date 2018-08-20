@@ -428,7 +428,6 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
             }
 
             handle_listen_syn_recvd(p);
-            dump_socket();
         break;
 
         case TCP_SYN_RECVD:
@@ -464,6 +463,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
             {
                 process_ack(h->tcp.ack_num);
                 TRANSITION(TCP_ESTABLISHED);
+                dump_socket();
                 observer->socket_established(this);
                 return handle_established_segment_recvd(p);
             }
@@ -524,6 +524,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
                 {
                     post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
                     TRANSITION(TCP_ESTABLISHED);
+                    dump_socket();
                     observer->socket_established(this);
                     break;
                 }
