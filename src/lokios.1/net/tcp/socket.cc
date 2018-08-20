@@ -289,7 +289,6 @@ tcp::socket::make_one_packet(tcp::send_op* sop)
         top->hdrs.format(CTL{FSYN},WS{rcv_wnd,0});
         if (sop->flags & SEND_OP_FLAG_SET_ACK)
             top->hdrs.format(ACK{rcv_nxt},CTL{FSYN|FACK});
-        --avail_len;
 
         auto* opt                = top->hdrs.tcp.options;
         opt[0]                   = 2;
@@ -310,6 +309,14 @@ tcp::socket::make_one_packet(tcp::send_op* sop)
         top->hdrs.ip.total_len += opt_len;
         top->hdrs.tcp.offset   += opt_len/4;
         top->alps[0].len       += opt_len;
+
+        // Reduce avail_len if necessary so that payload plus options won't
+        // exceed snd_mss.
+        if (avail_len + opt_len > snd_mss)
+            avail_len = snd_mss - opt_len;
+
+        // Also reduce avail_len for the SYN sequence number.
+        --avail_len;
     }
 
     // Drop some alps in if we have payload remaining to process.
