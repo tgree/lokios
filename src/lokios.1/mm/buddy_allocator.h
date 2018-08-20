@@ -21,13 +21,13 @@ namespace kernel
 
         constexpr size_t get_inuse_bitmask_size() const
         {
-            return ceil_div(1 << (M+1),2*8);
+            return ceil_div(1ULL << (M+1),2ULL*8);
         }
 
         constexpr size_t index_for_ppfn(size_t ppfn, size_t order) const
         {
             size_t offset = ((ppfn - Bppfn) >> order);
-            return (1 << (M+1)) - (1 << (M+1 - order)) + offset;
+            return (1ULL << (M+1)) - (1ULL << (M+1 - order)) + offset;
         }
 
         constexpr size_t index_for_paddr(dma_addr64 a, size_t order) const
@@ -77,8 +77,8 @@ namespace kernel
             size_t index               = params.index_for_ppfn(ppfn,order)/2;
             size_t byte_index          = index/8;
             size_t bit_index           = index % 8;
-            inuse_bitmask[byte_index] ^= (1 << bit_index);
-            return (inuse_bitmask[byte_index] & (1 << bit_index));
+            inuse_bitmask[byte_index] ^= (1ULL << bit_index);
+            return (inuse_bitmask[byte_index] & (1ULL << bit_index));
         }
 
         inline bool toggle_inuse_paddr_bit(dma_addr64 addr, size_t order)
@@ -95,25 +95,25 @@ namespace kernel
             kassert(ppfn <= last_ppfn);
 
             order_list[order].push_front(&bp->link);
-            nfree_pages += (1<<order);
+            nfree_pages += (1ULL<<order);
             if (!toggle_inuse_ppfn_bit(ppfn,order))
                 return;
 
-            bpage* bp2    = (bpage*)((uintptr_t)bp ^ (1 << (order+12)));
+            bpage* bp2    = (bpage*)((uintptr_t)bp ^ (1ULL << (order+12)));
             bpage* first  = MIN(bp,bp2);
             bpage* second = MAX(bp,bp2);
             second->link.unlink();
             second->~bpage();
 
             first->link.unlink();
-            nfree_pages -= (2<<order);
+            nfree_pages -= (2ULL<<order);
             free_page(first,order+1);
         }
 
         inline void free_pages(dma_addr64 addr, size_t order)
         {
             kassert(order <= params.M);
-            kassert((addr & ((1<<order)-1)) == 0);
+            kassert((addr & ((1ULL<<order)-1)) == 0);
 
             bpage* bp = new(phys_to_virt(addr)) bpage;
             free_page(bp,order);
@@ -144,8 +144,8 @@ namespace kernel
                 // buddy pages will be allocated at this point, toggle should
                 // return false.
                 paddr             = alloc_pages(order+1);
-                nfree_pages      += (2<<order);
-                dma_addr64 bpaddr = (paddr ^ (1 << (order+12)));
+                nfree_pages      += (2ULL<<order);
+                dma_addr64 bpaddr = (paddr ^ (1ULL << (order+12)));
                 bpage* bbp        = new(phys_to_virt(bpaddr)) bpage;
                 order_list[order].push_front(&bbp->link);
                 kassert(!toggle_inuse_paddr_bit(paddr,order));
@@ -153,7 +153,7 @@ namespace kernel
             else
                 throw buddy_allocator_oom_exception();
 
-            nfree_pages -= (1<<order);
+            nfree_pages -= (1ULL<<order);
             return paddr;
         }
         
@@ -182,7 +182,7 @@ namespace kernel
     inline void* buddy_zalloc(size_t order)
     {
         void* p = buddy_alloc(order);
-        memset(p,0,1<<(order+12));
+        memset(p,0,1ULL<<(order+12));
         return p;
     }
     inline void buddy_free(void* p, size_t order)
@@ -197,7 +197,7 @@ namespace kernel
     template<size_t Order>
     struct buddy_block
     {
-        static constexpr const size_t len = (PAGE_SIZE << Order);
+        static constexpr const size_t len = ((uint64_t)PAGE_SIZE << Order);
         void* const addr;
         buddy_block():addr(buddy_alloc(Order)) {}
         ~buddy_block() {buddy_free(addr,Order);}
