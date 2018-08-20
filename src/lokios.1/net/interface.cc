@@ -34,15 +34,18 @@ free_id(size_t id)
     }
 }
 
-net::interface::interface(size_t tx_qlen, size_t rx_qlen):
-    id(alloc_id()),
-    tx_qlen(tx_qlen),
-    rx_qlen(rx_qlen),
-    rx_posted_count(0),
-    ip_addr{0,0,0,0},
-    tcp_ephemeral_ports((uint16_t*)tcp_ephemeral_ports_mem.addr,
-                        tcp_ephemeral_ports_mem.len/sizeof(uint16_t)),
-    cmd_listener(this)
+net::interface::interface(size_t tx_qlen, size_t rx_qlen, uint16_t tx_mtu,
+    uint16_t rx_mtu):
+        id(alloc_id()),
+        tx_qlen(tx_qlen),
+        rx_qlen(rx_qlen),
+        rx_posted_count(0),
+        ip_addr{0,0,0,0},
+        tx_mtu(tx_mtu),
+        rx_mtu(rx_mtu),
+        tcp_ephemeral_ports((uint16_t*)tcp_ephemeral_ports_mem.addr,
+                            tcp_ephemeral_ports_mem.len/sizeof(uint16_t)),
+        cmd_listener(this)
 {
     for (size_t i=FIRST_EPHEMERAL_PORT; i<65536; ++i)
         tcp_ephemeral_ports.emplace_back(i);

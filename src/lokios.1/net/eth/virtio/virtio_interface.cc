@@ -5,7 +5,8 @@
 #include "kernel/console.h"
 
 virtio_net::interface::interface(virtio_net::dev* vdev):
-    eth::interface(vdev->mac,vdev->tq.size,vdev->rq.size),
+    eth::interface(vdev->mac,vdev->tq.size,vdev->rq.size,VIRTIO_NET_TX_MTU,
+                   VIRTIO_NET_RX_MTU),
     vdev(vdev)
 {
 }

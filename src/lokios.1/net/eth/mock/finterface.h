@@ -29,7 +29,7 @@ namespace eth
             mock("eth::interface::post_rx_pages",&pages);
         }
 
-        finterface(const eth::addr& hw_mac):interface(hw_mac,10,10) {}
+        finterface(const eth::addr& hw_mac):interface(hw_mac,10,10,1500,1500) {}
     };
 }
 

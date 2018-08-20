@@ -21,8 +21,8 @@ using kernel::console::printf;
 using kernel::_kassert;
 
 eth::interface::interface(const eth::addr& hw_mac, size_t tx_qlen,
-    size_t rx_qlen):
-        net::interface(tx_qlen,rx_qlen),
+    size_t rx_qlen, uint16_t tx_mtu, uint16_t rx_mtu):
+        net::interface(tx_qlen,rx_qlen,tx_mtu,rx_mtu),
         hw_mac(hw_mac),
         phy(NULL)
 {

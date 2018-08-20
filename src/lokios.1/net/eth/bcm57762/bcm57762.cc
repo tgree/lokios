@@ -1185,7 +1185,7 @@ bcm57762::dev::post_rx_pages(kernel::klist<net::rx_page>& pages)
 }
 
 bcm57762::interface::interface(bcm57762::dev* dev):
-    eth::interface(dev->mac,128,128),
+    eth::interface(dev->mac,128,128,BCM57762_TX_MTU,BCM57762_RX_MTU),
     dev(dev)
 {
 }

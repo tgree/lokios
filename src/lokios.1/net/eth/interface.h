@@ -67,7 +67,8 @@ namespace eth
         // Helpers.
         virtual void    dump_arp_table();
 
-        interface(const eth::addr& hw_mac, size_t tx_qlen, size_t rx_qlen);
+        interface(const eth::addr& hw_mac, size_t tx_qlen, size_t rx_qlen,
+                  uint16_t tx_mtu, uint16_t rx_mtu);
         virtual ~interface();
     };
 }

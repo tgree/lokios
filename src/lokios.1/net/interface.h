@@ -37,6 +37,15 @@ namespace net
         // IP address assigned by software.
         ipv4::addr          ip_addr;
 
+        // Link-layer MTUs.  These are the maximum frame payload size following
+        // the link-layer header and not including any link-layer footer.  For
+        // Ethernet, the typical value is 1500 which is the largest allowable
+        // client payload in an Ethernet frame.  Subtracting the 40 bytes for
+        // the IP and TCP headers (which from Ethernet's perspective are part
+        // of the client payload) yields the typical TCP MSS of 1460 bytes.
+        uint16_t            tx_mtu;
+        uint16_t            rx_mtu;
+
         // UDP.
         hash::table<uint16_t,udp_frame_handler> udp_sockets;
 
@@ -119,7 +128,8 @@ namespace net
         virtual void    dump_arp_table() = 0;
 
         // Constructor.
-        interface(size_t tx_qlen, size_t rx_qlen);
+        interface(size_t tx_qlen, size_t rx_qlen, uint16_t tx_mtu,
+                  uint16_t rx_mtu);
         virtual ~interface();
     };
 }

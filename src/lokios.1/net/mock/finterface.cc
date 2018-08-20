@@ -3,8 +3,9 @@
 
 using kernel::_kassert;
 
-net::finterface::finterface(ipv4::addr _ip_addr):
-    net::interface::interface(16,16)
+net::finterface::finterface(ipv4::addr _ip_addr, uint16_t tx_mtu,
+    uint16_t rx_mtu):
+        net::interface::interface(16,16,tx_mtu,rx_mtu)
 {
     ip_addr = _ip_addr;
     refill_rx_pages();

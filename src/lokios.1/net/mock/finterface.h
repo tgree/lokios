@@ -21,7 +21,8 @@ namespace net
         net::rx_page*   pop_rx_page();
         uint32_t        handle_rx_page(net::rx_page* p);
 
-        finterface(ipv4::addr ip_addr);
+        finterface(ipv4::addr ip_addr, uint16_t tx_mtu = 1500,
+                   uint16_t rx_mtu = 1500);
         virtual ~finterface();
     };
 
