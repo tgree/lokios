@@ -1,9 +1,8 @@
 #include "virtio_interface.h"
 #include "virtio_net.h"
+#include "config.h"
 #include "net/eth/checksum.h"
 #include "kernel/console.h"
-
-#define VIRTIO_NET_DUMP_TX_PACKETS 0
 
 virtio_net::interface::interface(virtio_net::dev* vdev):
     eth::interface(vdev->mac,vdev->tq.size,vdev->rq.size),
