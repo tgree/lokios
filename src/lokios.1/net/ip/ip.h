@@ -4,6 +4,11 @@
 #include "net/net_csum.h"
 #include "hdr/endian.h"
 
+// All hosts must be prepared to accept a datagram with ip::header::total_len
+// of up to 576 octets.  This is the upper bound on what a remote host MUST
+// accept, but generally MTUs are around 1500 octets.
+#define MAX_SAFE_IP_SIZE    576
+
 namespace ipv4
 {
     struct addr
