@@ -199,7 +199,7 @@ print_string(putc_func _putc, void* cookie, const char* s, unsigned int flags,
     if (flags & PRINTF_FLAG_OMIT_PRECISION)
         digits = strlen(s);
     else
-        digits = MIN(strnlen(s,precision),(size_t)precision);
+        digits = MIN(strnlen(s,precision),precision);
     flags &= ~PRINTF_FLAG_ZERO_PADDED;
 
     print_field(_putc,cookie,s,digits,flags,width,0);
