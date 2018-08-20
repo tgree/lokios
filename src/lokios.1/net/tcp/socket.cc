@@ -40,7 +40,7 @@ tcp::send_op::mark_acked(uint32_t ack_len)
     auto* alp = &alps[unacked_alp_index];
     while (ack_len && unacked_alp_index != nalps)
     {
-        auto len = MIN(ack_len,(uint32_t)(alp->len - unacked_alp_offset));
+        auto len = MIN(ack_len,alp->len - unacked_alp_offset);
 
         unacked_alp_offset += len;
         ack_len            -= len;
@@ -270,7 +270,7 @@ tcp::socket::send(size_t nalps, kernel::dma_alp* alps,
 tcp::tx_op*
 tcp::socket::make_one_packet(tcp::send_op* sop)
 {
-    auto avail_len = MIN(snd_una + snd_wnd - snd_nxt,(uint32_t)snd_mss);
+    auto avail_len = MIN(snd_una + snd_wnd - snd_nxt,snd_mss);
     kassert(avail_len > 0);
 
     // Format the header based on if this is the SYN packet or not.
@@ -319,7 +319,7 @@ tcp::socket::make_one_packet(tcp::send_op* sop)
            top->nalps < NELEMS(top->alps))
     {
         dalp->paddr = salp->paddr + sop->unsent_alp_offset;
-        dalp->len   = MIN(salp->len - sop->unsent_alp_offset,(size_t)avail_len);
+        dalp->len   = MIN(salp->len - sop->unsent_alp_offset,avail_len);
 
         sop->unsent_alp_offset += dalp->len;
         if (sop->unsent_alp_offset == salp->len)
@@ -675,7 +675,7 @@ tcp::socket::read(void* _dst, uint32_t rem)
     while (rem)
     {
         net::rx_page* p = klist_front(rx_pages,link);
-        uint32_t len    = MIN(rem,(uint32_t)p->client_len);
+        uint32_t len    = MIN(rem,p->client_len);
         memcpy(dst,p->payload + p->client_offset,len);
         p->client_offset += len;
         p->client_len    -= len;
