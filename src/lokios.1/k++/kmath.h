@@ -11,8 +11,8 @@ namespace kernel
     {
         return v;
     }
-    template<typename T, typename ...Args>
-    constexpr T _min(T l, T r, Args... args)
+    template<typename L, typename R, typename ...Args>
+    constexpr auto _min(L l, R r, Args... args)
     {
         return (l < r) ? _min(l,args...) : _min(r,args...);
     }
@@ -20,14 +20,18 @@ namespace kernel
     KASSERT(MIN(1,2,3,4,5)   == 1);
     KASSERT(MIN(1,-2,3,4,5)  == -2);
     KASSERT(MIN(1,-2,3,4,-5) == -5);
+    KASSERT(MIN((int16_t)-1,(int32_t)0x80000000) == (int32_t)0x80000000);
+    KASSERT(MIN((int32_t)0x80000000,(int16_t)-1) == (int32_t)0x80000000);
+    KASSERT(MIN((int32_t)0x80000000,(uint16_t)1) == (int32_t)0x80000000);
+    KASSERT(MIN((int16_t)-1,(uint16_t)5) == (int16_t)-1);
 
     template<typename T>
     constexpr T _max(T v)
     {
         return v;
     }
-    template<typename T, typename ...Args>
-    constexpr T _max(T l, T r, Args... args)
+    template<typename L, typename R, typename ...Args>
+    constexpr auto _max(L l, R r, Args... args)
     {
         return (l > r) ? _max(l,args...) : _max(r,args...);
     }
@@ -35,6 +39,10 @@ namespace kernel
     KASSERT(MAX(1,2,3,4,5)     == 5);
     KASSERT(MAX(1,2,3,4,-5)    == 4);
     KASSERT(MAX(1,-2,-3,-4,-5) == 1);
+    KASSERT(MAX((int16_t)-1,(int32_t)0x80000000) == -1);
+    KASSERT(MAX((int32_t)0x80000000,(int16_t)-1) == -1);
+    KASSERT(MAX((int32_t)0x80000000,(uint16_t)1) == 1);
+    KASSERT(MAX((int16_t)-1,(uint16_t)5) == 5);
 
     template<typename T>
     constexpr bool is_pow2(T v)
