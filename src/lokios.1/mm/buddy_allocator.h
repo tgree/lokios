@@ -187,7 +187,7 @@ namespace kernel
     }
     inline void buddy_free(void* p, size_t order)
     {
-        buddy_pfree(kernel::virt_to_phys(p),order);
+        buddy_pfree(virt_to_phys(p),order);
     }
 
     size_t buddy_count_free();
