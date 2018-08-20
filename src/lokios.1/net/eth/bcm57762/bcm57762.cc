@@ -56,8 +56,6 @@
 
 using kernel::_kassert;
 
-extern uint64_t tsc_freq;
-
 bcm57762::dev::dev(const kernel::pci::dev* pd, const bcm57762::driver* owner):
     kernel::pci::dev(pd,owner),
     phy_cqe(NULL)
