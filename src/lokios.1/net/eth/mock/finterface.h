@@ -1,7 +1,7 @@
-#ifndef __NET_TEST_FINTERFACE_H
-#define __NET_TEST_FINTERFACE_H
+#ifndef __KERNEL_NET_ETH_MOCK_FINTERFACE_H
+#define __KERNEL_NET_ETH_MOCK_FINTERFACE_H
 
-#include "net/eth/interface.h"
+#include "../interface.h"
 #include <tmock/tmock.h>
 
 namespace eth
@@ -33,4 +33,4 @@ namespace eth
     };
 }
 
-#endif /* __NET_TEST_FINTERFACE_H */
+#endif /* __KERNEL_NET_ETH_MOCK_FINTERFACE_H */
