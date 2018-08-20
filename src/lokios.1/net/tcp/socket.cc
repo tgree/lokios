@@ -96,7 +96,8 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p):
     snd_nxt       = iss;
     snd_wnd       = 0;
     snd_wnd_shift = 0;
-    snd_mss       = 1460;
+    snd_mss       = MIN(MAX_SAFE_IP_SIZE,intf->tx_mtu) -
+                    sizeof(ipv4_tcp_headers);
 
     irs           = 0;
     rcv_nxt       = 0;
@@ -132,7 +133,8 @@ tcp::socket::socket(net::interface* intf, ipv4::addr remote_ip,
     snd_nxt       = iss;
     snd_wnd       = 1;
     snd_wnd_shift = 0;
-    snd_mss       = 1460;
+    snd_mss       = MIN(MAX_SAFE_IP_SIZE,intf->tx_mtu) -
+                    sizeof(ipv4_tcp_headers);
 
     irs           = 0;
     rcv_nxt       = 0;
@@ -507,7 +509,10 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
                     break;
                 }
                 if (opts.flags & OPTION_SND_MSS_PRESENT)
-                    snd_mss = opts.snd_mss;
+                {
+                    snd_mss = MIN(opts.snd_mss,
+                                  intf->tx_mtu - sizeof(ipv4_tcp_headers));
+                }
                 if (opts.flags & OPTION_SND_WND_SHIFT_PRESENT)
                     snd_wnd_shift = opts.snd_wnd_shift;
                 else
@@ -563,7 +568,7 @@ tcp::socket::handle_listen_syn_recvd(net::rx_page* p)
     if (parse_options(h,&opts))
         return 0;
     if (opts.flags & OPTION_SND_MSS_PRESENT)
-        snd_mss = opts.snd_mss;
+        snd_mss = MIN(opts.snd_mss,intf->tx_mtu - sizeof(ipv4_tcp_headers));
     if (opts.flags & OPTION_SND_WND_SHIFT_PRESENT)
         snd_wnd_shift = opts.snd_wnd_shift;
 

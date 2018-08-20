@@ -134,6 +134,7 @@ class tmock_test
         tmock::assert_equiv(s->snd_nxt,s->iss+1U);
         tmock::assert_equiv(s->snd_wnd,REMOTE_WS);
         tmock::assert_equiv(s->snd_wnd_shift,0);
+        tmock::assert_equiv(s->snd_mss,MAX_SAFE_IP_SIZE-40U);
         tmock::assert_equiv(s->rcv_nxt,REMOTE_ISS+1);
         tmock::assert_equiv(s->rcv_wnd,MAX_RX_WINDOW);
         tmock::assert_equiv(s->rcv_wnd_shift,0);
@@ -175,6 +176,7 @@ class tmock_test
         tmock::assert_equiv(s.snd_nxt,s.iss+1U);
         tmock::assert_equiv(s.snd_wnd,1U);
         tmock::assert_equiv(s.snd_wnd_shift,0U);
+        tmock::assert_equiv(s.snd_mss,MAX_SAFE_IP_SIZE-40U);
         tmock::assert_equiv(s.rcv_nxt,0U);
         tmock::assert_equiv(s.rcv_wnd,MAX_RX_WINDOW);
         tmock::assert_equiv(s.rcv_wnd_shift,RX_WINDOW_SHIFT);
