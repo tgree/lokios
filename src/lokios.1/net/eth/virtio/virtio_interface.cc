@@ -3,7 +3,7 @@
 #include "net/eth/checksum.h"
 #include "kernel/console.h"
 
-#define DUMP_TX_PACKETS 0
+#define VIRTIO_NET_DUMP_TX_PACKETS 0
 
 virtio_net::interface::interface(virtio_net::dev* vdev):
     eth::interface(vdev->mac,vdev->tq.size,vdev->rq.size),
@@ -33,7 +33,7 @@ virtio_net::interface::issue_phy_write_16(uint16_t v, uint8_t offset,
 void
 virtio_net::interface::post_tx_frame(net::tx_op* op)
 {
-#if DUMP_TX_PACKETS
+#if VIRTIO_NET_DUMP_TX_PACKETS
     kernel::console::printf("Transmitting packet:\n");
     size_t offset = 0;
     for (size_t i=0; i<op->nalps; ++i)
