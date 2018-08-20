@@ -170,6 +170,7 @@ namespace tcp
             return (char*)&tcp + 4*tcp.offset;
         }
     } __PACKED__;
+    KASSERT(sizeof(ipv4_tcp_headers) == 40);
 
     // Sequence number 0 is ordered against all other sequence numbers as
     // follows:
