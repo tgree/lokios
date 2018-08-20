@@ -58,6 +58,10 @@ _mode_switch_protected_and_write_dot_code32_after_this_line:
     # Disable interrupts.
     cli
 
+    # Reload the global descriptor table; some BIOSes (looking at you, DELL)
+    # don't preserve it across INT and PXE calls.
+    lgdt    _gdt_desc
+
     # Enable protected mode.
     mov     %cr0, %ebx
     or      $(1<<0), %ebx
