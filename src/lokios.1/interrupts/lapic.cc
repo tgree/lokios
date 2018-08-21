@@ -230,9 +230,13 @@ kernel::lapic_enable_nmi()
     auto* lac = find_lapic_by_apic_id(apic_id);
     if (!lac || !(lac->flags & LAPIC_FLAG_HAS_LINT_NMI))
         return;
-
+    if (lac->lint_pin != 1)
+    {
+        printf("Not enabling NMI for LAPIC 0x%02X - ACPI requested LINT %u\n",
+               apic_id,lac->lint_pin);
+        return;
+    }
     printf("Enabling NMI for LAPIC 0x%02X\n",apic_id);
-    kassert(lac->lint_pin < NELEMS(lapic->lvt_lint));
 
     // Figure out the LINT configuration.  When the delivery mode is NMI, the
     // interrupt is always edge-sensitive.  The default polarity should be
