@@ -26,25 +26,6 @@ namespace kernel
     cpu* get_current_cpu();
 #endif
 
-    struct tss64
-    {
-        uint32_t    rsrv0;
-        uint64_t    rsp[3];
-        uint64_t    ist[8];     // IST0 is reserved.
-        uint8_t     rsrv1[10];
-        uint16_t    iomap_base;
-    } __PACKED__;
-    KASSERT(sizeof(tss64) == 104);
-
-#define TSS_DESC_0(base,limit) \
-    ((((base)  << 32) & 0xFF00000000000000) | \
-     (((limit) << 32) & 0x000F000000000000) | \
-                        0x0000890000000000  | \
-     (((base)  << 16) & 0x000000FFFFFF0000) | \
-     (((limit) <<  0) & 0x000000000000FFFF))
-#define TSS_DESC_1(base,limit) \
-    (((base) >> 32) & 0x00000000FFFFFFFF)
-
 #define CPU_FLAG_BSP            (1<<0)
 #define CPU_FLAG_VMX            (1<<1)
 #define CPU_FLAG_RDRAND         (1<<2)
