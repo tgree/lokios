@@ -1,10 +1,10 @@
 #ifndef __KERNEL_CPU_H
 #define __KERNEL_CPU_H
 
-#include "msr.h"
 #include "spinlock.h"
 #include "schedule.h"
 #include "hdr/compiler.h"
+#include "hdr/x86.h"
 #include "kernel/kassert.h"
 #include "k++/vector.h"
 #include <stdint.h>

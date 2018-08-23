@@ -2,7 +2,6 @@
 #include "interrupt.h"
 #include "routing.h"
 #include "kernel/console.h"
-#include "kernel/msr.h"
 #include "kernel/pmtimer.h"
 #include "kernel/schedule.h"
 #include "kernel/cpu.h"
