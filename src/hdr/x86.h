@@ -185,7 +185,7 @@ struct cpuid_result
 inline void cpuid(uint32_t eax, uint32_t ecx, uint32_t* reax,
                   uint32_t* rebx, uint32_t* recx, uint32_t* redx)
 {
-    asm("cpuid"
+    asm volatile("cpuid"
         : "=a"(*reax), "=b"(*rebx), "=c"(*recx), "=d"(*redx)
         : "a"(eax), "c"(ecx));
 }
