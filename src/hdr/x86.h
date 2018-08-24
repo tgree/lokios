@@ -154,6 +154,7 @@ static inline uint64_t rdtsc()
 }
 
 #define IA32_APIC_BASE          0x0000001B
+#define IA32_EFER               0xC0000080
 #define IA32_FS_BASE            0xC0000100
 #define IA32_GS_BASE            0xC0000101
 #define IA32_KERNEL_GS_BASE     0xC0000102
