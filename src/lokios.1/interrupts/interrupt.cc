@@ -6,7 +6,6 @@
 #include "kernel/cpu.h"
 #include "kernel/symtab.h"
 #include "kernel/console.h"
-#include "kernel/pmtimer.h"
 #include "platform/platform.h"
 #include "k++/string_stream.h"
 #include <cxxabi.h>
@@ -821,9 +820,11 @@ kernel::init_cpu_device_interrupts()
     lidt((uint64_t)idt,sizeof(idt)-1);
 
     // Enable interrupts.  This is going to trigger any pending external
-    // interrupts which we will ignore.
+    // interrupts which we will ignore.  We use cpuid as a context-
+    // synchronizing instruction.  After that, all latched external interrupts
+    // should have flushed through our dummy handlers.
     cpu_enable_interrupts();
-    pmtimer::wait_us(100);
+    cpuid(1);
 
     // Switch back to the original IDT - external interrupts will now go
     // through our real handlers.  Which haven't been set up yet.  Luckily, all
