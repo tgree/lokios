@@ -69,6 +69,8 @@ net::cmd_sock_listener::socket_readable(tcp::socket* s)
             handle_cmd_panic();
         else if (!strcmp(buffer,"exit\r\n"))
             handle_cmd_exit();
+        else if (!strcmp(buffer,"segv\r\n"))
+            handle_cmd_segv();
     }
     kassert(s->rx_pages.empty());
 
@@ -110,4 +112,10 @@ void
 net::cmd_sock_listener::handle_cmd_exit()
 {
     kernel::exit_guest(1);
+}
+
+void
+net::cmd_sock_listener::handle_cmd_segv()
+{
+    *(volatile uint64_t*)0x123 = 0x4567890ABCDEF123ULL;
 }

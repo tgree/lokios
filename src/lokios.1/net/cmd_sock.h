@@ -24,6 +24,7 @@ namespace net
         void    handle_cmd_mem();
         void    handle_cmd_panic();
         void    handle_cmd_exit();
+        void    handle_cmd_segv();
 
         cmd_sock_listener(net::interface* intf);
     };
