@@ -65,20 +65,18 @@ init_globals()
 void
 init_bsp()
 {
-    // Remap kernel args.
-    e820_base = (kernel::e820_map*)kernel::phys_to_virt(kargs->e820_base);
-
-    // Set the sbrk limit.
-    kernel::init_sbrk(kargs->kernel_end);
-
     // Initialize the console as early as we can.
     kernel::init_vga_console(kargs->vga_base);
     kernel::init_serial_console(0x3F8,kernel::N81_115200);
+
+    // Set the sbrk limit.
+    kernel::init_sbrk(kargs->kernel_end);
 
     // Initialize symbol table information.
     kernel::init_symtab();
 
     // Initialize the memory map.
+    e820_base = (kernel::e820_map*)kernel::phys_to_virt(kargs->e820_base);
     kernel::preinit_mm(e820_base);
 
     // Register exception handling support.  This is going to require the use
