@@ -134,6 +134,7 @@ init_bsp_stage2()
     // Init local CPU stuff.
     kernel::init_lapic_cpu_interrupts();
     kernel::init_cpu_interrupts();
+    kernel::init_cpu_device_interrupts();
     kernel::lapic_enable_nmi();
     kernel::test_lapic();
     kernel::init_lapic_periodic();
@@ -157,6 +158,7 @@ init_ap_stage2()
     kernel::early_task_release_tss();
     kernel::init_lapic_cpu_interrupts();
     kernel::init_cpu_interrupts();
+    kernel::init_cpu_device_interrupts();
     kernel::lapic_enable_nmi();
     kernel::test_lapic();
     kernel::init_lapic_periodic();

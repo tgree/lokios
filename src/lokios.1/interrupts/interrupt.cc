@@ -508,25 +508,8 @@ kernel::init_interrupts()
 void
 kernel::init_cpu_interrupts()
 {
-    // Now: there could be pending interrupts if, say, a timer interrupt
-    // previously fired.  Those interrupt vectors are already latched by the
-    // CPU and they are going to trigger an interrupt vector no matter what at
-    // this point when we enable the IF bit.  So, we start by setting up dummy
-    // handlers for all the external interrupts, set the IF bit which will
-    // cause the dummy handler to be called and drain the pending interrupt
-    // queue and then we can finally set the real vectors we want in those
-    // slots.
+    // Initialize the exception table.
     cpu* c = get_current_cpu();
-    for (size_t i=0; i<NELEMS(c->idt); ++i)
-        c->register_exception_vector(i,_interrupt_entry_noop);
-
-    // Enable interrupts.  This is going to trigger any pending external
-    // interrupts which we will ignore.
-    cpu_enable_interrupts();
-    pmtimer::wait_us(100);
-
-    // Now that we have drained the external interrupts and the interrupt
-    // controllers are all masked.
     c->register_exception_vector(0,_interrupt_entry_0);
     c->register_exception_vector(1,_interrupt_entry_1);
     c->register_exception_vector(2,_interrupt_entry_2);
@@ -790,6 +773,62 @@ kernel::init_cpu_interrupts()
     int126();
     kassert(int126_test_succeeded == true);
     printf("INT 126h test succeeded\n");
+}
+
+void
+kernel::init_cpu_device_interrupts()
+{
+    // It is expected that this is invoked with all external interrupts in PICs
+    // and other devices masked - i.e. no more device interrupts will be
+    // generated at this time.  We should also have IF masked so that the CPU
+    // isn't handling external interrupts either.
+    //
+    // Now: there could be pending interrupts if, say, a timer interrupt
+    // previously fired.  Those interrupt vectors are already latched by the
+    // CPU and they are going to trigger an interrupt vector no matter what at
+    // this point when we enable the IF bit.  So, we start by setting up dummy
+    // handlers for all the external interrupts, set the IF bit which will
+    // cause the dummy handler to be called and drain the pending interrupt
+    // queue and then we can finally set the real vectors we want in those
+    // slots.
+    //
+    // And, it's even worse.  IBM's original BIOS is broken and maps device
+    // interrupts into the range 0-31 which are reserved by Intel for CPU
+    // exception vectors.  So we get things like keyboard interrupts triggering
+    // exception vector 9 and timer interrupts triggering exception vector 8.
+    // After we drain everything, those vectors should be used exclusively for
+    // the real Intel CPU exceptions - that's why we require all external
+    // devices to be masked at this point.  When/if we unmask them later, we
+    // will have remapped their IRQs to different exception vectors above 31.
+
+    // Start by populating an IDT with noop entries.
+    uint64_t p = (uint64_t)_interrupt_entry_noop;
+    struct
+    {
+        uint64_t    lo;
+        uint64_t    hi;
+    } idt[256];
+    for (auto& id : idt)
+    {
+        id.hi = ((p >> 32) & 0x00000000FFFFFFFF);
+        id.lo = ((p << 32) & 0xFFFF000000000000) |
+                             0x00008E0000080000  |
+                ((p >>  0) & 0x000000000000FFFF);
+    }
+
+    // Remember the old IDT and switch to the dummy one.
+    idt_desc orig_idt = sidt();
+    lidt((uint64_t)idt,sizeof(idt)-1);
+
+    // Enable interrupts.  This is going to trigger any pending external
+    // interrupts which we will ignore.
+    cpu_enable_interrupts();
+    pmtimer::wait_us(100);
+
+    // Switch back to the original IDT - external interrupts will now go
+    // through our real handlers.  Which haven't been set up yet.  Luckily, all
+    // those external devices have been masked before calling us.  Right?
+    lidt(orig_idt.base,orig_idt.limit);
 }
 
 void

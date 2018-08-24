@@ -25,6 +25,7 @@ namespace kernel
 
     void init_interrupts();
     void init_cpu_interrupts();
+    void init_cpu_device_interrupts();
 }
 
 #endif /* __KERNEL_INTERRUPT_H */
