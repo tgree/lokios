@@ -58,7 +58,7 @@ undefined_interrupt_entry(uint64_t selector, uint64_t error_code)
     kernel::exit_guest(3);
 }
 
-static bool int126_test_succeeded = false;
+static bool int126_test_succeeded;
 static kernel::tls_tcb*
 int126_test_interrupt_entry(uint64_t selector, uint64_t error_code,
     uint64_t rsp)
@@ -786,6 +786,7 @@ kernel::init_cpu_interrupts()
 
     // Generate a software interrupt to check that we have basic exception-
     // handling working properly.
+    int126_test_succeeded = false;
     int126();
     kassert(int126_test_succeeded == true);
     printf("INT 126h test succeeded\n");
