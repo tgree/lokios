@@ -439,6 +439,35 @@ kernel::interrupt_handler _interrupt_handlers[128] = {
     undefined_interrupt_entry,
 };
 
+static const char* vec_names[] = {
+    "Divide Error",
+    "Debug",
+    "NMI",
+    "Breakpoint",
+    "Overflow",
+    "BOUND Range Exceeded",
+    "Invalid Opcode",
+    "Device Not Available",
+    "Double Fault",
+    "Coprocessor Segment Overrun",
+    "Invalid TSS",
+    "Segment Not Present",
+    "Stack Fault",
+    "General Protection",
+    "Page-Fault",
+    "x87 FPU Floating-Point Error",
+    "Alignment Check",
+    "Machine-Check",
+    "SIMD Floating-Point",
+    "Virtualization",
+};
+
+const char*
+kernel::get_exception_name(uint8_t vn)
+{
+    return (vn < NELEMS(vec_names) ? vec_names[vn] : "Unrecognized!!!");
+}
+
 void
 kernel::init_interrupts()
 {

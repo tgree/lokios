@@ -21,6 +21,8 @@ namespace kernel
     void register_handler(uint64_t selector, interrupt_handler handler);
     void unregister_handler(uint64_t selector);
 
+    const char* get_exception_name(uint8_t vec_num);
+
     void init_interrupts();
     void init_cpu_interrupts();
 }
