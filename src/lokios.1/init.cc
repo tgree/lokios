@@ -113,6 +113,11 @@ init_bsp_stage2()
     // Release the early TSS.
     kernel::early_task_release_tss();
 
+    // Set up the global interrupt table, then set up the local CPU's interrupt
+    // table.
+    kernel::init_interrupts();
+    kernel::init_cpu_interrupts();
+
     // We now have a working get_current_cpu().  Schedule the main() wqe.
     auto* wqe = kernel::alloc_wqe();
     wqe->fn = kernel_main;
@@ -125,7 +130,6 @@ init_bsp_stage2()
     kernel::init_cmos();
     kernel::random_seed(kernel::read_cmos_date_time().val);
     kernel::pmtimer::init();
-    kernel::init_interrupts();
     kernel::init_pic();
     kernel::init_ioapics();
     kernel::init_lapic();
@@ -133,7 +137,6 @@ init_bsp_stage2()
 
     // Init local CPU stuff.
     kernel::init_lapic_cpu_interrupts();
-    kernel::init_cpu_interrupts();
     kernel::init_cpu_device_interrupts();
     kernel::lapic_enable_nmi();
     kernel::test_lapic();
@@ -156,8 +159,8 @@ static void
 init_ap_stage2()
 {
     kernel::early_task_release_tss();
-    kernel::init_lapic_cpu_interrupts();
     kernel::init_cpu_interrupts();
+    kernel::init_lapic_cpu_interrupts();
     kernel::init_cpu_device_interrupts();
     kernel::lapic_enable_nmi();
     kernel::test_lapic();
