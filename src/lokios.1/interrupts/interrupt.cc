@@ -4,20 +4,58 @@
 #include "lapic.h"
 #include "kernel/thread.h"
 #include "kernel/cpu.h"
+#include "kernel/symtab.h"
 #include "kernel/console.h"
 #include "kernel/pmtimer.h"
+#include "platform/platform.h"
 #include "k++/string_stream.h"
+#include <cxxabi.h>
 
 using kernel::console::printf;
+
+static char sym_buf[4096];
 
 static kernel::tls_tcb*
 undefined_interrupt_entry(uint64_t selector, uint64_t error_code)
 {
     kernel::tls_tcb* tcb = kernel::get_current_tcb();
-    kernel::fixed_string_stream<80> ss;
-    ss.printf("Unregistered vector %lu error_code 0x%016lX tcb 0x%016lX",
-              selector,error_code,(uint64_t)tcb);
-    kernel::panic(ss);
+    printf("Exception %lu error code 0x%016lX: %s\n",
+           selector,error_code,kernel::get_exception_name(selector));
+
+    try
+    {
+        kernel::sym_info si = kernel::get_sym_info((void*)tcb->rip);
+        int status;
+        size_t n = sizeof(sym_buf);
+        abi::__cxa_demangle(si.name,sym_buf,&n,&status);
+        if (!status)
+            printf("  %s+%zu/%zu\n",sym_buf,si.offset,si.size);
+        else
+            printf("  %s+%zu/%zu\n",si.name,si.offset,si.size);
+    }
+    catch (kernel::symbol_not_found_exception&)
+    {
+    }
+
+    cpuid_result ci = cpuid(0x01);
+    printf("CPUID1 0x%08X 0x%08X 0x%08X 0x%08X\n",ci.eax,ci.ebx,ci.ecx,ci.edx);
+    printf("   CR0 0x%016lX     CR2 0x%016lX\n",mfcr0(),mfcr2());
+    printf("   CR3 0x%016lX     CR4 0x%016lX\n",mfcr3(),mfcr4());
+    printf("   CR8 0x%016lX    EFER 0x%016lX\n",mfcr8(),rdmsr(IA32_EFER));
+    printf("FSBASE 0x%016lX  GSBASE 0x%016lX\n",
+           rdmsr(IA32_FS_BASE),rdmsr(IA32_GS_BASE));
+    printf("    CS 0x%04X                  SS 0x%04X\n",tcb->cs,tcb->ss);
+    printf("   RIP 0x%016lX  RFLAGS 0x%016lX\n",tcb->rip,tcb->rflags);
+    printf("   RSP 0x%016lX     RBP 0x%016lX\n",tcb->rsp,tcb->rbp);
+    printf("   RAX 0x%016lX     RBX 0x%016lX\n",tcb->rax,tcb->rbx);
+    printf("   RCX 0x%016lX     RDX 0x%016lX\n",tcb->rcx,tcb->rdx);
+    printf("   RSI 0x%016lX     RDI 0x%016lX\n",tcb->rsi,tcb->rdi);
+    printf("    R8 0x%016lX      R9 0x%016lX\n",tcb->r[0],tcb->r[1]);
+    printf("   R10 0x%016lX     R11 0x%016lX\n",tcb->r[2],tcb->r[3]);
+    printf("   R12 0x%016lX     R13 0x%016lX\n",tcb->r[4],tcb->r[5]);
+    printf("   R14 0x%016lX     R15 0x%016lX\n",tcb->r[6],tcb->r[7]);
+
+    kernel::exit_guest(3);
 }
 
 static bool int126_test_succeeded = false;
@@ -36,15 +74,6 @@ nmi_handler(uint64_t selector, uint64_t error_code)
     printf("NMI received\n");
     kernel::lapic_eoi();
     return kernel::get_current_tcb();
-}
-
-static kernel::tls_tcb*
-page_fault_handler(uint64_t selector, uint64_t error_code)
-{
-    kernel::tls_tcb* tcb = kernel::get_current_tcb();
-    printf("Page fault\n");
-    printf("RIP 0x%016lX Addr 0x%016lX\n",tcb->rip,mfcr2());
-    kernel::panic("Panic\n");
 }
 
 extern "C" void _interrupt_entry_noop();
@@ -474,7 +503,6 @@ kernel::init_interrupts()
     register_handler(INTN_INT126_TEST,
                      (interrupt_handler)int126_test_interrupt_entry);
     register_handler(2,nmi_handler);
-    register_handler(14,page_fault_handler);
 }
 
 void
