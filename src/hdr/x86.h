@@ -19,16 +19,16 @@ static inline uint64_t mfcr3()
     return rc;
 }
 
-static inline void mtcr3(uint64_t val)
-{
-    asm ("mov %0, %%cr3" : : "r"(val));
-}
-
 static inline uint64_t mfcr4()
 {
     uint64_t rc;
     asm ("mov %%cr4, %0" : "=r"(rc));
     return rc;
+}
+
+static inline void mtcr3(uint64_t val)
+{
+    asm ("mov %0, %%cr3" : : "r"(val));
 }
 
 static inline void mtcr4(uint64_t val)
