@@ -61,15 +61,24 @@ static inline void lgdt(uint64_t base, uint16_t limit)
     asm ("lgdt %0" : : "m"(gdtpd));
 }
 
+struct idt_desc
+{
+    uint16_t    limit;
+    uint64_t    base;
+} __PACKED__;
+KASSERT(sizeof(idt_desc) == 10);
+
 static inline void lidt(uint64_t base, uint16_t limit)
 {
-    struct __PACKED__
-    {
-        uint16_t    limit;
-        uint64_t    base;
-    } idtpd = {limit,base};
-    KASSERT(sizeof(idtpd) == 10);
+    idt_desc idtpd = {limit,base};
     asm ("lidt %0" : : "m"(idtpd));
+}
+
+static inline idt_desc sidt()
+{
+    idt_desc idtpd;
+    asm ("sidt %0" : "=m"(idtpd));
+    return idtpd;
 }
 
 static inline void ltr(uint16_t val)
