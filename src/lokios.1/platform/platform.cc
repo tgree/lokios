@@ -1,6 +1,5 @@
 #include "platform.h"
 #include "qemu.h"
-#include "kernel/cpuid.h"
 #include "kernel/console.h"
 
 using kernel::console::printf;
