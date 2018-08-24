@@ -7,6 +7,7 @@
 #include "pmtimer.h"
 #include "schedule.h"
 #include "symtab.h"
+#include "early_task.h"
 #include "platform/platform.h"
 #include "mm/mm.h"
 #include "mm/sbrk.h"
@@ -69,6 +70,9 @@ init_bsp()
     kernel::init_vga_console(kargs->vga_base);
     kernel::init_serial_console(0x3F8,kernel::N81_115200);
 
+    // Initialize the early task so we get meaningful errors before stage 2.
+    kernel::init_early_task_bsp();
+
     // Set the sbrk limit.
     kernel::init_sbrk(kargs->kernel_end);
 
@@ -106,6 +110,9 @@ init_bsp()
 static void
 init_bsp_stage2()
 {
+    // Release the early TSS.
+    kernel::early_task_release_tss();
+
     // We now have a working get_current_cpu().  Schedule the main() wqe.
     auto* wqe = kernel::alloc_wqe();
     wqe->fn = kernel_main;
@@ -139,6 +146,7 @@ void
 init_ap()
 {
     kernel::kernel_task->pt.activate();
+    kernel::init_early_task_ap();
     kernel::init_this_cpu(init_ap_stage2);
     kernel::panic("ap: init_this_cpu() returned!");
 }
@@ -146,6 +154,7 @@ init_ap()
 static void
 init_ap_stage2()
 {
+    kernel::early_task_release_tss();
     kernel::init_lapic_cpu_interrupts();
     kernel::init_cpu_interrupts();
     kernel::lapic_enable_nmi();

@@ -74,6 +74,82 @@ _thread_jump:
 
 
 # On entry:
+#   We are running on the initial kernel stack and don't switch off.
+#   We need to save everything for the C++ handler.  These exceptions are
+#   always considered fatal errors and never return.
+.macro _define_early_interrupt num
+.global _early_interrupt_entry_\num
+_early_interrupt_entry_\num :
+    push    $0      # Dummy error code
+    push    $\num
+    jmp     _early_interrupt_entry_common
+.endm
+
+.macro _define_early_interrupt_errcode num
+.global _early_interrupt_entry_\num
+_early_interrupt_entry_\num :
+    push    $\num
+    jmp     _early_interrupt_entry_common
+.endm
+
+_define_early_interrupt         0
+_define_early_interrupt         1
+_define_early_interrupt         2
+_define_early_interrupt         3
+_define_early_interrupt         4
+_define_early_interrupt         5
+_define_early_interrupt         6
+_define_early_interrupt         7
+_define_early_interrupt_errcode 8
+_define_early_interrupt         9
+_define_early_interrupt_errcode 10
+_define_early_interrupt_errcode 11
+_define_early_interrupt_errcode 12
+_define_early_interrupt_errcode 13
+_define_early_interrupt_errcode 14
+_define_early_interrupt         15
+_define_early_interrupt         16
+_define_early_interrupt         17
+_define_early_interrupt         18
+_define_early_interrupt         19
+_define_early_interrupt         20
+_define_early_interrupt         21
+_define_early_interrupt         22
+_define_early_interrupt         23
+_define_early_interrupt         24
+_define_early_interrupt         25
+_define_early_interrupt         26
+_define_early_interrupt         27
+_define_early_interrupt         28
+_define_early_interrupt         29
+_define_early_interrupt         30
+_define_early_interrupt         31
+
+.globl early_task_exception_handlder
+_early_interrupt_entry_common:
+    # Build an early_interrupt_state struct on the stack and jump into the
+    # C++ handler, never to return.
+    push    %r15
+    push    %r14
+    push    %r13
+    push    %r12
+    push    %r11
+    push    %r10
+    push    %r9
+    push    %r8
+    push    $0
+    push    %rdi
+    push    %rsi
+    push    %rbp
+    push    %rdx
+    push    %rcx
+    push    %rbx
+    push    %rax
+    mov     %rsp, %rdi
+    jmp     early_task_exception_handler
+
+
+# On entry:
 #   We are running on the ISR stack.
 #   We need to save everything!
 .macro _define_interrupt num
