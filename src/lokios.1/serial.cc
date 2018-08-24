@@ -1,5 +1,5 @@
 #include "serial.h"
-#include <new>
+#include "k++/deferred_init.h"
 
 struct uart_settings
 {
@@ -10,9 +10,7 @@ struct uart_settings
     uint8_t                 modem_control;
 };
 
-static kernel::serial_console* serial;
-static uint64_t _serial[(sizeof(*serial) + sizeof(uint64_t) - 1)/
-                        sizeof(uint64_t)];
+static kernel::deferred_global<kernel::serial_console> serial;
 
 static const uart_settings settings_map[] = {
     {kernel::N81_115200,1,0x03,0xC7,0x0B},
@@ -21,7 +19,7 @@ static const uart_settings settings_map[] = {
 void
 kernel::init_serial_console(uint16_t ioaddr, serial_config config)
 {
-    serial = new(_serial) serial_console(ioaddr,config);
+    serial.init(ioaddr,config);
     kernel::console::register_console(serial);
 }
 
