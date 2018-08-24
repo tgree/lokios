@@ -183,6 +183,13 @@ struct tss64
 } __PACKED__;
 KASSERT(sizeof(tss64) == 104);
 
+struct no_iomap_tss64
+{
+    tss64       tss;
+    uint16_t    ones;
+} __PACKED__;
+KASSERT(sizeof(no_iomap_tss64) == 106);
+
 #define TSS_DESC_0(base,limit) \
     ((((base)  << 32) & 0xFF00000000000000) | \
      (((limit) << 32) & 0x000F000000000000) | \
