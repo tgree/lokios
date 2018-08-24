@@ -5,6 +5,13 @@
 #include "kassert.h"
 #include <stdint.h>
 
+static inline uint64_t mfcr0()
+{
+    uint64_t rc;
+    asm ("mov %%cr0, %0" : "=r"(rc));
+    return rc;
+}
+
 static inline uint64_t mfcr2()
 {
     uint64_t rc;
@@ -23,6 +30,13 @@ static inline uint64_t mfcr4()
 {
     uint64_t rc;
     asm ("mov %%cr4, %0" : "=r"(rc));
+    return rc;
+}
+
+static inline uint64_t mfcr8()
+{
+    uint64_t rc;
+    asm ("mov %%cr8, %0" : "=r"(rc));
     return rc;
 }
 
