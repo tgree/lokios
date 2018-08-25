@@ -5,10 +5,32 @@
 
 using kernel::_kassert;
 
+struct cmd_sock_connection : public tcp::socket_observer
+{
+    net::cmd_sock_listener* listener;
+    net::interface*         intf;
+    tcp::socket*            s;
+
+    virtual void    socket_established(tcp::socket* s);
+    virtual void    socket_readable(tcp::socket* s);
+    virtual void    socket_reset(tcp::socket* s);
+
+            void    send_complete(tcp::send_op* sop);
+
+            void    handle_cmd_arp();
+            void    handle_cmd_mem();
+            void    handle_cmd_panic();
+            void    handle_cmd_exit();
+            void    handle_cmd_segv();
+
+    cmd_sock_connection(net::cmd_sock_listener* listener, tcp::socket* s);
+};
+
 static kernel::dma_alp spam_alps[1];
 
 net::cmd_sock_listener::cmd_sock_listener(net::interface* intf):
-    intf(intf)
+    intf(intf),
+    connection_slab(sizeof(cmd_sock_connection))
 {
     if (!spam_alps[0].paddr)
     {
@@ -37,12 +59,22 @@ net::cmd_sock_listener::cmd_socket_accepted(tcp::socket* s)
                    s->remote_ip[2],
                    s->remote_ip[3],
                    (uint16_t)s->remote_port);
-    s->observer = this;
+    s->observer = connection_slab.alloc<cmd_sock_connection>(this,s);
+}
+
+cmd_sock_connection::cmd_sock_connection(net::cmd_sock_listener* listener,
+    tcp::socket* s):
+        listener(listener),
+        intf(listener->intf),
+        s(s)
+{
 }
 
 void
-net::cmd_sock_listener::socket_established(tcp::socket* s)
+cmd_sock_connection::socket_established(tcp::socket* _s)
 {
+    kassert(_s == s);
+
     intf->intf_dbg("cmd_sock connect from %u.%u.%u.%u:%u established\n",
                    s->remote_ip[0],
                    s->remote_ip[1],
@@ -52,8 +84,10 @@ net::cmd_sock_listener::socket_established(tcp::socket* s)
 }
 
 void
-net::cmd_sock_listener::socket_readable(tcp::socket* s)
+cmd_sock_connection::socket_readable(tcp::socket* _s)
 {
+    kassert(_s == s);
+
     char buffer[16];
     memset(buffer,'T',sizeof(buffer));
     while (s->rx_avail_bytes)
@@ -78,24 +112,26 @@ net::cmd_sock_listener::socket_readable(tcp::socket* s)
 }
 
 void
-net::cmd_sock_listener::socket_reset(tcp::socket* s)
+cmd_sock_connection::socket_reset(tcp::socket* _s)
 {
+    kassert(_s == s);
     intf->tcp_delete(s);
+    listener->connection_slab.free(this);
 }
 
 void
-net::cmd_sock_listener::send_complete(tcp::send_op* sop)
+cmd_sock_connection::send_complete(tcp::send_op* sop)
 {
 }
 
 void
-net::cmd_sock_listener::handle_cmd_arp()
+cmd_sock_connection::handle_cmd_arp()
 {
     intf->dump_arp_table();
 }
 
 void
-net::cmd_sock_listener::handle_cmd_mem()
+cmd_sock_connection::handle_cmd_mem()
 {
     intf->intf_dbg("Free pages: %zu  PT Used Pages: %zu\n",
                    kernel::page_count_free(),
@@ -103,19 +139,19 @@ net::cmd_sock_listener::handle_cmd_mem()
 }
 
 void
-net::cmd_sock_listener::handle_cmd_panic()
+cmd_sock_connection::handle_cmd_panic()
 {
     kernel::panic("User requested");
 }
 
 void
-net::cmd_sock_listener::handle_cmd_exit()
+cmd_sock_connection::handle_cmd_exit()
 {
     kernel::exit_guest(1);
 }
 
 void
-net::cmd_sock_listener::handle_cmd_segv()
+cmd_sock_connection::handle_cmd_segv()
 {
     *(volatile uint64_t*)0x123 = 0x4567890ABCDEF123ULL;
 }

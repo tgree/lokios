@@ -7,24 +7,13 @@ namespace net
 {
     struct interface;
 
-    struct cmd_sock_listener : public tcp::socket_observer
+    struct cmd_sock_listener
     {
         net::interface* intf;
+        kernel::slab    connection_slab;
 
         void    listen(uint16_t port);
         void    cmd_socket_accepted(tcp::socket* s);
-
-        virtual void    socket_established(tcp::socket* s);
-        virtual void    socket_readable(tcp::socket* s);
-        virtual void    socket_reset(tcp::socket* s);
-
-        void    send_complete(tcp::send_op* sop);
-
-        void    handle_cmd_arp();
-        void    handle_cmd_mem();
-        void    handle_cmd_panic();
-        void    handle_cmd_exit();
-        void    handle_cmd_segv();
 
         cmd_sock_listener(net::interface* intf);
     };
