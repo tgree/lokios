@@ -384,6 +384,54 @@ tcp::socket::process_send_queue()
 }
 
 void
+tcp::socket::process_ack(uint32_t ack_num)
+{
+    // snd_una is the first unacknowledged byte and corresponds to the head of
+    // the sent_send_ops queue.
+    //
+    // ack_num is the first unseen sequence number by the remote guy.  So he
+    // is acking [snd_una,ack_num).  I.e. sequence number ack_num is NOT being
+    // acknowledged yet.
+    uint32_t ack_len = ack_num - snd_una;
+    if (ack_len && retransmit_wqe.is_armed())
+    {
+        kernel::cpu::cancel_timer(&retransmit_wqe);
+        kernel::cpu::schedule_timer_ms(&retransmit_wqe,RETRANSMIT_TIMEOUT_MS);
+    }
+
+    while (ack_len && !sent_send_ops.empty())
+    {
+        auto* sop = klist_front(sent_send_ops,link);
+        ack_len   = sop->mark_acked(ack_len);
+
+        if (sop->is_fully_acked())
+        {
+            sent_send_ops.pop_front();
+            if (!sop->refcount)
+            {
+                sop->cb(sop);
+                send_ops_slab.free(sop);
+            }
+            else
+                acked_send_ops.push_back(&sop->link);
+        }
+    }
+    if (ack_len && !unsent_send_ops.empty())
+    {
+        auto* sop = klist_front(unsent_send_ops,link);
+        ack_len   = sop->mark_acked(ack_len);
+        kassert(sop->unacked_alp_index < sop->nalps-1 ||
+                sop->unacked_alp_offset < sop->alps[sop->nalps-1].len);
+    }
+    kassert(ack_len == 0);
+
+    snd_una = ack_num;
+
+    if (snd_una == snd_nxt && retransmit_wqe.is_armed())
+        kernel::cpu::cancel_timer(&retransmit_wqe);
+}
+
+void
 tcp::socket::rx_append(net::rx_page* p)
 {
     rx_pages.push_back(&p->link);
@@ -680,52 +728,4 @@ tcp::socket::dump_socket()
                    rcv_mss,
                    (uint16_t)(rcv_wnd >> rcv_wnd_shift),
                    rcv_wnd_shift);
-}
-
-void
-tcp::socket::process_ack(uint32_t ack_num)
-{
-    // snd_una is the first unacknowledged byte and corresponds to the head of
-    // the sent_send_ops queue.
-    //
-    // ack_num is the first unseen sequence number by the remote guy.  So he
-    // is acking [snd_una,ack_num).  I.e. sequence number ack_num is NOT being
-    // acknowledged yet.
-    uint32_t ack_len = ack_num - snd_una;
-    if (ack_len && retransmit_wqe.is_armed())
-    {
-        kernel::cpu::cancel_timer(&retransmit_wqe);
-        kernel::cpu::schedule_timer_ms(&retransmit_wqe,RETRANSMIT_TIMEOUT_MS);
-    }
-
-    while (ack_len && !sent_send_ops.empty())
-    {
-        auto* sop = klist_front(sent_send_ops,link);
-        ack_len   = sop->mark_acked(ack_len);
-
-        if (sop->is_fully_acked())
-        {
-            sent_send_ops.pop_front();
-            if (!sop->refcount)
-            {
-                sop->cb(sop);
-                send_ops_slab.free(sop);
-            }
-            else
-                acked_send_ops.push_back(&sop->link);
-        }
-    }
-    if (ack_len && !unsent_send_ops.empty())
-    {
-        auto* sop = klist_front(unsent_send_ops,link);
-        ack_len   = sop->mark_acked(ack_len);
-        kassert(sop->unacked_alp_index < sop->nalps-1 ||
-                sop->unacked_alp_offset < sop->alps[sop->nalps-1].len);
-    }
-    kassert(ack_len == 0);
-
-    snd_una = ack_num;
-
-    if (snd_una == snd_nxt && retransmit_wqe.is_armed())
-        kernel::cpu::cancel_timer(&retransmit_wqe);
 }

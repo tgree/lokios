@@ -172,6 +172,7 @@ namespace tcp
                              uint64_t flags = 0);
         tcp::tx_op*     make_one_packet(tcp::send_op* sop);
         void            process_send_queue();
+        void            process_ack(uint32_t ack_num);
 
         // Receive data.
         void    rx_append(net::rx_page* p);
@@ -189,7 +190,6 @@ namespace tcp
 
         // Helpers.
         void        dump_socket();
-        void        process_ack(uint32_t ack_num);
 
         // Passive open.
         socket(net::interface* intf, net::rx_page* p);
