@@ -648,38 +648,24 @@ tcp::socket::handle_established_segment_recvd(net::rx_page* p)
         return 0;
 
     // ES3:
-    uint64_t flags   = 0;
-    bool fin         = h->tcp.fin;
-    uint32_t fin_seq = h->tcp.seq_num;
-    if (h->segment_len()) // TERRY ADDED THIS CHECK TO SUPPRESS DUPLICATE ACKS
+    // At this point we know SYN=0.  But we could have FIN=1 so be careful.
+    uint64_t flags     = 0;
+    bool fin           = h->tcp.fin;
+    seq_range rx_range = {h->tcp.seq_num,h->segment_len()};
+    seq_range new_seqs = seq_overlap(rx_range,{rcv_nxt,rcv_wnd});
+    rcv_nxt           += new_seqs.len;
+    if (rx_range.len)
+        post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
+    if (new_seqs.len)
     {
-        if (h->tcp.seq_num == rcv_nxt)
-        {
-            // TODO: Consume from OO RCV Buffer here.
-            rcv_nxt = h->tcp.seq_num + h->segment_len();
-            post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
-
-            // BAH!  The packet can get deleted if we let rx_append call out
-            // to the client in context.
-            p->client_offset = (uint8_t*)h->get_payload() - p->payload;
-            p->client_len    = h->payload_len();
-            flags            = NRX_FLAG_NO_DELETE;
-            rx_append(p);
-
-            // Though shalt not touch packet memory again.
-            h = NULL;
-            p = NULL;
-        }
-        else
-            post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
+        uint32_t skip    = new_seqs.first - h->tcp.seq_num;
+        p->client_offset = (uint8_t*)h->get_payload() - p->payload + skip;
+        p->client_len    = h->payload_len() - skip;
+        flags            = NRX_FLAG_NO_DELETE;
+        rx_append(p);
     }
     if (fin)
-    {
-        process_fin(fin_seq);
         TRANSITION(TCP_CLOSE_WAIT);
-        return flags;
-    }
-
     return flags;
 }
 
