@@ -1,6 +1,7 @@
 #include "cmd_sock.h"
 #include "interface.h"
 #include "kernel/task.h"
+#include "kernel/console.h"
 #include "platform/platform.h"
 
 using kernel::_kassert;
@@ -10,6 +11,9 @@ struct cmd_sock_connection : public tcp::socket_observer
     net::cmd_sock_listener* listener;
     net::interface*         intf;
     tcp::socket*            s;
+
+    size_t                  buf_len;
+    char                    buf[128];
 
     virtual void    socket_established(tcp::socket* s);
     virtual void    socket_readable(tcp::socket* s);
@@ -22,6 +26,7 @@ struct cmd_sock_connection : public tcp::socket_observer
             void    handle_cmd_panic();
             void    handle_cmd_exit();
             void    handle_cmd_segv();
+            void    handle_unrecognized_cmd();
 
     cmd_sock_connection(net::cmd_sock_listener* listener, tcp::socket* s);
 };
@@ -66,7 +71,8 @@ cmd_sock_connection::cmd_sock_connection(net::cmd_sock_listener* listener,
     tcp::socket* s):
         listener(listener),
         intf(listener->intf),
-        s(s)
+        s(s),
+        buf_len(0)
 {
 }
 
@@ -88,23 +94,45 @@ cmd_sock_connection::socket_readable(tcp::socket* _s)
 {
     kassert(_s == s);
 
-    char buffer[16];
-    memset(buffer,'T',sizeof(buffer));
     while (s->rx_avail_bytes)
     {
-        uint32_t len = MIN(s->rx_avail_bytes,sizeof(buffer)-1);
-        buffer[len]  = '\0';
-        s->read(buffer,len);
-        if (!strcmp(buffer,"arp\r\n"))
-            handle_cmd_arp();
-        else if (!strcmp(buffer,"mem\r\n"))
-            handle_cmd_mem();
-        else if (!strcmp(buffer,"panic\r\n"))
-            handle_cmd_panic();
-        else if (!strcmp(buffer,"exit\r\n"))
-            handle_cmd_exit();
-        else if (!strcmp(buffer,"segv\r\n"))
-            handle_cmd_segv();
+        size_t rem = sizeof(buf) - 1 - buf_len;
+        if (rem == 0)
+        {
+            intf->intf_dbg("command too long, discarding\n");
+            buf_len = 0;
+            rem     = sizeof(buf);
+        }
+
+        uint32_t len = MIN(s->rx_avail_bytes,rem);
+        s->read(buf+buf_len,len);
+        buf_len += len;
+        buf[buf_len] = '\0';
+
+        char* pos = (char*)memmem(buf,buf_len,"\r\n",2);
+        if (!pos)
+            pos = (char*)memmem(buf,buf_len,"\r",2);
+        if (pos)
+        {
+            *pos = '\0';
+
+            if (!strcmp(buf,"arp"))
+                handle_cmd_arp();
+            else if (!strcmp(buf,"mem"))
+                handle_cmd_mem();
+            else if (!strcmp(buf,"panic"))
+                handle_cmd_panic();
+            else if (!strcmp(buf,"exit"))
+                handle_cmd_exit();
+            else if (!strcmp(buf,"segv"))
+                handle_cmd_segv();
+            else
+                handle_unrecognized_cmd();
+
+            size_t n = pos + 2 - buf;
+            buf_len -= n;
+            memmove(buf,pos+2,buf_len);
+        }
     }
     kassert(s->rx_pages.empty());
 
@@ -154,4 +182,10 @@ void
 cmd_sock_connection::handle_cmd_segv()
 {
     *(volatile uint64_t*)0x123 = 0x4567890ABCDEF123ULL;
+}
+
+void
+cmd_sock_connection::handle_unrecognized_cmd()
+{
+    intf->intf_dbg("Unrecognized command\n");
 }
