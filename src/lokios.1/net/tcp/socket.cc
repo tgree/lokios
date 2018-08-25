@@ -548,10 +548,11 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
                 if (!h->tcp.syn)
                     break;
 
-                snd_wnd = h->tcp.window_size;
                 process_options(h->tcp.parse_options());
 
+                snd_wnd = h->tcp.window_size;
                 rcv_nxt = h->tcp.seq_num + 1;
+
                 if (snd_una != iss)
                 {
                     post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
@@ -594,15 +595,10 @@ tcp::socket::handle_listen_syn_recvd(const ipv4_tcp_headers* h,
     kassert(remote_ip == h->ip.src_ip);
     kassert(remote_port == h->tcp.src_port);
 
-    // Sort out sequence numbers.
-    rcv_nxt = h->tcp.seq_num + 1;
-
-    // Compute window sizes.  Note that window scaling does not apply to syn
-    // packets.
-    snd_wnd = h->tcp.window_size;
-
-    // Parse options.
     process_options(opts);
+
+    snd_wnd = h->tcp.window_size;
+    rcv_nxt = h->tcp.seq_num + 1;
 
     // Segment(SEQ=ISS,ACK=RCV.NXT,CTL=SYN/ACK)
     send(0,NULL,method_delegate(syn_recvd_send_op_cb),
