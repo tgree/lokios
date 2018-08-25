@@ -190,6 +190,7 @@ namespace tcp
         uint64_t    handle_established_segment_recvd(net::rx_page* p);
 
         // Helpers.
+        void        process_options(parsed_options opts);
         void        dump_socket();
 
         // Passive open.

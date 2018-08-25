@@ -549,26 +549,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
                     break;
 
                 snd_wnd = h->tcp.window_size;
-                parsed_options opts;
-                try
-                {
-                    opts = h->tcp.parse_options();
-                }
-                catch (option_parse_exception& e)
-                {
-                    intf->intf_dbg("option parse error: %s (%lu)\n",
-                                   e.msg,e.val);
-                    break;
-                }
-                if (opts.flags & OPTION_SND_MSS_PRESENT)
-                {
-                    snd_mss = MIN(opts.snd_mss,
-                                  intf->tx_mtu - sizeof(ipv4_tcp_headers));
-                }
-                if (opts.flags & OPTION_SND_WND_SHIFT_PRESENT)
-                    snd_wnd_shift = opts.snd_wnd_shift;
-                else
-                    rcv_wnd_shift = 0;
+                process_options(h->tcp.parse_options());
 
                 rcv_nxt = h->tcp.seq_num + 1;
                 if (snd_una != iss)
@@ -621,10 +602,7 @@ tcp::socket::handle_listen_syn_recvd(const ipv4_tcp_headers* h,
     snd_wnd = h->tcp.window_size;
 
     // Parse options.
-    if (opts.flags & OPTION_SND_MSS_PRESENT)
-        snd_mss = MIN(opts.snd_mss,intf->tx_mtu - sizeof(ipv4_tcp_headers));
-    if (opts.flags & OPTION_SND_WND_SHIFT_PRESENT)
-        snd_wnd_shift = opts.snd_wnd_shift;
+    process_options(opts);
 
     // Segment(SEQ=ISS,ACK=RCV.NXT,CTL=SYN/ACK)
     if (opts.flags & OPTION_SND_WND_SHIFT_PRESENT)
@@ -699,6 +677,23 @@ tcp::socket::handle_established_segment_recvd(net::rx_page* p)
     if (fin)
         TRANSITION(TCP_CLOSE_WAIT);
     return flags;
+}
+
+void
+tcp::socket::process_options(parsed_options opts)
+{
+    if (opts.flags & OPTION_SND_MSS_PRESENT)
+        snd_mss = MIN(opts.snd_mss,intf->tx_mtu - sizeof(ipv4_tcp_headers));
+    if (opts.flags & OPTION_SND_WND_SHIFT_PRESENT)
+    {
+        snd_wnd_shift = opts.snd_wnd_shift;
+        rcv_wnd_shift = RX_WINDOW_SHIFT;
+    }
+    else
+    {
+        snd_wnd_shift = 0;
+        rcv_wnd_shift = 0;
+    }
 }
 
 void
