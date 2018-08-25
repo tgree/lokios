@@ -532,7 +532,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
                     rcv_wnd_shift = 0;
 
                 rcv_nxt = h->tcp.seq_num + 1;
-                if (seq_gt(snd_una,iss))
+                if (snd_una != iss)
                 {
                     post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
                     TRANSITION(TCP_ESTABLISHED);
