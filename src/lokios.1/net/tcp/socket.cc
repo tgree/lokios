@@ -510,9 +510,14 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
 
                 snd_wnd = h->tcp.window_size;
                 parsed_options opts;
-                if (parse_options(h,&opts))
+                try
                 {
-                    intf->intf_dbg("error: bad options\n");
+                    opts = h->tcp.parse_options();
+                }
+                catch (option_parse_exception& e)
+                {
+                    intf->intf_dbg("option parse error: %s (%lu)\n",
+                                   e.msg,e.val);
                     break;
                 }
                 if (opts.flags & OPTION_SND_MSS_PRESENT)
@@ -573,8 +578,16 @@ tcp::socket::handle_listen_syn_recvd(net::rx_page* p)
 
     // Parse options.
     parsed_options opts;
-    if (parse_options(h,&opts))
+    try
+    {
+        opts = h->tcp.parse_options();
+    }
+    catch (option_parse_exception& e)
+    {
+        intf->intf_dbg("option parse error: %s (%lu)\n",
+                       e.msg,e.val);
         return 0;
+    }
     if (opts.flags & OPTION_SND_MSS_PRESENT)
         snd_mss = MIN(opts.snd_mss,intf->tx_mtu - sizeof(ipv4_tcp_headers));
     if (opts.flags & OPTION_SND_WND_SHIFT_PRESENT)
@@ -781,92 +794,4 @@ tcp::socket::process_ack(uint32_t ack_num)
 
     if (snd_una == snd_nxt && retransmit_wqe.is_armed())
         kernel::cpu::cancel_timer(&retransmit_wqe);
-}
-
-int
-tcp::socket::parse_options(ipv4_tcp_headers* h, parsed_options* opts)
-{
-    size_t rem     = h->tcp.offset*4 - sizeof(tcp::header);
-    uint8_t* opt   = h->tcp.options;
-    uint8_t* start = opt;
-    opts->flags    = 0;
-    while (rem)
-    {
-        switch (*opt)
-        {
-            case 0:     // End-of-options.
-                intf->intf_dbg("%zu: opt %u - end of options\n",opt-start,*opt);
-                rem = 0;
-            break;
-
-            case 1:     // No-op.
-                intf->intf_dbg("%zu: opt %u - no-op\n",opt-start,*opt);
-                --rem;
-                ++opt;
-            break;
-
-            case 2:     // MSS value.
-                intf->intf_dbg("%zu: opt %u - MSS\n",opt-start,*opt);
-                if (rem < 4)
-                {
-                    intf->intf_dbg("truncated MSS option\n");
-                    return -1;
-                }
-                if (opt[1] != 4)
-                {
-                    intf->intf_dbg("bad MSS length of %u\n",opt[1]);
-                    return -2;
-                }
-                opts->flags  |= OPTION_SND_MSS_PRESENT;
-                opts->snd_mss = *(be_uint16_t*)(opt + 2);
-                intf->intf_dbg("send MSS: %u\n",opts->snd_mss);
-                rem -= 4;
-                opt += 4;
-            break;
-
-            case 3:     // Window Size Shift
-                intf->intf_dbg("%zu: opt %u - window size shift\n",
-                               opt-start,*opt);
-                if (rem < 3)
-                {
-                    intf->intf_dbg("truncated WND_SHIFT option\n");
-                    return -3;
-                }
-                if (opt[1] != 3)
-                {
-                    intf->intf_dbg("bad WND_SHIFT length of %u\n",opt[1]);
-                    return -4;
-                }
-                opts->flags        |= OPTION_SND_WND_SHIFT_PRESENT;
-                opts->snd_wnd_shift = opt[2];
-                if (opts->snd_wnd_shift > 14)
-                {
-                    intf->intf_dbg("large WND_SHIFT value of %u, using 14\n",
-                                   opts->snd_wnd_shift);
-                    opts->snd_wnd_shift = 14;
-                }
-                rem -= 3;
-                opt += 3;
-            break;
-
-            default:    // Anything else.
-                if (rem < 2)
-                {
-                    intf->intf_dbg("option %u missing length\n",opt[0]);
-                    return -5;
-                }
-                intf->intf_dbg("%zu: opt %u - other len %u\n",
-                               opt-start,*opt,opt[1]);
-                if (rem < opt[1])
-                {
-                    intf->intf_dbg("option %u truncated\n",opt[0]);
-                    return -6;
-                }
-                rem -= opt[1];
-                opt += opt[1];
-            break;
-        }
-    }
-
-    return 0;
 }

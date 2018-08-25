@@ -8,6 +8,23 @@
 
 namespace tcp
 {
+    struct option_parse_exception
+    {
+        const char* msg;
+        const uint64_t val;
+        constexpr option_parse_exception(const char* msg, uint64_t val = 0):
+            msg(msg),val(val) {}
+    };
+
+#define OPTION_SND_MSS_PRESENT          (1<<0)
+#define OPTION_SND_WND_SHIFT_PRESENT    (1<<1)
+    struct parsed_options
+    {
+        uint32_t    flags;
+        uint32_t    snd_mss;
+        uint8_t     snd_wnd_shift;
+    };
+
     static constexpr uint16_t FFIN = (1<<0);
     static constexpr uint16_t FSYN = (1<<1);
     static constexpr uint16_t FRST = (1<<2);
@@ -55,6 +72,8 @@ namespace tcp
         be_uint16_t checksum;
         be_uint16_t urgent_pointer;
         uint8_t options[0];
+
+        parsed_options  parse_options() const;
 
         inline void _format(SEQ s)   {seq_num  = s.seq_num;}
         inline void _format(ACK a)   {ack_num  = a.ack_num;}

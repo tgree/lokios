@@ -17,6 +17,7 @@ tcp_checksum_test.objs :=  \
 tcp_socket_test.objs := \
     	$(MODULE_TBUILD_DIR)/tcp_socket_test.o \
 	$(PARENT_TBUILD_DIR)/socket.o \
+	$(PARENT_TBUILD_DIR)/header.o \
 	$(PARENT_TBUILD_DIR)/tcp.o \
 	$(BUILD_TO_DIR)/lokios.1/net/interface.o \
 	$(BUILD_TO_DIR)/lokios.1/net/mock/finterface.o \
@@ -32,6 +33,7 @@ tcp_socket_test.objs := \
 tcp_pipe_test.objs := \
     	$(MODULE_TBUILD_DIR)/tcp_pipe_test.o \
 	$(PARENT_TBUILD_DIR)/socket.o \
+	$(PARENT_TBUILD_DIR)/header.o \
 	$(PARENT_TBUILD_DIR)/tcp.o \
 	$(BUILD_TO_DIR)/lokios.1/net/interface.o \
 	$(BUILD_TO_DIR)/lokios.1/net/mock/finterface.o \

@@ -39,15 +39,6 @@ namespace tcp
         virtual void socket_reset(socket*) = 0;
     };
 
-#define OPTION_SND_MSS_PRESENT          (1<<0)
-#define OPTION_SND_WND_SHIFT_PRESENT    (1<<1)
-    struct parsed_options
-    {
-        uint32_t    flags;
-        uint32_t    snd_mss;
-        uint8_t     snd_wnd_shift;
-    };
-
 #define SEND_OP_FLAG_SYN        (1<<0)   // SYN before any payload alps.
 #define SEND_OP_FLAG_FIN        (1<<1)   // FIN after any payload alps.
 #define SEND_OP_FLAG_SET_ACK    (1<<2)   // Set the ACK bit on the SYN.
@@ -167,7 +158,6 @@ namespace tcp
         void        dump_socket();
         void        process_fin(uint32_t seq_num);
         void        process_ack(uint32_t ack_num);
-        int         parse_options(ipv4_tcp_headers* h, parsed_options* opts);
 
         // Passive open.
         socket(net::interface* intf, net::rx_page* p);
