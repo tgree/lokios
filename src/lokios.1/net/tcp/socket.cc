@@ -372,7 +372,7 @@ tcp::socket::make_one_packet(tcp::send_op* sop)
 void
 tcp::socket::process_send_queue()
 {
-    if (seq_ge(snd_nxt,snd_una + snd_wnd))
+    if (!seq_range{snd_una,snd_wnd}.seq_in_range(snd_nxt))
     {
         intf->intf_dbg("snd window empty snd_nxt %u snd_una %u snd_wnd %u\n",
                        snd_nxt,snd_una,snd_wnd);
@@ -436,6 +436,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
         break;
 
         case TCP_SYN_RECVD:
+        {
             if (!seq_check(rcv_nxt,h->tcp.seq_num,h->segment_len(),rcv_wnd))
             {
                 if (!h->tcp.rst)
@@ -463,8 +464,9 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
             }
             if (!h->tcp.ack)
                 break;
-            if (seq_lt(snd_una,h->tcp.ack_num) &&
-                seq_le(h->tcp.ack_num,snd_nxt))
+
+            seq_range valid_ack_seqs = seq_bound(snd_una+1,snd_nxt);
+            if (valid_ack_seqs.seq_in_range(h->tcp.ack_num))
             {
                 process_ack(h->tcp.ack_num);
                 TRANSITION(TCP_ESTABLISHED);
@@ -484,13 +486,14 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
             post_rst(snd_nxt);
             TRANSITION(TCP_CLOSED);
             intf->tcp_delete(this);
+        }
         break;
 
         case TCP_SYN_SENT:
             if (h->tcp.ack)
             {
-                if (seq_le(h->tcp.ack_num,iss) ||
-                    seq_gt(h->tcp.ack_num,snd_nxt))
+                seq_range valid_ack_seqs = seq_bound(snd_una,snd_nxt);
+                if (!valid_ack_seqs.seq_in_range(h->tcp.ack_num))
                 {
                     post_rst(h->tcp.ack_num);
                     break;
@@ -629,19 +632,16 @@ tcp::socket::handle_established_segment_recvd(net::rx_page* p)
         intf->tcp_delete(this);
         return 0;
     }
-    // ES2:
     if (!h->tcp.ack)
         return 0;
-    if (seq_lt(snd_una,h->tcp.ack_num) &&
-        seq_le(h->tcp.ack_num,snd_nxt))
-    {
-        snd_wnd = h->tcp.window_size << snd_wnd_shift;
-        process_ack(h->tcp.ack_num);
-        process_send_queue();
-        // TODO: "Release REXMT timer"?????
-    }
-    else if (seq_ne(h->tcp.ack_num,snd_una))
+
+    seq_range valid_ack_seqs = seq_bound(snd_una,snd_nxt);
+    if (!valid_ack_seqs.seq_in_range(h->tcp.ack_num))
         return 0;
+
+    snd_wnd = h->tcp.window_size << snd_wnd_shift;
+    process_ack(h->tcp.ack_num);
+    process_send_queue();
 
     // ES3:
     // At this point we know SYN=0.  But we could have FIN=1 so be careful.
