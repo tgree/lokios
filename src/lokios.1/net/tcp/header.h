@@ -279,7 +279,7 @@ namespace tcp
     constexpr bool seq_subcheck(uint32_t rcv_nxt, uint32_t seq_num,
                                 uint32_t rcv_wnd)
     {
-        return seq_le(rcv_nxt,seq_num) && seq_lt(seq_num,rcv_nxt+rcv_wnd);
+        return seq_range{rcv_nxt,rcv_wnd}.seq_in_range(seq_num);
     }
     constexpr bool seq_check(uint32_t rcv_nxt, uint32_t seq_num, 
                              uint32_t seg_len, uint32_t rcv_wnd)
