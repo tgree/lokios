@@ -99,7 +99,6 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p):
     snd_mss       = MIN(MAX_SAFE_IP_SIZE,intf->tx_mtu) -
                     sizeof(ipv4_tcp_headers);
 
-    irs           = 0;
     rcv_nxt       = 0;
     rcv_wnd       = MAX_RX_WINDOW;
     rcv_wnd_shift = 0;
@@ -136,7 +135,6 @@ tcp::socket::socket(net::interface* intf, ipv4::addr remote_ip,
     snd_mss       = MIN(MAX_SAFE_IP_SIZE,intf->tx_mtu) -
                     sizeof(ipv4_tcp_headers);
 
-    irs           = 0;
     rcv_nxt       = 0;
     rcv_wnd       = MAX_RX_WINDOW;
     rcv_wnd_shift = RX_WINDOW_SHIFT;
@@ -530,8 +528,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
                 else
                     rcv_wnd_shift = 0;
 
-                irs     = h->tcp.seq_num;
-                rcv_nxt = irs + 1;
+                rcv_nxt = h->tcp.seq_num + 1;
                 if (seq_gt(snd_una,iss))
                 {
                     post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
@@ -569,8 +566,7 @@ tcp::socket::handle_listen_syn_recvd(net::rx_page* p)
     kassert(remote_port == h->tcp.src_port);
 
     // Sort out sequence numbers.
-    irs     = h->tcp.seq_num;
-    rcv_nxt = irs + 1;
+    rcv_nxt = h->tcp.seq_num + 1;
 
     // Compute window sizes.  Note that window scaling does not apply to syn
     // packets.

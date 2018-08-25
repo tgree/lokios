@@ -151,7 +151,6 @@ namespace tcp
         uint32_t                        rcv_wnd;
         uint8_t                         rcv_wnd_shift;
         uint16_t                        rcv_mss;
-        uint32_t                        irs;
 
         // Allocate send ops.
         tcp::tx_op* alloc_tx_op(tcp::send_op* sop = NULL);
