@@ -165,6 +165,18 @@ int strncmp(const char* s1, const char* s2, size_t n)
     return 1;
 }
 
+const char* strstr(const char* haystack, const char* needle)
+{
+    size_t n = strlen(needle);
+    while (*haystack)
+    {
+        if (!strncmp(haystack,needle,n))
+            return haystack;
+        ++haystack;
+    }
+    return NULL;
+}
+
 extern "C"
 size_t fwrite(const void* ptr, size_t size, size_t nmemb, FILE* stream)
 {
