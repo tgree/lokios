@@ -189,7 +189,6 @@ namespace tcp
 
         // Helpers.
         void        dump_socket();
-        void        process_fin(uint32_t seq_num);
         void        process_ack(uint32_t ack_num);
 
         // Passive open.

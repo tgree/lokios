@@ -683,13 +683,6 @@ tcp::socket::dump_socket()
 }
 
 void
-tcp::socket::process_fin(uint32_t seq_num)
-{
-    rcv_nxt = seq_num + 1;
-    post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
-}
-
-void
 tcp::socket::process_ack(uint32_t ack_num)
 {
     // snd_una is the first unacknowledged byte and corresponds to the head of
