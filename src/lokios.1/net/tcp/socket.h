@@ -173,6 +173,10 @@ namespace tcp
         tcp::tx_op*     make_one_packet(tcp::send_op* sop);
         void            process_send_queue();
 
+        // Send completions for special packets.
+        void        syn_sent_send_op_cb(tcp::send_op* top);
+        void        syn_recvd_send_op_cb(tcp::send_op* top);
+
         // Handlers.
         void        handle_retransmit_expiry(kernel::timer_entry* wqe);
         uint64_t    handle_rx_ipv4_tcp_frame(net::rx_page* p);

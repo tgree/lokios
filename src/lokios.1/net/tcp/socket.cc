@@ -21,11 +21,6 @@
 
 using kernel::_kassert;
 
-static void
-syn_sent_send_op_cb(tcp::send_op*)
-{
-}
-
 uint32_t
 tcp::send_op::mark_acked(uint32_t ack_len)
 {
@@ -140,7 +135,7 @@ tcp::socket::socket(net::interface* intf, ipv4::addr remote_ip,
     rcv_wnd_shift = RX_WINDOW_SHIFT;
     rcv_mss       = intf->rx_mtu - sizeof(ipv4_tcp_headers);
 
-    send(0,NULL,kernel::func_delegate(syn_sent_send_op_cb),
+    send(0,NULL,method_delegate(syn_sent_send_op_cb),
          SEND_OP_FLAG_SYN | SEND_OP_FLAG_SET_SCALE);
     TRANSITION(TCP_SYN_SENT);
 }
@@ -389,6 +384,23 @@ tcp::socket::process_send_queue()
 }
 
 void
+tcp::socket::syn_sent_send_op_cb(tcp::send_op*)
+{
+}
+
+void
+tcp::socket::syn_recvd_send_op_cb(tcp::send_op* sop)
+{
+    if (state != TCP_SYN_RECVD)
+        return;
+
+    // Our SYN has been fully ACKed, so we can transition to ESTABLISHED.
+    TRANSITION(TCP_ESTABLISHED);
+    dump_socket();
+    observer->socket_established(this);
+}
+
+void
 tcp::socket::handle_retransmit_expiry(kernel::timer_entry*)
 {
     if (!unsent_send_ops.empty())
@@ -433,60 +445,6 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
             }
 
             handle_listen_syn_recvd(p);
-        break;
-
-        case TCP_SYN_RECVD:
-        {
-            if (!seq_check(rcv_nxt,h->tcp.seq_num,h->segment_len(),rcv_wnd))
-            {
-                if (!h->tcp.rst)
-                    post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
-                break;
-            }
-            if (h->tcp.rst)
-            {
-                if (prev_state == TCP_LISTEN)
-                    intf->intf_dbg("passive open failed, deleting socket\n");
-                else
-                    kernel::panic("active open failed - notify client!\n");
-                TRANSITION(TCP_CLOSED);
-                intf->tcp_delete(this);
-                break;
-            }
-            if (h->tcp.syn)
-            {
-                // We're just going to close the socket; the packet could get
-                // dropped.  It seems like this is unnecessary.
-                post_rst(snd_nxt);
-                TRANSITION(TCP_CLOSED);
-                intf->tcp_delete(this);
-                break;
-            }
-            if (!h->tcp.ack)
-                break;
-
-            seq_range valid_ack_seqs = seq_bound(snd_una+1,snd_nxt);
-            if (valid_ack_seqs.seq_in_range(h->tcp.ack_num))
-            {
-                process_ack(h->tcp.ack_num);
-                TRANSITION(TCP_ESTABLISHED);
-                dump_socket();
-                observer->socket_established(this);
-                return handle_established_segment_recvd(p);
-            }
-            if (h->tcp.fin)
-            {
-                process_fin(h->tcp.seq_num);
-                TRANSITION(TCP_CLOSE_WAIT);
-                break;
-            }
-
-            // We're just going to close the socket; the packet could
-            // get dropped.  It seems like this is unnecessary.
-            post_rst(snd_nxt);
-            TRANSITION(TCP_CLOSED);
-            intf->tcp_delete(this);
-        }
         break;
 
         case TCP_SYN_SENT:
@@ -546,6 +504,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
             return handle_listen_syn_recvd(p);
         break;
 
+        case TCP_SYN_RECVD:
         case TCP_ESTABLISHED:
             return handle_established_segment_recvd(p);
         break;
@@ -596,12 +555,12 @@ tcp::socket::handle_listen_syn_recvd(net::rx_page* p)
     if (opts.flags & OPTION_SND_WND_SHIFT_PRESENT)
     {
         rcv_wnd_shift = RX_WINDOW_SHIFT;
-        send(0,NULL,kernel::func_delegate(syn_sent_send_op_cb),
+        send(0,NULL,method_delegate(syn_recvd_send_op_cb),
              SEND_OP_FLAG_SYN | SEND_OP_FLAG_SET_ACK | SEND_OP_FLAG_SET_SCALE);
     }
     else
     {
-        send(0,NULL,kernel::func_delegate(syn_sent_send_op_cb),
+        send(0,NULL,method_delegate(syn_recvd_send_op_cb),
              SEND_OP_FLAG_SYN | SEND_OP_FLAG_SET_ACK);
     }
 
