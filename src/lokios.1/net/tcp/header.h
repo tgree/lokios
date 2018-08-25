@@ -251,6 +251,31 @@ namespace tcp
     KASSERT(!seq_gt(2,2));
     KASSERT(seq_gt(3,2));
 
+    struct seq_range
+    {
+        uint32_t    first;
+        uint32_t    len;
+
+        constexpr bool seq_in_range(uint32_t seq) const
+        {
+            return (seq - first < len);
+        }
+    };
+    constexpr bool operator==(seq_range l, seq_range r)
+    {
+        return l.first == r.first && l.len == r.len;
+    }
+    constexpr seq_range seq_bound(uint32_t first, uint32_t last)
+    {
+        // Converts the inclusive bound [first, last] into a seq_range.
+        return seq_range{first,last-first+1};
+    }
+    static_assert(seq_bound(0,2).len == 3);
+    static_assert(seq_bound(1,2).len == 2);
+    static_assert(seq_bound(2,2).len == 1);
+    static_assert(seq_bound(3,2).len == 0);
+    static_assert(seq_bound(4,2).len == 0xFFFFFFFF);
+
     constexpr bool seq_subcheck(uint32_t rcv_nxt, uint32_t seq_num,
                                 uint32_t rcv_wnd)
     {
@@ -262,6 +287,32 @@ namespace tcp
         return seq_subcheck(rcv_nxt,seq_num,rcv_wnd) ||
                seq_subcheck(rcv_nxt,seq_num+seg_len-1,rcv_wnd);
     }
+
+    constexpr seq_range seq_overlap_in_out(seq_range inner, seq_range outer)
+    {
+        // inner.first is contained in outer.
+        return seq_range{inner.first,MIN(inner.len,outer.len - inner.first)};
+    }
+
+    constexpr seq_range seq_overlap(seq_range r1, seq_range r2)
+    {
+        if (r2.seq_in_range(r1.first))
+            return seq_overlap_in_out(r1,r2);
+        if (r1.seq_in_range(r2.first))
+            return seq_overlap_in_out(r2,r1);
+        return seq_range{0,0};
+    }
+    KASSERT(seq_overlap(seq_bound(0,10),seq_bound(1,10)) == seq_bound(1,10));
+    KASSERT(seq_overlap(seq_bound(1,10),seq_bound(0,10)) == seq_bound(1,10));
+    KASSERT(seq_overlap(seq_bound(0xFFFFFFF0,10),seq_bound(1,5)) ==
+                        seq_bound(1,5));
+    KASSERT(seq_overlap(seq_bound(1,5),seq_bound(0xFFFFFFF0,10)) ==
+                        seq_bound(1,5));
+    KASSERT(seq_overlap(seq_bound(1,5),seq_bound(6,10)).len == 0);
+    KASSERT(seq_overlap(seq_bound(6,10),seq_bound(1,5)).len == 0);
+    KASSERT(seq_overlap(seq_bound(0xFFFFFFF0,10),seq_bound(11,15)).len == 0);
+    KASSERT(seq_overlap(seq_bound(11,15),seq_bound(0xFFFFFFF0,10)).len == 0);
+    KASSERT(seq_overlap(seq_range{10,0},seq_bound(10,5)).len == 0);
 
     uint16_t compute_checksum(net::tx_op* op, size_t llhdr_size);
 }
