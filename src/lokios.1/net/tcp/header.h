@@ -284,8 +284,16 @@ namespace tcp
     constexpr bool seq_check(uint32_t rcv_nxt, uint32_t seq_num, 
                              uint32_t seg_len, uint32_t rcv_wnd)
     {
-        return seq_subcheck(rcv_nxt,seq_num,rcv_wnd) ||
-               seq_subcheck(rcv_nxt,seq_num+seg_len-1,rcv_wnd);
+        if (rcv_wnd)
+        {
+            if (!seg_len)
+                return seq_subcheck(rcv_nxt,seq_num,rcv_wnd);
+            return seq_subcheck(rcv_nxt,seq_num+seg_len-1,rcv_wnd) ||
+                   seq_subcheck(rcv_nxt,seq_num,rcv_wnd);
+        }
+        if (!seg_len)
+            return seq_num == rcv_nxt;
+        return false;
     }
 
     constexpr seq_range seq_overlap_in_out(seq_range inner, seq_range outer)
