@@ -591,10 +591,6 @@ void
 tcp::socket::handle_listen_syn_recvd(const ipv4_tcp_headers* h,
     parsed_options opts)
 {
-    // Verify the remote addressing info.
-    kassert(remote_ip == h->ip.src_ip);
-    kassert(remote_port == h->tcp.src_port);
-
     process_options(opts);
 
     snd_wnd = h->tcp.window_size;
