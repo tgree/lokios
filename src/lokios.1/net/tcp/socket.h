@@ -185,7 +185,8 @@ namespace tcp
         // Handlers.
         void        handle_retransmit_expiry(kernel::timer_entry* wqe);
         uint64_t    handle_rx_ipv4_tcp_frame(net::rx_page* p);
-        uint64_t    handle_listen_syn_recvd(net::rx_page* p);
+        void        handle_listen_syn_recvd(const ipv4_tcp_headers* h,
+                                            parsed_options opts);
         uint64_t    handle_established_segment_recvd(net::rx_page* p);
 
         // Helpers.
