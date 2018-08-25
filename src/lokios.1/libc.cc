@@ -85,6 +85,20 @@ void* memcpy(void* dest, const void* src, size_t n)
 }
 
 extern "C"
+void* memmove(void* dest, const void* src, size_t n)
+{
+    if (dest <= src)
+        return memcpy(dest,src,n);
+
+    const char* s = (const char*)src + n;
+    char* d       = (char*)dest + n;
+    while (n--)
+        *--d = *--s;
+    kernel::kassert(dest == d);
+    return dest;
+}
+
+extern "C"
 int memcmp(const void* _s1, const void* _s2, size_t n)
 {
     const char* s1 = (const char*)_s1;
