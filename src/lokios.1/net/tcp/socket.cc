@@ -605,17 +605,10 @@ tcp::socket::handle_listen_syn_recvd(const ipv4_tcp_headers* h,
     process_options(opts);
 
     // Segment(SEQ=ISS,ACK=RCV.NXT,CTL=SYN/ACK)
-    if (opts.flags & OPTION_SND_WND_SHIFT_PRESENT)
-    {
-        rcv_wnd_shift = RX_WINDOW_SHIFT;
-        send(0,NULL,method_delegate(syn_recvd_send_op_cb),
-             SEND_OP_FLAG_SYN | SEND_OP_FLAG_SET_ACK | SEND_OP_FLAG_SET_SCALE);
-    }
-    else
-    {
-        send(0,NULL,method_delegate(syn_recvd_send_op_cb),
-             SEND_OP_FLAG_SYN | SEND_OP_FLAG_SET_ACK);
-    }
+    send(0,NULL,method_delegate(syn_recvd_send_op_cb),
+         SEND_OP_FLAG_SYN | SEND_OP_FLAG_SET_ACK |
+         (opts.flags & OPTION_SND_WND_SHIFT_PRESENT ? SEND_OP_FLAG_SET_SCALE :
+                                                      0));
 
     TRANSITION(TCP_SYN_RECVD);
 }
