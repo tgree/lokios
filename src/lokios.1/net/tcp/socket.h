@@ -173,6 +173,10 @@ namespace tcp
         tcp::tx_op*     make_one_packet(tcp::send_op* sop);
         void            process_send_queue();
 
+        // Receive data.
+        void    rx_append(net::rx_page* p);
+        void    read(void* dst, uint32_t len);
+
         // Send completions for special packets.
         void        syn_sent_send_op_cb(tcp::send_op* top);
         void        syn_recvd_send_op_cb(tcp::send_op* top);
@@ -182,10 +186,6 @@ namespace tcp
         uint64_t    handle_rx_ipv4_tcp_frame(net::rx_page* p);
         uint64_t    handle_listen_syn_recvd(net::rx_page* p);
         uint64_t    handle_established_segment_recvd(net::rx_page* p);
-
-        // Access the receive queue.
-        void    rx_append(net::rx_page* p);
-        void    read(void* dst, uint32_t len);
 
         // Helpers.
         void        dump_socket();

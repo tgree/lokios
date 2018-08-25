@@ -384,6 +384,39 @@ tcp::socket::process_send_queue()
 }
 
 void
+tcp::socket::rx_append(net::rx_page* p)
+{
+    rx_pages.push_back(&p->link);
+    rx_avail_bytes += p->client_len;
+    observer->socket_readable(this);
+}
+
+void
+tcp::socket::read(void* _dst, uint32_t rem)
+{
+    kassert(rem <= rx_avail_bytes);
+    rx_avail_bytes -= rem;
+
+    char* dst = (char*)_dst;
+    while (rem)
+    {
+        net::rx_page* p = klist_front(rx_pages,link);
+        uint32_t len    = MIN(rem,p->client_len);
+        memcpy(dst,p->payload + p->client_offset,len);
+        p->client_offset += len;
+        p->client_len    -= len;
+        dst              += len;
+        rem              -= len;
+
+        if (!p->client_len)
+        {
+            rx_pages.pop_front();
+            intf->free_rx_page(p);
+        }
+    }
+}
+
+void
 tcp::socket::syn_sent_send_op_cb(tcp::send_op*)
 {
 }
@@ -622,39 +655,6 @@ tcp::socket::handle_established_segment_recvd(net::rx_page* p)
     if (fin)
         TRANSITION(TCP_CLOSE_WAIT);
     return flags;
-}
-
-void
-tcp::socket::rx_append(net::rx_page* p)
-{
-    rx_pages.push_back(&p->link);
-    rx_avail_bytes += p->client_len;
-    observer->socket_readable(this);
-}
-
-void
-tcp::socket::read(void* _dst, uint32_t rem)
-{
-    kassert(rem <= rx_avail_bytes);
-    rx_avail_bytes -= rem;
-
-    char* dst = (char*)_dst;
-    while (rem)
-    {
-        net::rx_page* p = klist_front(rx_pages,link);
-        uint32_t len    = MIN(rem,p->client_len);
-        memcpy(dst,p->payload + p->client_offset,len);
-        p->client_offset += len;
-        p->client_len    -= len;
-        dst              += len;
-        rem              -= len;
-
-        if (!p->client_len)
-        {
-            rx_pages.pop_front();
-            intf->free_rx_page(p);
-        }
-    }
 }
 
 void
