@@ -502,7 +502,7 @@ tcp::socket::handle_retransmit_expiry(kernel::timer_entry*)
 }
 
 uint64_t
-tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
+tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
 {
     auto* h = p->payload_cast<ipv4_tcp_headers*>();
     switch (state)
@@ -525,7 +525,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
                 break;
             }
 
-            handle_listen_syn_recvd(p);
+            handle_listen_syn_recvd(h,h->tcp.parse_options());
         break;
 
         case TCP_SYN_SENT:
@@ -582,7 +582,8 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
             }
             else if (h->tcp.rst || !h->tcp.syn)
                 break;
-            return handle_listen_syn_recvd(p);
+
+            handle_listen_syn_recvd(h,h->tcp.parse_options());
         break;
 
         case TCP_SYN_RECVD:
@@ -598,12 +599,16 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p)
 
     return 0;
 }
-
-uint64_t
-tcp::socket::handle_listen_syn_recvd(net::rx_page* p)
+catch (option_parse_exception& e)
 {
-    auto* h = p->payload_cast<ipv4_tcp_headers*>();
+    intf->intf_dbg("option parse error: %s (%lu)\n",e.msg,e.val);
+    return 0;
+}
 
+void
+tcp::socket::handle_listen_syn_recvd(const ipv4_tcp_headers* h,
+    parsed_options opts)
+{
     // Verify the remote addressing info.
     kassert(remote_ip == h->ip.src_ip);
     kassert(remote_port == h->tcp.src_port);
@@ -616,17 +621,6 @@ tcp::socket::handle_listen_syn_recvd(net::rx_page* p)
     snd_wnd = h->tcp.window_size;
 
     // Parse options.
-    parsed_options opts;
-    try
-    {
-        opts = h->tcp.parse_options();
-    }
-    catch (option_parse_exception& e)
-    {
-        intf->intf_dbg("option parse error: %s (%lu)\n",
-                       e.msg,e.val);
-        return 0;
-    }
     if (opts.flags & OPTION_SND_MSS_PRESENT)
         snd_mss = MIN(opts.snd_mss,intf->tx_mtu - sizeof(ipv4_tcp_headers));
     if (opts.flags & OPTION_SND_WND_SHIFT_PRESENT)
@@ -646,7 +640,6 @@ tcp::socket::handle_listen_syn_recvd(net::rx_page* p)
     }
 
     TRANSITION(TCP_SYN_RECVD);
-    return 0;
 }
 
 uint64_t
