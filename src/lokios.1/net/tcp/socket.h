@@ -1,3 +1,33 @@
+/*
+ * Main TCP socket class.  A note on TCP variables:
+ *  
+ *  SND_UNA - this is the first sequence number that hasn't been acknowledged
+ *            yet.  Note that if SND_UNA == SND_NXT then we haven't even sent
+ *            SND_UNA yet.
+ *  SND_NXT - this is our first unsent sequence number.
+ *  SND_WND - this is the current size of the send window we can use (as
+ *            advertised by the remote guy).  The send window range is:
+ *                  [SND_UNA, SND_UNA + SND_WND) 
+ *
+ *  RCV_NXT - this is the next unreceived sequence number - we are expecting to
+ *            see this one next.
+ *  RCV_WND - this is the current size of our receive window (which we
+ *            advertise to the remote guy).  The receive window range is:
+ *                  [RCV_NXT, RCV_NXT + RCV_WND)
+ *
+ *  Header.ACK_NUM - this is the remote guy's RCV_NXT value.  He is ACKing
+ *            everything up to but not including ACK_NUM.  Upon receipt of an
+ *            ACK_NUM, the remote guy is explicitly ACKing the range:
+ *                  [SND_UNA, ACK_NUM)
+ *            ..which may be empty if SND_UNA == ACK_NUM.
+ *            Upon receipt of an ACK that we should advance our SND_UNA to
+ *            ACK_NUM (assuming ACK_NUM overlaps with our unacknowledged range
+ *            - duplicate ACKs don't!).
+ *
+ *            More: the valid range for Header.ACK_NUM is [SND_UNA, SND_NXT].
+ *            Anything outside that range has either already been acknowledged
+ *            or is from the future.
+ */
 #ifndef __KERNEL_NET_TCP_SOCKET_H
 #define __KERNEL_NET_TCP_SOCKET_H
 
