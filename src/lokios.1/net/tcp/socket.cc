@@ -697,8 +697,11 @@ tcp::socket::handle_established_segment_recvd(net::rx_page* p)
         uint32_t skip    = new_seqs.first - h->tcp.seq_num;
         p->client_offset = (uint8_t*)h->get_payload() - p->payload + skip;
         p->client_len    = h->payload_len() - skip;
-        flags            = NRX_FLAG_NO_DELETE;
-        rx_append(p);
+        if (p->client_len)
+        {
+            flags = NRX_FLAG_NO_DELETE;
+            rx_append(p);
+        }
     }
     if (fin)
         TRANSITION(TCP_CLOSE_WAIT);
