@@ -177,6 +177,24 @@ const char* strstr(const char* haystack, const char* needle)
     return NULL;
 }
 
+void* memmem(const void* haystack, size_t haystacklen, const void* needle,
+    size_t needlelen)
+{
+    if (needlelen > haystacklen)
+        return NULL;
+
+    const char* h = (const char*)haystack;
+    const char* n = (const char*)needle;
+    const char* end = h + haystacklen - needlelen + 1;
+    while (h != end)
+    {
+        if (!memcmp(h,n,needlelen))
+            return (void*)h;
+        ++h;
+    }
+    return NULL;
+}
+
 extern "C"
 size_t fwrite(const void* ptr, size_t size, size_t nmemb, FILE* stream)
 {
