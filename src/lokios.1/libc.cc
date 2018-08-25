@@ -87,10 +87,9 @@ void* memcpy(void* dest, const void* src, size_t n)
 extern "C"
 int memcmp(const void* _s1, const void* _s2, size_t n)
 {
-    kernel::console::printf("memcmp\n");
     const char* s1 = (const char*)_s1;
     const char* s2 = (const char*)_s2;
-    while (n)
+    while (n--)
     {
         if (*s1 < *s2)
             return -1;
