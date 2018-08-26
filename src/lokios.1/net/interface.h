@@ -97,6 +97,7 @@ namespace net
         tcp::socket*    tcp_connect(ipv4::addr remote_ip, uint16_t remote_port,
                                     tcp::socket_observer* observer,
                                     uint16_t local_port = 0);
+                void    tcp_unlink(tcp::socket* s);
                 void    tcp_delete(tcp::socket* s);
 
         // Rx page management.

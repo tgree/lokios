@@ -106,6 +106,14 @@ net::interface::tcp_connect(ipv4::addr remote_ip, uint16_t remote_port,
 }
 
 void
+net::interface::tcp_unlink(tcp::socket* s)
+{
+    kassert(s->state == tcp::socket::TCP_CLOSED);
+
+    tcp_sockets.unlink_value(s);
+}
+
+void
 net::interface::tcp_delete(tcp::socket* s)
 {
     intf_dbg("deleting socket\n");
