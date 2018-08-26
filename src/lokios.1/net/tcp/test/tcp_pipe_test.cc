@@ -265,7 +265,7 @@ class tmock_test
         TASSERT(memcmp(snd_data,rcv_data,sizeof(rcv_data)) == 0);
     }
 
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_connect_no_listener)
+    TMOCK_TEST(test_connect_no_listener)
     {
         // Active socket:
         //  - post SYN

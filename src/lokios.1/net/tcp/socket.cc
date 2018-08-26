@@ -537,6 +537,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
                     post_rst(h->tcp.ack_num);
                     break;
                 }
+                process_ack(h->tcp.ack_num);
                 if (h->tcp.rst)
                 {
                     intf->intf_dbg("error: connection reset\n");
@@ -544,7 +545,6 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
                     intf->tcp_delete(this);
                     break;
                 }
-                process_ack(h->tcp.ack_num);
                 if (!h->tcp.syn)
                     break;
 
