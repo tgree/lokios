@@ -143,6 +143,7 @@ void
 cmd_sock_connection::socket_reset(tcp::socket* _s)
 {
     kassert(_s == s);
+    intf->intf_dbg("error: connection reset\n");
     intf->tcp_delete(s);
     listener->connection_slab.free(this);
 }

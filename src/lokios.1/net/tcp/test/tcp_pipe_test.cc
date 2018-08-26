@@ -287,9 +287,11 @@ class tmock_test
         // Active socket:
         //  - rx RST/ACK -> socket_reset -> go to CLOSED
         //    -> disarm retransmit timer
+        texpect("mock_observer::socket_reset",want(s,active_socket));
         tmock::assert_equiv(intf_pipe.process_queues(),1U);
         TASSERT(!active_socket->retransmit_wqe.is_armed());
         tmock::assert_equiv(active_socket->state,tcp::socket::TCP_CLOSED);
+        intf1.tcp_delete(active_socket);
 
         // Queue should be idle.
         tmock::assert_equiv(intf_pipe.process_queues(),0U);

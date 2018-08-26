@@ -540,9 +540,9 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
                 process_ack(h->tcp.ack_num);
                 if (h->tcp.rst)
                 {
-                    intf->intf_dbg("error: connection reset\n");
                     TRANSITION(TCP_CLOSED);
-                    intf->tcp_delete(this);
+                    intf->tcp_unlink(this);
+                    observer->socket_reset(this);
                     break;
                 }
                 if (!h->tcp.syn)
@@ -618,14 +618,16 @@ tcp::socket::handle_established_segment_recvd(net::rx_page* p)
     if (h->tcp.rst)
     {
         TRANSITION(TCP_CLOSED);
-        intf->tcp_delete(this);
+        intf->tcp_unlink(this);
+        observer->socket_reset(this);
         return 0;
     }
     if (h->tcp.syn)
     {
         post_rst(snd_nxt);
         TRANSITION(TCP_CLOSED);
-        intf->tcp_delete(this);
+        intf->tcp_unlink(this);
+        observer->socket_reset(this);
         return 0;
     }
     if (!h->tcp.ack)
