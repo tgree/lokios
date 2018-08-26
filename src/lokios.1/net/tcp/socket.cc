@@ -514,7 +514,18 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
             if (!h->tcp.syn)
                 break;
 
-            handle_listen_syn_recvd(h,h->tcp.parse_options());
+            rx_opts = h->tcp.parse_options();
+            process_options(rx_opts);
+
+            snd_wnd = h->tcp.window_size;
+            rcv_nxt = h->tcp.seq_num + 1;
+
+            send(0,NULL,method_delegate(syn_send_op_cb),
+                 SEND_OP_FLAG_SYN | SEND_OP_FLAG_SET_ACK |
+                 ((rx_opts.flags & OPTION_SND_WND_SHIFT_PRESENT)
+                    ? SEND_OP_FLAG_SET_SCALE : 0));
+
+            TRANSITION(TCP_SYN_RECVD);
         break;
 
         case TCP_SYN_SENT:
@@ -540,7 +551,8 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
                 break;
             if (h->tcp.syn)
             {
-                process_options(h->tcp.parse_options());
+                rx_opts = h->tcp.parse_options();
+                process_options(rx_opts);
 
                 snd_wnd = h->tcp.window_size;
                 rcv_nxt = h->tcp.seq_num + 1;
@@ -577,24 +589,6 @@ catch (option_parse_exception& e)
 {
     intf->intf_dbg("option parse error: %s (%lu)\n",e.msg,e.val);
     return 0;
-}
-
-void
-tcp::socket::handle_listen_syn_recvd(const ipv4_tcp_headers* h,
-    parsed_options opts)
-{
-    process_options(opts);
-
-    snd_wnd = h->tcp.window_size;
-    rcv_nxt = h->tcp.seq_num + 1;
-
-    // Segment(SEQ=ISS,ACK=RCV.NXT,CTL=SYN/ACK)
-    send(0,NULL,method_delegate(syn_send_op_cb),
-         SEND_OP_FLAG_SYN | SEND_OP_FLAG_SET_ACK |
-         (opts.flags & OPTION_SND_WND_SHIFT_PRESENT ? SEND_OP_FLAG_SET_SCALE :
-                                                      0));
-
-    TRANSITION(TCP_SYN_RECVD);
 }
 
 uint64_t

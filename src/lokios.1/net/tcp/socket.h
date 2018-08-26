@@ -140,6 +140,9 @@ namespace tcp
         kernel::klist<net::rx_page>     rx_pages;
         size_t                          rx_avail_bytes;
 
+        // Options we received from the remote guy.
+        parsed_options                  rx_opts;
+
         // Send sequence variables.
         uint32_t                        snd_una;
         uint32_t                        snd_nxt;
@@ -186,8 +189,6 @@ namespace tcp
         // Handlers.
         void        handle_retransmit_expiry(kernel::timer_entry* wqe);
         uint64_t    handle_rx_ipv4_tcp_frame(net::rx_page* p);
-        void        handle_listen_syn_recvd(const ipv4_tcp_headers* h,
-                                            parsed_options opts);
         uint64_t    handle_established_segment_recvd(net::rx_page* p);
 
         // Helpers.
