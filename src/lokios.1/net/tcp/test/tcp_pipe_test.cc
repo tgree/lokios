@@ -86,7 +86,7 @@ class tmock_test
     TMOCK_TEST(test_connect)
     {
         fake_listener ml;
-        ml.listen(&intf0,3333);
+        ml.listen(&intf0,LISTEN_PORT);
 
         // Active socket:
         //  - post SYN
@@ -153,7 +153,7 @@ class tmock_test
     TMOCK_TEST(test_connect_with_retransmits)
     {
         fake_listener ml;
-        ml.listen(&intf0,3333);
+        ml.listen(&intf0,LISTEN_PORT);
 
         // Active socket:
         //  - post SYN
