@@ -24,6 +24,11 @@ kernel::console::v2printf(const char* fmt1, va_list ap1, const char* fmt2,
     ::vprintf(fmt2,ap2);
 }
 
+void
+kernel::console::_putc(char c)
+{
+    kernel::console::printf("%c",c);
+}
 
 static const char isprint_table[] =
     "................................ !\"#$%&'()*+,-./0123456789:;<=>?"
