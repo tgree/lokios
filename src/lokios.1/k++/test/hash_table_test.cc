@@ -146,6 +146,28 @@ class tmock_test
         tmock::assert_equiv(t.bins[1].size(),3U);
     }
 
+    TMOCK_TEST(test_unlink)
+    {
+        hash::table<int,elem> t;
+        elem& v = t.emplace(123,4,5,6);
+        tmock::assert_equiv(constructions,1U);
+        tmock::assert_equiv(destructions,0U);
+        tmock::assert_equiv(t.size(),1U);
+        TASSERT(t.contains(123));
+        t.unlink_value(&v);
+        tmock::assert_equiv(t.size(),1U);
+        TASSERT(!t.contains(123));
+        tmock::assert_equiv(constructions,1U);
+        tmock::assert_equiv(destructions,0U);
+        tmock::assert_equiv(&klist_front(t.unlinked_nodes,link)->v,&v);
+        t.erase_value(&v);
+        TASSERT(t.empty());
+        TASSERT(!t.contains(123));
+        TASSERT(t.unlinked_nodes.empty());
+        tmock::assert_equiv(constructions,1U);
+        tmock::assert_equiv(destructions,1U);
+    }
+
     TMOCK_TEST(test_grow_shrink)
     {
         hash::table<int,int> t;

@@ -38,6 +38,7 @@ namespace hash
         size_t                  nelems;
         size_t                  nbins;
         kernel::kdlist<node>*   bins;
+        kernel::kdlist<node>    unlinked_nodes;
         kernel::slab            node_slab;
 
         size_t size() const {return nelems;}
@@ -187,9 +188,28 @@ namespace hash
             node_slab.free(n);
         }
 
+        void unlink(node* n)
+        {
+            // Unlink the node from the hash bucket, but don't delete the
+            // slab element yet.  This could be useful for a client that
+            // doesn't want the element to appear in the hash table anymore but
+            // still exist for some period of time - say when a TCP socket
+            // transitions to TCP_CLOSED but we aren't quite done with it yet.
+            // Unlinking the socket would free up the TCP port number for
+            // reuse since the hash slot would become available for a new
+            // socket.
+            n->link.unlink();
+            unlinked_nodes.push_back(&n->link);
+        }
+
         void erase_value(Value* v)
         {
             erase(container_of(v,node,v));
+        }
+
+        void unlink_value(Value* v)
+        {
+            unlink(container_of(v,node,v));
         }
 
         bool erase(const Key& k)
