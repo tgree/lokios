@@ -196,7 +196,7 @@ namespace tcp
         void        dump_socket();
 
         // Passive open.
-        socket(net::interface* intf, net::rx_page* p);
+        socket(net::interface* intf, net::rx_page* p, parsed_options rx_opts);
 
         // Active open.
         socket(net::interface* intf, ipv4::addr remote_ip, uint16_t local_port,

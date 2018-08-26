@@ -64,19 +64,25 @@ tcp::send_op::is_fully_acked() const
     return unacked_alp_index == nalps;
 }
 
-tcp::socket::socket(net::interface* intf, net::rx_page* p):
-    intf(intf),
-    state(TCP_LISTEN),
-    prev_state(TCP_CLOSED),
-    llsize(intf->format_ll_reply(p,&llhdr,sizeof(llhdr))),
-    remote_ip(p->payload_cast<tcp::ipv4_tcp_headers*>()->ip.src_ip),
-    local_port(p->payload_cast<tcp::ipv4_tcp_headers*>()->tcp.dst_port),
-    remote_port(p->payload_cast<tcp::ipv4_tcp_headers*>()->tcp.src_port),
-    observer(NULL),
-    tx_ops_slab(sizeof(tcp::tx_op)),
-    send_ops_slab(sizeof(tcp::send_op)),
-    rx_avail_bytes(0)
+tcp::socket::socket(net::interface* intf, net::rx_page* p,
+    parsed_options rx_opts):
+        intf(intf),
+        state(TCP_LISTEN),
+        prev_state(TCP_CLOSED),
+        llsize(intf->format_ll_reply(p,&llhdr,sizeof(llhdr))),
+        remote_ip(p->payload_cast<tcp::ipv4_tcp_headers*>()->ip.src_ip),
+        local_port(p->payload_cast<tcp::ipv4_tcp_headers*>()->tcp.dst_port),
+        remote_port(p->payload_cast<tcp::ipv4_tcp_headers*>()->tcp.src_port),
+        observer(NULL),
+        tx_ops_slab(sizeof(tcp::tx_op)),
+        send_ops_slab(sizeof(tcp::send_op)),
+        rx_avail_bytes(0),
+        rx_opts(rx_opts)
 {
+    auto* h = p->payload_cast<ipv4_tcp_headers*>();
+    kassert(!h->tcp.rst);
+    kassert(!h->tcp.ack);
+    kassert(h->tcp.syn);
     kassert(llsize <= sizeof(llhdr));
     uint8_t llh[sizeof(llhdr)];
     memcpy(llh,llhdr,sizeof(llhdr));
@@ -89,15 +95,23 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p):
     iss           = kernel::random(0,0xFFFF);
     snd_una       = iss;
     snd_nxt       = iss;
-    snd_wnd       = 0;
+    snd_wnd       = h->tcp.window_size;
     snd_wnd_shift = 0;
     snd_mss       = MIN(MAX_SAFE_IP_SIZE,intf->tx_mtu) -
                     sizeof(ipv4_tcp_headers);
 
-    rcv_nxt       = 0;
+    rcv_nxt       = h->tcp.seq_num + 1;
     rcv_wnd       = MAX_RX_WINDOW;
     rcv_wnd_shift = 0;
     rcv_mss       = intf->rx_mtu - sizeof(ipv4_tcp_headers);
+
+    process_options(rx_opts);
+
+    send(0,NULL,method_delegate(syn_send_op_cb),
+         SEND_OP_FLAG_SYN | SEND_OP_FLAG_SET_ACK |
+         ((rx_opts.flags & OPTION_SND_WND_SHIFT_PRESENT)
+            ? SEND_OP_FLAG_SET_SCALE : 0));
+    TRANSITION(TCP_SYN_RECVD);
 }
 
 tcp::socket::socket(net::interface* intf, ipv4::addr remote_ip,
@@ -503,31 +517,6 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
     auto* h = p->payload_cast<ipv4_tcp_headers*>();
     switch (state)
     {
-        case TCP_LISTEN:
-            if (h->tcp.rst)
-                break;
-            if (h->tcp.ack)
-            {
-                post_rst(h->tcp.ack_num);
-                break;
-            }
-            if (!h->tcp.syn)
-                break;
-
-            rx_opts = h->tcp.parse_options();
-            process_options(rx_opts);
-
-            snd_wnd = h->tcp.window_size;
-            rcv_nxt = h->tcp.seq_num + 1;
-
-            send(0,NULL,method_delegate(syn_send_op_cb),
-                 SEND_OP_FLAG_SYN | SEND_OP_FLAG_SET_ACK |
-                 ((rx_opts.flags & OPTION_SND_WND_SHIFT_PRESENT)
-                    ? SEND_OP_FLAG_SET_SCALE : 0));
-
-            TRANSITION(TCP_SYN_RECVD);
-        break;
-
         case TCP_SYN_SENT:
         case TCP_SYN_SENT_ACKED_WAIT_SYN:
             if (h->tcp.ack)
@@ -580,6 +569,10 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
         case TCP_CLOSED:
         case TCP_CLOSE_WAIT:
             intf->intf_dbg("dropping packet\n");
+        break;
+
+        case TCP_LISTEN:
+            kernel::panic("TCP_LISTEN should be a transitory state!");
         break;
     }
 

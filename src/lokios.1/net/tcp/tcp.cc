@@ -92,17 +92,29 @@ tcp::handle_rx_ipv4_tcp_frame(net::interface* intf, net::rx_page* p)
         auto& l = intf->tcp_listeners[dst_port];
         if (l.should_accept(&h->tcp))
         {
-            auto& s        = intf->tcp_sockets.emplace(sid,intf,p);
-            uint64_t flags = s.handle_rx_ipv4_tcp_frame(p);
-            if (s.state != tcp::socket::TCP_LISTEN)
-                l.socket_accepted(&s);
-            else
-                intf->tcp_sockets.erase_value(&s);
-            return flags;
+            if (h->tcp.rst)
+                return 0;
+            if (h->tcp.ack)
+            {
+                post(intf,p,SEQ{h->tcp.ack_num},CTL{FRST});
+                return 0;
+            }
+            if (!h->tcp.syn)
+                return 0;
+
+            auto& s = intf->tcp_sockets.emplace(sid,intf,p,
+                                                h->tcp.parse_options());
+            l.socket_accepted(&s);
+            return 0;
         }
     }
     catch (hash::no_such_key_exception&)
     {
+    }
+    catch (option_parse_exception& e)
+    {
+        intf->intf_dbg("option parse error: %s (%lu)\n",e.msg,e.val);
+        return 0;
     }
 
     // Either there was no listener or the listener chose to reject the SYN.
