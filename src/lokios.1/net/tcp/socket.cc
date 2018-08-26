@@ -283,24 +283,15 @@ tcp::socket::make_one_packet(tcp::send_op* sop)
         if (sop->flags & SEND_OP_FLAG_SET_ACK)
             top->hdrs.format(ACK{rcv_nxt},CTL{FSYN|FACK});
 
-        auto* opt                = top->hdrs.tcp.options;
-        opt[0]                   = 2;
-        opt[1]                   = 4;
-        *(be_uint16_t*)(opt + 2) = rcv_mss;
-        opt                     += 4;
-
+        parsed_options opts;
+        opts.flags         = OPTION_SND_MSS_PRESENT;
+        opts.snd_mss       = rcv_mss;
+        opts.snd_wnd_shift = rcv_wnd_shift;
         if (sop->flags & SEND_OP_FLAG_SET_SCALE)
-        {
-            opt[0] = 3;
-            opt[1] = 3;
-            opt[2] = rcv_wnd_shift;
-            opt[3] = 1;
-            opt   += 4;
-        }
+            opts.flags |= OPTION_SND_WND_SHIFT_PRESENT;
 
-        size_t opt_len          = opt - top->hdrs.tcp.options;
+        size_t opt_len = top->hdrs.tcp.append_options(opts);
         top->hdrs.ip.total_len += opt_len;
-        top->hdrs.tcp.offset   += opt_len/4;
         top->alps[0].len       += opt_len;
 
         // Reduce avail_len if necessary so that payload plus options won't

@@ -112,3 +112,30 @@ tcp::header::parse_options() const
 
     return popts;
 }
+
+size_t
+tcp::header::append_options(parsed_options opts)
+{
+    auto* opt = options;
+
+    if (opts.flags & OPTION_SND_MSS_PRESENT)
+    {
+        opt[0]                   = 2;
+        opt[1]                   = 4;
+        *(be_uint16_t*)(opt + 2) = opts.snd_mss;
+        opt                     += 4;
+    }
+
+    if (opts.flags & OPTION_SND_WND_SHIFT_PRESENT)
+    {
+        opt[0] = 3;
+        opt[1] = 3;
+        opt[2] = opts.snd_wnd_shift;
+        opt[3] = 1;
+        opt   += 4;
+    }
+
+    size_t opt_len = opt - options;
+    offset += opt_len/4;
+    return opt_len;
+}

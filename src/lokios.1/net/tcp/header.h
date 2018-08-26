@@ -74,6 +74,7 @@ namespace tcp
         uint8_t options[0];
 
         parsed_options  parse_options() const;
+        size_t          append_options(parsed_options opts);
 
         inline void _format(SEQ s)   {seq_num  = s.seq_num;}
         inline void _format(ACK a)   {ack_num  = a.ack_num;}
