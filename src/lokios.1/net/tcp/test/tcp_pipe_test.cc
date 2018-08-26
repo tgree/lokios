@@ -264,6 +264,36 @@ class tmock_test
         tmock::assert_equiv(rcv_pos,sizeof(rcv_data));
         TASSERT(memcmp(snd_data,rcv_data,sizeof(rcv_data)) == 0);
     }
+
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_connect_no_listener)
+    {
+        // Active socket:
+        //  - post SYN
+        active_socket = intf1.tcp_connect(intf0.ip_addr,LISTEN_PORT,&observer);
+
+        TASSERT(!passive_socket);
+        tmock::assert_equiv(active_socket->state,tcp::socket::TCP_SYN_SENT);
+
+        // Active socket:
+        //  - send comp for SYN -> arm retransmit timer
+        // Passive socket:
+        //  - rx SYN -> post RST/ACK
+        TASSERT(!active_socket->retransmit_wqe.is_armed());
+        tmock::assert_equiv(intf_pipe.process_queues(),1U);
+        TASSERT(active_socket->retransmit_wqe.is_armed());
+        TASSERT(!passive_socket);
+        tmock::assert_equiv(active_socket->state,tcp::socket::TCP_SYN_SENT);
+
+        // Active socket:
+        //  - rx RST/ACK -> socket_reset -> go to CLOSED
+        //    -> disarm retransmit timer
+        tmock::assert_equiv(intf_pipe.process_queues(),1U);
+        TASSERT(!active_socket->retransmit_wqe.is_armed());
+        tmock::assert_equiv(active_socket->state,tcp::socket::TCP_CLOSED);
+
+        // Queue should be idle.
+        tmock::assert_equiv(intf_pipe.process_queues(),0U);
+    }
 };
 
 TMOCK_MAIN();
