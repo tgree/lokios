@@ -514,21 +514,14 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
     {
         case TCP_LISTEN:
             if (h->tcp.rst)
-            {
-                intf->intf_dbg("packet had rst bit\n");
                 break;
-            }
             if (h->tcp.ack)
             {
-                intf->intf_dbg("packet had ack bit\n");
                 post_rst(h->tcp.ack_num);
                 break;
             }
             if (!h->tcp.syn)
-            {
-                intf->intf_dbg("packet didn't have syn bit\n");
                 break;
-            }
 
             handle_listen_syn_recvd(h,h->tcp.parse_options());
         break;
