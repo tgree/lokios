@@ -135,7 +135,7 @@ tcp::socket::socket(net::interface* intf, ipv4::addr remote_ip,
     rcv_wnd_shift = RX_WINDOW_SHIFT;
     rcv_mss       = intf->rx_mtu - sizeof(ipv4_tcp_headers);
 
-    send(0,NULL,method_delegate(syn_sent_send_op_cb),
+    send(0,NULL,method_delegate(syn_send_op_cb),
          SEND_OP_FLAG_SYN | SEND_OP_FLAG_SET_SCALE);
     TRANSITION(TCP_SYN_SENT);
 }
@@ -465,20 +465,25 @@ tcp::socket::read(void* _dst, uint32_t rem)
 }
 
 void
-tcp::socket::syn_sent_send_op_cb(tcp::send_op*)
+tcp::socket::syn_send_op_cb(tcp::send_op* sop)
 {
-}
+    switch (state)
+    {
+        case TCP_SYN_SENT:
+            TRANSITION(TCP_SYN_SENT_ACKED_WAIT_SYN);
+        break;
 
-void
-tcp::socket::syn_recvd_send_op_cb(tcp::send_op* sop)
-{
-    if (state != TCP_SYN_RECVD)
-        return;
+        case TCP_SYN_RECVD:
+        case TCP_SYN_SENT_SYN_RECVD_WAIT_ACK:
+            TRANSITION(TCP_ESTABLISHED);
+            dump_socket();
+            observer->socket_established(this);
+        break;
 
-    // Our SYN has been fully ACKed, so we can transition to ESTABLISHED.
-    TRANSITION(TCP_ESTABLISHED);
-    dump_socket();
-    observer->socket_established(this);
+        default:
+            kernel::panic("Bad state for syn_send_op_cb!");
+        break;
+    }
 }
 
 void
@@ -529,6 +534,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
         break;
 
         case TCP_SYN_SENT:
+        case TCP_SYN_SENT_ACKED_WAIT_SYN:
             if (h->tcp.ack)
             {
                 seq_range valid_ack_seqs = seq_bound(snd_una,snd_nxt);
@@ -545,31 +551,33 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
                     observer->socket_reset(this);
                     break;
                 }
-                if (!h->tcp.syn)
-                    break;
-
+            }
+            else if (h->tcp.rst)
+                break;
+            if (h->tcp.syn)
+            {
                 process_options(h->tcp.parse_options());
 
                 snd_wnd = h->tcp.window_size;
                 rcv_nxt = h->tcp.seq_num + 1;
 
-                if (snd_una != iss)
+                post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
+
+                if (state == TCP_SYN_SENT_ACKED_WAIT_SYN)
                 {
-                    post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
                     TRANSITION(TCP_ESTABLISHED);
                     dump_socket();
                     observer->socket_established(this);
                     break;
                 }
+                else
+                    TRANSITION(TCP_SYN_SENT_SYN_RECVD_WAIT_ACK);
             }
-            else if (h->tcp.rst || !h->tcp.syn)
-                break;
-
-            handle_listen_syn_recvd(h,h->tcp.parse_options());
         break;
 
         case TCP_SYN_RECVD:
         case TCP_ESTABLISHED:
+        case TCP_SYN_SENT_SYN_RECVD_WAIT_ACK:
             return handle_established_segment_recvd(p);
         break;
 
@@ -597,7 +605,7 @@ tcp::socket::handle_listen_syn_recvd(const ipv4_tcp_headers* h,
     rcv_nxt = h->tcp.seq_num + 1;
 
     // Segment(SEQ=ISS,ACK=RCV.NXT,CTL=SYN/ACK)
-    send(0,NULL,method_delegate(syn_recvd_send_op_cb),
+    send(0,NULL,method_delegate(syn_send_op_cb),
          SEND_OP_FLAG_SYN | SEND_OP_FLAG_SET_ACK |
          (opts.flags & OPTION_SND_WND_SHIFT_PRESENT ? SEND_OP_FLAG_SET_SCALE :
                                                       0));
