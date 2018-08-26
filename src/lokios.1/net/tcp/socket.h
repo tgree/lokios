@@ -101,6 +101,8 @@ namespace tcp
             TCP_CLOSED,
             TCP_LISTEN,
             TCP_SYN_SENT,
+            TCP_SYN_SENT_ACKED_WAIT_SYN,
+            TCP_SYN_SENT_SYN_RECVD_WAIT_ACK,
             TCP_SYN_RECVD,
             TCP_ESTABLISHED,
             TCP_CLOSE_WAIT,
@@ -178,9 +180,8 @@ namespace tcp
         void    rx_append(net::rx_page* p);
         void    read(void* dst, uint32_t len);
 
-        // Send completions for special packets.
-        void        syn_sent_send_op_cb(tcp::send_op* top);
-        void        syn_recvd_send_op_cb(tcp::send_op* top);
+        // Send completion for SYN packets.
+        void        syn_send_op_cb(tcp::send_op* top);
 
         // Handlers.
         void        handle_retransmit_expiry(kernel::timer_entry* wqe);

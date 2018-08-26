@@ -47,7 +47,7 @@ send_complete(tcp::send_op* sop)
 
 class tmock_test
 {
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_self_connect)
+    TMOCK_TEST(test_self_connect)
     {
         // Active socket:
         //  - post SYN
@@ -62,7 +62,8 @@ class tmock_test
         TASSERT(!active_socket->retransmit_wqe.is_armed());
         tmock::assert_equiv(intf_pipe.process_queues(),1U);
         TASSERT(active_socket->retransmit_wqe.is_armed());
-        tmock::assert_equiv(active_socket->state,tcp::socket::TCP_SYN_RECVD);
+        tmock::assert_equiv(active_socket->state,
+                            tcp::socket::TCP_SYN_SENT_SYN_RECVD_WAIT_ACK);
 
         // Active socket:
         //  - rx ACK -> go to ESTABLISHED -> disarm retransmit timer
