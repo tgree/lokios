@@ -13,21 +13,23 @@ CLEAN        := $(BUILD_DIR) $(BIN_DIR) $(TESTS_DIR)
 NOW          := $(shell date +"%c")
 INCLUDE_DIR  := $(BUILD_DIR)/include
 HEADERS      :=
+OPT_LEVEL    := -O2
 
 MODE16_ASFLAGS := -march=core2 --32
 MODE32_ASFLAGS := -march=core2 --32
-MODE_BASE_CXXFLAGS := -O2 -march=core2 -std=gnu++17 -Wall -Werror \
+MODE_BASE_CXXFLAGS := $(OPT_LEVEL) -march=core2 -std=gnu++17 -Wall -Werror \
                       -fno-stack-protector -fno-rtti \
     		      -I$(abspath $(SRC_DIR)) -I$(INCLUDE_DIR)
 MODE16_CXXFLAGS    := $(MODE_BASE_CXXFLAGS) -m16 -ggdb
 MODE32_CXXFLAGS    := $(MODE_BASE_CXXFLAGS) -m32 -ggdb
 
 ASFLAGS := -march=core2 --64
-BASE_CXXFLAGS := -O2 -march=core2 -m64 -mpopcnt -std=gnu++17 -Wall -Werror \
-                 -Wno-invalid-offsetof -Wno-multichar -Wno-pmf-conversions \
+BASE_CXXFLAGS := $(OPT_LEVEL) -march=core2 -m64 -mpopcnt -std=gnu++17 -Wall \
+                 -Werror -Wno-invalid-offsetof -Wno-multichar \
+		 -Wno-pmf-conversions \
 		 -ggdb -I$(abspath $(SRC_DIR)) -I$(INCLUDE_DIR)
 KERN_CXXFLAGS := $(BASE_CXXFLAGS) -mcmodel=kernel
-KERN_CCFLAGS  := -O2 -march=core2 -m64 -Werror -ggdb -mcmodel=kernel
+KERN_CCFLAGS  := $(OPT_LEVEL) -march=core2 -m64 -Werror -ggdb -mcmodel=kernel
 TEST_CXXFLAGS := $(BASE_CXXFLAGS) -DBUILDING_UNITTEST
 
 ARFLAGS := rc
@@ -114,12 +116,12 @@ clean:
 $(BUILD_O_DIR)/%.o: $(SRC_DIR)/%.cc | headers
 	@echo Compiling kern object $(SRC_DIR)/$*.cc...
 	@mkdir -p $(dir $@)
-	@$(CXX) -MMD -MP -MF $(BUILD_O_DIR)/$*.d -c $(KERN_CXXFLAGS) $(SRC_DIR)/$*.cc -o $@
+	$(CXX) -MMD -MP -MF $(BUILD_O_DIR)/$*.d -c $(KERN_CXXFLAGS) $(SRC_DIR)/$*.cc -o $@
 
 $(BUILD_TO_DIR)/%.o: $(SRC_DIR)/%.cc | headers
 	@echo Compiling test object $(SRC_DIR)/$*.cc...
 	@mkdir -p $(dir $@)
-	@$(CXX) -MMD -MP -MF $(BUILD_TO_DIR)/$*.d -c $(TEST_CXXFLAGS) $(SRC_DIR)/$*.cc -o $@
+	$(CXX) -MMD -MP -MF $(BUILD_TO_DIR)/$*.d -c $(TEST_CXXFLAGS) $(SRC_DIR)/$*.cc -o $@
 
 $(BUILD_O_DIR)/%.o: $(SRC_DIR)/%.s
 	@echo Assembling $^...
