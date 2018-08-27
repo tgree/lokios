@@ -212,6 +212,16 @@ namespace tcp
         void        process_options(parsed_options opts);
         void        dump_socket();
 
+        // State checkers.
+        inline bool in_passive_close_state() const
+        {
+            return state == TCP_CLOSE_WAIT || state == TCP_LAST_ACK;
+        }
+        inline bool in_sendable_state() const
+        {
+            return state == TCP_ESTABLISHED || state == TCP_CLOSE_WAIT;
+        }
+
         // Passive open.
         socket(net::interface* intf, net::rx_page* p, parsed_options rx_opts);
 
