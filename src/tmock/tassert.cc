@@ -1,4 +1,5 @@
 #include "tmock.h"
+#include "tcolor.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -22,7 +23,12 @@ tmock::abort_mem_dump(const void* v, const void* expected, size_t len,
             printf(" %02X",((const uint8_t*)expected)[i]);
         printf("\n      Got:");
         for (size_t i=0; i<len; ++i)
-            printf(" %02X",((const uint8_t*)v)[i]);
+        {
+            if (((const uint8_t*)expected)[i] == ((const uint8_t*)v)[i])
+                printf(" %02X",((const uint8_t*)v)[i]);
+            else
+                printf(RED " %02X" RESET,((const uint8_t*)v)[i]);
+        }
         printf("\n");
     }
     exit(-1);
