@@ -44,6 +44,9 @@ namespace tcp
     struct DPORT {uint16_t port;};
     struct WS    {size_t window_size; uint8_t window_shift;};
 
+    struct OPT_MSS       {uint32_t mss;};
+    struct OPT_WND_SHIFT {uint8_t wnd_shift;};
+
     struct header
     {
         be_uint16_t src_port;
@@ -133,6 +136,27 @@ namespace tcp
 
         inline void _format(SIP i) {ip.src_ip = i.ip;}
         inline void _format(DIP i) {ip.dst_ip = i.ip;}
+
+        inline void _format(OPT_MSS omss)
+        {
+            uint8_t* p             = (uint8_t*)&tcp + 4*tcp.offset;
+            p[0]                   = 2;
+            p[1]                   = 4;
+            *(be_uint16_t*)(p + 2) = omss.mss;
+            ip.total_len          += 4;
+            tcp.offset++;
+        }
+
+        inline void _format(OPT_WND_SHIFT ows)
+        {
+            uint8_t* p    = (uint8_t*)&tcp + 4*tcp.offset;
+            p[0]          = 3;
+            p[1]          = 3;
+            p[2]          = ows.wnd_shift;
+            p[3]          = 1;
+            ip.total_len += 4;
+            tcp.offset++;
+        }
 
         template<typename T>
         inline void _format(T t)
