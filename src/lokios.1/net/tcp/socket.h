@@ -106,7 +106,16 @@ namespace tcp
             TCP_SYN_SENT_SYN_RECVD_WAIT_ACK,
             TCP_SYN_RECVD,
             TCP_ESTABLISHED,
+
+            // Active close.
+            TCP_FIN_WAIT_1,
+            TCP_FIN_WAIT_2,
+            TCP_CLOSING,
+            TCP_TIME_WAIT,
+
+            // Passive close.
             TCP_CLOSE_WAIT,
+            TCP_LAST_ACK,
         };
 
         net::interface*                 intf;
@@ -184,12 +193,18 @@ namespace tcp
         void    rx_append(net::rx_page* p);
         void    read(void* dst, uint32_t len);
 
-        // Send completion for SYN packets.
+        // ACK completion for SYN/FIN packets - these are invoked when the
+        // remote guy ACKs our SYN or FIN.
         void        syn_send_op_cb(tcp::send_op* top);
+        void        fin_send_op_cb(tcp::send_op* top);
 
         // Handlers.
         void        handle_retransmit_expiry(kernel::timer_entry* wqe);
         uint64_t    handle_rx_ipv4_tcp_frame(net::rx_page* p);
+
+        // Close the send side of the socket.  This transmits a FIN packet and
+        // we can no longer send any data packets after this.
+        void        close_send();
 
         // Helpers.
         void        process_header_synchronized(const ipv4_tcp_headers* h);

@@ -267,6 +267,7 @@ tcp::socket::send(size_t nalps, kernel::dma_alp* alps,
         case TCP_CLOSED:
             kassert(flags & SEND_OP_FLAG_SYN);
         case TCP_ESTABLISHED:
+        case TCP_CLOSE_WAIT:
             unsent_send_ops.push_back(&sop->link);
             process_send_queue();
         break;
@@ -444,7 +445,8 @@ tcp::socket::rx_append(net::rx_page* p)
 {
     rx_pages.push_back(&p->link);
     rx_avail_bytes += p->client_len;
-    observer->socket_readable(this);
+    if (state >= TCP_ESTABLISHED)
+        observer->socket_readable(this);
 }
 
 void
@@ -486,6 +488,31 @@ tcp::socket::syn_send_op_cb(tcp::send_op* sop)
             TRANSITION(TCP_ESTABLISHED);
             dump_socket();
             observer->socket_established(this);
+            if (rx_avail_bytes)
+                observer->socket_readable(this);
+        break;
+
+        default:
+            kernel::panic("Bad state for syn_send_op_cb!");
+        break;
+    }
+}
+
+void
+tcp::socket::fin_send_op_cb(tcp::send_op* sop)
+{
+    switch (state)
+    {
+        case TCP_FIN_WAIT_1:
+            TRANSITION(TCP_FIN_WAIT_2);
+        break;
+
+        case TCP_CLOSING:
+            TRANSITION(TCP_TIME_WAIT);
+        break;
+
+        case TCP_LAST_ACK:
+            TRANSITION(TCP_CLOSED);
         break;
 
         default:
@@ -551,6 +578,8 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
                     TRANSITION(TCP_ESTABLISHED);
                     dump_socket();
                     observer->socket_established(this);
+                    if (rx_avail_bytes)
+                        observer->socket_readable(this);
                     break;
                 }
                 else
@@ -567,8 +596,36 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
             return process_payload_synchronized(p);
         break;
 
-        case TCP_CLOSED:
+        case TCP_FIN_WAIT_1:
+            process_header_synchronized(h);
+            if (h->tcp.fin)
+                TRANSITION(TCP_CLOSING);
+            return process_payload_synchronized(p);
+        break;
+
+        case TCP_FIN_WAIT_2:
+            process_header_synchronized(h);
+            if (h->tcp.fin)
+                TRANSITION(TCP_TIME_WAIT);
+            return process_payload_synchronized(p);
+        break;
+
+        case TCP_CLOSING:
         case TCP_CLOSE_WAIT:
+        case TCP_TIME_WAIT:
+            process_header_synchronized(h);
+        break;
+
+        case TCP_LAST_ACK:
+            process_header_synchronized(h);
+            if (state == TCP_CLOSED)
+            {
+                intf->tcp_unlink(this);
+                observer->socket_closed(this);
+            }
+        break;
+
+        case TCP_CLOSED:
             intf->intf_dbg("dropping packet\n");
         break;
 
@@ -594,6 +651,42 @@ catch (option_parse_exception& e)
 {
     intf->intf_dbg("option parse error: %s (%lu)\n",e.msg,e.val);
     return 0;
+}
+
+void
+tcp::socket::close_send()
+{
+    switch (state)
+    {
+        case TCP_SYN_SENT:
+        case TCP_SYN_SENT_ACKED_WAIT_SYN:
+        case TCP_SYN_SENT_SYN_RECVD_WAIT_ACK:
+            TRANSITION(TCP_CLOSED);
+            intf->tcp_unlink(this);
+            observer->socket_closed(this);
+        break;
+
+        case TCP_SYN_RECVD:
+        case TCP_ESTABLISHED:
+            send(0,NULL,method_delegate(fin_send_op_cb),SEND_OP_FLAG_FIN);
+            TRANSITION(TCP_FIN_WAIT_1);
+        break;
+
+        case TCP_CLOSE_WAIT:
+            send(0,NULL,method_delegate(fin_send_op_cb),SEND_OP_FLAG_FIN);
+            TRANSITION(TCP_LAST_ACK);
+        break;
+
+        case TCP_CLOSED:
+        case TCP_LISTEN:
+        case TCP_FIN_WAIT_1:
+        case TCP_FIN_WAIT_2:
+        case TCP_CLOSING:
+        case TCP_TIME_WAIT:
+        case TCP_LAST_ACK:
+            kernel::panic("close_send() in unexpected state!");
+        break;
+    }
 }
 
 void

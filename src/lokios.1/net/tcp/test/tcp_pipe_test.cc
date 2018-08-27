@@ -311,6 +311,70 @@ class tmock_test
         // Queue should be idle.
         tmock::assert_equiv(intf_pipe.process_queues(),0U);
     }
+
+    TMOCK_TEST(test_close)
+    {
+        fake_listener ml;
+        ml.listen(&intf0,LISTEN_PORT);
+        establish_connection(LISTEN_PORT);
+
+        // Active socket:
+        //  - post FIN -> go to TCP_FIN_WAIT_1
+        active_socket->close_send();
+        tmock::assert_equiv(active_socket->state,tcp::socket::TCP_FIN_WAIT_1);
+        TASSERT(!active_socket->retransmit_wqe.is_armed());
+        TASSERT(!passive_socket->retransmit_wqe.is_armed());
+
+        // Active socket:
+        //  - send comp for FIN -> arm retransmit timer
+        // Passive socket:
+        // - rx FIN -> post ACK -> go to CLOSE_WAIT
+        tmock::assert_equiv(intf_pipe.process_queues(),1U);
+        tmock::assert_equiv(active_socket->state,tcp::socket::TCP_FIN_WAIT_1);
+        tmock::assert_equiv(passive_socket->state,tcp::socket::TCP_CLOSE_WAIT);
+        TASSERT(active_socket->retransmit_wqe.is_armed());
+        TASSERT(!passive_socket->retransmit_wqe.is_armed());
+
+        // Active socket:
+        //  - rx ACK -> go to FIN_WAIT_2 -> disarm retransmit timer
+        // Passive socket:
+        //  - send comp for ACK
+        tmock::assert_equiv(intf_pipe.process_queues(),1U);
+        tmock::assert_equiv(active_socket->state,tcp::socket::TCP_FIN_WAIT_2);
+        tmock::assert_equiv(passive_socket->state,tcp::socket::TCP_CLOSE_WAIT);
+        TASSERT(!active_socket->retransmit_wqe.is_armed());
+        TASSERT(!passive_socket->retransmit_wqe.is_armed());
+
+        // Passive socket:
+        //  - post FIN -> go to LAST_ACK
+        passive_socket->close_send();
+        tmock::assert_equiv(active_socket->state,tcp::socket::TCP_FIN_WAIT_2);
+        tmock::assert_equiv(passive_socket->state,tcp::socket::TCP_LAST_ACK);
+        TASSERT(!active_socket->retransmit_wqe.is_armed());
+        TASSERT(!passive_socket->retransmit_wqe.is_armed());
+
+        // Active socket:
+        //  - rx FIN -> post ACK -> go to TIME_WAIT
+        // Passive socket:
+        //  - send comp for FIN -> arm retransmit timer
+        tmock::assert_equiv(intf_pipe.process_queues(),1U);
+        tmock::assert_equiv(active_socket->state,tcp::socket::TCP_TIME_WAIT);
+        tmock::assert_equiv(passive_socket->state,tcp::socket::TCP_LAST_ACK);
+        TASSERT(!active_socket->retransmit_wqe.is_armed());
+        TASSERT(passive_socket->retransmit_wqe.is_armed());
+
+        // Active socket:
+        //  - send comp for ACK
+        // Passive socket:
+        //  - rx ACK -> go to CLOSED -> disarm retransmit timer
+        texpect("fake_observer::socket_closed",want(s,passive_socket));
+        tmock::assert_equiv(intf_pipe.process_queues(),1U);
+        tmock::assert_equiv(active_socket->state,tcp::socket::TCP_TIME_WAIT);
+        tmock::assert_equiv(passive_socket->state,tcp::socket::TCP_CLOSED);
+        TASSERT(!active_socket->retransmit_wqe.is_armed());
+        TASSERT(!passive_socket->retransmit_wqe.is_armed());
+        intf0.tcp_delete(passive_socket);
+    }
 };
 
 TMOCK_MAIN();
