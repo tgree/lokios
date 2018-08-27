@@ -22,11 +22,6 @@ struct mock_listener
         mock("mock_listener::socket_accepted",s);
     }
 
-    void socket_readable(tcp::socket* s)
-    {
-        mock("mock_listener::socket_readable",s);
-    }
-
     void listen(uint16_t port)
     {
         intf.tcp_listen(port,method_delegate(socket_accepted));
