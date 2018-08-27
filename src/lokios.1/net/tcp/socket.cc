@@ -562,6 +562,8 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
         case TCP_ESTABLISHED:
         case TCP_SYN_SENT_SYN_RECVD_WAIT_ACK:
             process_header_synchronized(h);
+            if (h->tcp.fin)
+                TRANSITION(TCP_CLOSE_WAIT);
             return process_payload_synchronized(p);
         break;
 
@@ -630,11 +632,8 @@ tcp::socket::process_payload_synchronized(net::rx_page* p)
 {
     // We're in a state where we've received SYN but haven't received a FIN
     // yet.  So we should handle payload normally, appending it to the RX queue
-    // and notifying the client.  We should also watch for FIN.
-    auto* h = p->payload_cast<ipv4_tcp_headers*>();
-    if (h->tcp.fin)
-        TRANSITION(TCP_CLOSE_WAIT);
-
+    // and notifying the client.
+    auto* h            = p->payload_cast<ipv4_tcp_headers*>();
     seq_range rx_range = {h->tcp.seq_num,h->segment_len()};
     seq_range new_seqs = seq_overlap(rx_range,{rcv_nxt,rcv_wnd});
     rcv_nxt           += new_seqs.len;
