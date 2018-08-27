@@ -561,7 +561,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
         case TCP_SYN_RECVD:
         case TCP_ESTABLISHED:
         case TCP_SYN_SENT_SYN_RECVD_WAIT_ACK:
-            return handle_established_segment_recvd(p);
+            return handle_synchronized_segment_recvd(p);
         break;
 
         case TCP_CLOSED:
@@ -594,7 +594,7 @@ catch (option_parse_exception& e)
 }
 
 uint64_t
-tcp::socket::handle_established_segment_recvd(net::rx_page* p)
+tcp::socket::handle_synchronized_segment_recvd(net::rx_page* p)
 {
     auto* h = p->payload_cast<ipv4_tcp_headers*>();
     process_header_synchronized(h);
