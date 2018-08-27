@@ -22,7 +22,7 @@ struct mock_listener
         mock("mock_listener::socket_accepted",s);
     }
 
-    void listen(uint16_t port)
+    mock_listener(uint16_t port)
     {
         intf.tcp_listen(port,method_delegate(socket_accepted));
     }
@@ -114,8 +114,7 @@ class tmock_test
 
     TMOCK_TEST(test_passive_connect)
     {
-        mock_listener ml;
-        ml.listen(LOCAL_PORT);
+        mock_listener ml(LOCAL_PORT);
 
         tcp::socket* s = NULL;
         texpect("mock_listener::socket_accepted",capture(s,(uintptr_t*)&s));
