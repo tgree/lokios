@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 namespace tmock
@@ -17,6 +18,21 @@ namespace tmock
 
     void abort_mem_dump(const void* v, const void* expected, size_t len,
                         const char* file, size_t line);
+
+    // Assert that memory contents are the same.
+    inline void assert_mem_same(const void* v, const void* expected, size_t len,
+                                const char* file = __builtin_FILE(),
+                                size_t line = __builtin_LINE())
+    {
+        if (!memcmp(v,expected,len))
+            return;
+        abort_mem_dump(v,expected,len,file,line);
+    }
+    template<typename T>
+    inline void assert_mem_same(const T& v, const T& expected)
+    {
+        assert_mem_same(&v,&expected,sizeof(T));
+    }
 
     // Assert that two objects are equivalent.  For values it is just a simple
     // comparison with ==.  For things like const char* it will do a string
