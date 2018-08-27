@@ -21,6 +21,8 @@
 
 using kernel::_kassert;
 
+struct socket_reset_exception {};
+
 uint32_t
 tcp::send_op::mark_acked(uint32_t ack_len)
 {
@@ -529,12 +531,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
                 }
                 process_ack(h->tcp.ack_num);
                 if (h->tcp.rst)
-                {
-                    TRANSITION(TCP_CLOSED);
-                    intf->tcp_unlink(this);
-                    observer->socket_reset(this);
-                    break;
-                }
+                    throw socket_reset_exception();
             }
             else if (h->tcp.rst)
                 break;
@@ -578,6 +575,13 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
 
     return 0;
 }
+catch (socket_reset_exception)
+{
+    TRANSITION(TCP_CLOSED);
+    intf->tcp_unlink(this);
+    observer->socket_reset(this);
+    return 0;
+}
 catch (option_parse_exception& e)
 {
     intf->intf_dbg("option parse error: %s (%lu)\n",e.msg,e.val);
@@ -595,19 +599,11 @@ tcp::socket::handle_established_segment_recvd(net::rx_page* p)
         return 0;
     }
     if (h->tcp.rst)
-    {
-        TRANSITION(TCP_CLOSED);
-        intf->tcp_unlink(this);
-        observer->socket_reset(this);
-        return 0;
-    }
+        throw socket_reset_exception();
     if (h->tcp.syn)
     {
         post_rst(snd_nxt);
-        TRANSITION(TCP_CLOSED);
-        intf->tcp_unlink(this);
-        observer->socket_reset(this);
-        return 0;
+        throw socket_reset_exception();
     }
     if (!h->tcp.ack)
         return 0;
