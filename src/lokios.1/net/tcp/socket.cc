@@ -561,7 +561,8 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
         case TCP_SYN_RECVD:
         case TCP_ESTABLISHED:
         case TCP_SYN_SENT_SYN_RECVD_WAIT_ACK:
-            return handle_synchronized_segment_recvd(p);
+            process_header_synchronized(h);
+            return process_payload_synchronized(p);
         break;
 
         case TCP_CLOSED:
@@ -591,14 +592,6 @@ catch (option_parse_exception& e)
 {
     intf->intf_dbg("option parse error: %s (%lu)\n",e.msg,e.val);
     return 0;
-}
-
-uint64_t
-tcp::socket::handle_synchronized_segment_recvd(net::rx_page* p)
-{
-    auto* h = p->payload_cast<ipv4_tcp_headers*>();
-    process_header_synchronized(h);
-    return process_payload_synchronized(p);
 }
 
 void
