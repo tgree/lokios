@@ -21,6 +21,7 @@
 
 using kernel::_kassert;
 
+struct header_invalid_exception {};
 struct socket_reset_exception {};
 
 uint32_t
@@ -527,14 +528,14 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
                 if (!valid_ack_seqs.seq_in_range(h->tcp.ack_num))
                 {
                     post_rst(h->tcp.ack_num);
-                    break;
+                    throw header_invalid_exception();
                 }
                 process_ack(h->tcp.ack_num);
                 if (h->tcp.rst)
                     throw socket_reset_exception();
             }
             else if (h->tcp.rst)
-                break;
+                throw header_invalid_exception();
             if (h->tcp.syn)
             {
                 rx_opts = h->tcp.parse_options();
@@ -582,6 +583,10 @@ catch (socket_reset_exception)
     observer->socket_reset(this);
     return 0;
 }
+catch (header_invalid_exception)
+{
+    return 0;
+}
 catch (option_parse_exception& e)
 {
     intf->intf_dbg("option parse error: %s (%lu)\n",e.msg,e.val);
@@ -596,7 +601,7 @@ tcp::socket::handle_established_segment_recvd(net::rx_page* p)
     {
         if (!h->tcp.rst)
             post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
-        return 0;
+        throw header_invalid_exception();
     }
     if (h->tcp.rst)
         throw socket_reset_exception();
@@ -606,11 +611,11 @@ tcp::socket::handle_established_segment_recvd(net::rx_page* p)
         throw socket_reset_exception();
     }
     if (!h->tcp.ack)
-        return 0;
+        throw header_invalid_exception();
 
     seq_range valid_ack_seqs = seq_bound(snd_una,snd_nxt);
     if (!valid_ack_seqs.seq_in_range(h->tcp.ack_num))
-        return 0;
+        throw header_invalid_exception();
 
     snd_wnd = h->tcp.window_size << snd_wnd_shift;
     process_ack(h->tcp.ack_num);
