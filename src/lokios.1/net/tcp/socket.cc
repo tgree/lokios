@@ -597,29 +597,7 @@ uint64_t
 tcp::socket::handle_established_segment_recvd(net::rx_page* p)
 {
     auto* h = p->payload_cast<ipv4_tcp_headers*>();
-    if (!seq_check(rcv_nxt,h->tcp.seq_num,h->segment_len(),rcv_wnd))
-    {
-        if (!h->tcp.rst)
-            post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
-        throw header_invalid_exception();
-    }
-    if (h->tcp.rst)
-        throw socket_reset_exception();
-    if (h->tcp.syn)
-    {
-        post_rst(snd_nxt);
-        throw socket_reset_exception();
-    }
-    if (!h->tcp.ack)
-        throw header_invalid_exception();
-
-    seq_range valid_ack_seqs = seq_bound(snd_una,snd_nxt);
-    if (!valid_ack_seqs.seq_in_range(h->tcp.ack_num))
-        throw header_invalid_exception();
-
-    snd_wnd = h->tcp.window_size << snd_wnd_shift;
-    process_ack(h->tcp.ack_num);
-    process_send_queue();
+    process_header_synchronized(h);
 
     // ES3:
     // At this point we know SYN=0.  But we could have FIN=1 so be careful.
@@ -644,6 +622,37 @@ tcp::socket::handle_established_segment_recvd(net::rx_page* p)
     if (fin)
         TRANSITION(TCP_CLOSE_WAIT);
     return flags;
+}
+
+void
+tcp::socket::process_header_synchronized(const ipv4_tcp_headers* h)
+{
+    // We're in a state where we've received the initial SYN so we need to
+    // check sequence numbers, various flags and handle ACKs to advance the
+    // send queue.
+    if (!seq_check(rcv_nxt,h->tcp.seq_num,h->segment_len(),rcv_wnd))
+    {
+        if (!h->tcp.rst)
+            post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
+        throw header_invalid_exception();
+    }
+    if (h->tcp.rst)
+        throw socket_reset_exception();
+    if (h->tcp.syn)
+    {
+        post_rst(snd_nxt);
+        throw socket_reset_exception();
+    }
+    if (!h->tcp.ack)
+        throw header_invalid_exception();
+
+    seq_range valid_ack_seqs = seq_bound(snd_una,snd_nxt);
+    if (!valid_ack_seqs.seq_in_range(h->tcp.ack_num))
+        throw header_invalid_exception();
+
+    snd_wnd = h->tcp.window_size << snd_wnd_shift;
+    process_ack(h->tcp.ack_num);
+    process_send_queue();
 }
 
 void
