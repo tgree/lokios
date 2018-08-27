@@ -194,6 +194,7 @@ namespace tcp
 
         // Helpers.
         void        process_header_synchronized(const ipv4_tcp_headers* h);
+        uint64_t    process_payload_synchronized(net::rx_page* p);
         void        process_options(parsed_options opts);
         void        dump_socket();
 

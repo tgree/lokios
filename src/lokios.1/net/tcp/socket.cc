@@ -598,30 +598,7 @@ tcp::socket::handle_synchronized_segment_recvd(net::rx_page* p)
 {
     auto* h = p->payload_cast<ipv4_tcp_headers*>();
     process_header_synchronized(h);
-
-    // ES3:
-    // At this point we know SYN=0.  But we could have FIN=1 so be careful.
-    uint64_t flags     = 0;
-    bool fin           = h->tcp.fin;
-    seq_range rx_range = {h->tcp.seq_num,h->segment_len()};
-    seq_range new_seqs = seq_overlap(rx_range,{rcv_nxt,rcv_wnd});
-    rcv_nxt           += new_seqs.len;
-    if (rx_range.len)
-        post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
-    if (new_seqs.len)
-    {
-        uint32_t skip    = new_seqs.first - h->tcp.seq_num;
-        p->client_offset = (uint8_t*)h->get_payload() - p->payload + skip;
-        p->client_len    = h->payload_len() - skip;
-        if (p->client_len)
-        {
-            flags = NRX_FLAG_NO_DELETE;
-            rx_append(p);
-        }
-    }
-    if (fin)
-        TRANSITION(TCP_CLOSE_WAIT);
-    return flags;
+    return process_payload_synchronized(p);
 }
 
 void
@@ -653,6 +630,37 @@ tcp::socket::process_header_synchronized(const ipv4_tcp_headers* h)
     snd_wnd = h->tcp.window_size << snd_wnd_shift;
     process_ack(h->tcp.ack_num);
     process_send_queue();
+}
+
+uint64_t
+tcp::socket::process_payload_synchronized(net::rx_page* p)
+{
+    // We're in a state where we've received SYN but haven't received a FIN
+    // yet.  So we should handle payload normally, appending it to the RX queue
+    // and notifying the client.  We should also watch for FIN.
+    auto* h            = p->payload_cast<ipv4_tcp_headers*>();
+    uint64_t flags     = 0;
+    bool fin           = h->tcp.fin;
+    seq_range rx_range = {h->tcp.seq_num,h->segment_len()};
+    seq_range new_seqs = seq_overlap(rx_range,{rcv_nxt,rcv_wnd});
+    rcv_nxt           += new_seqs.len;
+    if (rx_range.len)
+        post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
+    if (new_seqs.len)
+    {
+        uint32_t skip = new_seqs.first - h->tcp.seq_num;
+        p->client_len = h->payload_len() - skip;
+        if (p->client_len)
+        {
+            p->client_offset = (uint8_t*)h->get_payload() - p->payload + skip;
+            flags = NRX_FLAG_NO_DELETE;
+            rx_append(p);
+        }
+    }
+    if (fin)
+        TRANSITION(TCP_CLOSE_WAIT);
+
+    return flags;
 }
 
 void
