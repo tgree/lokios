@@ -137,7 +137,8 @@ cmd_sock_connection::socket_readable(tcp::socket* _s)
     }
     kassert(s->rx_pages.empty());
 
-    s->send(NELEMS(spam_alps),spam_alps,method_delegate(send_complete));
+    if (s->in_sendable_state())
+        s->send(NELEMS(spam_alps),spam_alps,method_delegate(send_complete));
 }
 
 void
