@@ -121,7 +121,6 @@ namespace tcp
 
         net::interface*                 intf;
         tcp_state                       state;
-        tcp_state                       prev_state;
         uint8_t                         llhdr[16];
         tcp::ipv4_tcp_headers           hdrs;
         const size_t                    llsize;
