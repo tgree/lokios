@@ -72,7 +72,7 @@ net::finterface::pop_rx_page()
     return p;
 }
 
-uint32_t
+uint64_t
 net::finterface::handle_rx_page(net::rx_page* p)
 {
     uint64_t flags = handle_rx_ipv4_frame(p);
