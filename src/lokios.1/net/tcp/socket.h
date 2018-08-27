@@ -66,6 +66,7 @@ namespace tcp
     {
         virtual void socket_established(socket*) = 0;
         virtual void socket_readable(socket*) = 0;
+        virtual void socket_closed(socket*) = 0;
         virtual void socket_reset(socket*) = 0;
     };
 

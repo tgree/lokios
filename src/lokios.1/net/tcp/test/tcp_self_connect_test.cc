@@ -28,6 +28,11 @@ struct fake_observer : public tcp::socket_observer
         rcv_pos += count;
     }
 
+    virtual void socket_closed(tcp::socket* s)
+    {
+        mock("fake_observer::socket_closed",s);
+    }
+
     virtual void socket_reset(tcp::socket* s)
     {
         mock("fake_observer::socket_reset",s);

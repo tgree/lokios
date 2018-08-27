@@ -17,6 +17,7 @@ struct cmd_sock_connection : public tcp::socket_observer
 
     virtual void    socket_established(tcp::socket* s);
     virtual void    socket_readable(tcp::socket* s);
+    virtual void    socket_closed(tcp::socket* s);
     virtual void    socket_reset(tcp::socket* s);
 
             void    send_complete(tcp::send_op* sop);
@@ -137,6 +138,15 @@ cmd_sock_connection::socket_readable(tcp::socket* _s)
     kassert(s->rx_pages.empty());
 
     s->send(NELEMS(spam_alps),spam_alps,method_delegate(send_complete));
+}
+
+void
+cmd_sock_connection::socket_closed(tcp::socket* _s)
+{
+    kassert(_s == s);
+    intf->intf_dbg("error: connection closed\n");
+    intf->tcp_delete(s);
+    listener->connection_slab.free(this);
 }
 
 void
