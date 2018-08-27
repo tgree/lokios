@@ -645,6 +645,7 @@ catch (fin_recvd_exception& e)
             kernel::panic("Impossible!");
         break;
     }
+    observer->socket_fin_recvd(this);
     return e.flags;
 }
 catch (socket_reset_exception)
