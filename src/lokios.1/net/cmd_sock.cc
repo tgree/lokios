@@ -28,6 +28,7 @@ struct cmd_sock_connection : public tcp::socket_observer
             void    handle_cmd_panic();
             void    handle_cmd_exit();
             void    handle_cmd_segv();
+            void    handle_cmd_close();
             void    handle_unrecognized_cmd();
 
     cmd_sock_connection(net::cmd_sock_listener* listener, tcp::socket* s);
@@ -128,6 +129,8 @@ cmd_sock_connection::socket_readable(tcp::socket* _s)
                 handle_cmd_exit();
             else if (!strcmp(buf,"segv"))
                 handle_cmd_segv();
+            else if (!strcmp(buf,"close"))
+                handle_cmd_close();
             else
                 handle_unrecognized_cmd();
 
@@ -203,6 +206,12 @@ void
 cmd_sock_connection::handle_cmd_segv()
 {
     *(volatile uint64_t*)0x123 = 0x4567890ABCDEF123ULL;
+}
+
+void
+cmd_sock_connection::handle_cmd_close()
+{
+    s->close_send();
 }
 
 void
