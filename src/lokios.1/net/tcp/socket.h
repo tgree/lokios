@@ -101,7 +101,6 @@ namespace tcp
         enum tcp_state
         {
             TCP_CLOSED,
-            TCP_LISTEN,
             TCP_SYN_SENT,
             TCP_SYN_SENT_ACKED_WAIT_SYN,
             TCP_SYN_SENT_SYN_RECVD_WAIT_ACK,

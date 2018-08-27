@@ -71,7 +71,7 @@ tcp::send_op::is_fully_acked() const
 tcp::socket::socket(net::interface* intf, net::rx_page* p,
     parsed_options rx_opts):
         intf(intf),
-        state(TCP_LISTEN),
+        state(TCP_CLOSED),
         llsize(intf->format_ll_reply(p,&llhdr,sizeof(llhdr))),
         remote_ip(p->payload_cast<tcp::ipv4_tcp_headers*>()->ip.src_ip),
         local_port(p->payload_cast<tcp::ipv4_tcp_headers*>()->tcp.dst_port),
@@ -261,8 +261,6 @@ tcp::socket::send(size_t nalps, kernel::dma_alp* alps,
 
     switch (state)
     {
-        case TCP_LISTEN:
-            kassert(flags & SEND_OP_FLAG_SET_ACK);
         case TCP_CLOSED:
             kassert(flags & SEND_OP_FLAG_SYN);
         case TCP_ESTABLISHED:
@@ -613,10 +611,6 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
         case TCP_CLOSED:
             intf->intf_dbg("dropping packet\n");
         break;
-
-        case TCP_LISTEN:
-            kernel::panic("TCP_LISTEN should be a transitory state!");
-        break;
     }
 
     return 0;
@@ -688,7 +682,6 @@ tcp::socket::close_send()
         break;
 
         case TCP_CLOSED:
-        case TCP_LISTEN:
         case TCP_FIN_WAIT_1:
         case TCP_FIN_WAIT_2:
         case TCP_CLOSING:
