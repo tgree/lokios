@@ -21,6 +21,7 @@
 
 using kernel::_kassert;
 
+struct fin_recvd_exception {uint64_t flags;};
 struct header_invalid_exception {};
 struct socket_reset_exception {};
 
@@ -590,23 +591,9 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
         case TCP_SYN_RECVD:
         case TCP_ESTABLISHED:
         case TCP_SYN_SENT_SYN_RECVD_WAIT_ACK:
-            process_header_synchronized(h);
-            if (h->tcp.fin)
-                TRANSITION(TCP_CLOSE_WAIT);
-            return process_payload_synchronized(p);
-        break;
-
         case TCP_FIN_WAIT_1:
-            process_header_synchronized(h);
-            if (h->tcp.fin)
-                TRANSITION(TCP_CLOSING);
-            return process_payload_synchronized(p);
-        break;
-
         case TCP_FIN_WAIT_2:
             process_header_synchronized(h);
-            if (h->tcp.fin)
-                TRANSITION(TCP_TIME_WAIT);
             return process_payload_synchronized(p);
         break;
 
@@ -635,6 +622,30 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
     }
 
     return 0;
+}
+catch (fin_recvd_exception& e)
+{
+    switch (state)
+    {
+        case TCP_SYN_RECVD:
+        case TCP_ESTABLISHED:
+        case TCP_SYN_SENT_SYN_RECVD_WAIT_ACK:
+            TRANSITION(TCP_CLOSE_WAIT);
+        break;
+
+        case TCP_FIN_WAIT_1:
+            TRANSITION(TCP_CLOSING);
+        break;
+
+        case TCP_FIN_WAIT_2:
+            TRANSITION(TCP_TIME_WAIT);
+        break;
+
+        default:
+            kernel::panic("Impossible!");
+        break;
+    }
+    return e.flags;
 }
 catch (socket_reset_exception)
 {
@@ -727,6 +738,7 @@ tcp::socket::process_payload_synchronized(net::rx_page* p)
     // yet.  So we should handle payload normally, appending it to the RX queue
     // and notifying the client.
     auto* h            = p->payload_cast<ipv4_tcp_headers*>();
+    bool fin           = h->tcp.fin;
     seq_range rx_range = {h->tcp.seq_num,h->segment_len()};
     seq_range new_seqs = seq_overlap(rx_range,{rcv_nxt,rcv_wnd});
     rcv_nxt           += new_seqs.len;
@@ -740,9 +752,14 @@ tcp::socket::process_payload_synchronized(net::rx_page* p)
         {
             p->client_offset = (uint8_t*)h->get_payload() - p->payload + skip;
             rx_append(p);
+            if (fin)
+                throw fin_recvd_exception{NRX_FLAG_NO_DELETE};
             return NRX_FLAG_NO_DELETE;
         }
     }
+
+    if (fin)
+        throw fin_recvd_exception{0};
 
     return 0;
 }
