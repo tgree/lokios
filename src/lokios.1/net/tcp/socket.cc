@@ -631,9 +631,10 @@ tcp::socket::process_payload_synchronized(net::rx_page* p)
     // We're in a state where we've received SYN but haven't received a FIN
     // yet.  So we should handle payload normally, appending it to the RX queue
     // and notifying the client.  We should also watch for FIN.
-    auto* h            = p->payload_cast<ipv4_tcp_headers*>();
-    uint64_t flags     = 0;
-    bool fin           = h->tcp.fin;
+    auto* h = p->payload_cast<ipv4_tcp_headers*>();
+    if (h->tcp.fin)
+        TRANSITION(TCP_CLOSE_WAIT);
+
     seq_range rx_range = {h->tcp.seq_num,h->segment_len()};
     seq_range new_seqs = seq_overlap(rx_range,{rcv_nxt,rcv_wnd});
     rcv_nxt           += new_seqs.len;
@@ -646,14 +647,12 @@ tcp::socket::process_payload_synchronized(net::rx_page* p)
         if (p->client_len)
         {
             p->client_offset = (uint8_t*)h->get_payload() - p->payload + skip;
-            flags = NRX_FLAG_NO_DELETE;
             rx_append(p);
+            return NRX_FLAG_NO_DELETE;
         }
     }
-    if (fin)
-        TRANSITION(TCP_CLOSE_WAIT);
 
-    return flags;
+    return 0;
 }
 
 void
