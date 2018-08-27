@@ -5,6 +5,7 @@
 #include "kernel/cpu.h"
 
 #define RETRANSMIT_TIMEOUT_MS   1000
+#define TIME_WAIT_TIMEOUT_SEC   60*4
 
 #define DEBUG_TRANSITIONS 1
 
@@ -94,6 +95,8 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p,
 
     retransmit_wqe.fn      = timer_delegate(handle_retransmit_expiry);
     retransmit_wqe.args[0] = (uint64_t)this;
+    time_wait_wqe.fn       = timer_delegate(handle_time_wait_expiry);
+    time_wait_wqe.args[0]  = (uint64_t)this;
 
     iss           = kernel::random(0,0xFFFF);
     snd_una       = iss;
@@ -137,6 +140,8 @@ tcp::socket::socket(net::interface* intf, ipv4::addr remote_ip,
 
     retransmit_wqe.fn      = timer_delegate(handle_retransmit_expiry);
     retransmit_wqe.args[0] = (uint64_t)this;
+    time_wait_wqe.fn       = timer_delegate(handle_time_wait_expiry);
+    time_wait_wqe.args[0]  = (uint64_t)this;
 
     iss           = kernel::random(0,0xFFFF);
     snd_una       = iss;
@@ -506,6 +511,8 @@ tcp::socket::fin_send_op_cb(tcp::send_op* sop)
 
         case TCP_CLOSING:
             TRANSITION(TCP_TIME_WAIT);
+            kernel::cpu::schedule_timer_sec(&time_wait_wqe,
+                                            TIME_WAIT_TIMEOUT_SEC);
         break;
 
         case TCP_LAST_ACK:
@@ -536,6 +543,15 @@ tcp::socket::handle_retransmit_expiry(kernel::timer_entry*)
     unsent_send_ops.append(sent_send_ops);
     snd_nxt = snd_una;
     process_send_queue();
+}
+
+void
+tcp::socket::handle_time_wait_expiry(kernel::timer_entry* wqe)
+{
+    kassert(state == TCP_TIME_WAIT);
+    TRANSITION(TCP_CLOSED);
+    intf->tcp_unlink(this);
+    observer->socket_closed(this);
 }
 
 uint64_t
@@ -597,6 +613,8 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
         case TCP_CLOSE_WAIT:
         case TCP_TIME_WAIT:
             process_header_synchronized(h);
+            if (h->tcp.fin)
+                throw fin_recvd_exception{0};
         break;
 
         case TCP_LAST_ACK:
@@ -629,8 +647,12 @@ catch (fin_recvd_exception& e)
             TRANSITION(TCP_CLOSING);
         break;
 
+        case TCP_TIME_WAIT:
+            kernel::cpu::cancel_timer(&time_wait_wqe);
         case TCP_FIN_WAIT_2:
             TRANSITION(TCP_TIME_WAIT);
+            kernel::cpu::schedule_timer_sec(&time_wait_wqe,
+                                            TIME_WAIT_TIMEOUT_SEC);
         break;
 
         default:

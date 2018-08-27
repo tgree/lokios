@@ -144,6 +144,7 @@ namespace tcp
         kernel::kdlist<tcp::send_op>    sent_send_ops;
         kernel::kdlist<tcp::send_op>    acked_send_ops;
         kernel::timer_entry             retransmit_wqe;
+        kernel::timer_entry             time_wait_wqe;
 
         // Receive queue.
         kernel::klist<net::rx_page>     rx_pages;
@@ -199,6 +200,7 @@ namespace tcp
 
         // Handlers.
         void        handle_retransmit_expiry(kernel::timer_entry* wqe);
+        void        handle_time_wait_expiry(kernel::timer_entry* wqe);
         uint64_t    handle_rx_ipv4_tcp_frame(net::rx_page* p);
 
         // Close the send side of the socket.  This transmits a FIN packet and
