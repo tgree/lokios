@@ -470,7 +470,17 @@ class tmock_test
         cleanup_socket(s,tcp::socket::TCP_ESTABLISHED);
     }
 
-    static void test_synchronized_unacceptable_seq_ws0(socket* s)
+    static void test_syncd_unacceptable_low_sl0_ws0(socket* s)
+    {
+        auto state = s->state;
+        s->rcv_wnd = 0;
+        rx_packet(SEQ{remote_snd_nxt-1},ACK{s->iss+1},CTL{FACK});
+        tx_expect(SEQ{s->snd_nxt},ACK{s->rcv_nxt},CTL{FACK});
+
+        cleanup_socket(s,state);
+    }
+
+    static void test_syncd_unacceptable_high_sl0_ws0(socket* s)
     {
         auto state = s->state;
         s->rcv_wnd = 0;
@@ -480,7 +490,7 @@ class tmock_test
         cleanup_socket(s,state);
     }
 
-    static void test_synchronized_acceptable_seq_ws0(socket* s,
+    static void test_syncd_acceptable_sl0_ws0(socket* s,
             tcp::socket::tcp_state final_state)
     {
         s->rcv_wnd = 0;
@@ -490,94 +500,51 @@ class tmock_test
         cleanup_socket(s,final_state);
     }
 
-    TMOCK_TEST(test_syn_recvd_unacceptable_seq_ws0)
-    {
-        test_synchronized_unacceptable_seq_ws0(transition_SYN_RECVD());
+#define TEST_UNACC_LOW_SL0_WS0(ts) \
+    TMOCK_TEST(test_##ts##_unacceptable_seq_low_sl0_ws0) \
+    { \
+        test_syncd_unacceptable_low_sl0_ws0(transition_##ts()); \
     }
+#define TEST_UNACC_HIGH_SL0_WS0(ts) \
+    TMOCK_TEST(test_##ts##_unacceptable_seq_high_sl0_ws0) \
+    { \
+        test_syncd_unacceptable_high_sl0_ws0(transition_##ts()); \
+    }
+#define TEST_ACC_SL0_WS0(ts,fs) \
+    TMOCK_TEST(test_##ts##_acceptable_seq_sl0_ws0) \
+    { \
+        test_syncd_acceptable_sl0_ws0(transition_##ts(),tcp::socket::fs); \
+    }
+#define TEST_ALL(ts,fs) \
+    TEST_UNACC_LOW_SL0_WS0(ts); \
+    TEST_UNACC_HIGH_SL0_WS0(ts); \
+    TEST_ACC_SL0_WS0(ts,fs)
 
-    TMOCK_TEST(test_syn_recvd_acceptable_seq_ws0)
+    TEST_UNACC_LOW_SL0_WS0(SYN_RECVD);
+    TEST_UNACC_HIGH_SL0_WS0(SYN_RECVD);
+
+    TMOCK_TEST(test_SYN_RECVD_acceptable_seq_sl0_ws0)
     {
         auto* s = transition_SYN_RECVD();
         texpect("mock_observer::socket_established");
-        test_synchronized_acceptable_seq_ws0(s,tcp::socket::TCP_ESTABLISHED);
+        test_syncd_acceptable_sl0_ws0(s,tcp::socket::TCP_ESTABLISHED);
     }
 
-    TMOCK_TEST(test_established_unacceptable_seq_ws0)
-    {
-        test_synchronized_unacceptable_seq_ws0(transition_ESTABLISHED());
-    }
+    TEST_ALL(ESTABLISHED,TCP_ESTABLISHED);
+    TEST_ALL(FIN_WAIT_1,TCP_FIN_WAIT_2);
+    TEST_ALL(FIN_WAIT_2,TCP_FIN_WAIT_2);
+    TEST_ALL(CLOSING,TCP_TIME_WAIT);
+    TEST_ALL(TIME_WAIT,TCP_TIME_WAIT);
+    TEST_ALL(CLOSE_WAIT,TCP_CLOSE_WAIT);
 
-    TMOCK_TEST(test_established_acceptable_seq_ws0)
-    {
-        test_synchronized_acceptable_seq_ws0(transition_ESTABLISHED(),
-                                             tcp::socket::TCP_ESTABLISHED);
-    }
+    TEST_UNACC_LOW_SL0_WS0(LAST_ACK);
+    TEST_UNACC_HIGH_SL0_WS0(LAST_ACK);
 
-    TMOCK_TEST(test_fin_wait_1_unacceptable_seq_ws0)
-    {
-        test_synchronized_unacceptable_seq_ws0(transition_FIN_WAIT_1());
-    }
-
-    TMOCK_TEST(test_fin_wait_1_acceptable_seq_ws0)
-    {
-        test_synchronized_acceptable_seq_ws0(transition_FIN_WAIT_1(),
-                                             tcp::socket::TCP_FIN_WAIT_2);
-    }
-
-    TMOCK_TEST(test_fin_wait_2_unacceptable_seq_ws0)
-    {
-        test_synchronized_unacceptable_seq_ws0(transition_FIN_WAIT_2());
-    }
-
-    TMOCK_TEST(test_fin_wait_2_acceptable_seq_ws0)
-    {
-        test_synchronized_acceptable_seq_ws0(transition_FIN_WAIT_2(),
-                                             tcp::socket::TCP_FIN_WAIT_2);
-    }
-
-    TMOCK_TEST(test_closing_unacceptable_seq_ws0)
-    {
-        test_synchronized_unacceptable_seq_ws0(transition_CLOSING());
-    }
-
-    TMOCK_TEST(test_closing_acceptable_seq_ws0)
-    {
-        test_synchronized_acceptable_seq_ws0(transition_CLOSING(),
-                                             tcp::socket::TCP_TIME_WAIT);
-    }
-
-    TMOCK_TEST(test_time_wait_unacceptable_seq_ws0)
-    {
-        test_synchronized_unacceptable_seq_ws0(transition_TIME_WAIT());
-    }
-
-    TMOCK_TEST(test_time_wait_acceptable_seq_ws0)
-    {
-        test_synchronized_acceptable_seq_ws0(transition_TIME_WAIT(),
-                                             tcp::socket::TCP_TIME_WAIT);
-    }
-
-    TMOCK_TEST(test_close_wait_unacceptable_seq_ws0)
-    {
-        test_synchronized_unacceptable_seq_ws0(transition_CLOSE_WAIT());
-    }
-
-    TMOCK_TEST(test_close_wait_acceptable_seq_ws0)
-    {
-        test_synchronized_acceptable_seq_ws0(transition_CLOSE_WAIT(),
-                                             tcp::socket::TCP_CLOSE_WAIT);
-    }
-
-    TMOCK_TEST(test_last_ack_unacceptable_seq_ws0)
-    {
-        test_synchronized_unacceptable_seq_ws0(transition_LAST_ACK());
-    }
-
-    TMOCK_TEST(test_last_ack_acceptable_seq_ws0)
+    TMOCK_TEST(test_LAST_ACK_acceptable_seq_sl0_ws0)
     {
         auto* s = transition_LAST_ACK();
         texpect("mock_observer::socket_closed",want(s,s));
-        test_synchronized_acceptable_seq_ws0(s,tcp::socket::TCP_CLOSED);
+        test_syncd_acceptable_sl0_ws0(s,tcp::socket::TCP_CLOSED);
     }
 };
 
