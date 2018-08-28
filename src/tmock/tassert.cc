@@ -125,3 +125,12 @@ tmock::assert_equiv(int64_t v, int64_t expected, const char* file,
         exit(-1);
     }
 }
+
+void
+tmock::vprintf(const char* fmt, va_list ap)
+{
+    if (tmock::internal::mode_flags & TMOCK_MODE_FLAG_SILENT)
+        return;
+
+    ::vprintf(fmt,ap);
+}

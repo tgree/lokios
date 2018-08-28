@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -73,6 +74,14 @@ namespace tmock
         abort_mem_dump(&v,&expected,sizeof(T),file,line);
     }
 
+    void vprintf(const char* fmt, va_list ap);
+    inline void printf(const char* fmt, ...)
+    {
+        va_list ap;
+        va_start(ap,fmt);
+        tmock::vprintf(fmt,ap);
+        va_end(ap);
+    }
 
     int run_tests(int argc, const char* argv[]);
 
