@@ -4,6 +4,18 @@
 #include <stdio.h>
 
 void
+tmock::mem_dump(const void* v, size_t len, const char* file, unsigned int l)
+{
+    if (!(tmock::internal::mode_flags & TMOCK_MODE_FLAG_SILENT))
+    {
+        printf("%s:%u:",file,l);
+        for (size_t i=0; i<len; ++i)
+            printf(" %02X",((const uint8_t*)v)[i]);
+        printf("\n");
+    }
+}
+
+void
 tmock::abort(const char* s, const char* f, unsigned int l)
 {
     if (!(tmock::internal::mode_flags & TMOCK_MODE_FLAG_SILENT))

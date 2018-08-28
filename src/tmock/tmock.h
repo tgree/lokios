@@ -11,6 +11,11 @@
 
 namespace tmock
 {
+    // Dump a region of memory.
+    void mem_dump(const void* v, size_t len,
+                  const char* file = __builtin_FILE(),
+                  unsigned int l = __builtin_LINE());
+
     // Abort with an error message.
     void abort(const char* s, const char* f = __builtin_FILE(),
                unsigned int l = __builtin_LINE()) __attribute__((noreturn));
