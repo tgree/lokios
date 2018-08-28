@@ -567,7 +567,8 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
                 seq_range valid_ack_seqs = seq_bound(snd_una,snd_nxt);
                 if (!valid_ack_seqs.seq_in_range(h->tcp.ack_num))
                 {
-                    post_rst(h->tcp.ack_num);
+                    if (!h->tcp.rst)
+                        post_rst(h->tcp.ack_num);
                     throw header_invalid_exception();
                 }
                 process_ack(h->tcp.ack_num);
