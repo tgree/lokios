@@ -88,7 +88,9 @@ rx_packet(Args ...args)
     }
     p->pay_len = h->ip.total_len;
 
-    tmock::assert_equiv(intf.handle_rx_page(p),0U);
+    uint64_t flags = intf.handle_rx_page(p);
+    if (!h->payload_len())
+        tmock::assert_equiv(flags,0U);
 }
 
 template<typename... Args>
