@@ -61,6 +61,9 @@ run_all_tests(const char* argv0)
              tmock::internal::mode_flags);
 
     // Spawn all the tests so they run in parallel.
+    // TODO: Maybe we ought to batch.  This is going to slam the OS when we do
+    //       'make -j' and run a whole bunch of unittest binaries in parallel
+    //       too - once we have a lot of unittest binaries.
     for (tmock::internal::test_case_info* tci = test_cases;
          tci;
          tci = tci->next)
