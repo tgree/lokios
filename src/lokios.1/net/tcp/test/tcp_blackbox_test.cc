@@ -357,7 +357,7 @@ class tmock_test
         tx_expect_none();
     }
 
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_syn_sent_unacceptable_ack)
+    TMOCK_TEST(test_syn_sent_unacceptable_ack)
     {
         auto* s = transition_SYN_SENT();
 

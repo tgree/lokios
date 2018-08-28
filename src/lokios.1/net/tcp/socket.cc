@@ -564,7 +564,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
         case TCP_SYN_SENT_ACKED_WAIT_SYN:
             if (h->tcp.ack)
             {
-                seq_range valid_ack_seqs = seq_bound(snd_una,snd_nxt);
+                seq_range valid_ack_seqs = seq_bound(iss+1,snd_nxt);
                 if (!valid_ack_seqs.seq_in_range(h->tcp.ack_num))
                 {
                     if (!h->tcp.rst)
