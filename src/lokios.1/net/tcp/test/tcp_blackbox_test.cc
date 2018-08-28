@@ -1,6 +1,7 @@
 #include "../socket.h"
 #include "../traits.h"
 #include "net/mock/finterface.h"
+#include "kernel/mock/fconsole.h"
 #include "k++/random.h"
 #include <tmock/tmock.h>
 
@@ -580,4 +581,9 @@ class tmock_test
     }
 };
 
-TMOCK_MAIN();
+int
+main(int argc, const char* argv[])
+{
+    kernel::fconsole_suppress_output = true;
+    return tmock::run_tests(argc,argv);
+}
