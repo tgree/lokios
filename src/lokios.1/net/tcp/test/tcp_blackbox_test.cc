@@ -80,12 +80,7 @@ rx_packet(Args ...args)
     h->init(SIP{REMOTE_IP},DIP{intf.ip_addr},SPORT{REMOTE_PORT},
             DPORT{LOCAL_PORT},SEQ{remote_snd_nxt},WS{REMOTE_WS,0},args...);
     if (h->tcp.seq_num == remote_snd_nxt)
-    {
-        if (h->tcp.syn)
-            ++remote_snd_nxt;
-        if (h->tcp.fin)
-            ++remote_snd_nxt;
-    }
+        remote_snd_nxt += h->segment_len();
     p->pay_len = h->ip.total_len;
 
     uint64_t flags = intf.handle_rx_page(p);
