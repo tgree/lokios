@@ -542,6 +542,23 @@ class tmock_test
         cleanup_socket(s,final_state);
     }
 
+    static void test_syncd_unacceptable_sl1_ws0(socket* s)
+    {
+        auto state = s->state;
+        char data[1] = {'T'};
+        s->rcv_wnd = 0;
+        rx_packet(SEQ{remote_snd_nxt-1},ACK{s->iss+1},CTL{FACK},DATA{data,1});
+        tx_expect(SEQ{s->snd_nxt},ACK{s->rcv_nxt},CTL{FACK});
+
+        rx_packet(SEQ{remote_snd_nxt+1},ACK{s->iss+1},CTL{FACK},DATA{data,1});
+        tx_expect(SEQ{s->snd_nxt},ACK{s->rcv_nxt},CTL{FACK});
+
+        rx_packet(SEQ{remote_snd_nxt},ACK{s->iss+1},CTL{FACK},DATA{data,1});
+        tx_expect(SEQ{s->snd_nxt},ACK{s->rcv_nxt},CTL{FACK});
+
+        cleanup_socket(s,state);
+    }
+
 #define TEST_UNACC_LOW_SL0_WS0(ts) \
     TMOCK_TEST(test_##ts##_unacceptable_seq_low_sl0_ws0) \
     { \
@@ -586,11 +603,17 @@ class tmock_test
             texpect(expectation,want(s,s)); \
         test_syncd_acceptable_high_sl0_wsn0(s,tcp::socket::fs);\
     }
+#define TEST_UNACC_SL1_WS0(ts) \
+    TMOCK_TEST(test_##ts##_unacceptable_seq_sl1_ws0) \
+    { \
+        test_syncd_unacceptable_sl1_ws0(transition_##ts()); \
+    }
 #define TEST_ALL_UNACC(ts) \
     TEST_UNACC_LOW_SL0_WS0(ts); \
     TEST_UNACC_HIGH_SL0_WS0(ts); \
     TEST_UNACC_LOW_SL0_WS1(ts); \
-    TEST_UNACC_HIGH_SL0_WS1(ts);
+    TEST_UNACC_HIGH_SL0_WS1(ts); \
+    TEST_UNACC_SL1_WS0(ts);
 #define TEST_ALL_ACC(ts,fs,e) \
     TEST_ACC_SL0_WS0(ts,fs,e); \
     TEST_ACC_LOW_SL0_WS1(ts,fs,e); \
