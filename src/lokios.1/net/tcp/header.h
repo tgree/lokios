@@ -47,6 +47,8 @@ namespace tcp
     struct OPT_MSS       {uint32_t mss;};
     struct OPT_WND_SHIFT {uint8_t wnd_shift;};
 
+    struct DATA {void* addr; size_t len;};
+
     struct header
     {
         be_uint16_t src_port;
@@ -156,6 +158,13 @@ namespace tcp
             p[3]          = 1;
             ip.total_len += 4;
             tcp.offset++;
+        }
+
+        inline void _format(DATA d)
+        {
+            uint8_t* p = (uint8_t*)&tcp + 4*tcp.offset;
+            memcpy(p,d.addr,d.len);
+            ip.total_len += d.len;
         }
 
         template<typename T>
