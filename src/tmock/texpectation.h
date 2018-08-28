@@ -81,7 +81,7 @@ namespace tmock
     tmock::constraint{tmock::constraint::CAPTURE, \
                       {.capture_arg = {#name,dst}}}
 #define texpect(fname,...) \
-    do { \
+    ({ \
         constexpr size_t nc = sizeof((tmock::constraint[]){__VA_ARGS__})/ \
                               sizeof(tmock::constraint); \
         static struct { \
@@ -94,7 +94,9 @@ namespace tmock
             tmock::constraint constraints[nc]; \
         } e = {NULL,__FILE__,__LINE__,fname,false,nc,{__VA_ARGS__}}; \
         tmock::_expect((tmock::expectation*)&e); \
-    } while(false)
+        &e; \
+    })
+#define tcheckpoint(e) TASSERT(!e->armed)
 
 #define TEXPECT(fname,...) \
     __attribute__((constructor))                    \
