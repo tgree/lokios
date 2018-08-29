@@ -625,6 +625,13 @@ class tmock_test
         cleanup_socket(s,state);
     }
 
+    static void test_syncd_acceptable_window_late_sl1_ws1(socket* s,
+            tcp::socket::tcp_state state)
+    {
+        test_syncd_acceptable_overlap_sl1_ws1(s,state,REMOTE_ISS+2,5,0);
+        cleanup_socket(s,state);
+    }
+
 #define TEST_UNACC_LOW_SL0_WS0(ts) \
     TMOCK_TEST(test_##ts##_unacceptable_seq_low_sl0_ws0) \
     { \
@@ -700,6 +707,15 @@ class tmock_test
             texpect(expectation,want(s,s)); \
         test_syncd_acceptable_window_start_sl1_ws1(s,tcp::socket::fs);\
     }
+#define TEST_ACC_WINDOW_LATE_SL1_WS1_BROKEN(ts,fs,expectation) \
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS( \
+            test_##ts##_acceptable_window_late_sl1_ws1) \
+    { \
+        auto* s = transition_##ts(); \
+        if (expectation) \
+            texpect(expectation,want(s,s)); \
+        test_syncd_acceptable_window_late_sl1_ws1(s,tcp::socket::fs);\
+    }
 #define TEST_ALL_UNACC(ts) \
     TEST_UNACC_LOW_SL0_WS0(ts); \
     TEST_UNACC_HIGH_SL0_WS0(ts); \
@@ -726,6 +742,12 @@ class tmock_test
     TEST_ALL(TIME_WAIT,TCP_TIME_WAIT,NULL);
     TEST_ALL(CLOSE_WAIT,TCP_CLOSE_WAIT,NULL);
     TEST_ALL(LAST_ACK,TCP_CLOSED,"mock_observer::socket_closed");
+
+    TEST_ACC_WINDOW_LATE_SL1_WS1_BROKEN(SYN_RECVD,TCP_ESTABLISHED,
+                                        "mock_observer::socket_established");
+    TEST_ACC_WINDOW_LATE_SL1_WS1_BROKEN(ESTABLISHED,TCP_ESTABLISHED,NULL);
+    TEST_ACC_WINDOW_LATE_SL1_WS1_BROKEN(FIN_WAIT_1,TCP_FIN_WAIT_2,NULL);
+    TEST_ACC_WINDOW_LATE_SL1_WS1_BROKEN(FIN_WAIT_2,TCP_FIN_WAIT_2,NULL);
 };
 
 int
