@@ -27,6 +27,25 @@ struct header_invalid_exception {};
 struct ack_unacceptable_exception {};
 struct socket_reset_exception {};
 
+static constexpr uint8_t
+compute_wnd_shift(uint32_t wnd)
+{
+    return CLAMP(15U,kernel::ulog2(wnd),29U) - 15U;
+}
+KASSERT(compute_wnd_shift(0x00008000) == 0);
+KASSERT(compute_wnd_shift(0x0000FFFF) == 0);
+KASSERT(compute_wnd_shift(0x00010000) == 1);
+KASSERT(compute_wnd_shift(0x0001FFFF) == 1);
+KASSERT(compute_wnd_shift(0x00020000) == 2);
+KASSERT(compute_wnd_shift(0x0003FFFF) == 2);
+KASSERT(compute_wnd_shift(0x00040000) == 3);
+KASSERT(compute_wnd_shift(0x1FFFFFFF) == 13);
+KASSERT(compute_wnd_shift(0x20000000) == 14);
+KASSERT(compute_wnd_shift(0x3FFFFFFF) == 14);
+KASSERT(compute_wnd_shift(0x40000000) == 14);
+KASSERT(compute_wnd_shift(0x80000000) == 14);
+KASSERT(compute_wnd_shift(0xFFFFFFFF) == 14);
+
 uint32_t
 tcp::send_op::mark_acked(uint32_t ack_len)
 {
@@ -71,7 +90,7 @@ tcp::send_op::is_fully_acked() const
 }
 
 tcp::socket::socket(net::interface* intf, net::rx_page* p,
-    parsed_options rx_opts):
+    parsed_options rx_opts, uint32_t rcv_wnd):
         intf(intf),
         state(TCP_CLOSED),
         llsize(intf->format_ll_reply(p,&llhdr,sizeof(llhdr))),
@@ -82,7 +101,8 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p,
         tx_ops_slab(sizeof(tcp::tx_op)),
         send_ops_slab(sizeof(tcp::send_op)),
         rx_avail_bytes(0),
-        rx_opts(rx_opts)
+        rx_opts(rx_opts),
+        rcv_wnd(rcv_wnd)
 {
     auto* h = p->payload_cast<ipv4_tcp_headers*>();
     kassert(!h->tcp.rst);
@@ -108,7 +128,6 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p,
                     sizeof(ipv4_tcp_headers);
 
     rcv_nxt       = h->tcp.seq_num + 1;
-    rcv_wnd       = MAX_RX_WINDOW;
     rcv_wnd_shift = 0;
     rcv_mss       = intf->rx_mtu - sizeof(ipv4_tcp_headers);
 
@@ -123,7 +142,7 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p,
 
 tcp::socket::socket(net::interface* intf, ipv4::addr remote_ip,
     uint16_t local_port, uint16_t remote_port, const void* llh,
-    size_t llsize, socket_observer* observer):
+    size_t llsize, socket_observer* observer, uint32_t rcv_wnd):
         intf(intf),
         state(TCP_CLOSED),
         llsize(llsize),
@@ -133,7 +152,8 @@ tcp::socket::socket(net::interface* intf, ipv4::addr remote_ip,
         observer(observer),
         tx_ops_slab(sizeof(tcp::tx_op)),
         send_ops_slab(sizeof(tcp::send_op)),
-        rx_avail_bytes(0)
+        rx_avail_bytes(0),
+        rcv_wnd(rcv_wnd)
 {
     kassert(llsize <= sizeof(llhdr));
     memset(llhdr,0xDD,sizeof(llhdr));
@@ -153,8 +173,7 @@ tcp::socket::socket(net::interface* intf, ipv4::addr remote_ip,
                     sizeof(ipv4_tcp_headers);
 
     rcv_nxt       = 0;
-    rcv_wnd       = MAX_RX_WINDOW;
-    rcv_wnd_shift = RX_WINDOW_SHIFT;
+    rcv_wnd_shift = compute_wnd_shift(rcv_wnd);
     rcv_mss       = intf->rx_mtu - sizeof(ipv4_tcp_headers);
 
     send(0,NULL,method_delegate(syn_send_op_cb),
@@ -824,7 +843,7 @@ tcp::socket::process_options(parsed_options opts)
     if (opts.flags & OPTION_SND_WND_SHIFT_PRESENT)
     {
         snd_wnd_shift = opts.snd_wnd_shift;
-        rcv_wnd_shift = RX_WINDOW_SHIFT;
+        rcv_wnd_shift = compute_wnd_shift(rcv_wnd);
     }
     else
     {

@@ -12,6 +12,9 @@
 #define REMOTE_ISS  1234U
 #define REMOTE_WS   4096U
 
+#define WND_SIZE    0x01FFFFFF
+#define WND_SHIFT   9
+
 using namespace tcp;
 
 static net::finterface intf(LOCAL_IP);
@@ -25,7 +28,7 @@ struct mock_listener
 
     mock_listener(uint16_t port)
     {
-        intf.tcp_listen(port,method_delegate(socket_accepted));
+        intf.tcp_listen(port,WND_SIZE,method_delegate(socket_accepted));
     }
 };
 
@@ -131,7 +134,7 @@ class tmock_test
         tmock::assert_equiv(s->snd_wnd_shift,0);
         tmock::assert_equiv(s->snd_mss,MAX_SAFE_IP_SIZE-40U);
         tmock::assert_equiv(s->rcv_nxt,REMOTE_ISS+1);
-        tmock::assert_equiv(s->rcv_wnd,MAX_RX_WINDOW);
+        tmock::assert_equiv(s->rcv_wnd,WND_SIZE);
         tmock::assert_equiv(s->rcv_wnd_shift,0);
         tmock::assert_equiv(s->rcv_mss,intf.rx_mtu-40U);
         tmock::assert_equiv(s->remote_ip,REMOTE_IP);
@@ -142,7 +145,7 @@ class tmock_test
         // We should send:
         //  <SEQ=ISS><ACK=RCV.NXT><CTL=SYN,ACK>
         auto* op = static_cast<tcp::tx_op*>(intf.pop_tx_op());
-        validate_tx_op(op,s->iss,REMOTE_ISS+1,MIN(MAX_RX_WINDOW,0xFFFF),
+        validate_tx_op(op,s->iss,REMOTE_ISS+1,MIN(WND_SIZE,0xFFFF),
                        FSYN|FACK,6);
 
         uint8_t* opt = op->hdrs.tcp.options;
@@ -160,7 +163,8 @@ class tmock_test
 
     TMOCK_TEST(test_active_connect)
     {
-        tcp::socket s(&intf,REMOTE_IP,LOCAL_PORT,REMOTE_PORT,NULL,0,NULL);
+        tcp::socket s(&intf,REMOTE_IP,LOCAL_PORT,REMOTE_PORT,NULL,0,NULL,
+                      WND_SIZE);
 
         // We should set:
         //  ISS     = random
@@ -173,8 +177,8 @@ class tmock_test
         tmock::assert_equiv(s.snd_wnd_shift,0U);
         tmock::assert_equiv(s.snd_mss,MAX_SAFE_IP_SIZE-40U);
         tmock::assert_equiv(s.rcv_nxt,0U);
-        tmock::assert_equiv(s.rcv_wnd,MAX_RX_WINDOW);
-        tmock::assert_equiv(s.rcv_wnd_shift,RX_WINDOW_SHIFT);
+        tmock::assert_equiv(s.rcv_wnd,WND_SIZE);
+        tmock::assert_equiv(s.rcv_wnd_shift,WND_SHIFT);
         tmock::assert_equiv(s.rcv_mss,intf.rx_mtu-40U);
         tmock::assert_equiv(s.remote_ip,REMOTE_IP);
         tmock::assert_equiv(s.local_port,LOCAL_PORT);
@@ -187,7 +191,7 @@ class tmock_test
         //  MSS - 1460
         //  Window Shift - RX_WINDOW_SHIFT
         auto* op = static_cast<tcp::tx_op*>(intf.pop_tx_op());
-        validate_tx_op(op,s.iss,0,MIN(MAX_RX_WINDOW,0xFFFF),FSYN,7);
+        validate_tx_op(op,s.iss,0,MIN(WND_SIZE,0xFFFF),FSYN,7);
 
         uint8_t* opt = op->hdrs.tcp.options;
         tmock::assert_equiv(opt[0],2U);
@@ -195,7 +199,7 @@ class tmock_test
         tmock::assert_equiv(*(be_uint16_t*)(opt + 2),1460U);
         tmock::assert_equiv(opt[4],3U);
         tmock::assert_equiv(opt[5],3U);
-        tmock::assert_equiv(opt[6],RX_WINDOW_SHIFT);
+        tmock::assert_equiv(opt[6],WND_SHIFT);
         tmock::assert_equiv(opt[7],1U);
         intf.handle_tx_completion(op);
         TASSERT(s.retransmit_wqe.is_armed());

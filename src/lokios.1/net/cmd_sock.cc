@@ -55,7 +55,7 @@ net::cmd_sock_listener::cmd_sock_listener(net::interface* intf):
 void
 net::cmd_sock_listener::listen(uint16_t port)
 {
-    intf->tcp_listen(port,method_delegate(cmd_socket_accepted));
+    intf->tcp_listen(port,32768,method_delegate(cmd_socket_accepted));
 }
 
 void

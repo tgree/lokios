@@ -75,12 +75,12 @@ net::interface::udp_ignore(uint16_t port)
 }
 
 void
-net::interface::tcp_listen(uint16_t port,
+net::interface::tcp_listen(uint16_t port, uint32_t rcv_wnd,
     tcp::socket_accepted_delegate ad,
     tcp::should_accept_delegate sad)
 {
     kassert(port < FIRST_EPHEMERAL_PORT);
-    tcp_listeners.emplace(port,tcp::listener{sad,ad});
+    tcp_listeners.emplace(port,tcp::listener{rcv_wnd,sad,ad});
 }
 
 void
@@ -91,7 +91,7 @@ net::interface::tcp_ignore(uint16_t port)
 
 tcp::socket*
 net::interface::tcp_connect(ipv4::addr remote_ip, uint16_t remote_port,
-    tcp::socket_observer* observer, uint16_t local_port)
+    tcp::socket_observer* observer, uint16_t local_port, uint32_t wnd_size)
 {
     if (local_port != INPORT_ANY)
         kassert(local_port < FIRST_EPHEMERAL_PORT);
@@ -102,7 +102,7 @@ net::interface::tcp_connect(ipv4::addr remote_ip, uint16_t remote_port,
     }
     auto sid = tcp::socket_id{remote_ip,remote_port,local_port};
     return &tcp_sockets.emplace(sid,this,remote_ip,local_port,remote_port,
-                                nullptr,0,observer);
+                                nullptr,0,observer,wnd_size);
 }
 
 void

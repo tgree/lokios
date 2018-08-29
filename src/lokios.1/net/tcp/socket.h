@@ -36,10 +36,6 @@
 #include "mm/slab.h"
 #include "k++/delegate.h"
 
-// Socket parameters.
-#define MAX_RX_WINDOW           0x01FFFFFF  // 32M
-#define RX_WINDOW_SHIFT         9
-
 namespace net
 {
     struct interface;
@@ -51,6 +47,9 @@ namespace tcp
 
     struct listener
     {
+        // The size of the receive window for sockets accepted by this listener.
+        const uint32_t                              rcv_wnd;
+
         // Decide whether or not to accept a SYN connection request.
         kernel::delegate<bool(const header* syn)>   should_accept;
 
@@ -229,12 +228,13 @@ namespace tcp
         }
 
         // Passive open.
-        socket(net::interface* intf, net::rx_page* p, parsed_options rx_opts);
+        socket(net::interface* intf, net::rx_page* p, parsed_options rx_opts,
+               uint32_t rcv_wnd = 32768);
 
         // Active open.
         socket(net::interface* intf, ipv4::addr remote_ip, uint16_t local_port,
                uint16_t remote_port, const void* llhdr, size_t llsize,
-               socket_observer* observer);
+               socket_observer* observer, uint32_t rcv_wnd = 32768);
     };
 
     struct socket_id

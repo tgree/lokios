@@ -88,7 +88,7 @@ namespace net
                 void    udp_ignore(uint16_t port);
 
         // TCP.
-                void    tcp_listen(uint16_t port,
+                void    tcp_listen(uint16_t port, uint32_t rcv_wnd,
                                    tcp::socket_accepted_delegate ad,
                                    tcp::should_accept_delegate sad =
                                     kernel::func_delegate(tcp_always_accept));
@@ -96,7 +96,8 @@ namespace net
         static  bool    tcp_always_accept(const tcp::header*) {return true;}
         tcp::socket*    tcp_connect(ipv4::addr remote_ip, uint16_t remote_port,
                                     tcp::socket_observer* observer,
-                                    uint16_t local_port = INPORT_ANY);
+                                    uint16_t local_port = INPORT_ANY,
+                                    uint32_t wnd_size = 32768);
                 void    tcp_unlink(tcp::socket* s);
                 void    tcp_delete(tcp::socket* s);
 

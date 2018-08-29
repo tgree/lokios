@@ -14,6 +14,9 @@
 #define REMOTE_ISS  0x1234U
 #define REMOTE_WS   0x4444U
 
+#define WND_SIZE    0x01FFFFFFU
+#define WND_SHIFT   9
+
 using namespace tcp;
 
 static net::finterface intf(LOCAL_IP);
@@ -32,7 +35,7 @@ struct mock_listener
 
     mock_listener(uint16_t port)
     {
-        intf.tcp_listen(port,method_delegate(socket_accepted),
+        intf.tcp_listen(port,WND_SIZE,method_delegate(socket_accepted),
                         method_delegate(should_accept));
     }
 };
@@ -155,9 +158,10 @@ cleanup_socket(tcp::socket* s, tcp::socket::tcp_state state,
 static tcp::socket*
 transition_SYN_SENT()
 {
-    auto* s = intf.tcp_connect(REMOTE_IP,REMOTE_PORT,&mobserver,LOCAL_PORT);
-    tx_expect(SEQ{s->iss},CTL{FSYN},WS{s->rcv_wnd,0},OPT_MSS{s->rcv_mss},
-              OPT_WND_SHIFT{s->rcv_wnd_shift});
+    auto* s = intf.tcp_connect(REMOTE_IP,REMOTE_PORT,&mobserver,LOCAL_PORT,
+                               WND_SIZE);
+    tx_expect(SEQ{s->iss},CTL{FSYN},WS{s->rcv_wnd,0},
+              OPT_MSS{s->rcv_mss},OPT_WND_SHIFT{s->rcv_wnd_shift});
     tmock::assert_equiv(s->state,tcp::socket::TCP_SYN_SENT);
     return s;
 }
@@ -188,7 +192,8 @@ transition_ESTABLISHED()
     rx_packet(ACK{s->iss+1},CTL{FSYN|FACK},OPT_MSS{1460},OPT_WND_SHIFT{0});
     tcheckpoint(e);
     tmock::assert_equiv(s->state,tcp::socket::TCP_ESTABLISHED);
-    tx_expect(SEQ{s->iss+1},ACK{REMOTE_ISS+1},CTL{FACK},WS{s->rcv_wnd,0});
+    tx_expect(SEQ{s->iss+1},ACK{REMOTE_ISS+1},CTL{FACK},
+              WS{s->rcv_wnd,s->rcv_wnd_shift});
     return s;
 }
 
@@ -198,7 +203,8 @@ transition_FIN_WAIT_1()
     auto* s = transition_ESTABLISHED();
     s->close_send();
     tmock::assert_equiv(s->state,tcp::socket::TCP_FIN_WAIT_1);
-    tx_expect(SEQ{s->iss+1},ACK{REMOTE_ISS+1},CTL{FACK|FFIN},WS{s->rcv_wnd,0});
+    tx_expect(SEQ{s->iss+1},ACK{REMOTE_ISS+1},CTL{FACK|FFIN},
+              WS{s->rcv_wnd,s->rcv_wnd_shift});
     return s;
 }
 
@@ -220,7 +226,8 @@ transition_CLOSING()
     rx_packet(ACK{s->iss+1},CTL{FACK|FFIN});
     tcheckpoint(e);
     tmock::assert_equiv(s->state,tcp::socket::TCP_CLOSING);
-    tx_expect(SEQ{s->iss+2},ACK{REMOTE_ISS+2},CTL{FACK},WS{s->rcv_wnd,0});
+    tx_expect(SEQ{s->iss+2},ACK{REMOTE_ISS+2},CTL{FACK},
+              WS{s->rcv_wnd,s->rcv_wnd_shift});
     return s;
 }
 
@@ -232,7 +239,8 @@ transition_TIME_WAIT()
     rx_packet(ACK{s->iss+2},CTL{FACK|FFIN});
     tcheckpoint(e);
     tmock::assert_equiv(s->state,tcp::socket::TCP_TIME_WAIT);
-    tx_expect(SEQ{s->iss+2},ACK{REMOTE_ISS+2},CTL{FACK},WS{s->rcv_wnd,0});
+    tx_expect(SEQ{s->iss+2},ACK{REMOTE_ISS+2},CTL{FACK},
+              WS{s->rcv_wnd,s->rcv_wnd_shift});
     return s;
 }
 
@@ -244,7 +252,8 @@ transition_CLOSE_WAIT()
     rx_packet(ACK{s->iss+1},CTL{FACK|FFIN});
     tcheckpoint(e);
     tmock::assert_equiv(s->state,tcp::socket::TCP_CLOSE_WAIT);
-    tx_expect(SEQ{s->iss+1},ACK{REMOTE_ISS+2},CTL{FACK},WS{s->rcv_wnd,0});
+    tx_expect(SEQ{s->iss+1},ACK{REMOTE_ISS+2},CTL{FACK},
+              WS{s->rcv_wnd,s->rcv_wnd_shift});
     return s;
 }
 
@@ -254,7 +263,8 @@ transition_LAST_ACK()
     auto* s = transition_CLOSE_WAIT();
     s->close_send();
     tmock::assert_equiv(s->state,tcp::socket::TCP_LAST_ACK);
-    tx_expect(SEQ{s->iss+1},ACK{REMOTE_ISS+2},CTL{FACK|FFIN},WS{s->rcv_wnd,0});
+    tx_expect(SEQ{s->iss+1},ACK{REMOTE_ISS+2},CTL{FACK|FFIN},
+              WS{s->rcv_wnd,s->rcv_wnd_shift});
     return s;
 }
 
@@ -435,7 +445,8 @@ class tmock_test
         // ***Deviation: We handle this case with our own sub-states, but the
         //               external visibility is the same.
         rx_packet(SEQ{REMOTE_ISS},CTL{FSYN});
-        tx_expect(SEQ{s->iss+1},ACK{REMOTE_ISS+1},CTL{FACK},WS{s->rcv_wnd,0});
+        tx_expect(SEQ{s->iss+1},ACK{REMOTE_ISS+1},CTL{FACK},
+                  WS{s->rcv_wnd,s->rcv_wnd_shift});
 
         cleanup_socket(s,tcp::socket::TCP_SYN_SENT_SYN_RECVD_WAIT_ACK);
     }
@@ -472,7 +483,8 @@ class tmock_test
         auto e = texpect("mock_observer::socket_established",want(s,s));
         rx_packet(SEQ{REMOTE_ISS},ACK{s->iss+1},CTL{FSYN|FACK});
         tcheckpoint(e);
-        tx_expect(SEQ{s->iss+1},ACK{REMOTE_ISS+1},CTL{FACK},WS{s->rcv_wnd,0});
+        tx_expect(SEQ{s->iss+1},ACK{REMOTE_ISS+1},CTL{FACK},
+                  WS{s->rcv_wnd,s->rcv_wnd_shift});
 
         cleanup_socket(s,tcp::socket::TCP_ESTABLISHED);
     }
@@ -512,7 +524,8 @@ class tmock_test
         auto state = s->state;
         TASSERT(s->rcv_wnd != 0);
         rx_packet(SEQ{remote_snd_nxt-1},ACK{s->iss+1},CTL{FACK});
-        tx_expect(SEQ{s->snd_nxt},ACK{s->rcv_nxt},CTL{FACK},WS{s->rcv_wnd,0});
+        tx_expect(SEQ{s->snd_nxt},ACK{s->rcv_nxt},CTL{FACK},
+                  WS{s->rcv_wnd,s->rcv_wnd_shift});
 
         cleanup_socket(s,state);
     }
@@ -522,7 +535,8 @@ class tmock_test
         auto state = s->state;
         TASSERT(s->rcv_wnd != 0);
         rx_packet(SEQ{remote_snd_nxt+s->rcv_wnd},ACK{s->iss+1},CTL{FACK});
-        tx_expect(SEQ{s->snd_nxt},ACK{s->rcv_nxt},CTL{FACK},WS{s->rcv_wnd,0});
+        tx_expect(SEQ{s->snd_nxt},ACK{s->rcv_nxt},CTL{FACK},
+                  WS{s->rcv_wnd,s->rcv_wnd_shift});
 
         cleanup_socket(s,state);
     }
@@ -568,7 +582,8 @@ class tmock_test
     {
         auto state = s->state;
         rx_packet(SEQ{REMOTE_ISS-10},ACK{s->snd_nxt},CTL{FACK},DATA{data,4});
-        tx_expect(SEQ{s->snd_nxt},ACK{s->rcv_nxt},CTL{FACK},WS{s->rcv_wnd,0});
+        tx_expect(SEQ{s->snd_nxt},ACK{s->rcv_nxt},CTL{FACK},
+                  WS{s->rcv_wnd,s->rcv_wnd_shift});
         tmock::assert_equiv(s->rx_avail_bytes,0U);
 
         cleanup_socket(s,state);
@@ -579,7 +594,8 @@ class tmock_test
         auto state = s->state;
         rx_packet(SEQ{remote_snd_nxt+s->rcv_wnd},ACK{s->snd_nxt},CTL{FACK},
                   DATA{data,4});
-        tx_expect(SEQ{s->snd_nxt},ACK{s->rcv_nxt},CTL{FACK},WS{s->rcv_wnd,0});
+        tx_expect(SEQ{s->snd_nxt},ACK{s->rcv_nxt},CTL{FACK},
+                  WS{s->rcv_wnd,s->rcv_wnd_shift});
         tmock::assert_equiv(s->rx_avail_bytes,0U);
 
         cleanup_socket(s,state);
@@ -602,13 +618,13 @@ class tmock_test
         if (!rx_drop && is_next)
         {
             tx_expect(SEQ{s->snd_nxt},ACK{s->rcv_nxt},CTL{FACK},
-                      WS{new_wnd,0});
+                      WS{new_wnd,s->rcv_wnd_shift});
             tmock::assert_equiv(s->rx_avail_bytes,rx_avail);
             memset(rcvbuf,0,rx_avail);
             s->read(rcvbuf,rx_avail);
             tmock::assert_mem_same(rcvbuf,data+len-rx_avail,rx_avail);
             tx_expect(SEQ{s->snd_nxt},ACK{s->rcv_nxt},CTL{FACK},
-                      WS{new_wnd+rx_avail,0});
+                      WS{new_wnd+rx_avail,s->rcv_wnd_shift});
         }
         else
         {
@@ -709,7 +725,7 @@ class tmock_test
         else
         {
             tx_expect(SEQ{s->snd_nxt},ACK{remote_snd_nxt},CTL{FACK},
-                      WS{s->rcv_wnd,0});
+                      WS{s->rcv_wnd,s->rcv_wnd_shift});
         }
 
         cleanup_socket(s,state);
@@ -864,7 +880,6 @@ class tmock_test
     TEST_ALL(TIME_WAIT,TCP_TIME_WAIT,NULL);
     TEST_ALL(CLOSE_WAIT,TCP_CLOSE_WAIT,NULL);
     TEST_ALL(LAST_ACK,TCP_CLOSED,"mock_observer::socket_closed");
-
 };
 
 int

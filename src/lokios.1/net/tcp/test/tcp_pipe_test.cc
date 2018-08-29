@@ -7,6 +7,9 @@
 #define LOCAL_IP1   ipv4::addr{2,2,2,2}
 #define LISTEN_PORT 3333
 
+#define WND_SIZE    32768
+#define WND_SHIFT   0
+
 struct mock_observer : public tcp::socket_observer
 {
     virtual void socket_established(tcp::socket* s)
@@ -88,7 +91,7 @@ struct fake_listener
 
     void listen(net::interface* intf, uint16_t port)
     {
-        intf->tcp_listen(port,method_delegate(socket_accepted));
+        intf->tcp_listen(port,WND_SIZE,method_delegate(socket_accepted));
     }
 };
 

@@ -103,7 +103,8 @@ tcp::handle_rx_ipv4_tcp_frame(net::interface* intf, net::rx_page* p)
                 return 0;
 
             auto& s = intf->tcp_sockets.emplace(sid,intf,p,
-                                                h->tcp.parse_options());
+                                                h->tcp.parse_options(),
+                                                l.rcv_wnd);
             l.socket_accepted(&s);
             return 0;
         }
