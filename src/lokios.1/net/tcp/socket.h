@@ -222,6 +222,11 @@ namespace tcp
         {
             return state == TCP_ESTABLISHED || state == TCP_CLOSE_WAIT;
         }
+        inline bool in_fin_recvd_state() const
+        {
+            return state == TCP_CLOSING || state == TCP_TIME_WAIT ||
+                   state == TCP_CLOSE_WAIT || state == TCP_LAST_ACK;
+        }
 
         // Passive open.
         socket(net::interface* intf, net::rx_page* p, parsed_options rx_opts);
