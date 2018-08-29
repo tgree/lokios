@@ -587,9 +587,6 @@ class tmock_test
             tcp::socket::tcp_state state, uint32_t seq, uint32_t len,
             uint32_t rx_avail)
     {
-        // In some of our states we've sent SYN and in some we've also sent
-        // FIN.  For the low overlap to be valid, we need at least 1 new byte,
-        //
         bool rx_drop = s->in_fin_recvd_state();
         bool is_next = seq_range{seq,len}.seq_in_range(s->rcv_nxt);
         uint32_t initial_avail = s->rx_avail_bytes;
@@ -707,9 +704,8 @@ class tmock_test
             texpect(expectation,want(s,s)); \
         test_syncd_acceptable_window_start_sl1_ws1(s,tcp::socket::fs);\
     }
-#define TEST_ACC_WINDOW_LATE_SL1_WS1_BROKEN(ts,fs,expectation) \
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS( \
-            test_##ts##_acceptable_window_late_sl1_ws1) \
+#define TEST_ACC_WINDOW_LATE_SL1_WS1(ts,fs,expectation) \
+    TMOCK_TEST(test_##ts##_acceptable_window_late_sl1_ws1) \
     { \
         auto* s = transition_##ts(); \
         if (expectation) \
@@ -729,7 +725,8 @@ class tmock_test
     TEST_ACC_LOW_SL0_WS1(ts,fs,e); \
     TEST_ACC_HIGH_SL0_WS1(ts,fs,e); \
     TEST_ACC_LOW_OVERLAP_SL1_WS1(ts,fs,e); \
-    TEST_ACC_WINDOW_START_SL1_WS1(ts,fs,e)
+    TEST_ACC_WINDOW_START_SL1_WS1(ts,fs,e); \
+    TEST_ACC_WINDOW_LATE_SL1_WS1(ts,fs,e)
 #define TEST_ALL(ts,fs,e) \
     TEST_ALL_UNACC(ts); \
     TEST_ALL_ACC(ts,fs,e)
@@ -742,12 +739,6 @@ class tmock_test
     TEST_ALL(TIME_WAIT,TCP_TIME_WAIT,NULL);
     TEST_ALL(CLOSE_WAIT,TCP_CLOSE_WAIT,NULL);
     TEST_ALL(LAST_ACK,TCP_CLOSED,"mock_observer::socket_closed");
-
-    TEST_ACC_WINDOW_LATE_SL1_WS1_BROKEN(SYN_RECVD,TCP_ESTABLISHED,
-                                        "mock_observer::socket_established");
-    TEST_ACC_WINDOW_LATE_SL1_WS1_BROKEN(ESTABLISHED,TCP_ESTABLISHED,NULL);
-    TEST_ACC_WINDOW_LATE_SL1_WS1_BROKEN(FIN_WAIT_1,TCP_FIN_WAIT_2,NULL);
-    TEST_ACC_WINDOW_LATE_SL1_WS1_BROKEN(FIN_WAIT_2,TCP_FIN_WAIT_2,NULL);
 };
 
 int

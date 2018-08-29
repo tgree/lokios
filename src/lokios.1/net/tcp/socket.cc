@@ -756,7 +756,14 @@ tcp::socket::process_payload_synchronized(net::rx_page* p)
     bool fin           = h->tcp.fin;
     seq_range rx_range = {h->tcp.seq_num,h->segment_len()};
     seq_range new_seqs = seq_overlap(rx_range,{rcv_nxt,rcv_wnd});
-    rcv_nxt           += new_seqs.len;
+
+    // TODO: This check identifies out-of-order packets.  Instead of just
+    //       dropping the packet, we should queue it up for later
+    //       processing.
+    if (new_seqs.first != rcv_nxt)
+        return 0;
+
+    rcv_nxt += new_seqs.len;
     if (rx_range.len)
         post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
     if (new_seqs.len)
