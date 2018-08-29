@@ -142,7 +142,8 @@ class tmock_test
         // We should send:
         //  <SEQ=ISS><ACK=RCV.NXT><CTL=SYN,ACK>
         auto* op = static_cast<tcp::tx_op*>(intf.pop_tx_op());
-        validate_tx_op(op,s->iss,REMOTE_ISS+1,0xFFFF,FSYN|FACK,6);
+        validate_tx_op(op,s->iss,REMOTE_ISS+1,MIN(MAX_RX_WINDOW,0xFFFF),
+                       FSYN|FACK,6);
 
         uint8_t* opt = op->hdrs.tcp.options;
         tmock::assert_equiv(opt[0],2U);
@@ -186,7 +187,7 @@ class tmock_test
         //  MSS - 1460
         //  Window Shift - RX_WINDOW_SHIFT
         auto* op = static_cast<tcp::tx_op*>(intf.pop_tx_op());
-        validate_tx_op(op,s.iss,0,0xFFFF,FSYN,7);
+        validate_tx_op(op,s.iss,0,MIN(MAX_RX_WINDOW,0xFFFF),FSYN,7);
 
         uint8_t* opt = op->hdrs.tcp.options;
         tmock::assert_equiv(opt[0],2U);
