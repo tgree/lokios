@@ -763,11 +763,10 @@ tcp::socket::process_payload_synchronized(net::rx_page* p)
     if (new_seqs.first != rcv_nxt)
         return 0;
 
-    rcv_nxt += new_seqs.len;
-    if (rx_range.len)
-        post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
     if (new_seqs.len)
     {
+        rcv_nxt += new_seqs.len;
+        post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
         uint32_t skip = new_seqs.first - h->tcp.seq_num;
         p->client_len = h->payload_len() - skip;
         if (p->client_len)
