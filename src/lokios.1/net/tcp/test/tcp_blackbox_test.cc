@@ -637,6 +637,36 @@ class tmock_test
         cleanup_socket(s,state);
     }
 
+    static void test_syncd_acceptable_rst(socket* s)
+    {
+        texpect("mock_observer::socket_reset",want(s,s));
+        rx_packet(ACK{s->snd_nxt},CTL{FRST});
+        tx_expect_none();
+
+        cleanup_socket(s,tcp::socket::TCP_CLOSED);
+    }
+
+    static void test_syncd_acceptable_syn(socket* s)
+    {
+        // "If the SYN is in the window it is an error, send a reset, ...".
+        // Not very clear on what the RST should be.
+        texpect("mock_observer::socket_reset",want(s,s));
+        rx_packet(CTL{FSYN});
+        tx_expect(SEQ{s->snd_nxt},CTL{FRST});
+
+        cleanup_socket(s,tcp::socket::TCP_CLOSED);
+    }
+
+    static void test_syncd_acceptable_no_ack(socket* s)
+    {
+        // "If the ACK bit is off drop the segment and return"
+        auto state = s->state;
+        rx_packet();
+        tx_expect_none();
+
+        cleanup_socket(s,state);
+    }
+
 #define TEST_UNACC_LOW_SL0_WS0(ts) \
     TMOCK_TEST(test_##ts##_unacceptable_seq_low_sl0_ws0) \
     { \
@@ -728,6 +758,21 @@ class tmock_test
             texpect(expectation,want(s,s)); \
         test_syncd_acceptable_window_high_sl1_ws1(s,tcp::socket::fs);\
     }
+#define TEST_ACC_RST(ts) \
+    TMOCK_TEST(test_##ts##_acceptable_rst) \
+    { \
+        test_syncd_acceptable_rst(transition_##ts());\
+    }
+#define TEST_ACC_SYN(ts) \
+    TMOCK_TEST(test_##ts##_acceptable_syn) \
+    { \
+        test_syncd_acceptable_syn(transition_##ts());\
+    }
+#define TEST_ACC_NO_ACK(ts) \
+    TMOCK_TEST(test_##ts##_acceptable_no_ack) \
+    { \
+        test_syncd_acceptable_no_ack(transition_##ts());\
+    }
 #define TEST_ALL_UNACC(ts) \
     TEST_UNACC_LOW_SL0_WS0(ts); \
     TEST_UNACC_HIGH_SL0_WS0(ts); \
@@ -743,7 +788,10 @@ class tmock_test
     TEST_ACC_LOW_OVERLAP_SL1_WS1(ts,fs,e); \
     TEST_ACC_WINDOW_START_SL1_WS1(ts,fs,e); \
     TEST_ACC_WINDOW_LATE_SL1_WS1(ts,fs,e); \
-    TEST_ACC_WINDOW_HIGH_SL1_WS1(ts,fs,e)
+    TEST_ACC_WINDOW_HIGH_SL1_WS1(ts,fs,e); \
+    TEST_ACC_RST(ts); \
+    TEST_ACC_SYN(ts); \
+    TEST_ACC_NO_ACK(ts);
 #define TEST_ALL(ts,fs,e) \
     TEST_ALL_UNACC(ts); \
     TEST_ALL_ACC(ts,fs,e)
