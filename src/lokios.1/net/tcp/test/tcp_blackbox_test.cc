@@ -67,6 +67,8 @@ struct mock_observer : public tcp::socket_observer
 
 static mock_observer mobserver;
 
+static char data[100];
+
 static uint32_t remote_snd_nxt = REMOTE_ISS;
 
 template<typename... Args>
@@ -560,6 +562,69 @@ class tmock_test
         cleanup_socket(s,state);
     }
 
+    static void test_syncd_unacceptable_ancient_sl1_ws1(socket* s)
+    {
+        auto state = s->state;
+        rx_packet(SEQ{REMOTE_ISS-10},ACK{s->snd_nxt},CTL{FACK},DATA{data,4});
+        tx_expect(SEQ{s->snd_nxt},ACK{s->rcv_nxt},CTL{FACK},WS{s->rcv_wnd,0});
+        tmock::assert_equiv(s->rx_avail_bytes,0U);
+
+        cleanup_socket(s,state);
+    }
+
+    static void test_syncd_unacceptable_future_sl1_ws1(socket* s)
+    {
+        auto state = s->state;
+        rx_packet(SEQ{remote_snd_nxt+s->rcv_wnd},ACK{s->snd_nxt},CTL{FACK},
+                  DATA{data,4});
+        tx_expect(SEQ{s->snd_nxt},ACK{s->rcv_nxt},CTL{FACK},WS{s->rcv_wnd,0});
+        tmock::assert_equiv(s->rx_avail_bytes,0U);
+
+        cleanup_socket(s,state);
+    }
+
+    static void test_syncd_acceptable_overlap_sl1_ws1(socket* s,
+            tcp::socket::tcp_state state, uint32_t seq, uint32_t len,
+            uint32_t rx_avail)
+    {
+        // In some of our states we've sent SYN and in some we've also sent
+        // FIN.  For the low overlap to be valid, we need at least 1 new byte,
+        //
+        bool rx_drop = s->in_fin_recvd_state();
+        bool is_next = seq_range{seq,len}.seq_in_range(s->rcv_nxt);
+        uint32_t initial_avail = s->rx_avail_bytes;
+        TASSERT(s->rcv_wnd > 0);
+
+        if (!rx_drop && is_next)
+            texpect("mock_observer::socket_readable",want(s,s));
+        rx_packet(SEQ{seq},ACK{s->snd_nxt},CTL{FACK},DATA{data,len});
+        if (!rx_drop && is_next)
+        {
+            tx_expect(SEQ{s->snd_nxt},ACK{s->rcv_nxt},CTL{FACK},
+                      WS{s->rcv_wnd,0});
+            tmock::assert_equiv(s->rx_avail_bytes,initial_avail+rx_avail);
+        }
+        else
+        {
+            tx_expect_none();
+            tmock::assert_equiv(s->rx_avail_bytes,initial_avail);
+        }
+    }
+
+    static void test_syncd_acceptable_low_overlap_sl1_ws1(socket* s,
+            tcp::socket::tcp_state state)
+    {
+        test_syncd_acceptable_overlap_sl1_ws1(s,state,REMOTE_ISS-2,5,2);
+        cleanup_socket(s,state);
+    }
+
+    static void test_syncd_acceptable_window_start_sl1_ws1(socket* s,
+            tcp::socket::tcp_state state)
+    {
+        test_syncd_acceptable_overlap_sl1_ws1(s,state,REMOTE_ISS+1,5,5);
+        cleanup_socket(s,state);
+    }
+
 #define TEST_UNACC_LOW_SL0_WS0(ts) \
     TMOCK_TEST(test_##ts##_unacceptable_seq_low_sl0_ws0) \
     { \
@@ -609,16 +674,46 @@ class tmock_test
     { \
         test_syncd_unacceptable_sl1_ws0(transition_##ts()); \
     }
+#define TEST_UNACC_ANCIENT_SL1_WS1(ts) \
+    TMOCK_TEST(test_##ts##_unacceptable_seq_ancient_sl1_ws1) \
+    { \
+        test_syncd_unacceptable_ancient_sl1_ws1(transition_##ts()); \
+    }
+#define TEST_UNACC_FUTURE_SL1_WS1(ts) \
+    TMOCK_TEST(test_##ts##_unacceptable_seq_future_sl1_ws1) \
+    { \
+        test_syncd_unacceptable_future_sl1_ws1(transition_##ts()); \
+    }
+#define TEST_ACC_LOW_OVERLAP_SL1_WS1(ts,fs,expectation) \
+    TMOCK_TEST(test_##ts##_acceptable_low_overlap_sl1_ws1) \
+    { \
+        auto* s = transition_##ts(); \
+        if (expectation) \
+            texpect(expectation,want(s,s)); \
+        test_syncd_acceptable_low_overlap_sl1_ws1(s,tcp::socket::fs);\
+    }
+#define TEST_ACC_WINDOW_START_SL1_WS1(ts,fs,expectation) \
+    TMOCK_TEST(test_##ts##_acceptable_window_start_sl1_ws1) \
+    { \
+        auto* s = transition_##ts(); \
+        if (expectation) \
+            texpect(expectation,want(s,s)); \
+        test_syncd_acceptable_window_start_sl1_ws1(s,tcp::socket::fs);\
+    }
 #define TEST_ALL_UNACC(ts) \
     TEST_UNACC_LOW_SL0_WS0(ts); \
     TEST_UNACC_HIGH_SL0_WS0(ts); \
     TEST_UNACC_LOW_SL0_WS1(ts); \
     TEST_UNACC_HIGH_SL0_WS1(ts); \
-    TEST_UNACC_SL1_WS0(ts);
+    TEST_UNACC_SL1_WS0(ts); \
+    TEST_UNACC_ANCIENT_SL1_WS1(ts); \
+    TEST_UNACC_FUTURE_SL1_WS1(ts)
 #define TEST_ALL_ACC(ts,fs,e) \
     TEST_ACC_SL0_WS0(ts,fs,e); \
     TEST_ACC_LOW_SL0_WS1(ts,fs,e); \
-    TEST_ACC_HIGH_SL0_WS1(ts,fs,e);
+    TEST_ACC_HIGH_SL0_WS1(ts,fs,e); \
+    TEST_ACC_LOW_OVERLAP_SL1_WS1(ts,fs,e); \
+    TEST_ACC_WINDOW_START_SL1_WS1(ts,fs,e)
 #define TEST_ALL(ts,fs,e) \
     TEST_ALL_UNACC(ts); \
     TEST_ALL_ACC(ts,fs,e)
