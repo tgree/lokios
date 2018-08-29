@@ -1,5 +1,6 @@
 #include "net/mock/finterface.h"
 #include "kernel/mock/fschedule.h"
+#include "kernel/mock/fconsole.h"
 #include <tmock/tmock.h>
 
 #define LOCAL_IP0   ipv4::addr{1,1,1,1}
@@ -415,4 +416,9 @@ class tmock_test
     }
 };
 
-TMOCK_MAIN();
+int
+main(int argc, const char* argv[])
+{
+    kernel::fconsole_suppress_output = true;
+    return tmock::run_tests(argc,argv);
+}
