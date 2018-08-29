@@ -819,8 +819,7 @@ class tmock_test
         test_syncd_acceptable_unacceptable_low_ack(transition_##ts());\
     }
 #define TEST_ACC_HIGH_ACK(ts) \
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS( \
-            test_##ts##_acceptable_unacceptable_high_ack) \
+    TMOCK_TEST(test_##ts##_acceptable_unacceptable_high_ack) \
     { \
         test_syncd_acceptable_unacceptable_high_ack(transition_##ts());\
     }
@@ -843,7 +842,8 @@ class tmock_test
     TEST_ACC_RST(ts); \
     TEST_ACC_SYN(ts); \
     TEST_ACC_NO_ACK(ts); \
-    TEST_ACC_LOW_ACK(ts)
+    TEST_ACC_LOW_ACK(ts); \
+    TEST_ACC_HIGH_ACK(ts)
 #define TEST_ALL(ts,fs,e) \
     TEST_ALL_UNACC(ts); \
     TEST_ALL_ACC(ts,fs,e)
@@ -857,13 +857,6 @@ class tmock_test
     TEST_ALL(CLOSE_WAIT,TCP_CLOSE_WAIT,NULL);
     TEST_ALL(LAST_ACK,TCP_CLOSED,"mock_observer::socket_closed");
 
-    TEST_ACC_HIGH_ACK(ESTABLISHED);
-    TEST_ACC_HIGH_ACK(FIN_WAIT_1);
-    TEST_ACC_HIGH_ACK(FIN_WAIT_2);
-    TEST_ACC_HIGH_ACK(CLOSING);
-    TEST_ACC_HIGH_ACK(TIME_WAIT);
-    TEST_ACC_HIGH_ACK(CLOSE_WAIT);
-    TEST_ACC_HIGH_ACK(LAST_ACK);
 };
 
 int

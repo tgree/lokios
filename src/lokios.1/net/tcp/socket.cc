@@ -684,6 +684,21 @@ catch (ack_unacceptable_exception)
                 post_rst(h->tcp.ack_num);
         break;
 
+        case TCP_ESTABLISHED:
+        case TCP_FIN_WAIT_1:
+        case TCP_FIN_WAIT_2:
+        case TCP_CLOSE_WAIT:
+        case TCP_CLOSING:
+        case TCP_LAST_ACK:
+        case TCP_TIME_WAIT:
+            // If the ACK is duplicate (SEG.ACK < SND_UNA) then it can be
+            // ignored.  Otherwise, if it's from the future (SEG.ACK > SND.NXT)
+            // we have to send an ACK and drop it.  It's not clear how to
+            // define the future - we'll check a 1G window from SND.NXT.
+            if (seq_range{snd_nxt,0x40000000}.seq_in_range(h->tcp.ack_num))
+                post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
+        break;
+
         default:
         break;
     }
