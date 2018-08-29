@@ -679,6 +679,7 @@ catch (ack_unacceptable_exception)
     {
         case TCP_SYN_SENT:
         case TCP_SYN_SENT_ACKED_WAIT_SYN:
+        case TCP_SYN_RECVD:
             if (!h->tcp.rst)
                 post_rst(h->tcp.ack_num);
         break;
