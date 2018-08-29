@@ -35,9 +35,11 @@ namespace tmock
         abort_mem_dump(v,expected,len,file,line);
     }
     template<typename T>
-    inline void assert_mem_same(const T& v, const T& expected)
+    inline void assert_mem_same(const T& v, const T& expected,
+                                const char* file = __builtin_FILE(),
+                                size_t line = __builtin_LINE())
     {
-        assert_mem_same(&v,&expected,sizeof(T));
+        assert_mem_same(&v,&expected,sizeof(T),file,line);
     }
 
     // Assert that two objects are equivalent.  For values it is just a simple
