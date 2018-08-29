@@ -102,8 +102,9 @@ _tx_expect(const char* file, unsigned int l, Args ...args)
     if (!intf.posted_ops.empty())
     {
         auto* top = static_cast<tcp::tx_op*>(intf.pop_tx_op());
-        tmock::assert_mem_same(top->hdrs,top0.hdrs);
-        tmock::assert_mem_same(&top->hdrs,&top0.hdrs,top0.hdrs.ip.total_len);
+        tmock::assert_mem_same(top->hdrs,top0.hdrs,file,l);
+        tmock::assert_mem_same(&top->hdrs,&top0.hdrs,top0.hdrs.ip.total_len,
+                               file,l);
         intf.handle_tx_completion(top);
     }
     else
