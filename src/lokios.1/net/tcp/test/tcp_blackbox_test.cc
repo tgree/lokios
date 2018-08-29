@@ -629,6 +629,14 @@ class tmock_test
         cleanup_socket(s,state);
     }
 
+    static void test_syncd_acceptable_window_high_sl1_ws1(socket* s,
+            tcp::socket::tcp_state state)
+    {
+        test_syncd_acceptable_overlap_sl1_ws1(s,state,
+                                              remote_snd_nxt+s->rcv_wnd-1,5,0);
+        cleanup_socket(s,state);
+    }
+
 #define TEST_UNACC_LOW_SL0_WS0(ts) \
     TMOCK_TEST(test_##ts##_unacceptable_seq_low_sl0_ws0) \
     { \
@@ -712,6 +720,14 @@ class tmock_test
             texpect(expectation,want(s,s)); \
         test_syncd_acceptable_window_late_sl1_ws1(s,tcp::socket::fs);\
     }
+#define TEST_ACC_WINDOW_HIGH_SL1_WS1(ts,fs,expectation) \
+    TMOCK_TEST(test_##ts##_acceptable_window_high_sl1_ws1) \
+    { \
+        auto* s = transition_##ts(); \
+        if (expectation) \
+            texpect(expectation,want(s,s)); \
+        test_syncd_acceptable_window_high_sl1_ws1(s,tcp::socket::fs);\
+    }
 #define TEST_ALL_UNACC(ts) \
     TEST_UNACC_LOW_SL0_WS0(ts); \
     TEST_UNACC_HIGH_SL0_WS0(ts); \
@@ -726,7 +742,8 @@ class tmock_test
     TEST_ACC_HIGH_SL0_WS1(ts,fs,e); \
     TEST_ACC_LOW_OVERLAP_SL1_WS1(ts,fs,e); \
     TEST_ACC_WINDOW_START_SL1_WS1(ts,fs,e); \
-    TEST_ACC_WINDOW_LATE_SL1_WS1(ts,fs,e)
+    TEST_ACC_WINDOW_LATE_SL1_WS1(ts,fs,e); \
+    TEST_ACC_WINDOW_HIGH_SL1_WS1(ts,fs,e)
 #define TEST_ALL(ts,fs,e) \
     TEST_ALL_UNACC(ts); \
     TEST_ALL_ACC(ts,fs,e)
