@@ -95,6 +95,7 @@ namespace kernel
     KASSERT(offsetof(thread,tcb.fxsa.avail) == 27280);
     KASSERT(sizeof(thread) == 32768);
 
+#if !BUILDING_UNITTEST
     static inline tls_tcb* get_current_tcb()
     {
         tls_tcb* tcb;
@@ -111,6 +112,12 @@ namespace kernel
     {
         return container_of(get_current_tcb(),thread,tcb);
     }
+#else
+    inline thread_id get_thread_id()
+    {
+        return 1;
+    }
+#endif
 }
 
 #endif /* __KERNEL_THREAD_H */
