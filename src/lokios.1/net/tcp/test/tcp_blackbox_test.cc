@@ -667,6 +667,24 @@ class tmock_test
         cleanup_socket(s,state);
     }
 
+    static void test_syncd_acceptable_unacceptable_low_ack(socket* s)
+    {
+        // Various possibilities:
+        //  SYN_RECEIVED:
+        //      - we need to send a RST
+        //  Other SYNC'd states:
+        //      - if the ACK is duplicate (SEG.ACK < SND.UNA), it can be
+        //        ignored.
+        auto state = s->state;
+        rx_packet(ACK{s->snd_una-1},CTL{FACK});
+        if (state == tcp::socket::TCP_SYN_RECVD)
+            tx_expect(SEQ{s->snd_una-1},CTL{FRST});
+        else
+            tx_expect_none();
+
+        cleanup_socket(s,state);
+    }
+
 #define TEST_UNACC_LOW_SL0_WS0(ts) \
     TMOCK_TEST(test_##ts##_unacceptable_seq_low_sl0_ws0) \
     { \
@@ -773,6 +791,12 @@ class tmock_test
     { \
         test_syncd_acceptable_no_ack(transition_##ts());\
     }
+#define TEST_ACC_LOW_ACK(ts) \
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS( \
+            test_##ts##_acceptable_unacceptable_low_ack) \
+    { \
+        test_syncd_acceptable_unacceptable_low_ack(transition_##ts());\
+    }
 #define TEST_ALL_UNACC(ts) \
     TEST_UNACC_LOW_SL0_WS0(ts); \
     TEST_UNACC_HIGH_SL0_WS0(ts); \
@@ -791,7 +815,7 @@ class tmock_test
     TEST_ACC_WINDOW_HIGH_SL1_WS1(ts,fs,e); \
     TEST_ACC_RST(ts); \
     TEST_ACC_SYN(ts); \
-    TEST_ACC_NO_ACK(ts);
+    TEST_ACC_NO_ACK(ts)
 #define TEST_ALL(ts,fs,e) \
     TEST_ALL_UNACC(ts); \
     TEST_ALL_ACC(ts,fs,e)
@@ -804,6 +828,8 @@ class tmock_test
     TEST_ALL(TIME_WAIT,TCP_TIME_WAIT,NULL);
     TEST_ALL(CLOSE_WAIT,TCP_CLOSE_WAIT,NULL);
     TEST_ALL(LAST_ACK,TCP_CLOSED,"mock_observer::socket_closed");
+
+    TEST_ACC_LOW_ACK(SYN_RECVD);
 };
 
 int
