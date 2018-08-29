@@ -138,6 +138,12 @@ cleanup_socket(tcp::socket* s, tcp::socket::tcp_state state,
         s->sent_send_ops.pop_front();
         s->send_ops_slab.free(sop);
     }
+    while (!s->rx_pages.empty())
+    {
+        auto* p = klist_front(s->rx_pages,link);
+        s->rx_pages.pop_front();
+        intf.free_rx_page(p);
+    }
     if (s->state == tcp::socket::TCP_CLOSED)
         intf.tcp_delete(s);
 }
