@@ -273,7 +273,8 @@ namespace tcp
     constexpr seq_range seq_overlap_in_out(seq_range inner, seq_range outer)
     {
         // inner.first is contained in outer.
-        return seq_range{inner.first,MIN(inner.len,outer.len - inner.first)};
+        return seq_range{inner.first,
+                         MIN(inner.len,outer.first + outer.len - inner.first)};
     }
 
     constexpr seq_range seq_overlap(seq_range r1, seq_range r2)
@@ -295,6 +296,10 @@ namespace tcp
     KASSERT(seq_overlap(seq_bound(0xFFFFFFF0,10),seq_bound(11,15)).len == 0);
     KASSERT(seq_overlap(seq_bound(11,15),seq_bound(0xFFFFFFF0,10)).len == 0);
     KASSERT(seq_overlap(seq_range{10,0},seq_bound(10,5)).len == 0);
+    KASSERT(seq_overlap(seq_range{32357,32768},seq_bound(32357,33816)) ==
+                        seq_bound(32357,33816));
+    KASSERT(seq_overlap(seq_bound(32357,33816),seq_range{32357,32768}) ==
+                        seq_bound(32357,33816));
 
     uint16_t compute_checksum(net::tx_op* op, size_t llhdr_size);
 }
