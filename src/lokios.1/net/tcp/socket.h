@@ -187,7 +187,7 @@ namespace tcp
                              uint64_t flags = 0);
         tcp::tx_op*     make_one_packet(tcp::send_op* sop);
         void            process_send_queue();
-        void            process_ack(uint32_t ack_num);
+        void            process_ack(uint32_t ack_num, uint32_t lower_bound);
 
         // Receive data.
         void    rx_append(net::rx_page* p);

@@ -396,7 +396,7 @@ tcp::socket::process_send_queue()
 }
 
 void
-tcp::socket::process_ack(uint32_t ack_num)
+tcp::socket::process_ack(uint32_t ack_num, uint32_t lower_bound)
 {
     // snd_una is the first unacknowledged byte and corresponds to the head of
     // the sent_send_ops queue.
@@ -404,6 +404,10 @@ tcp::socket::process_ack(uint32_t ack_num)
     // ack_num is the first unseen sequence number by the remote guy.  So he
     // is acking [snd_una,ack_num).  I.e. sequence number ack_num is NOT being
     // acknowledged yet.
+    seq_range valid_ack_seqs = seq_bound(lower_bound,snd_nxt);
+    if (!valid_ack_seqs.seq_in_range(ack_num))
+        throw ack_unacceptable_exception();
+
     uint32_t ack_len = ack_num - snd_una;
     if (ack_len && retransmit_wqe.is_armed())
     {
@@ -565,10 +569,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
         case TCP_SYN_SENT_ACKED_WAIT_SYN:
             if (h->tcp.ack)
             {
-                seq_range valid_ack_seqs = seq_bound(iss+1,snd_nxt);
-                if (!valid_ack_seqs.seq_in_range(h->tcp.ack_num))
-                    throw ack_unacceptable_exception();
-                process_ack(h->tcp.ack_num);
+                process_ack(h->tcp.ack_num,iss+1);
                 if (h->tcp.rst)
                     throw socket_reset_exception();
             }
@@ -750,12 +751,8 @@ tcp::socket::process_header_synchronized(const ipv4_tcp_headers* h)
     if (!h->tcp.ack)
         throw header_invalid_exception();
 
-    seq_range valid_ack_seqs = seq_bound(snd_una,snd_nxt);
-    if (!valid_ack_seqs.seq_in_range(h->tcp.ack_num))
-        throw ack_unacceptable_exception();
-
+    process_ack(h->tcp.ack_num,snd_una);
     snd_wnd = h->tcp.window_size << snd_wnd_shift;
-    process_ack(h->tcp.ack_num);
     process_send_queue();
 }
 
