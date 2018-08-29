@@ -68,6 +68,7 @@ struct mock_observer : public tcp::socket_observer
 static mock_observer mobserver;
 
 static char data[100];
+static char rcvbuf[100];
 
 static uint32_t remote_snd_nxt = REMOTE_ISS;
 
@@ -590,8 +591,9 @@ class tmock_test
     {
         bool rx_drop = s->in_fin_recvd_state();
         bool is_next = seq_range{seq,len}.seq_in_range(s->rcv_nxt);
-        uint32_t initial_avail = s->rx_avail_bytes;
         TASSERT(s->rcv_wnd > 0);
+        TASSERT(len <= sizeof(rcvbuf));
+        TASSERT(!s->rx_avail_bytes);
 
         if (!rx_drop && is_next)
             texpect("mock_observer::socket_readable",want(s,s));
@@ -600,12 +602,15 @@ class tmock_test
         {
             tx_expect(SEQ{s->snd_nxt},ACK{s->rcv_nxt},CTL{FACK},
                       WS{s->rcv_wnd,0});
-            tmock::assert_equiv(s->rx_avail_bytes,initial_avail+rx_avail);
+            tmock::assert_equiv(s->rx_avail_bytes,rx_avail);
+            memset(rcvbuf,0,rx_avail);
+            s->read(rcvbuf,rx_avail);
+            tmock::assert_mem_same(rcvbuf,data+len-rx_avail,rx_avail);
         }
         else
         {
             tx_expect_none();
-            tmock::assert_equiv(s->rx_avail_bytes,initial_avail);
+            tmock::assert_equiv(s->rx_avail_bytes,0U);
         }
     }
 
@@ -863,5 +868,7 @@ int
 main(int argc, const char* argv[])
 {
     kernel::fconsole_suppress_output = true;
+    for (size_t i=0; i<NELEMS(data); ++i)
+        data[i] = i;
     return tmock::run_tests(argc,argv);
 }
