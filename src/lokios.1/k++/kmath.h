@@ -45,6 +45,22 @@ namespace kernel
     KASSERT(MAX((int16_t)-1,(uint16_t)5) == 5);
 
     template<typename T>
+    constexpr T _clamp(T lower, T val, T upper)
+    {
+        return (val < lower ? lower :
+                val > upper ? upper :
+                val);
+    }
+#define CLAMP kernel::_clamp
+    KASSERT(CLAMP(10,5,30) == 10);
+    KASSERT(CLAMP(10,10,30) == 10);
+    KASSERT(CLAMP(10,15,30) == 15);
+    KASSERT(CLAMP(10,20,30) == 20);
+    KASSERT(CLAMP(10,25,30) == 25);
+    KASSERT(CLAMP(10,30,30) == 30);
+    KASSERT(CLAMP(10,35,30) == 30);
+
+    template<typename T>
     constexpr bool is_pow2(T v)
     {
         return (v != 0) && ((v & (v-1)) == 0);
