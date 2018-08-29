@@ -686,6 +686,27 @@ class tmock_test
         cleanup_socket(s,state);
     }
 
+    static void test_syncd_acceptable_unacceptable_high_ack(socket* s)
+    {
+        // Various possibilities:
+        //  SYN_RECEIVED:
+        //      - we need to send a RST
+        //  Other SYNC'd states:
+        //      - if the ACK acks something not yet sent (SEG.ACK > SND.NXT)
+        //        then send an ACK, drop the segment, and return.
+        auto state = s->state;
+        rx_packet(ACK{s->snd_nxt+1},CTL{FACK});
+        if (state == tcp::socket::TCP_SYN_RECVD)
+            tx_expect(SEQ{s->snd_nxt+1},CTL{FRST});
+        else
+        {
+            tx_expect(SEQ{s->snd_nxt},ACK{remote_snd_nxt},CTL{FACK},
+                      WS{s->rcv_wnd,0});
+        }
+
+        cleanup_socket(s,state);
+    }
+
 #define TEST_UNACC_LOW_SL0_WS0(ts) \
     TMOCK_TEST(test_##ts##_unacceptable_seq_low_sl0_ws0) \
     { \
@@ -797,6 +818,12 @@ class tmock_test
     { \
         test_syncd_acceptable_unacceptable_low_ack(transition_##ts());\
     }
+#define TEST_ACC_HIGH_ACK(ts) \
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS( \
+            test_##ts##_acceptable_unacceptable_high_ack) \
+    { \
+        test_syncd_acceptable_unacceptable_high_ack(transition_##ts());\
+    }
 #define TEST_ALL_UNACC(ts) \
     TEST_UNACC_LOW_SL0_WS0(ts); \
     TEST_UNACC_HIGH_SL0_WS0(ts); \
@@ -829,6 +856,14 @@ class tmock_test
     TEST_ALL(TIME_WAIT,TCP_TIME_WAIT,NULL);
     TEST_ALL(CLOSE_WAIT,TCP_CLOSE_WAIT,NULL);
     TEST_ALL(LAST_ACK,TCP_CLOSED,"mock_observer::socket_closed");
+
+    TEST_ACC_HIGH_ACK(ESTABLISHED);
+    TEST_ACC_HIGH_ACK(FIN_WAIT_1);
+    TEST_ACC_HIGH_ACK(FIN_WAIT_2);
+    TEST_ACC_HIGH_ACK(CLOSING);
+    TEST_ACC_HIGH_ACK(TIME_WAIT);
+    TEST_ACC_HIGH_ACK(CLOSE_WAIT);
+    TEST_ACC_HIGH_ACK(LAST_ACK);
 };
 
 int
