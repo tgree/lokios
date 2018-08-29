@@ -591,21 +591,24 @@ class tmock_test
     {
         bool rx_drop = s->in_fin_recvd_state();
         bool is_next = seq_range{seq,len}.seq_in_range(s->rcv_nxt);
-        TASSERT(s->rcv_wnd > 0);
+        TASSERT(s->rcv_wnd && s->rcv_wnd >= len);
         TASSERT(len <= sizeof(rcvbuf));
         TASSERT(!s->rx_avail_bytes);
 
         if (!rx_drop && is_next)
             texpect("mock_observer::socket_readable",want(s,s));
+        uint32_t new_wnd = s->rcv_wnd - rx_avail;
         rx_packet(SEQ{seq},ACK{s->snd_nxt},CTL{FACK},DATA{data,len});
         if (!rx_drop && is_next)
         {
             tx_expect(SEQ{s->snd_nxt},ACK{s->rcv_nxt},CTL{FACK},
-                      WS{s->rcv_wnd,0});
+                      WS{new_wnd,0});
             tmock::assert_equiv(s->rx_avail_bytes,rx_avail);
             memset(rcvbuf,0,rx_avail);
             s->read(rcvbuf,rx_avail);
             tmock::assert_mem_same(rcvbuf,data+len-rx_avail,rx_avail);
+            tx_expect(SEQ{s->snd_nxt},ACK{s->rcv_nxt},CTL{FACK},
+                      WS{new_wnd+rx_avail,0});
         }
         else
         {

@@ -452,6 +452,7 @@ tcp::socket::rx_append(net::rx_page* p)
 {
     rx_pages.push_back(&p->link);
     rx_avail_bytes += p->client_len;
+    rcv_wnd        -= p->client_len;
     if (state >= TCP_ESTABLISHED)
         observer->socket_readable(this);
 }
@@ -461,6 +462,7 @@ tcp::socket::read(void* _dst, uint32_t rem)
 {
     kassert(rem <= rx_avail_bytes);
     rx_avail_bytes -= rem;
+    rcv_wnd        += rem;
 
     char* dst = (char*)_dst;
     while (rem)
@@ -479,6 +481,8 @@ tcp::socket::read(void* _dst, uint32_t rem)
             intf->free_rx_page(p);
         }
     }
+
+    post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
 }
 
 void
@@ -792,17 +796,18 @@ tcp::socket::process_payload_synchronized(net::rx_page* p)
     if (new_seqs.len)
     {
         rcv_nxt += new_seqs.len;
-        post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
         uint32_t skip = new_seqs.first - h->tcp.seq_num;
         p->client_len = h->payload_len() - skip;
         if (p->client_len)
         {
             p->client_offset = (uint8_t*)h->get_payload() - p->payload + skip;
             rx_append(p);
+            post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
             if (fin)
                 throw fin_recvd_exception{NRX_FLAG_NO_DELETE};
             return NRX_FLAG_NO_DELETE;
         }
+        post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
     }
 
     if (fin)
