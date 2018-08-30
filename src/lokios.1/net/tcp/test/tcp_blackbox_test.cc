@@ -14,8 +14,8 @@
 #define REMOTE_ISS  0x1234U
 #define REMOTE_WS   0x4444U
 
-#define WND_SIZE    0x01FFFFFFU
-#define WND_SHIFT   9
+#define WND_SIZE    0x00010000
+#define WND_SHIFT   1
 
 using namespace tcp;
 
