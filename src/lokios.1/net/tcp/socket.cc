@@ -500,7 +500,8 @@ tcp::socket::read(void* _dst, uint32_t rem)
         }
     }
 
-    post_ack();
+    if (unsent_send_ops.empty() || is_send_window_full())
+        post_ack();
 }
 
 void
@@ -811,19 +812,22 @@ tcp::socket::process_payload_synchronized(net::rx_page* p)
 
     if (new_seqs.len)
     {
-        rcv_nxt += new_seqs.len;
-        uint32_t skip = new_seqs.first - h->tcp.seq_num;
-        p->client_len = h->payload_len() - skip;
+        rcv_nxt         += new_seqs.len;
+        uint32_t skip    = new_seqs.first - h->tcp.seq_num;
+        p->client_len    = h->payload_len() - skip;
+        bool sw_was_full = is_send_window_full();
         if (p->client_len)
         {
             p->client_offset = (uint8_t*)h->get_payload() - p->payload + skip;
             rx_append(p);
-            post_ack();
+            if (unsent_send_ops.empty() || sw_was_full)
+                post_ack();
             if (fin)
                 throw fin_recvd_exception{NRX_FLAG_NO_DELETE};
             return NRX_FLAG_NO_DELETE;
         }
-        post_ack();
+        if (unsent_send_ops.empty() || sw_was_full)
+            post_ack();
     }
 
     if (fin)
