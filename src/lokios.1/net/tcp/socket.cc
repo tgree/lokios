@@ -831,6 +831,7 @@ tcp::socket::process_payload_synchronized(net::rx_page* p)
     if (new_seqs.first != rcv_nxt)
         return 0;
 
+    uint64_t flags = 0;
     if (new_seqs.len)
     {
         rcv_nxt         += new_seqs.len;
@@ -840,18 +841,15 @@ tcp::socket::process_payload_synchronized(net::rx_page* p)
         {
             p->client_offset = (uint8_t*)h->get_payload() - p->payload + skip;
             rx_append(p);
-            post_update_ack();
-            if (fin)
-                throw fin_recvd_exception{NRX_FLAG_NO_DELETE};
-            return NRX_FLAG_NO_DELETE;
+            flags = NRX_FLAG_NO_DELETE;
         }
         post_update_ack();
     }
 
     if (fin)
-        throw fin_recvd_exception{0};
+        throw fin_recvd_exception{flags};
 
-    return 0;
+    return flags;
 }
 
 void
