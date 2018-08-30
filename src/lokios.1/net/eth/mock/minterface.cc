@@ -32,12 +32,6 @@ eth::interface::format_arp_broadcast(void* arp_payload)
 }
 
 void
-eth::interface::activate()
-{
-    mock("eth::interface::activate");
-}
-
-void
 eth::interface::handle_dhcp_success()
 {
     mock("eth::interface::handle_dhcp_success");

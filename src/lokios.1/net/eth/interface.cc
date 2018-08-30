@@ -76,17 +76,6 @@ eth::interface::issue_probe_phy(kernel::work_entry* cqe)
 }
 
 void
-eth::interface::activate()
-{
-    // Activate it in the network stack.
-    net::interface::activate();
-
-    // Post a dhcp request.
-    // TODO: Wait a random time from 0-10 seconds before starting dhcpc.
-    dhcpc->start();
-}
-
-void
 eth::interface::handle_link_up(size_t mbit, bool full_duplex)
 {
     intf_dbg("link up at %lu Mbit %s duplex\n",
