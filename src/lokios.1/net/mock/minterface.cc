@@ -68,6 +68,18 @@ net::interface::notify_activated()
     mock("net::interface::notify_activated");
 }
 
+void
+net::interface::notify_link_up(size_t mbit, bool full_duplex)
+{
+    mock("net::interface::notify_link_up",mbit,full_duplex);
+}
+
+void
+net::interface::notify_link_down()
+{
+    mock("net::interface::notify_link_down");
+}
+
 uint64_t
 net::interface::handle_rx_ipv4_frame(net::rx_page* p)
 {

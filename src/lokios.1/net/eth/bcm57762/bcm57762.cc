@@ -916,7 +916,7 @@ bcm57762::dev::handle_link_down()
         case WAIT_PHY_LINK_NOTIFICATION:
         case READY_LINK_UP:
             TRANSITION(READY_LINK_DOWN);
-            intf->handle_link_down();
+            intf->notify_link_down();
         break;
 
         case WAIT_LINK_UP_GET_MODE_DONE:
@@ -1085,13 +1085,13 @@ bcm57762::dev::handle_phy_get_link_mode_complete(kernel::work_entry* wqe)
                 // The MAC thinks it's up, the PHY thinks it's down.  Eventually
                 // the MAC will catch up on its next autopoll cycle.
                 TRANSITION(READY_LINK_DOWN);
-                intf->handle_link_down();
+                intf->notify_link_down();
                 return;
             }
 
             TRANSITION(READY_LINK_UP);
 
-            intf->handle_link_up(wqe->args[2],
+            intf->notify_link_up(wqe->args[2],
                                  (wqe->args[3] & PHY_LM_DUPLEX_FULL));
         break;
 

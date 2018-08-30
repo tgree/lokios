@@ -104,6 +104,8 @@ namespace net
 
         // Notifications from the subclass about interface state changes.
                 void    notify_activated();
+                void    notify_link_up(size_t mbits, bool full_duplex);
+                void    notify_link_down();
 
         // Transmit a frame.
         virtual void    post_tx_frame(net::tx_op* op) = 0;

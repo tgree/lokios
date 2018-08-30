@@ -49,10 +49,6 @@ namespace eth
         virtual void        issue_phy_write_16(uint16_t v, uint8_t offset,
                                 kernel::work_entry* cqe) = 0;
 
-        // Handle link status changes.
-                void    handle_link_up(size_t mbits, bool full_duplex);
-                void    handle_link_down();
-
         // Handle DHCP status updates.
                 void    handle_dhcp_success();
                 void    handle_dhcp_failure();

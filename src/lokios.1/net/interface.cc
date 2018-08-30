@@ -155,6 +155,27 @@ net::interface::notify_activated()
 }
 
 void
+net::interface::notify_link_up(size_t mbit, bool full_duplex)
+{
+    intf_dbg("link up at %lu Mbit %s duplex\n",
+             mbit,full_duplex ? "full" : "half");
+
+    // Notify observers.
+    for (auto& o : klist_elems(observers,link))
+        o.intf_link_up(this);
+}
+
+void
+net::interface::notify_link_down()
+{
+    intf_dbg("link down\n");
+
+    // Notify observers.
+    for (auto& o : klist_elems(observers,link))
+        o.intf_link_down(this);
+}
+
+void
 net::interface::handle_tx_completion(net::tx_op* op)
 {
 #if TX_COMPLETION_DELAY_10MS
