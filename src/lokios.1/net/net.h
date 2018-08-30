@@ -81,6 +81,28 @@ namespace net
         friend class net::interface;
     };
     KASSERT(sizeof(rx_page) == PAGE_SIZE);
+
+    struct observer
+    {
+        kernel::kdlink  link;
+
+        // Called when the interface becomes ready for use after being created.
+        // The link state may not yet be known.
+        virtual void intf_activated(net::interface* intf) {}
+
+        // Called when the link comes up.
+        virtual void intf_link_up(net::interface* intf) {}
+
+        // Called when the link goes down.
+        virtual void intf_link_down(net::interface* intf) {}
+
+        // Called when the interface is about to become not-ready for use, just
+        // before being destroyed.
+        virtual void intf_deactivated(net::interface* intf) {}
+
+        // Constructor.
+        observer();
+    };
 }
 
 #endif /* __KERNEL_NET_NET_H */

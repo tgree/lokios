@@ -12,6 +12,12 @@ using kernel::_kassert;
 
 static kernel::spinlock ids_lock;
 static uint32_t free_ids = 0xFFFFFFFF;
+static kernel::kdlist<net::observer> observers;
+
+net::observer::observer()
+{
+    observers.push_back(&link);
+}
 
 static size_t
 alloc_id()
@@ -129,6 +135,10 @@ net::interface::activate()
 {
     // Post receive buffers.
     refill_rx_pages();
+
+    // Notify observers.
+    for (auto& o : klist_elems(observers,link))
+        o.intf_activated(this);
 
     // Start the cmd_sock listener.
     cmd_listener.listen(12345);
