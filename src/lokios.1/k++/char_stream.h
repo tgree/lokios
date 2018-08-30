@@ -1,7 +1,7 @@
 #ifndef __KERNEL_CHAR_STREAM_H
 #define __KERNEL_CHAR_STREAM_H
 
-#include "kernel/spinlock.h"
+#include "kern/spinlock.h"
 #include <stdarg.h>
 #include <stddef.h>
 

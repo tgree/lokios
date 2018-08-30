@@ -1,5 +1,5 @@
 #include "finterface.h"
-#include "kernel/kassert.h"
+#include "kern/kassert.h"
 
 using kernel::_kassert;
 

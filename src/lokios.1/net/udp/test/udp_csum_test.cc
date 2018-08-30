@@ -1,7 +1,7 @@
 #include "../udp.h"
 #include "net/ip/ip.h"
 #include "net/net.h"
-#include "kernel/kassert.h"
+#include "kern/kassert.h"
 #include "mm/mm.h"
 #include "tmock/tmock.h"
 

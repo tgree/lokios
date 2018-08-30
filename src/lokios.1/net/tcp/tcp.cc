@@ -4,7 +4,7 @@
 #include "net/interface.h"
 #include "net/ip/ip.h"
 #include "mm/slab.h"
-#include "kernel/spinlock.h"
+#include "kern/spinlock.h"
 
 using namespace tcp;
 

@@ -1,7 +1,7 @@
 #ifndef __KERNEL_CHECKSUM_H
 #define __KERNEL_CHECKSUM_H
 
-#include "kernel/kassert.h"
+#include "kern/kassert.h"
 
 namespace kernel
 {

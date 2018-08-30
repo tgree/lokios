@@ -1,5 +1,5 @@
 #include "../heap.h"
-#include "kernel/kassert.h"
+#include "kern/kassert.h"
 #include "tmock/tmock.h"
 #include <vector>
 

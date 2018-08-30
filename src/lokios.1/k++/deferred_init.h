@@ -3,7 +3,7 @@
 
 #include "hdr/compiler.h"
 #include "hdr/types.h"
-#include "kernel/kassert.h"
+#include "kern/kassert.h"
 #include <new>
 
 namespace kernel

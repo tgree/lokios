@@ -7,7 +7,7 @@
 #include "raw_image.h"
 #include "elf_image.h"
 #include "massert.h"
-#include "kernel/kernel_args.h"
+#include "kern/kernel_args.h"
 #include <string.h>
 
 extern uint8_t _elf_base[];

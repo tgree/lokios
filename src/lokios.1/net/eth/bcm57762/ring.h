@@ -1,7 +1,7 @@
 #ifndef __KERNEL_NET_BCM57762_RING_H
 #define __KERNEL_NET_BCM57762_RING_H
 
-#include "kernel/types.h"
+#include "kern/types.h"
 
 namespace bcm57762
 {

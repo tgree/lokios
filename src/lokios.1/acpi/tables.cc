@@ -1,5 +1,5 @@
 #include "tables.h"
-#include "../console.h"
+#include "kern/console.h"
 #include "mm/e820.h"
 #include "mm/mm.h"
 #include "k++/vector.h"

@@ -1,10 +1,10 @@
 #include "mm.h"
 #include "page_table.h"
 #include "sbrk.h"
-#include "../console.h"
-#include "../task.h"
-#include "../cpu.h"
-#include "../tlb.h"
+#include "kern/console.h"
+#include "kern/task.h"
+#include "kern/cpu.h"
+#include "kern/tlb.h"
 
 using kernel::console::printf;
 

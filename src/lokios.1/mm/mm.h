@@ -43,8 +43,8 @@
 
 #include "e820.h"
 #include "page_flags.h"
-#include "kernel/types.h"
-#include "kernel/thread.h"
+#include "kern/types.h"
+#include "kern/thread.h"
 
 #define KERNEL_SBRK_END 0x00800000
 

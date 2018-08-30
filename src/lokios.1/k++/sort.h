@@ -2,7 +2,7 @@
 #define __KERNEL_SORT_H
 
 #include "kernel_iterator.h"
-#include "kernel/kassert.h"
+#include "kern/kassert.h"
 #include "functional.h"
 
 template<typename T>

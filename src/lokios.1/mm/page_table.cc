@@ -1,6 +1,6 @@
 #include "page_table.h"
 #include "mm.h"
-#include "../tlb.h"
+#include "kern/tlb.h"
 #include <string.h>
 
 kernel::page_table::page_table()

@@ -1,7 +1,7 @@
 #include "routing.h"
 #include "ioapic.h"
 #include "acpi/tables.h"
-#include "kernel/console.h"
+#include "kern/console.h"
 #include "k++/kmath.h"
 #include <stddef.h>
 

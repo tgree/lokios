@@ -1,7 +1,7 @@
 #include "net/interface.h"
 #include "net/wka.h"
-#include "kernel/task.h"
-#include "kernel/console.h"
+#include "kern/task.h"
+#include "kern/console.h"
 #include "platform/platform.h"
 
 using kernel::_kassert;

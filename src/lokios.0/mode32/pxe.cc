@@ -1,7 +1,7 @@
 #include "pxe.h"
 #include "console.h"
 #include "massert.h"
-#include "kernel/image.h"
+#include "kern/image.h"
 #include <string.h>
 
 extern far_pointer _saved_es_bx;

@@ -1,7 +1,7 @@
 #ifndef __KERNEL_DEV_SERIAL_H
 #define __KERNEL_DEV_SERIAL_H
 
-#include "kernel/console.h"
+#include "kern/console.h"
 
 namespace kernel
 {

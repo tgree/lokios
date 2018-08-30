@@ -1,7 +1,7 @@
 #include "../socket.h"
 #include "../traits.h"
 #include "net/mock/finterface.h"
-#include "kernel/mock/fconsole.h"
+#include "kern/mock/fconsole.h"
 #include "k++/random.h"
 #include <tmock/tmock.h>
 

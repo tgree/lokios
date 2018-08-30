@@ -2,7 +2,7 @@
 #define __KERNEL_PAGE_H
 
 #include "e820.h"
-#include "kernel/types.h"
+#include "kern/types.h"
 #include <string.h>
 
 namespace kernel

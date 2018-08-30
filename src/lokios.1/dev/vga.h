@@ -1,8 +1,8 @@
 #ifndef __KERNEL_DEV_VGA_H
 #define __KERNEL_DEV_VGA_H
 
-#include "kernel/console.h"
-#include "kernel/types.h"
+#include "kern/console.h"
+#include "kern/types.h"
 
 namespace kernel
 {

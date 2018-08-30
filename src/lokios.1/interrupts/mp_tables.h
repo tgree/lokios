@@ -1,7 +1,8 @@
 #ifndef __KERNEL_INTERRUPTS_MP_TABLES_H
 #define __KERNEL_INTERRUPTS_MP_TABLES_H
 
-#include "../kassert.h"
+#include "hdr/kassert.h"
+#include <stdint.h>
 
 namespace kernel
 {

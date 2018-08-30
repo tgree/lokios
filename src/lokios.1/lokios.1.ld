@@ -16,25 +16,24 @@ SECTIONS
     . = _virt_addr + 0x100;
     .text :
     {
-        *lokios.1/entry.o(.text)
+        *entry.o(.text)
         *crtbeginS.o(.text)
-        *lokios.1/init.o(.text)
         *(.text)
         *crtendS.o(.text)
     }
 
     .init :
     {
-        *lokios.1/crti.o(.init)
+        KEEP (*crti.o(.init))
         KEEP (*(SORT_NONE(.init)))
-        *lokios.1/crtn.o(.init)
+        KEEP (*crtn.o(.init))
     }
 
     .fini :
     {
-        *lokios.1/crti.o(.fini)
+        KEEP (*crti.o(.fini))
         KEEP (*(SORT_NONE(.fini)))
-        *lokios.1/crtn.o(.fini)
+        KEEP (*crtn.o(.fini))
     }
 
     .preinit_array :

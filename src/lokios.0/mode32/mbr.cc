@@ -1,6 +1,6 @@
 #include "mbr.h"
 #include "disk.h"
-#include "kernel/image.h"
+#include "kern/image.h"
 #include <string.h>
 
 extern uint8_t _kernel_base[];

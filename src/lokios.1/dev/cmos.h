@@ -1,7 +1,7 @@
 #ifndef __KERNEL_DEV_CMOS_H
 #define __KERNEL_DEV_CMOS_H
 
-#include "kernel/kassert.h"
+#include "kern/kassert.h"
 
 namespace kernel
 {

@@ -1,8 +1,8 @@
 #include "page.h"
 #include "buddy_allocator.h"
-#include "../task.h"
-#include "../cpu.h"
-#include "../console.h"
+#include "kern/task.h"
+#include "kern/cpu.h"
+#include "kern/console.h"
 #include "k++/local_vector.h"
 
 using kernel::console::printf;

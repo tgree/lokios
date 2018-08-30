@@ -1,5 +1,5 @@
 #include "cmos.h"
-#include "kernel/console.h"
+#include "kern/console.h"
 
 using kernel::console::printf;
 

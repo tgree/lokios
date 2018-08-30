@@ -2,7 +2,7 @@
 #include "traits.h"
 #include "net/interface.h"
 #include "k++/random.h"
-#include "kernel/cpu.h"
+#include "kern/cpu.h"
 
 #define RETRANSMIT_TIMEOUT_MS   1000
 #define TIME_WAIT_TIMEOUT_SEC   60*4

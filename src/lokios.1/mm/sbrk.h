@@ -2,7 +2,7 @@
 #define __KERNEL_SBRK_H
 
 #include "mm.h"
-#include "kernel/types.h"
+#include "kern/types.h"
 
 namespace kernel
 {

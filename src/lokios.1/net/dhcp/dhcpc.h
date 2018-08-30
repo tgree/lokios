@@ -3,7 +3,6 @@
 
 #include "dhcp.h"
 #include "net/eth/interface.h"
-#include "kernel/schedule.h"
 
 #define ARP_RETRY_ATTEMPTS  5
 #define ARP_TIMEOUT_MS      100

@@ -11,8 +11,8 @@
  */
 #include "virtio_net.h"
 #include "virtio_interface.h"
-#include "kernel/cpu.h"
-#include "kernel/console.h"
+#include "kern/cpu.h"
+#include "kern/console.h"
 #include "net/udp/udp.h"
 #include "k++/string_stream.h"
 #include <initializer_list>

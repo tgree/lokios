@@ -5,7 +5,7 @@
 #include "schedule.h"
 #include "hdr/compiler.h"
 #include "hdr/x86.h"
-#include "kernel/kassert.h"
+#include "kern/kassert.h"
 #include "k++/vector.h"
 #include <stdint.h>
 #include <stddef.h>

@@ -1,6 +1,5 @@
 #include "sbrk.h"
-#include "kernel/spinlock.h"
-#include "kernel/kassert.h"
+#include "kern/spinlock.h"
 
 static kernel::spinlock sbrklock;
 static dma_addr64 _brk = KERNEL_SBRK_END;

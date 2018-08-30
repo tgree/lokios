@@ -5,7 +5,6 @@
 #include "net/interface.h"
 #include "net/net.h"
 #include "net/ip/ip.h"
-#include "kernel/schedule.h"
 
 namespace dhcp
 {

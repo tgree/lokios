@@ -8,13 +8,11 @@
 #define __KERNEL_NET_ARP_H
 
 #include "net/net.h"
-#include "kernel/schedule.h"
-#include "kernel/cpu.h"
+#include "kern/cpu.h"
+#include "kern/console.h"
 #include "mm/slab.h"
 #include "mm/mm.h"
 #include "k++/hash_table.h"
-
-#include <kernel/console.h>
 
 namespace arp
 {

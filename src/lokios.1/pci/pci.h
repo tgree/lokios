@@ -2,7 +2,7 @@
 #define __KERNEL_PCI_H
 
 #include "domain.h"
-#include "kernel/schedule.h"
+#include "kern/schedule.h"
 #include "k++/vector.h"
 
 namespace kernel::pci

@@ -2,8 +2,8 @@
 #define __KERNEL_LAPIC_H
 
 #include "k++/vector.h"
-#include "kernel/types.h"
-#include "kernel/kassert.h"
+#include "kern/types.h"
+#include "hdr/kassert.h"
 
 namespace kernel
 {

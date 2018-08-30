@@ -1,7 +1,7 @@
 #ifndef __KERNEL_E820_H
 #define __KERNEL_E820_H
 
-#include "kernel/kassert.h"
+#include "kern/kassert.h"
 #include "k++/region_set.h"
 #include <stddef.h>
 

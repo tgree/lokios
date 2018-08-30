@@ -37,9 +37,9 @@
 #include "bcm57762.h"
 #include "config.h"
 #include "../phy/phy.h"
-#include "kernel/console.h"
-#include "kernel/cpu.h"
-#include "kernel/mm/buddy_allocator.h"
+#include "kern/console.h"
+#include "kern/cpu.h"
+#include "mm/buddy_allocator.h"
 #include <stdlib.h>
 
 #define dev_dbg(fmt,...) \

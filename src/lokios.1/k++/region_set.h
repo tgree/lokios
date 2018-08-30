@@ -3,7 +3,7 @@
 
 #include "sort.h"
 #include "kmath.h"
-#include "kernel/kassert.h"
+#include "kern/kassert.h"
 #include <stdint.h>
 
 namespace kernel

@@ -1,6 +1,6 @@
 #include "buddy_allocator.h"
 #include "sbrk.h"
-#include "../spinlock.h"
+#include "kern/spinlock.h"
 #include "k++/deferred_init.h"
 
 static kernel::spinlock                                 buddy_pages_lock;

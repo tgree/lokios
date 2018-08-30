@@ -5,7 +5,7 @@
 #include "k++/delegate.h"
 #include "mm/mm.h"
 #include "mm/page.h"
-#include "kernel/schedule.h"
+#include "kern/schedule.h"
 
 namespace net
 {

@@ -5,8 +5,8 @@
 #include "net/dhcp/dhcp.h"
 #include "net/dhcp/dhcpc.h"
 #include "net/tcp/traits.h"
-#include "kernel/console.h"
-#include "kernel/mm/vm.h"
+#include "kern/console.h"
+#include "mm/vm.h"
 #include "acpi/tables.h"
 #include "platform/platform.h"
 

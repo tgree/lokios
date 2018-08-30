@@ -1,7 +1,7 @@
 #include "vm.h"
 #include "page.h"
 #include "buddy_allocator.h"
-#include "../cpu.h"
+#include "kern/cpu.h"
 
 void
 kernel::vmmap(void* _vaddr, size_t len)

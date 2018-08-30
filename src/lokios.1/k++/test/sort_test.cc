@@ -1,6 +1,6 @@
 #include "../sort.h"
 #include "hdr/types.h"
-#include "kernel/kassert.h"
+#include "kern/kassert.h"
 #include "tmock/tmock.h"
 #include <string.h>
 #include <vector>

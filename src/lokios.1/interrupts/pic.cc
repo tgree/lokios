@@ -1,6 +1,6 @@
 #include "pic.h"
 #include "acpi/tables.h"
-#include "kernel/console.h"
+#include "kern/console.h"
 
 using kernel::console::printf;
 

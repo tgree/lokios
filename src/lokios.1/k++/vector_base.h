@@ -2,7 +2,7 @@
 #define __KERNEL_VECTOR_BASE_H
 
 #include "allocator.h"
-#include "kernel/kassert.h"
+#include "kern/kassert.h"
 #include "hdr/types.h"
 #include <stddef.h>
 #include <unistd.h>

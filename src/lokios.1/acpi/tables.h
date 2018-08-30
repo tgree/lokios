@@ -2,7 +2,7 @@
 #define __KERNEL_ACPI_TABLES_H
 
 #include "hdr/compiler.h"
-#include "kernel/kassert.h"
+#include "kern/kassert.h"
 #include "k++/vector.h"
 #include <stdint.h>
 

@@ -1,6 +1,6 @@
 #include "k++/kprintf.h"
 #include "k++/kmath.h"
-#include "kernel/libc.h"
+#include "kern/libc.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>

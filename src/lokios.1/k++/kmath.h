@@ -1,7 +1,7 @@
 #ifndef __KERNEL_MATH_H
 #define __KERNEL_MATH_H
 
-#include "kernel/kassert.h"
+#include "kern/kassert.h"
 #include <stddef.h>
 
 namespace kernel

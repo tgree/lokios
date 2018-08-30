@@ -13,7 +13,7 @@ tcp_header_test.objs := \
 tcp_checksum_test.objs :=  \
     	$(MODULE_TBUILD_DIR)/tcp_checksum_test.o \
 	$(PARENT_TBUILD_DIR)/header.o \
-	$(BUILD_TO_DIR)/lokios.1/mock/fkassert.o \
+	$(BUILD_TO_DIR)/lokios.1/kern/mock/fkassert.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fmm.o
 
 tcp_socket_test.objs := \
@@ -23,9 +23,9 @@ tcp_socket_test.objs := \
 	$(PARENT_TBUILD_DIR)/tcp.o \
 	$(BUILD_TO_DIR)/lokios.1/net/interface.o \
 	$(BUILD_TO_DIR)/lokios.1/net/mock/finterface.o \
-	$(BUILD_TO_DIR)/lokios.1/mock/fkassert.o \
-	$(BUILD_TO_DIR)/lokios.1/mock/fschedule.o \
-	$(BUILD_TO_DIR)/lokios.1/mock/fconsole.o \
+	$(BUILD_TO_DIR)/lokios.1/kern/mock/fkassert.o \
+	$(BUILD_TO_DIR)/lokios.1/kern/mock/fschedule.o \
+	$(BUILD_TO_DIR)/lokios.1/kern/mock/fconsole.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fpage.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fmm.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fbuddy_allocator.o \
@@ -38,9 +38,9 @@ tcp_pipe_test.objs := \
 	$(PARENT_TBUILD_DIR)/tcp.o \
 	$(BUILD_TO_DIR)/lokios.1/net/interface.o \
 	$(BUILD_TO_DIR)/lokios.1/net/mock/finterface.o \
-	$(BUILD_TO_DIR)/lokios.1/mock/fkassert.o \
-	$(BUILD_TO_DIR)/lokios.1/mock/fschedule.o \
-	$(BUILD_TO_DIR)/lokios.1/mock/fconsole.o \
+	$(BUILD_TO_DIR)/lokios.1/kern/mock/fkassert.o \
+	$(BUILD_TO_DIR)/lokios.1/kern/mock/fschedule.o \
+	$(BUILD_TO_DIR)/lokios.1/kern/mock/fconsole.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fpage.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fmm.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fbuddy_allocator.o \
@@ -53,9 +53,9 @@ tcp_self_connect_test.objs := \
 	$(PARENT_TBUILD_DIR)/tcp.o \
 	$(BUILD_TO_DIR)/lokios.1/net/interface.o \
 	$(BUILD_TO_DIR)/lokios.1/net/mock/finterface.o \
-	$(BUILD_TO_DIR)/lokios.1/mock/fkassert.o \
-	$(BUILD_TO_DIR)/lokios.1/mock/fschedule.o \
-	$(BUILD_TO_DIR)/lokios.1/mock/fconsole.o \
+	$(BUILD_TO_DIR)/lokios.1/kern/mock/fkassert.o \
+	$(BUILD_TO_DIR)/lokios.1/kern/mock/fschedule.o \
+	$(BUILD_TO_DIR)/lokios.1/kern/mock/fconsole.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fpage.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fmm.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fbuddy_allocator.o \
@@ -68,9 +68,9 @@ tcp_blackbox_test.objs := \
 	$(PARENT_TBUILD_DIR)/tcp.o \
 	$(BUILD_TO_DIR)/lokios.1/net/interface.o \
 	$(BUILD_TO_DIR)/lokios.1/net/mock/finterface.o \
-	$(BUILD_TO_DIR)/lokios.1/mock/fkassert.o \
-	$(BUILD_TO_DIR)/lokios.1/mock/fschedule.o \
-	$(BUILD_TO_DIR)/lokios.1/mock/fconsole.o \
+	$(BUILD_TO_DIR)/lokios.1/kern/mock/fkassert.o \
+	$(BUILD_TO_DIR)/lokios.1/kern/mock/fschedule.o \
+	$(BUILD_TO_DIR)/lokios.1/kern/mock/fconsole.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fpage.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fmm.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fbuddy_allocator.o \

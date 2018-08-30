@@ -1,7 +1,7 @@
 #ifndef __KERNEL_NET_ETH_PHY_PHY_H
 #define __KERNEL_NET_ETH_PHY_PHY_H
 
-#include "kernel/schedule.h"
+#include "kern/schedule.h"
 
 namespace eth
 {

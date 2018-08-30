@@ -2,7 +2,7 @@
 #define __KERNEL_LIST_H
 
 #include "kernel_iterator.h"
-#include "kernel/kassert.h"
+#include "kern/kassert.h"
 #include "hdr/types.h"
 #include <stddef.h>
 

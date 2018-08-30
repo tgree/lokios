@@ -1,6 +1,6 @@
 #include "virtio_net.h"
 #include "pci/pci.h"
-#include "kernel/console.h"
+#include "kern/console.h"
 
 using kernel::console::printf;
 using kernel::_kassert;

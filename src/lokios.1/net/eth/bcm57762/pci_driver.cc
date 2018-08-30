@@ -1,6 +1,6 @@
 #include "pci_driver.h"
 #include "bcm57762.h"
-#include "kernel/console.h"
+#include "kern/console.h"
 
 using kernel::console::printf;
 using kernel::_kassert;

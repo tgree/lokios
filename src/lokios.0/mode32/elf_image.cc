@@ -1,6 +1,6 @@
 #include "elf_image.h"
 #include "console.h"
-#include "kernel/image.h"
+#include "kern/image.h"
 #include "k++/kmath.h"
 #include <elf.h>
 #include <string.h>

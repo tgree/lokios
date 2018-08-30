@@ -3,7 +3,7 @@
 
 #include "page.h"
 #include "mm.h"
-#include "../cxx_exception.h"
+#include "kern/cxx_exception.h"
 #include <new>
 
 #define BUDDY_ALLOCATOR_MAX_ORDER   32

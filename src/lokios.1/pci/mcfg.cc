@@ -1,7 +1,7 @@
 #include "mcfg.h"
 #include "mm/mm.h"
-#include "kernel/console.h"
-#include "kernel/kassert.h"
+#include "kern/console.h"
+#include "kern/kassert.h"
 
 using kernel::console::printf;
 
