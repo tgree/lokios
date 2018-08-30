@@ -226,6 +226,10 @@ namespace tcp
             return state == TCP_CLOSING || state == TCP_TIME_WAIT ||
                    state == TCP_CLOSE_WAIT || state == TCP_LAST_ACK;
         }
+        inline bool is_send_window_full() const
+        {
+            return !seq_range{snd_una,snd_wnd}.seq_in_range(snd_nxt);
+        }
 
         // Passive open.
         socket(net::interface* intf, net::rx_page* p, parsed_options rx_opts,
