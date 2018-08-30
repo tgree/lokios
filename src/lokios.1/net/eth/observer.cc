@@ -6,6 +6,10 @@ struct _eth_observer : public net::observer
 {
     virtual void intf_activated(net::interface* intf) override
     {
+    }
+
+    virtual void intf_link_up(net::interface* intf) override
+    {
         auto* eintf = dynamic_cast<eth::interface*>(intf);
         if (!eintf)
             return;
@@ -13,10 +17,6 @@ struct _eth_observer : public net::observer
         // Post a dhcp request.
         // TODO: Wait a random time from 0-10 seconds before starting dhcpc.
         eintf->dhcpc->start();
-    }
-
-    virtual void intf_link_up(net::interface* intf) override
-    {
     }
 
     virtual void intf_link_down(net::interface* intf) override
