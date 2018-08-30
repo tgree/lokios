@@ -10,7 +10,7 @@
 #include "acpi/tables.h"
 #include <typeinfo>
 
-#define TICKER_10MS_TICKS   9999
+#define MEM_INFO_TICKS  9999
 
 using kernel::console::printf;
 
@@ -23,11 +23,11 @@ kernel_hello(kernel::work_entry* wqe)
     printf("Hello from CPU%zu.\n",kernel::get_current_cpu()->cpu_number);
 }
 
-static kernel::timer_entry one_sec_wqe;
+static kernel::timer_entry mem_info_wqe;
 static void
 kernel_ticker(kernel::timer_entry* wqe)
 {
-    kernel::get_current_cpu()->scheduler.schedule_timer(wqe,TICKER_10MS_TICKS);
+    kernel::get_current_cpu()->scheduler.schedule_timer(wqe,MEM_INFO_TICKS);
     printf("Free pages: %zu  PT Used Pages: %zu\n",
            kernel::page_count_free(),kernel::kernel_task->pt.page_count);
 }
@@ -80,17 +80,15 @@ kernel_main(kernel::work_entry* wqe)
     }
 
     // Set up a repeating ticker.
-    one_sec_wqe.fn = kernel_ticker;
-    kernel::get_current_cpu()->scheduler.schedule_timer(
-            &one_sec_wqe,TICKER_10MS_TICKS);
+    mem_info_wqe.fn = kernel_ticker;
+    kernel::cpu::schedule_timer(&mem_info_wqe,MEM_INFO_TICKS);
 
     // If there is an 'iTST' ACPI table, this indicates we are running on qemu
     // in integration-test mode and should start a 10-second timeout after which
-    // we decalre the integration test to have failed.
+    // we declare the integration test to have failed.
     if (kernel::find_acpi_table('TSTi'))
     {
         ten_sec_wqe.fn = integration_test_timeout;
-        kernel::get_current_cpu()->scheduler.schedule_timer(
-                &ten_sec_wqe,1000);
+        kernel::cpu::schedule_timer_sec(&ten_sec_wqe,10);
     }
 }
