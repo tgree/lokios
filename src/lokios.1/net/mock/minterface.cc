@@ -58,15 +58,15 @@ net::interface::udp_ignore(uint16_t port)
 }
 
 void
-net::interface::activate()
-{
-    mock("net::interface::activate");
-}
-
-void
 net::interface::refill_rx_pages()
 {
     mock("net::interface::refill_rx_pages");
+}
+
+void
+net::interface::activate()
+{
+    mock("net::interface::activate");
 }
 
 uint64_t

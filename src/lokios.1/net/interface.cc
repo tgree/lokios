@@ -131,20 +131,6 @@ net::interface::tcp_delete(tcp::socket* s)
 }
 
 void
-net::interface::activate()
-{
-    // Post receive buffers.
-    refill_rx_pages();
-
-    // Notify observers.
-    for (auto& o : klist_elems(observers,link))
-        o.intf_activated(this);
-
-    // Start the cmd_sock listener.
-    cmd_listener.listen(12345);
-}
-
-void
 net::interface::refill_rx_pages()
 {
     kernel::klist<net::rx_page> pages;
@@ -156,6 +142,20 @@ net::interface::refill_rx_pages()
     }
     rx_posted_count = rx_qlen;
     post_rx_pages(pages);
+}
+
+void
+net::interface::activate()
+{
+    // Post receive buffers.
+    refill_rx_pages();
+
+    // Notify observers.
+    for (auto& o : klist_elems(observers,link))
+        o.intf_activated(this);
+
+    // Start the cmd_sock listener.
+    cmd_listener.listen(12345);
 }
 
 void

@@ -104,10 +104,10 @@ namespace net
         // Rx page management.
         inline  rx_page*    alloc_rx_page() {return new rx_page;}
         inline  void        free_rx_page(net::rx_page* p) {delete p;}
+                void        refill_rx_pages();
 
-        // Activate the interface.
+        // Notifications from the subclass about interface state changes.
                 void    activate();
-                void    refill_rx_pages();
 
         // Transmit a frame.
         virtual void    post_tx_frame(net::tx_op* op) = 0;
