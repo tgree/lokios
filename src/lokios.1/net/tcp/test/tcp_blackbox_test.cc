@@ -167,6 +167,17 @@ transition_SYN_SENT()
 }
 
 static tcp::socket*
+transition_SYN_SENT_SYN_RECVD_WAIT_ACK()
+{
+    auto* s = transition_SYN_SENT();
+    rx_packet(CTL{FSYN},OPT_MSS{1460},OPT_WND_SHIFT{0});
+    tx_expect(SEQ{s->iss+1},ACK{REMOTE_ISS+1},WS{s->rcv_wnd,s->rcv_wnd_shift},
+              CTL{FACK});
+    tmock::assert_equiv(s->state,tcp::socket::TCP_SYN_SENT_SYN_RECVD_WAIT_ACK);
+    return s;
+}
+
+static tcp::socket*
 transition_SYN_RECVD()
 {
     mock_listener ml(LOCAL_PORT);
@@ -958,6 +969,99 @@ class tmock_test
     TMOCK_TEST(test_LAST_ACK_new_fin_ignored)
     {
         test_fin_recvd_new_fin_ignored(transition_LAST_ACK());
+    }
+
+    static void test_syn_recvd_states_new_data_queued(tcp::socket* s)
+    {
+        // We've received SYN and are waiting for ACK of our SYN.  Any inbound
+        // data gets queued until we go to ESTABLISHED.
+        auto orig_rcv_nxt = s->rcv_nxt;
+        rx_packet(ACK{s->snd_una},CTL{FACK},DATA{data,sizeof(data)});
+        tx_expect(SEQ{s->snd_nxt},ACK{(uint32_t)(orig_rcv_nxt+sizeof(data))},
+                  CTL{FACK},WS{WND_SIZE-sizeof(data),WND_SHIFT});
+        tmock::assert_equiv(s->rx_avail_bytes,sizeof(data));
+
+        // Now, receive the ACK.
+        texpect("mock_observer::socket_established");
+        auto e = texpect("mock_observer::socket_readable");
+        rx_packet(ACK{s->snd_una+1},CTL{FACK});
+        tcheckpoint(e);
+        tmock::assert_equiv(s->rx_avail_bytes,sizeof(data));
+
+        cleanup_socket(s,tcp::socket::TCP_ESTABLISHED);
+    }
+
+    TMOCK_TEST(test_SYN_RECVD_new_data_queued)
+    {
+        test_syn_recvd_states_new_data_queued(transition_SYN_RECVD());
+    }
+
+    TMOCK_TEST(test_SYN_SENT_SYN_RECVD_WAIT_ACK_new_data_queued)
+    {
+        test_syn_recvd_states_new_data_queued(
+                transition_SYN_SENT_SYN_RECVD_WAIT_ACK());
+    }
+
+    static void test_synchronized_new_data_handled(tcp::socket* s)
+    {
+        // We're in a synchronized state where we're allowed to hand data to
+        // the client and haven't received FIN yet.  Ensure that new data is
+        // processed normally.
+        auto state = s->state;
+        auto orig_rcv_nxt = s->rcv_nxt;
+        texpect("mock_observer::socket_readable",want(s,s));
+        rx_packet(ACK{s->snd_una},CTL{FACK},DATA{data,sizeof(data)});
+        tx_expect(SEQ{s->snd_nxt},ACK{(uint32_t)(orig_rcv_nxt+sizeof(data))},
+                  CTL{FACK},WS{WND_SIZE-sizeof(data),WND_SHIFT});
+        tmock::assert_equiv(s->rx_avail_bytes,sizeof(data));
+        cleanup_socket(s,state);
+    }
+
+    TMOCK_TEST(test_ESTABLISHED_new_data_handled)
+    {
+        test_synchronized_new_data_handled(transition_ESTABLISHED());
+    }
+
+    TMOCK_TEST(test_FIN_WAIT_1_new_data_handled)
+    {
+        test_synchronized_new_data_handled(transition_FIN_WAIT_1());
+    }
+
+    TMOCK_TEST(test_FIN_WAIT_2_new_data_handled)
+    {
+        test_synchronized_new_data_handled(transition_FIN_WAIT_2());
+    }
+
+    static void test_fin_recvd_new_data_ignored(tcp::socket* s)
+    {
+        // We've received a FIN and ACK'd it.  We should now ignore any new
+        // segment payloads that come in for valid sequence numbers after the
+        // FIN.
+        auto state = s->state;
+        rx_packet(ACK{s->snd_una},CTL{FACK},DATA{data,sizeof(data)});
+        tx_expect_none();
+        tmock::assert_equiv(s->rx_avail_bytes,0U);
+        cleanup_socket(s,state);
+    }
+
+    TMOCK_TEST(test_CLOSING_new_data_ignored)
+    {
+        test_fin_recvd_new_data_ignored(transition_CLOSING());
+    }
+
+    TMOCK_TEST(test_TIME_WAIT_new_data_ignored)
+    {
+        test_fin_recvd_new_data_ignored(transition_TIME_WAIT());
+    }
+
+    TMOCK_TEST(test_CLOSE_WAIT_new_data_ignored)
+    {
+        test_fin_recvd_new_data_ignored(transition_CLOSE_WAIT());
+    }
+
+    TMOCK_TEST(test_LAST_ACK_new_data_ignored)
+    {
+        test_fin_recvd_new_data_ignored(transition_LAST_ACK());
     }
 };
 
