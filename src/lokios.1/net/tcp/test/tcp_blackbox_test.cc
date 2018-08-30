@@ -880,6 +880,49 @@ class tmock_test
     TEST_ALL(TIME_WAIT,TCP_TIME_WAIT,NULL);
     TEST_ALL(CLOSE_WAIT,TCP_CLOSE_WAIT,NULL);
     TEST_ALL(LAST_ACK,TCP_CLOSED,"mock_observer::socket_closed");
+
+    TMOCK_TEST(test_CLOSING_rx_retx_fin)
+    {
+        // We've sent FIN but it hasn't been ACK'd yet.
+        // We've received FIN and sent an ACK for it.
+        auto* s = transition_CLOSING();
+        rx_packet(SEQ{REMOTE_ISS+1},ACK{s->iss+1},CTL{FACK|FFIN});
+        tx_expect(SEQ{s->iss+2},ACK{REMOTE_ISS+2},CTL{FACK},
+                  WS{s->rcv_wnd,s->rcv_wnd_shift});
+        cleanup_socket(s,tcp::socket::TCP_CLOSING);
+    }
+
+    TMOCK_TEST(test_TIME_WAIT_rx_retx_fin)
+    {
+        // We've sent FIN and it has been ACK'd.
+        // We've received FIN and ACK'd it.
+        auto* s = transition_TIME_WAIT();
+        rx_packet(SEQ{REMOTE_ISS+1},ACK{s->iss+2},CTL{FACK|FFIN});
+        tx_expect(SEQ{s->iss+2},ACK{REMOTE_ISS+2},CTL{FACK},
+                  WS{s->rcv_wnd,s->rcv_wnd_shift});
+        cleanup_socket(s,tcp::socket::TCP_TIME_WAIT);
+    }
+
+    TMOCK_TEST(test_CLOSE_WAIT_rx_retx_fin)
+    {
+        // We've received a FIN and it has been ACK'd.
+        auto* s = transition_CLOSE_WAIT();
+        rx_packet(SEQ{REMOTE_ISS+1},ACK{s->iss+1},CTL{FACK|FFIN});
+        tx_expect(SEQ{s->iss+1},ACK{REMOTE_ISS+2},CTL{FACK},
+                  WS{s->rcv_wnd,s->rcv_wnd_shift});
+        cleanup_socket(s,tcp::socket::TCP_CLOSE_WAIT);
+    }
+
+    TMOCK_TEST(test_LAST_ACK_rx_retx_fin)
+    {
+        // We've received FIN and ACK'd it.
+        // We've sent FIN and it hasn't been ACK'd.
+        auto* s = transition_LAST_ACK();
+        rx_packet(SEQ{REMOTE_ISS+1},ACK{s->iss+1},CTL{FACK|FFIN});
+        tx_expect(SEQ{s->iss+2},ACK{REMOTE_ISS+2},CTL{FACK},
+                  WS{s->rcv_wnd,s->rcv_wnd_shift});
+        cleanup_socket(s,tcp::socket::TCP_LAST_ACK);
+    }
 };
 
 int
