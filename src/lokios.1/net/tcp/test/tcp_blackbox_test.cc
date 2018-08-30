@@ -923,6 +923,42 @@ class tmock_test
                   WS{s->rcv_wnd,s->rcv_wnd_shift});
         cleanup_socket(s,tcp::socket::TCP_LAST_ACK);
     }
+
+    static void test_fin_recvd_new_fin_ignored(tcp::socket* s)
+    {
+        // We've already received a FIN and ACK'd it.  The remote guy is
+        // sending us a *new* FIN with a *higher* sequence number at rcv_nxt in
+        // the receive window.  I.e. we are now getting FIN-FIN.  The remote
+        // guy is broken; the TCP spec doesn't say what to do.  If you follow
+        // the spec as written, it implies you ACK the FIN, notify the client
+        // of "connection closing" and advance rcv_nxt normally, but it looks
+        // like an oversight to me - it makes no sense to notify the client of
+        // "connection closing" twice.
+        auto state = s->state;
+        rx_packet(ACK{s->snd_una},CTL{FACK|FFIN});
+        tx_expect_none();
+        cleanup_socket(s,state);
+    }
+
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_CLOSING_new_fin_ignored)
+    {
+        test_fin_recvd_new_fin_ignored(transition_CLOSING());
+    }
+
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_TIME_WAIT_new_fin_ignored)
+    {
+        test_fin_recvd_new_fin_ignored(transition_TIME_WAIT());
+    }
+
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_CLOSE_WAIT_new_fin_ignored)
+    {
+        test_fin_recvd_new_fin_ignored(transition_CLOSE_WAIT());
+    }
+
+    TMOCK_TEST(test_LAST_ACK_new_fin_ignored)
+    {
+        test_fin_recvd_new_fin_ignored(transition_LAST_ACK());
+    }
 };
 
 int
