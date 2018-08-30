@@ -102,7 +102,9 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p,
         send_ops_slab(sizeof(tcp::send_op)),
         rx_avail_bytes(0),
         rx_opts(rx_opts),
-        rcv_wnd(rcv_wnd)
+        rcv_wnd(rcv_wnd),
+        last_ack_ack_num(0),
+        last_ack_wnd_size(0)
 {
     auto* h = p->payload_cast<ipv4_tcp_headers*>();
     kassert(!h->tcp.rst);
@@ -153,7 +155,9 @@ tcp::socket::socket(net::interface* intf, ipv4::addr remote_ip,
         tx_ops_slab(sizeof(tcp::tx_op)),
         send_ops_slab(sizeof(tcp::send_op)),
         rx_avail_bytes(0),
-        rcv_wnd(rcv_wnd)
+        rcv_wnd(rcv_wnd),
+        last_ack_ack_num(0),
+        last_ack_wnd_size(0)
 {
     kassert(llsize <= sizeof(llhdr));
     memset(llhdr,0xDD,sizeof(llhdr));
@@ -248,6 +252,22 @@ tcp::socket::post_ack()
     top->hdrs.format(SEQ{snd_nxt},ACK{rcv_nxt},CTL{FACK},
                      WS{rcv_wnd,rcv_wnd_shift});
     post_op(top);
+}
+
+void
+tcp::socket::post_update_ack()
+{
+    // If this is the same as the last update we sent, skip this update.
+    if (last_ack_wnd_size == rcv_wnd && last_ack_ack_num == rcv_nxt)
+        return;
+
+    // If something we have queued up is about to get sent, skip this update.
+    if (!unsent_send_ops.empty() && !is_send_window_full())
+        return;
+
+    last_ack_wnd_size = rcv_wnd;
+    last_ack_ack_num  = rcv_nxt;
+    post_ack();
 }
 
 void
@@ -408,6 +428,8 @@ tcp::socket::process_send_queue()
     {
         tcp::send_op* sop = klist_front(unsent_send_ops,link);
         tcp::tx_op* top   = make_one_packet(sop);
+        last_ack_wnd_size = top->hdrs.tcp.window_size;
+        last_ack_ack_num  = top->hdrs.tcp.ack_num;
         snd_nxt          += top->hdrs.segment_len();
         post_retransmittable_op(top);
     }
@@ -500,8 +522,7 @@ tcp::socket::read(void* _dst, uint32_t rem)
         }
     }
 
-    if (unsent_send_ops.empty() || is_send_window_full())
-        post_ack();
+    post_update_ack();
 }
 
 void
@@ -606,7 +627,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
                 snd_wnd = h->tcp.window_size;
                 rcv_nxt = h->tcp.seq_num + 1;
 
-                post_ack();
+                post_update_ack();
 
                 if (state == TCP_SYN_SENT_ACKED_WAIT_SYN)
                 {
@@ -815,19 +836,16 @@ tcp::socket::process_payload_synchronized(net::rx_page* p)
         rcv_nxt         += new_seqs.len;
         uint32_t skip    = new_seqs.first - h->tcp.seq_num;
         p->client_len    = h->payload_len() - skip;
-        bool sw_was_full = is_send_window_full();
         if (p->client_len)
         {
             p->client_offset = (uint8_t*)h->get_payload() - p->payload + skip;
             rx_append(p);
-            if (unsent_send_ops.empty() || sw_was_full)
-                post_ack();
+            post_update_ack();
             if (fin)
                 throw fin_recvd_exception{NRX_FLAG_NO_DELETE};
             return NRX_FLAG_NO_DELETE;
         }
-        if (unsent_send_ops.empty() || sw_was_full)
-            post_ack();
+        post_update_ack();
     }
 
     if (fin)

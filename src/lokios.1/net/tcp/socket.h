@@ -166,6 +166,10 @@ namespace tcp
         uint8_t                         rcv_wnd_shift;
         uint16_t                        rcv_mss;
 
+        // ACK tracking.
+        uint32_t                        last_ack_ack_num;
+        size_t                          last_ack_wnd_size;
+
         // Allocate send ops.
         tcp::tx_op* alloc_tx_op(tcp::send_op* sop = NULL);
         void free_tx_op(tcp::tx_op* top);
@@ -175,6 +179,7 @@ namespace tcp
         void    post_retransmittable_op(tcp::tx_op* top);
         void    post_rst(uint32_t seq_num);
         void    post_ack();
+        void    post_update_ack();
         void    send_complete(net::tx_op* nop);
         void    send_complete_arm_retransmit(net::tx_op* nop);
 

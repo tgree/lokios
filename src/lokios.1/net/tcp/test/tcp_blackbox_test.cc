@@ -1076,7 +1076,7 @@ class tmock_test
         test_fin_recvd_new_data_ignored(transition_LAST_ACK());
     }
 
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_ESTABLISHED_read_no_dup_ack)
+    TMOCK_TEST(test_ESTABLISHED_read_no_dup_ack)
     {
         auto* s = transition_ESTABLISHED();
         s->observer = &cobserver;
