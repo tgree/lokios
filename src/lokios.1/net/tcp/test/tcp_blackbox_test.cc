@@ -940,17 +940,17 @@ class tmock_test
         cleanup_socket(s,state);
     }
 
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_CLOSING_new_fin_ignored)
+    TMOCK_TEST(test_CLOSING_new_fin_ignored)
     {
         test_fin_recvd_new_fin_ignored(transition_CLOSING());
     }
 
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_TIME_WAIT_new_fin_ignored)
+    TMOCK_TEST(test_TIME_WAIT_new_fin_ignored)
     {
         test_fin_recvd_new_fin_ignored(transition_TIME_WAIT());
     }
 
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_CLOSE_WAIT_new_fin_ignored)
+    TMOCK_TEST(test_CLOSE_WAIT_new_fin_ignored)
     {
         test_fin_recvd_new_fin_ignored(transition_CLOSE_WAIT());
     }

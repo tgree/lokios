@@ -635,8 +635,6 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
         case TCP_CLOSE_WAIT:
         case TCP_TIME_WAIT:
             process_header_synchronized(h);
-            if (h->tcp.fin)
-                throw fin_recvd_exception{0};
         break;
 
         case TCP_LAST_ACK:
