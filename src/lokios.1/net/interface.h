@@ -96,7 +96,7 @@ namespace net
         static  bool    tcp_always_accept(const tcp::header*) {return true;}
         tcp::socket*    tcp_connect(ipv4::addr remote_ip, uint16_t remote_port,
                                     tcp::socket_observer* observer,
-                                    uint16_t local_port = 0);
+                                    uint16_t local_port = INPORT_ANY);
                 void    tcp_unlink(tcp::socket* s);
                 void    tcp_delete(tcp::socket* s);
 

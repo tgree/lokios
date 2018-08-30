@@ -93,7 +93,7 @@ tcp::socket*
 net::interface::tcp_connect(ipv4::addr remote_ip, uint16_t remote_port,
     tcp::socket_observer* observer, uint16_t local_port)
 {
-    if (local_port)
+    if (local_port != INPORT_ANY)
         kassert(local_port < FIRST_EPHEMERAL_PORT);
     else
     {

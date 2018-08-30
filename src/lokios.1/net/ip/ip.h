@@ -63,8 +63,11 @@ namespace ipv4
         typedef ipv4::addr      addr_type;
         typedef ipv4::header    header_type;
 
+        static constexpr const uint16_t any_port   = 0;
         static constexpr const uint16_t ether_type = 0x0800;
     };
+
+#define INPORT_ANY  ipv4::net_traits::any_port
 }
 
 #include "k++/hash.h"
