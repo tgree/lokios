@@ -1,5 +1,5 @@
-#include "cmd_sock.h"
-#include "interface.h"
+#include "net/interface.h"
+#include "net/wka.h"
 #include "kernel/task.h"
 #include "kernel/console.h"
 #include "platform/platform.h"
@@ -8,7 +8,6 @@ using kernel::_kassert;
 
 struct cmd_sock_connection : public tcp::socket_observer
 {
-    net::cmd_sock_listener* listener;
     net::interface*         intf;
     tcp::socket*            s;
 
@@ -31,16 +30,33 @@ struct cmd_sock_connection : public tcp::socket_observer
             void    handle_cmd_close();
             void    handle_unrecognized_cmd();
 
-    cmd_sock_connection(net::cmd_sock_listener* listener, tcp::socket* s);
+    cmd_sock_connection(tcp::socket* s);
 };
 
-static kernel::dma_alp spam_alps[1];
-
-net::cmd_sock_listener::cmd_sock_listener(net::interface* intf):
-    intf(intf),
-    connection_slab(sizeof(cmd_sock_connection))
+struct cmd_sock_net_observer : public net::observer
 {
-    if (!spam_alps[0].paddr)
+    static kernel::dma_alp  spam_alps[1];
+    kernel::slab            connection_slab;
+
+    void cmd_socket_accepted(tcp::socket* s)
+    {
+        s->intf->intf_dbg("cmd_sock connect from %u.%u.%u.%u:%u accepted\n",
+                          s->remote_ip[0],
+                          s->remote_ip[1],
+                          s->remote_ip[2],
+                          s->remote_ip[3],
+                          (uint16_t)s->remote_port);
+        s->observer = connection_slab.alloc<cmd_sock_connection>(s);
+    }
+
+    virtual void intf_activated(net::interface* intf) override
+    {
+        intf->tcp_listen(TCP_LOKIOS_CMD_PORT,32768,
+                         method_delegate(cmd_socket_accepted));
+    }
+
+    cmd_sock_net_observer():
+        connection_slab(sizeof(cmd_sock_connection))
     {
         spam_alps[0].paddr = kernel::buddy_palloc(2);
         spam_alps[0].len   = (PAGE_SIZE << 2);
@@ -50,32 +66,15 @@ net::cmd_sock_listener::cmd_sock_listener(net::interface* intf):
         str[0] = 'T';
         memcpy(str+spam_alps[0].len-11,"\r\nGoodbye\r\n",11);
     }
-}
+};
 
-void
-net::cmd_sock_listener::listen(uint16_t port)
-{
-    intf->tcp_listen(port,32768,method_delegate(cmd_socket_accepted));
-}
+kernel::dma_alp cmd_sock_net_observer::spam_alps[1];
+cmd_sock_net_observer cmd_sock_observer;
 
-void
-net::cmd_sock_listener::cmd_socket_accepted(tcp::socket* s)
-{
-    intf->intf_dbg("cmd_sock connect from %u.%u.%u.%u:%u accepted\n",
-                   s->remote_ip[0],
-                   s->remote_ip[1],
-                   s->remote_ip[2],
-                   s->remote_ip[3],
-                   (uint16_t)s->remote_port);
-    s->observer = connection_slab.alloc<cmd_sock_connection>(this,s);
-}
-
-cmd_sock_connection::cmd_sock_connection(net::cmd_sock_listener* listener,
-    tcp::socket* s):
-        listener(listener),
-        intf(listener->intf),
-        s(s),
-        buf_len(0)
+cmd_sock_connection::cmd_sock_connection(tcp::socket* s):
+    intf(s->intf),
+    s(s),
+    buf_len(0)
 {
 }
 
@@ -142,7 +141,11 @@ cmd_sock_connection::socket_readable(tcp::socket* _s)
     kassert(s->rx_pages.empty());
 
     if (s->in_sendable_state())
-        s->send(NELEMS(spam_alps),spam_alps,method_delegate(send_complete));
+    {
+        s->send(NELEMS(cmd_sock_net_observer::spam_alps),
+                cmd_sock_net_observer::spam_alps,
+                method_delegate(send_complete));
+    }
 }
 
 void
@@ -159,7 +162,7 @@ cmd_sock_connection::socket_closed(tcp::socket* _s)
     kassert(_s == s);
     intf->intf_dbg("error: connection closed\n");
     intf->tcp_delete(s);
-    listener->connection_slab.free(this);
+    cmd_sock_observer.connection_slab.free(this);
 }
 
 void
@@ -168,7 +171,7 @@ cmd_sock_connection::socket_reset(tcp::socket* _s)
     kassert(_s == s);
     intf->intf_dbg("error: connection reset\n");
     intf->tcp_delete(s);
-    listener->connection_slab.free(this);
+    cmd_sock_observer.connection_slab.free(this);
 }
 
 void
