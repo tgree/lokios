@@ -101,11 +101,12 @@ _tx_expect(const char* file, unsigned int l, Args ...args)
     tcp::tx_op top0;
     top0.hdrs.init(SIP{LOCAL_IP},DIP{REMOTE_IP},SPORT{LOCAL_PORT},
                    DPORT{REMOTE_PORT},args...);
-    top0.hdrs.ip.identification += -1;
+    top0.hdrs.ip.identification = 0xAAAA;
 
     if (!intf.posted_ops.empty())
     {
         auto* top = static_cast<tcp::tx_op*>(intf.pop_tx_op());
+        top->hdrs.ip.identification = 0xAAAA;
         tmock::assert_mem_same(top->hdrs,top0.hdrs,file,l);
         tmock::assert_mem_same(&top->hdrs,&top0.hdrs,top0.hdrs.ip.total_len,
                                file,l);
