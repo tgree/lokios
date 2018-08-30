@@ -68,7 +68,18 @@ struct mock_observer : public tcp::socket_observer
     }
 };
 
+struct consume_observer : public mock_observer
+{
+    virtual void socket_readable(socket* s)
+    {
+        char buf[1024];
+        while (s->rx_avail_bytes)
+            s->read(buf,MIN(s->rx_avail_bytes,sizeof(buf)));
+    }
+};
+
 static mock_observer mobserver;
+static consume_observer cobserver;
 
 static char data[100];
 static char rcvbuf[100];
@@ -1063,6 +1074,17 @@ class tmock_test
     TMOCK_TEST(test_LAST_ACK_new_data_ignored)
     {
         test_fin_recvd_new_data_ignored(transition_LAST_ACK());
+    }
+
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_ESTABLISHED_read_no_dup_ack)
+    {
+        auto* s = transition_ESTABLISHED();
+        s->observer = &cobserver;
+        rx_packet(ACK{s->snd_una},CTL{FACK},DATA{data,sizeof(data)});
+        tx_expect(SEQ{s->snd_nxt},ACK{s->rcv_nxt},CTL{FACK},
+                  WS{s->rcv_wnd,s->rcv_wnd_shift});
+        tx_expect_none();
+        cleanup_socket(s,tcp::socket::TCP_ESTABLISHED);
     }
 };
 
