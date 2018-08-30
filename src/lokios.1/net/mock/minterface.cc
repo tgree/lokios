@@ -63,9 +63,9 @@ net::interface::refill_rx_pages()
 }
 
 void
-net::interface::activate()
+net::interface::notify_activated()
 {
-    mock("net::interface::activate");
+    mock("net::interface::notify_activated");
 }
 
 uint64_t

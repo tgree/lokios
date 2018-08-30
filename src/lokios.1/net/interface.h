@@ -103,7 +103,7 @@ namespace net
                 void        refill_rx_pages();
 
         // Notifications from the subclass about interface state changes.
-                void    activate();
+                void    notify_activated();
 
         // Transmit a frame.
         virtual void    post_tx_frame(net::tx_op* op) = 0;

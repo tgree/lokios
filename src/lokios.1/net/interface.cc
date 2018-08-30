@@ -144,7 +144,7 @@ net::interface::refill_rx_pages()
 }
 
 void
-net::interface::activate()
+net::interface::notify_activated()
 {
     // Post receive buffers.
     refill_rx_pages();

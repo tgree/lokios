@@ -1029,7 +1029,7 @@ bcm57762::dev::handle_phy_start_autoneg_complete(kernel::work_entry* wqe)
 
     // Notify the eth layer that the interface is now active.  The link may not
     // be up or anything, but we can start posting packets if we like.
-    intf->activate();
+    intf->notify_activated();
     TRANSITION(WAIT_PHY_LINK_NOTIFICATION);
 }
 
