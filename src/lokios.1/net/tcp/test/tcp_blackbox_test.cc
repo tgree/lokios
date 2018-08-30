@@ -223,7 +223,7 @@ transition_CLOSING()
 {
     auto* s = transition_FIN_WAIT_1();
     auto e  = texpect("mock_observer::socket_fin_recvd");
-    rx_packet(ACK{s->iss+1},CTL{FACK|FFIN});
+    rx_packet(SEQ{REMOTE_ISS+1},ACK{s->iss+1},CTL{FACK|FFIN});
     tcheckpoint(e);
     tmock::assert_equiv(s->state,tcp::socket::TCP_CLOSING);
     tx_expect(SEQ{s->iss+2},ACK{REMOTE_ISS+2},CTL{FACK},
@@ -236,7 +236,7 @@ transition_TIME_WAIT()
 {
     auto* s = transition_FIN_WAIT_1();
     auto e  = texpect("mock_observer::socket_fin_recvd");
-    rx_packet(ACK{s->iss+2},CTL{FACK|FFIN});
+    rx_packet(SEQ{REMOTE_ISS+1},ACK{s->iss+2},CTL{FACK|FFIN});
     tcheckpoint(e);
     tmock::assert_equiv(s->state,tcp::socket::TCP_TIME_WAIT);
     tx_expect(SEQ{s->iss+2},ACK{REMOTE_ISS+2},CTL{FACK},
@@ -249,7 +249,7 @@ transition_CLOSE_WAIT()
 {
     auto* s = transition_ESTABLISHED();
     auto e  = texpect("mock_observer::socket_fin_recvd");
-    rx_packet(ACK{s->iss+1},CTL{FACK|FFIN});
+    rx_packet(SEQ{REMOTE_ISS+1},ACK{s->iss+1},CTL{FACK|FFIN});
     tcheckpoint(e);
     tmock::assert_equiv(s->state,tcp::socket::TCP_CLOSE_WAIT);
     tx_expect(SEQ{s->iss+1},ACK{REMOTE_ISS+2},CTL{FACK},
