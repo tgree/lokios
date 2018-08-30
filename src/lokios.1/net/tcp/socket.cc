@@ -242,12 +242,11 @@ tcp::socket::post_rst(uint32_t seq_num)
 }
 
 void
-tcp::socket::post_ack(uint32_t seq_num, uint32_t ack_num, size_t window_size,
-    uint8_t window_shift)
+tcp::socket::post_ack()
 {
     auto* top = alloc_tx_op();
-    top->hdrs.format(SEQ{seq_num},ACK{ack_num},CTL{FACK},
-                     WS{window_size,window_shift});
+    top->hdrs.format(SEQ{snd_nxt},ACK{rcv_nxt},CTL{FACK},
+                     WS{rcv_wnd,rcv_wnd_shift});
     post_op(top);
 }
 
@@ -501,7 +500,7 @@ tcp::socket::read(void* _dst, uint32_t rem)
         }
     }
 
-    post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
+    post_ack();
 }
 
 void
@@ -606,7 +605,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
                 snd_wnd = h->tcp.window_size;
                 rcv_nxt = h->tcp.seq_num + 1;
 
-                post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
+                post_ack();
 
                 if (state == TCP_SYN_SENT_ACKED_WAIT_SYN)
                 {
@@ -717,7 +716,7 @@ catch (ack_unacceptable_exception)
             // we have to send an ACK and drop it.  It's not clear how to
             // define the future - we'll check a 1G window from SND.NXT.
             if (seq_range{snd_nxt,0x40000000}.seq_in_range(h->tcp.ack_num))
-                post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
+                post_ack();
         break;
 
         default:
@@ -775,7 +774,7 @@ tcp::socket::process_header_synchronized(const ipv4_tcp_headers* h)
     if (!seq_check(rcv_nxt,h->tcp.seq_num,h->segment_len(),rcv_wnd))
     {
         if (!h->tcp.rst)
-            post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
+            post_ack();
         throw header_invalid_exception{"seq check failed"};
     }
     if (h->tcp.rst)
@@ -819,12 +818,12 @@ tcp::socket::process_payload_synchronized(net::rx_page* p)
         {
             p->client_offset = (uint8_t*)h->get_payload() - p->payload + skip;
             rx_append(p);
-            post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
+            post_ack();
             if (fin)
                 throw fin_recvd_exception{NRX_FLAG_NO_DELETE};
             return NRX_FLAG_NO_DELETE;
         }
-        post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
+        post_ack();
     }
 
     if (fin)
