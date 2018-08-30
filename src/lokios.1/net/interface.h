@@ -106,7 +106,7 @@ namespace net
         inline  void        free_rx_page(net::rx_page* p) {delete p;}
 
         // Activate the interface.
-        virtual void    activate();
+                void    activate();
                 void    refill_rx_pages();
 
         // Transmit a frame.
