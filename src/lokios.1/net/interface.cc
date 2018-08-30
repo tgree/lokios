@@ -176,6 +176,14 @@ net::interface::notify_link_down()
 }
 
 void
+net::interface::notify_deactivated()
+{
+    // Notify observers.
+    for (auto& o : klist_elems(observers,link))
+        o.intf_deactivated(this);
+}
+
+void
 net::interface::handle_tx_completion(net::tx_op* op)
 {
 #if TX_COMPLETION_DELAY_10MS

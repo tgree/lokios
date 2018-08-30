@@ -106,6 +106,7 @@ namespace net
                 void    notify_activated();
                 void    notify_link_up(size_t mbits, bool full_duplex);
                 void    notify_link_down();
+                void    notify_deactivated();
 
         // Transmit a frame.
         virtual void    post_tx_frame(net::tx_op* op) = 0;

@@ -80,6 +80,12 @@ net::interface::notify_link_down()
     mock("net::interface::notify_link_down");
 }
 
+void
+net::interface::notify_deactivated()
+{
+    mock("net::interface::notify_deactivated");
+}
+
 uint64_t
 net::interface::handle_rx_ipv4_frame(net::rx_page* p)
 {
