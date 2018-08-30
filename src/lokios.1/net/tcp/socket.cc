@@ -23,7 +23,7 @@
 using kernel::_kassert;
 
 struct fin_recvd_exception {uint64_t flags;};
-struct header_invalid_exception {};
+struct header_invalid_exception {const char* msg;};
 struct ack_unacceptable_exception {};
 struct socket_reset_exception {};
 
@@ -597,7 +597,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
                     throw socket_reset_exception();
             }
             else if (h->tcp.rst)
-                throw header_invalid_exception();
+                throw header_invalid_exception{"rst bit set"};
             if (h->tcp.syn)
             {
                 rx_opts = h->tcp.parse_options();
@@ -691,7 +691,7 @@ catch (socket_reset_exception)
     observer->socket_reset(this);
     return 0;
 }
-catch (header_invalid_exception)
+catch (const header_invalid_exception& e)
 {
     return 0;
 }
@@ -778,7 +778,7 @@ tcp::socket::process_header_synchronized(const ipv4_tcp_headers* h)
     {
         if (!h->tcp.rst)
             post_ack(snd_nxt,rcv_nxt,rcv_wnd,rcv_wnd_shift);
-        throw header_invalid_exception();
+        throw header_invalid_exception{"seq check failed"};
     }
     if (h->tcp.rst)
         throw socket_reset_exception();
@@ -788,7 +788,7 @@ tcp::socket::process_header_synchronized(const ipv4_tcp_headers* h)
         throw socket_reset_exception();
     }
     if (!h->tcp.ack)
-        throw header_invalid_exception();
+        throw header_invalid_exception{"ack not set"};
 
     process_ack(h->tcp.ack_num,snd_una);
     snd_wnd = h->tcp.window_size << snd_wnd_shift;
