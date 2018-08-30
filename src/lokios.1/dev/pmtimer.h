@@ -1,5 +1,5 @@
-#ifndef __KERNEL_PMTIMER_H
-#define __KERNEL_PMTIMER_H
+#ifndef __KERNEL_DEV_PMTIMER_H
+#define __KERNEL_DEV_PMTIMER_H
 
 #include <stdint.h>
 
@@ -9,4 +9,4 @@ namespace kernel::pmtimer
     void init();
 }
 
-#endif /* __KERNEL_PMTIMER_H */
+#endif /* __KERNEL_DEV_PMTIMER_H */

@@ -1,5 +1,5 @@
 #include "pmtimer.h"
-#include "console.h"
+#include "kernel/console.h"
 #include "acpi/tables.h"
 #include "hdr/x86.h"
 

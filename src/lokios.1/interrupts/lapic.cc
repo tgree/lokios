@@ -2,9 +2,9 @@
 #include "interrupt.h"
 #include "routing.h"
 #include "kernel/console.h"
-#include "kernel/pmtimer.h"
 #include "kernel/schedule.h"
 #include "kernel/cpu.h"
+#include "dev/pmtimer.h"
 #include "acpi/tables.h"
 #include "mm/mm.h"
 

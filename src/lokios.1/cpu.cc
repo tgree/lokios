@@ -4,7 +4,7 @@
 #include "task.h"
 #include "console.h"
 #include "spinlock.h"
-#include "pmtimer.h"
+#include "dev/pmtimer.h"
 #include "mm/page.h"
 #include "mm/mm.h"
 #include "interrupts/lapic.h"

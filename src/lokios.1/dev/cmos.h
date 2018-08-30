@@ -1,7 +1,7 @@
-#ifndef __KERNEL_CMOS_H
-#define __KERNEL_CMOS_H
+#ifndef __KERNEL_DEV_CMOS_H
+#define __KERNEL_DEV_CMOS_H
 
-#include "kassert.h"
+#include "kernel/kassert.h"
 
 namespace kernel
 {
@@ -48,4 +48,4 @@ namespace kernel
     void init_cmos();
 }
 
-#endif /* __KERNEL_CMOS_H */
+#endif /* __KERNEL_DEV_CMOS_H */

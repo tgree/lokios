@@ -3,8 +3,7 @@
 #include "thread.h"
 #include "task.h"
 #include "console.h"
-#include "pmtimer.h"
-#include "vga.h"
+#include "dev/vga.h"
 #include "mm/slab.h"
 #include "interrupts/lapic.h"
 

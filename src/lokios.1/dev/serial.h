@@ -1,7 +1,7 @@
-#ifndef __KERNEL_SERIAL_H
-#define __KERNEL_SERIAL_H
+#ifndef __KERNEL_DEV_SERIAL_H
+#define __KERNEL_DEV_SERIAL_H
 
-#include "console.h"
+#include "kernel/console.h"
 
 namespace kernel
 {
@@ -29,4 +29,4 @@ namespace kernel
     void init_serial_console(uint16_t ioaddr, serial_config config);
 }
 
-#endif /* __KERNEL_SERIAL_H */
+#endif /* __KERNEL_DEV_SERIAL_H */

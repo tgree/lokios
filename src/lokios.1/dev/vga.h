@@ -1,8 +1,8 @@
-#ifndef __KERNEL_VGA_H
-#define __KERNEL_VGA_H
+#ifndef __KERNEL_DEV_VGA_H
+#define __KERNEL_DEV_VGA_H
 
-#include "console.h"
-#include "types.h"
+#include "kernel/console.h"
+#include "kernel/types.h"
 
 namespace kernel
 {
@@ -30,4 +30,4 @@ namespace kernel
     void init_vga_console(dma_addr64 vga_base);
 }
 
-#endif /* __KERNEL_VGA_H */
+#endif /* __KERNEL_DEV_VGA_H */

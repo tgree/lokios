@@ -1,4 +1,4 @@
-SUBMODULES := mm acpi interrupts pci platform k++ test net cmd
+SUBMODULES := mm acpi interrupts dev pci platform k++ test net cmd
 
 CRTBEGIN_OBJ := $(shell $(CC) $(CFLAGS) -print-file-name=crtbeginS.o)
 CRTEND_OBJ   := $(shell $(CC) $(CFLAGS) -print-file-name=crtendS.o)
@@ -10,7 +10,7 @@ LOKIOS_1_OBJ := $(LOKIOS_1_CXX_SRC:$(MODULE_SRC_DIR)/%.cc=$(MODULE_BUILD_DIR)/%.
                 $(LOKIOS_1_ASM_SRC:$(MODULE_SRC_DIR)/%.s=$(MODULE_BUILD_DIR)/%.o)
 LOKIOS_1_DRIVERS := e1000 virtio_net bcm57762
 LOKIOS_1_CONSTRUCTORS :=
-LOKIOS_1_LIB := mm.a acpi.a interrupts.a pci.a platform.a k++.a \
+LOKIOS_1_LIB := mm.a acpi.a interrupts.a dev.a pci.a platform.a k++.a \
                 dhcp.a arp.a net.a eth.a eth_phys.a tcp.a udp.a \
                 cmd.a libsupc++.a $(LOKIOS_1_DRIVERS:%=%.a)
 

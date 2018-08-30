@@ -1,9 +1,9 @@
 #include "kassert.h"
 #include "kernel_args.h"
-#include "vga.h"
-#include "serial.h"
 #include "console.h"
 #include "kbacktrace.h"
+#include "dev/vga.h"
+#include "dev/serial.h"
 #include "k++/string_stream.h"
 #include "platform/platform.h"
 
