@@ -10,6 +10,13 @@ operator new(std::size_t count)
     return kernel::page_alloc();
 }
 
+void*
+operator new(std::size_t count, std::align_val_t al)
+{
+    kernel::kassert(count <= PAGE_SIZE);
+    return kernel::page_alloc();
+}
+
 void
 operator delete(void* p)
 {
