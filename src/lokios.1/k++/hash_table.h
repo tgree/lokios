@@ -15,7 +15,7 @@ namespace hash
     };
 
     template<typename Key, typename Value,
-             size_t (&HashFunc)(const Key&) = hash::hasher<Key>::compute>
+             auto HashFunc = hash::hasher<Key>::compute>
     struct table
     {
         struct dummy {};

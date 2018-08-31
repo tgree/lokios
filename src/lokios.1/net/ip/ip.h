@@ -74,13 +74,16 @@ namespace ipv4
 namespace hash
 {
     template<>
-    inline size_t compute(const ipv4::addr& k)
+    struct hasher<ipv4::addr>
     {
-        return ((uint64_t)k[0] << 24) |
-               ((uint64_t)k[1] << 16) |
-               ((uint64_t)k[2] <<  8) |
-               ((uint64_t)k[3] <<  0);
-    }
+        static inline size_t compute(const ipv4::addr& k)
+        {
+            return ((uint64_t)k[0] << 24) |
+                   ((uint64_t)k[1] << 16) |
+                   ((uint64_t)k[2] <<  8) |
+                   ((uint64_t)k[3] <<  0);
+        }
+    };
 }
 
 #endif /* __KERNEL_NET_IP_H */

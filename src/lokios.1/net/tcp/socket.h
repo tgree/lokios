@@ -263,10 +263,13 @@ namespace tcp
 namespace hash
 {
     template<>
-    inline size_t compute(const tcp::socket_id& k)
+    struct hasher<tcp::socket_id>
     {
-        return hash::compute(k.remote_ip) + k.remote_port + k.local_port;
-    }
+        static inline size_t compute(const tcp::socket_id& k)
+        {
+            return hash::compute(k.remote_ip) + k.remote_port + k.local_port;
+        }
+    };
 }
 
 #endif /* __KERNEL_NET_TCP_SOCKET_H */

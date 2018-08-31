@@ -139,7 +139,7 @@ class tmock_test
 
     TMOCK_TEST(test_custom_hasher)
     {
-        hash::table<int,int,one_hasher> t;
+        hash::table<int,int,one_hasher<int>> t;
         t.emplace(1,1);
         t.emplace(2,2);
         t.emplace(3,3);
