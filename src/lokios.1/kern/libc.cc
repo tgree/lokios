@@ -50,6 +50,9 @@ void* realloc(void* ptr, size_t size)
 extern "C"
 void free(void* p) noexcept
 {
+    if (!p)
+        return;
+
     kernel::kassert(p >= kernel::phys_to_virt(kernel::get_sbrk()));
     kernel::page_free(p);
 }
