@@ -175,6 +175,25 @@ namespace kernel
     void buddy_pfree(dma_addr64 d, size_t order);
 
     // Buddy virtual allocators.
+    constexpr size_t buddy_order_for_len(size_t len)
+    {
+        if (len <= 4096)
+            return 0;
+        return ulog2(ceil_pow2(len)) - 12;
+    }
+    KASSERT(buddy_order_for_len(10)    == 0);
+    KASSERT(buddy_order_for_len(4095)  == 0);
+    KASSERT(buddy_order_for_len(4096)  == 0);
+    KASSERT(buddy_order_for_len(4097)  == 1);
+    KASSERT(buddy_order_for_len(8191)  == 1);
+    KASSERT(buddy_order_for_len(8192)  == 1);
+    KASSERT(buddy_order_for_len(8193)  == 2);
+    KASSERT(buddy_order_for_len(16383) == 2);
+    KASSERT(buddy_order_for_len(16384) == 2);
+    KASSERT(buddy_order_for_len(16385) == 3);
+    KASSERT(buddy_order_for_len(32767) == 3);
+    KASSERT(buddy_order_for_len(32768) == 3);
+    KASSERT(buddy_order_for_len(32769) == 4);
     inline void* buddy_alloc(size_t order)
     {
         return kernel::phys_to_virt(buddy_palloc(order));
