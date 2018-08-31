@@ -32,22 +32,9 @@ kernel::get_sbrk()
 }
 
 void
-kernel::set_sbrk(dma_addr64 pos)
-{
-    _brk = pos;
-}
-
-void
 kernel::freeze_sbrk()
 {
     sbrk_frozen = true;
-}
-
-void
-kernel::set_sbrk_limit(dma_addr64 new_lim)
-{
-    kernel::kassert(new_lim <= _brklim);
-    _brklim = new_lim;
 }
 
 dma_addr64
