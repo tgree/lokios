@@ -33,8 +33,8 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr)
 
     // Parse the usable RAM regions out of the E820 map and subtract the
     // unusable ones for safety.
-    sbrk_vector<region> usable_regions;
-    sbrk_vector<region> unusable_regions;
+    local_vector<region> usable_regions;
+    local_vector<region> unusable_regions;
     get_e820_regions(m,usable_regions,E820_TYPE_RAM_MASK);
     get_e820_regions(m,unusable_regions,~E820_TYPE_RAM_MASK);
     regions_remove(usable_regions,unusable_regions);
