@@ -227,7 +227,8 @@ extern "C"
 int fputs(const char* s, FILE* stream)
 {
     kernel::kassert(stream == stderr);
-    kernel::console::printf("%s",s);
+    while (*s)
+        kernel::console::_putc(*s++);
     return 0;
 }
 
