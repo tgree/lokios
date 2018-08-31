@@ -11,7 +11,9 @@ class tmock_test
 
     TMOCK_TEST(test_string_hash)
     {
+        char foo[] = "one";
         tmock::assert_equiv(hash::compute("one"),  0x007C091DCC18779AU);
+        tmock::assert_equiv(hash::compute(foo),    0x007C091DCC18779AU);
         tmock::assert_equiv(hash::compute("One"),  0x0058069D4411F06FU);
         tmock::assert_equiv(hash::compute("two"),  0x0084E9BC2CE7B706U);
         tmock::assert_equiv(hash::compute("three"),0x59DE8DF818B4C359U);
