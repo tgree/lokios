@@ -3,6 +3,7 @@
 #include "kassert.h"
 #include "mm/sbrk.h"
 #include "mm/page.h"
+#include "mm/buddy_allocator.h"
 #include "mm/mm.h"
 #include <stddef.h>
 #include <unistd.h>
@@ -10,34 +11,44 @@
 
 FILE* stderr;
 
+struct malloc_chunk
+{
+    size_t  len;
+    size_t  order;
+    char    data[];
+};
+KASSERT(sizeof(malloc_chunk) == 16);
+KASSERT(offsetof(malloc_chunk,data) % 16 == 0);
+
 extern "C"
 void* malloc(size_t n) noexcept
 {
-    if (n <= PAGE_SIZE)
-        return kernel::page_alloc();
-
-    dma_addr64 p = kernel::sbrk(n);
-    if (!p)
-        return NULL;
-    return kernel::phys_to_virt(p);
+    n           += sizeof(size_t);
+    size_t order = kernel::buddy_order_for_len(n);
+    auto* mc     = (malloc_chunk*)kernel::buddy_alloc(order);
+    mc->len      = n;
+    mc->order    = order;
+    return mc->data;
 }
 
 extern "C"
 void* realloc(void* ptr, size_t size)
 {
-    // Check if this is a malloc- or free-equivalent.
+    // If ptr is NULL, we just malloc().
     if (!ptr)
         return malloc(size);
+
+    kernel::kassert(ptr >= kernel::phys_to_virt(kernel::get_sbrk()));
+
+    // If size is 0, we just free().
     if (ptr && !size)
     {
         free(ptr);
         return NULL;
     }
 
-    // If this was allocated on a page, well we have 4K of space already...
-    kernel::kassert(ptr >= kernel::phys_to_virt(kernel::get_sbrk()));
-    kernel::kassert(size <= PAGE_SIZE);
-    return ptr;
+    // If we actually have to resize something, abort for now.
+    kernel::panic("realloc called");
 }
 
 extern "C"
@@ -47,7 +58,9 @@ void free(void* p) noexcept
         return;
 
     kernel::kassert(p >= kernel::phys_to_virt(kernel::get_sbrk()));
-    kernel::page_free(p);
+
+    auto* mc = container_of(p,malloc_chunk,data);
+    kernel::buddy_free(mc,mc->order);
 }
 
 extern "C"
