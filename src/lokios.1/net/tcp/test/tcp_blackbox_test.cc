@@ -446,6 +446,7 @@ class tmock_test
 
         // SYN_SENT: if the ACK was acceptable and RST=1, reset the connection.
         texpect("mock_observer::socket_reset",want(s,s));
+        texpect("mock_observer::socket_closed",want(s,s));
         rx_packet(SEQ{REMOTE_ISS},ACK{s->iss+1},CTL{FACK|FRST});
         tx_expect_none();
 
@@ -688,6 +689,7 @@ class tmock_test
     static void test_syncd_acceptable_rst(socket* s)
     {
         texpect("mock_observer::socket_reset",want(s,s));
+        texpect("mock_observer::socket_closed",want(s,s));
         rx_packet(ACK{s->snd_nxt},CTL{FRST});
         tx_expect_none();
 
@@ -699,6 +701,7 @@ class tmock_test
         // "If the SYN is in the window it is an error, send a reset, ...".
         // Not very clear on what the RST should be.
         texpect("mock_observer::socket_reset",want(s,s));
+        texpect("mock_observer::socket_closed",want(s,s));
         rx_packet(CTL{FSYN});
         tx_expect(SEQ{s->snd_nxt},CTL{FRST});
 

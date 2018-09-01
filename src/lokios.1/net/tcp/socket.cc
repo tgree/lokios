@@ -533,8 +533,10 @@ tcp::socket::syn_send_op_cb(tcp::send_op* sop)
                 observer->socket_readable(this);
         break;
 
-        case TCP_CLOSED:
         case TCP_DRAIN_NIC_OPS:
+        break;
+
+        case TCP_CLOSED:
         case TCP_SYN_SENT_ACKED_WAIT_SYN:
         case TCP_ESTABLISHED:
         case TCP_FIN_WAIT_1:
@@ -569,8 +571,10 @@ tcp::socket::fin_send_op_cb(tcp::send_op* sop)
             socket_drain();
         break;
 
-        case TCP_CLOSED:
         case TCP_DRAIN_NIC_OPS:
+        break;
+
+        case TCP_CLOSED:
         case TCP_SYN_SENT:
         case TCP_SYN_SENT_ACKED_WAIT_SYN:
         case TCP_SYN_SENT_SYN_RECVD_WAIT_ACK:
@@ -711,7 +715,8 @@ catch (fin_recvd_exception& e)
 }
 catch (socket_reset_exception)
 {
-    socket_reset();
+    observer->socket_reset(this);
+    socket_drain();
     return 0;
 }
 catch (const header_invalid_exception& e)
@@ -801,9 +806,6 @@ tcp::socket::socket_drain()
     TRANSITION(TCP_DRAIN_NIC_OPS);
     intf->tcp_unlink(this);
 
-    kassert(unsent_send_ops.empty());
-    kassert(sent_send_ops.empty());
-    kassert(acked_send_ops.empty());
     if (posted_ops.empty())
         socket_closed();
 }
@@ -811,16 +813,24 @@ tcp::socket::socket_drain()
 void
 tcp::socket::socket_closed()
 {
+    kassert(posted_ops.empty());
+    kassert(acked_send_ops.empty());
+
+    kernel::kdlist<tcp::send_op> ops_list;
+    ops_list.append(sent_send_ops);
+    ops_list.append(unsent_send_ops);
+    while (!ops_list.empty())
+    {
+        auto* sop = klist_front(ops_list,link);
+        ops_list.pop_front();
+        kassert(sop->posted_ops.empty());
+        sop->flags |= SEND_OP_FLAG_UNACKED;
+        sop->cb(sop);
+        send_ops_slab.free(sop);
+    }
+
     TRANSITION(TCP_CLOSED);
     observer->socket_closed(this);
-}
-
-void
-tcp::socket::socket_reset()
-{
-    TRANSITION(TCP_CLOSED);
-    intf->tcp_unlink(this);
-    observer->socket_reset(this);
 }
 
 void

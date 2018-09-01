@@ -74,6 +74,7 @@ namespace tcp
 #define SEND_OP_FLAG_FIN        (1<<1)  // FIN after any payload alps.
 #define SEND_OP_FLAG_SET_ACK    (1<<2)  // Set the ACK bit on the SYN.
 #define SEND_OP_FLAG_SET_SCALE  (1<<3)  // Set window scaling option on SYN.
+#define SEND_OP_FLAG_UNACKED    (1<<4)  // Send failed, no ACK received.
     struct send_op
     {
         kernel::kdlink                      link;
@@ -216,7 +217,6 @@ namespace tcp
         void        close_send();
         void        socket_drain();
         void        socket_closed();
-        void        socket_reset();
 
         // Helpers.
         void        process_header_synchronized(const ipv4_tcp_headers* h);
