@@ -577,7 +577,7 @@ tcp::socket::fin_send_op_cb(tcp::send_op* sop)
         break;
 
         default:
-            kernel::panic("Bad state for syn_send_op_cb!");
+            kernel::panic("Bad state for fin_send_op_cb!");
         break;
     }
 }
