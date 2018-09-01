@@ -1,6 +1,5 @@
 #include "mm.h"
 #include "page_table.h"
-#include "sbrk.h"
 #include "kern/console.h"
 #include "kern/task.h"
 #include "kern/cpu.h"
@@ -23,10 +22,6 @@ kernel::preinit_mm(const e820_map* m)
     // Pre-initialize the page list.
     page_preinit(m,top_addr);
     
-    // Print out the sbrk stats.
-    printf("  Free sbrk RAM: %luK\n",
-           ((uint64_t)get_sbrk_limit() - (uint64_t)get_sbrk())/1024);
-
     // Set up the zero/trash pages.
     zero_page_dma  = virt_to_phys(page_zalloc());
     trash_page_dma = virt_to_phys(page_zalloc());
