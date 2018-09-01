@@ -100,6 +100,8 @@ namespace tcp
         enum tcp_state
         {
             TCP_CLOSED,
+            TCP_DRAIN_NIC_OPS,
+
             TCP_SYN_SENT,
             TCP_SYN_SENT_ACKED_WAIT_SYN,
             TCP_SYN_SENT_SYN_RECVD_WAIT_ACK,
@@ -212,6 +214,7 @@ namespace tcp
         // Close the send side of the socket.  This transmits a FIN packet and
         // we can no longer send any data packets after this.
         void        close_send();
+        void        socket_drain();
         void        socket_closed();
         void        socket_reset();
 

@@ -113,7 +113,8 @@ net::interface::tcp_connect(ipv4::addr remote_ip, uint16_t remote_port,
 void
 net::interface::tcp_unlink(tcp::socket* s)
 {
-    kassert(s->state == tcp::socket::TCP_CLOSED);
+    kassert(s->state == tcp::socket::TCP_CLOSED ||
+            s->state == tcp::socket::TCP_DRAIN_NIC_OPS);
 
     tcp_sockets.unlink_value(s);
 }

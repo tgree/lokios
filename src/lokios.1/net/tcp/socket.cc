@@ -245,6 +245,9 @@ tcp::socket::send_complete(net::tx_op* nop)
     kassert(klist_front(posted_ops,tcp_link) == top);
     posted_ops.pop_front();
     free_tx_op(top);
+
+    if (state == TCP_DRAIN_NIC_OPS && posted_ops.empty())
+        socket_closed();
 }
 
 void
@@ -280,6 +283,7 @@ tcp::socket::send(size_t nalps, kernel::dma_alp* alps,
             process_send_queue();
         break;
 
+        case TCP_DRAIN_NIC_OPS:
         case TCP_SYN_SENT:
         case TCP_SYN_SENT_ACKED_WAIT_SYN:
         case TCP_SYN_SENT_SYN_RECVD_WAIT_ACK:
@@ -530,6 +534,7 @@ tcp::socket::syn_send_op_cb(tcp::send_op* sop)
         break;
 
         case TCP_CLOSED:
+        case TCP_DRAIN_NIC_OPS:
         case TCP_SYN_SENT_ACKED_WAIT_SYN:
         case TCP_ESTABLISHED:
         case TCP_FIN_WAIT_1:
@@ -559,10 +564,13 @@ tcp::socket::fin_send_op_cb(tcp::send_op* sop)
         break;
 
         case TCP_LAST_ACK:
-            socket_closed();
+            // Our FIN has been ACK'd and all send_ops prior to it have
+            // completed.
+            socket_drain();
         break;
 
         case TCP_CLOSED:
+        case TCP_DRAIN_NIC_OPS:
         case TCP_SYN_SENT:
         case TCP_SYN_SENT_ACKED_WAIT_SYN:
         case TCP_SYN_SENT_SYN_RECVD_WAIT_ACK:
@@ -600,7 +608,7 @@ void
 tcp::socket::handle_time_wait_expiry(kernel::tqe* wqe)
 {
     kassert(state == TCP_TIME_WAIT);
-    socket_closed();
+    socket_drain();
 }
 
 uint64_t
@@ -660,6 +668,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
         break;
 
         case TCP_CLOSED:
+        case TCP_DRAIN_NIC_OPS:
             kernel::panic("rx packet when we should be unlinked");
         break;
     }
@@ -687,6 +696,7 @@ catch (fin_recvd_exception& e)
         break;
 
         case TCP_CLOSED:
+        case TCP_DRAIN_NIC_OPS:
         case TCP_SYN_SENT:
         case TCP_SYN_SENT_ACKED_WAIT_SYN:
         case TCP_CLOSING:
@@ -739,6 +749,7 @@ catch (ack_unacceptable_exception)
         break;
 
         case TCP_CLOSED:
+        case TCP_DRAIN_NIC_OPS:
             kernel::panic("ack-unacceptable thrown from impossible state");
         break;
     }
@@ -758,7 +769,7 @@ tcp::socket::close_send()
         case TCP_SYN_SENT:
         case TCP_SYN_SENT_ACKED_WAIT_SYN:
         case TCP_SYN_SENT_SYN_RECVD_WAIT_ACK:
-            socket_closed();
+            socket_drain();
         break;
 
         case TCP_SYN_RECVD:
@@ -773,6 +784,7 @@ tcp::socket::close_send()
         break;
 
         case TCP_CLOSED:
+        case TCP_DRAIN_NIC_OPS:
         case TCP_FIN_WAIT_1:
         case TCP_FIN_WAIT_2:
         case TCP_CLOSING:
@@ -784,10 +796,22 @@ tcp::socket::close_send()
 }
 
 void
+tcp::socket::socket_drain()
+{
+    TRANSITION(TCP_DRAIN_NIC_OPS);
+    intf->tcp_unlink(this);
+
+    kassert(unsent_send_ops.empty());
+    kassert(sent_send_ops.empty());
+    kassert(acked_send_ops.empty());
+    if (posted_ops.empty())
+        socket_closed();
+}
+
+void
 tcp::socket::socket_closed()
 {
     TRANSITION(TCP_CLOSED);
-    intf->tcp_unlink(this);
     observer->socket_closed(this);
 }
 
