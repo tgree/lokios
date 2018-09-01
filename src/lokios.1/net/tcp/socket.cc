@@ -696,7 +696,7 @@ catch (fin_recvd_exception& e)
         case TCP_CLOSING:
         case TCP_CLOSE_WAIT:
         case TCP_LAST_ACK:
-            kernel::panic("Impossible!");
+            kernel::panic("fin-recvd thrown from impossible state");
         break;
     }
     observer->socket_fin_recvd(this);
