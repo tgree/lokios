@@ -82,8 +82,8 @@ kernel::page_init(const e820_map* m, uint64_t top_addr)
 
     // Build up the list of free regions, removing everything below the top
     // bootloader address.
-    vector<region> unusable_regions;
-    vector<region> free_regions;
+    local_vector<region> unusable_regions;
+    local_vector<region> free_regions;
     get_e820_regions(m,free_regions,E820_TYPE_RAM_MASK);
     get_e820_regions(m,unusable_regions,~E820_TYPE_RAM_MASK);
     regions_remove(free_regions,unusable_regions);
