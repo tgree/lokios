@@ -10,7 +10,6 @@
 #include "dev/pmtimer.h"
 #include "platform/platform.h"
 #include "mm/mm.h"
-#include "mm/sbrk.h"
 #include "mm/e820.h"
 #include "acpi/tables.h"
 #include "interrupts/mp_tables.h"
@@ -73,9 +72,6 @@ init_bsp()
     // Initialize the early task so we get meaningful errors before stage 2.
     kernel::init_early_task_bsp();
 
-    // Set the sbrk limit.
-    kernel::init_sbrk(kargs->kernel_end);
-
     // Initialize symbol table information.
     kernel::init_symtab();
 
@@ -90,7 +86,6 @@ init_bsp()
 
     // Initialize globals.
     init_globals();
-    kernel::freeze_sbrk();
 
     // Initialize the platform.
     kernel::init_platform();
