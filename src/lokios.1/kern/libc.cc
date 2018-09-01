@@ -1,7 +1,6 @@
 #include "libc.h"
 #include "console.h"
 #include "kassert.h"
-#include "mm/sbrk.h"
 #include "mm/page.h"
 #include "mm/buddy_allocator.h"
 #include "mm/mm.h"
@@ -38,8 +37,6 @@ void* realloc(void* ptr, size_t size)
     if (!ptr)
         return malloc(size);
 
-    kernel::kassert(ptr >= kernel::phys_to_virt(kernel::get_sbrk()));
-
     // If size is 0, we just free().
     if (ptr && !size)
     {
@@ -56,8 +53,6 @@ void free(void* p) noexcept
 {
     if (!p)
         return;
-
-    kernel::kassert(p >= kernel::phys_to_virt(kernel::get_sbrk()));
 
     auto* mc = container_of(p,malloc_chunk,data);
     kernel::buddy_free(mc,mc->order);
