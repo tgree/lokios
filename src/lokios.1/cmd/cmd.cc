@@ -16,7 +16,7 @@ struct cmd_sock_connection : public tcp::socket_observer
 
     virtual void    socket_established(tcp::socket* s);
     virtual void    socket_readable(tcp::socket* s);
-    virtual void    socket_fin_recvd(tcp::socket* s);
+    virtual void    socket_recv_closed(tcp::socket* s);
     virtual void    socket_closed(tcp::socket* s);
     virtual void    socket_reset(tcp::socket* s);
 
@@ -149,7 +149,7 @@ cmd_sock_connection::socket_readable(tcp::socket* _s)
 }
 
 void
-cmd_sock_connection::socket_fin_recvd(tcp::socket* _s)
+cmd_sock_connection::socket_recv_closed(tcp::socket* _s)
 {
     kassert(_s == s);
     if (s->in_passive_close_state())

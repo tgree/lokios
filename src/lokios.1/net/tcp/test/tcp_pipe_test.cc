@@ -22,9 +22,9 @@ struct mock_observer : public tcp::socket_observer
         mock("mock_observer::socket_readable",s);
     }
 
-    virtual void socket_fin_recvd(tcp::socket* s)
+    virtual void socket_recv_closed(tcp::socket* s)
     {
-        mock("mock_observer::socket_fin_recvd",s);
+        mock("mock_observer::socket_recv_closed",s);
     }
 
     virtual void socket_closed(tcp::socket* s)
@@ -63,9 +63,9 @@ struct fake_observer : public tcp::socket_observer
         rcv_pos += count;
     }
 
-    virtual void socket_fin_recvd(tcp::socket* s)
+    virtual void socket_recv_closed(tcp::socket* s)
     {
-        mock("fake_observer::socket_fin_recvd",s);
+        mock("fake_observer::socket_recv_closed",s);
     }
 
     virtual void socket_closed(tcp::socket* s)
@@ -353,7 +353,7 @@ class tmock_test
         //  - send comp for FIN -> arm retransmit timer
         // Passive socket:
         // - rx FIN -> post ACK -> go to CLOSE_WAIT
-        auto e1 = texpect("fake_observer::socket_fin_recvd",
+        auto e1 = texpect("fake_observer::socket_recv_closed",
                           want(s,passive_socket));
         tmock::assert_equiv(intf_pipe.process_queues(),1U);
         tcheckpoint(e1);
@@ -384,7 +384,7 @@ class tmock_test
         //  - rx FIN -> post ACK -> go to TIME_WAIT
         // Passive socket:
         //  - send comp for FIN -> arm retransmit timer
-        auto e2 = texpect("mock_observer::socket_fin_recvd",
+        auto e2 = texpect("mock_observer::socket_recv_closed",
                           want(s,active_socket));
         TASSERT(!active_socket->time_wait_wqe.is_armed());
         tmock::assert_equiv(intf_pipe.process_queues(),1U);

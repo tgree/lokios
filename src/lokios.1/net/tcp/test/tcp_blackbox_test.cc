@@ -52,9 +52,9 @@ struct mock_observer : public tcp::socket_observer
         mock("mock_observer::socket_readable",s);
     }
 
-    virtual void socket_fin_recvd(socket* s)
+    virtual void socket_recv_closed(socket* s)
     {
-        mock("mock_observer::socket_fin_recvd",s);
+        mock("mock_observer::socket_recv_closed",s);
     }
 
     virtual void socket_closed(socket* s)
@@ -239,7 +239,7 @@ static tcp::socket*
 transition_CLOSING()
 {
     auto* s = transition_FIN_WAIT_1();
-    auto e  = texpect("mock_observer::socket_fin_recvd");
+    auto e  = texpect("mock_observer::socket_recv_closed");
     rx_packet(SEQ{REMOTE_ISS+1},ACK{s->iss+1},CTL{FACK|FFIN});
     tcheckpoint(e);
     tmock::assert_equiv(s->state,tcp::socket::TCP_CLOSING);
@@ -252,7 +252,7 @@ static tcp::socket*
 transition_TIME_WAIT()
 {
     auto* s = transition_FIN_WAIT_1();
-    auto e  = texpect("mock_observer::socket_fin_recvd");
+    auto e  = texpect("mock_observer::socket_recv_closed");
     rx_packet(SEQ{REMOTE_ISS+1},ACK{s->iss+2},CTL{FACK|FFIN});
     tcheckpoint(e);
     tmock::assert_equiv(s->state,tcp::socket::TCP_TIME_WAIT);
@@ -265,7 +265,7 @@ static tcp::socket*
 transition_CLOSE_WAIT()
 {
     auto* s = transition_ESTABLISHED();
-    auto e  = texpect("mock_observer::socket_fin_recvd");
+    auto e  = texpect("mock_observer::socket_recv_closed");
     rx_packet(SEQ{REMOTE_ISS+1},ACK{s->iss+1},CTL{FACK|FFIN});
     tcheckpoint(e);
     tmock::assert_equiv(s->state,tcp::socket::TCP_CLOSE_WAIT);

@@ -722,7 +722,7 @@ catch (fin_recvd_exception& e)
             kernel::panic("fin-recvd thrown from impossible state");
         break;
     }
-    observer->socket_fin_recvd(this);
+    observer->socket_recv_closed(this);
     return e.flags;
 }
 catch (socket_reset_exception)
