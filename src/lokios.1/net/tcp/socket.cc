@@ -310,7 +310,15 @@ tcp::socket::send(size_t nalps, kernel::dma_alp* alps,
             process_send_queue();
         break;
 
-        default:
+        case TCP_SYN_SENT:
+        case TCP_SYN_SENT_ACKED_WAIT_SYN:
+        case TCP_SYN_SENT_SYN_RECVD_WAIT_ACK:
+        case TCP_SYN_RECVD:
+        case TCP_FIN_WAIT_1:
+        case TCP_FIN_WAIT_2:
+        case TCP_CLOSING:
+        case TCP_TIME_WAIT:
+        case TCP_LAST_ACK:
             kernel::panic("Bad state for send!");
         break;
     }
@@ -551,7 +559,15 @@ tcp::socket::syn_send_op_cb(tcp::send_op* sop)
                 observer->socket_readable(this);
         break;
 
-        default:
+        case TCP_CLOSED:
+        case TCP_SYN_SENT_ACKED_WAIT_SYN:
+        case TCP_ESTABLISHED:
+        case TCP_FIN_WAIT_1:
+        case TCP_FIN_WAIT_2:
+        case TCP_CLOSING:
+        case TCP_TIME_WAIT:
+        case TCP_CLOSE_WAIT:
+        case TCP_LAST_ACK:
             kernel::panic("Bad state for syn_send_op_cb!");
         break;
     }
@@ -576,7 +592,15 @@ tcp::socket::fin_send_op_cb(tcp::send_op* sop)
             socket_closed();
         break;
 
-        default:
+        case TCP_CLOSED:
+        case TCP_SYN_SENT:
+        case TCP_SYN_SENT_ACKED_WAIT_SYN:
+        case TCP_SYN_SENT_SYN_RECVD_WAIT_ACK:
+        case TCP_SYN_RECVD:
+        case TCP_ESTABLISHED:
+        case TCP_FIN_WAIT_2:
+        case TCP_TIME_WAIT:
+        case TCP_CLOSE_WAIT:
             kernel::panic("Bad state for fin_send_op_cb!");
         break;
     }
@@ -694,7 +718,12 @@ catch (fin_recvd_exception& e)
                                             TIME_WAIT_TIMEOUT_SEC);
         break;
 
-        default:
+        case TCP_CLOSED:
+        case TCP_SYN_SENT:
+        case TCP_SYN_SENT_ACKED_WAIT_SYN:
+        case TCP_CLOSING:
+        case TCP_CLOSE_WAIT:
+        case TCP_LAST_ACK:
             kernel::panic("Impossible!");
         break;
     }
@@ -737,7 +766,8 @@ catch (ack_unacceptable_exception)
                 post_ack();
         break;
 
-        default:
+        case TCP_SYN_SENT_SYN_RECVD_WAIT_ACK:
+        case TCP_CLOSED:
         break;
     }
     return 0;
