@@ -101,6 +101,7 @@ namespace tcp
         {
             TCP_CLOSED,
             TCP_RESET,
+            TCP_DRAIN_NIC_OPS,
 
             TCP_SYN_SENT,
             TCP_SYN_SENT_ACKED_WAIT_SYN,
@@ -212,6 +213,7 @@ namespace tcp
         // Close the send side of the socket.  This transmits a FIN packet and
         // we can no longer send any data packets after this.
         void        close_send();
+        void        socket_drain();
         void        socket_closed();
         void        socket_reset();
 
