@@ -766,7 +766,10 @@ catch (ack_unacceptable_exception)
         break;
 
         case TCP_SYN_SENT_SYN_RECVD_WAIT_ACK:
+        break;
+
         case TCP_CLOSED:
+            kernel::panic("ack-unacceptable thrown from impossible state");
         break;
     }
     return 0;
