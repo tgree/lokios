@@ -36,8 +36,9 @@
 //      Virtual Start        Virtual End        Description
 //      ------------------   ------------------ ----------------
 //      0xFFFF800000000000 - 0xFFFF8000001FFFFF 2M of low memory
-//      0xFFFF800000200000 - 0xFFFF8.. + _sbrk  start of sbrk area
-//      0xFFFF800000800000 - end of RAM         buddy allocator pages
+//      0xFFFF800000200000 - kernel_end         elf image + headers
+//      kernel_end         - ...                buddy allocator bitmap
+//      ...                - end of RAM         buddy allocator pages
 #ifndef __KERNEL_MM_H
 #define __KERNEL_MM_H
 
@@ -45,8 +46,6 @@
 #include "page_flags.h"
 #include "kern/types.h"
 #include "kern/thread.h"
-
-#define KERNEL_SBRK_END 0x00800000
 
 #define MM_ETH_BEGIN    0xFFFF900000000000
 #define MM_ETH_END      0xFFFF900400000000

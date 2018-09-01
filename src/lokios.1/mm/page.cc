@@ -30,7 +30,7 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr,
     dma_addr64 bitmap_base)
 {
     // Populate the buddy allocator with the free bootloader-mapped pages that
-    // come following the sbrk region.
+    // come following the end of the kernel image.
 
     // Parse the usable RAM regions out of the E820 map and subtract the
     // unusable ones for safety.
@@ -40,48 +40,38 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr,
     get_e820_regions(m,unusable_regions,~E820_TYPE_RAM_MASK);
     regions_remove(usable_regions,unusable_regions);
 
-    // Remove everything below the sbrk limit.  This includes all of the
-    // kernel image, all of BIOS stuff in low memory and anything that gets
-    // allocated out of the sbrk pool.
-    region_remove(usable_regions,0,KERNEL_SBRK_END-1);
-
-    // What we have now is the working set of free pages for use by the kernel,
-    // following the sbrk region.  Record this for later.
-    dma_addr64 first_dma = usable_regions[0].first;
-    dma_addr64 last_dma  = usable_regions[-1].last + 1;
-
-    // Dump the usable regions and ensure they are sorted.
+    // Dump the usable regions and find the end of RAM.
     printf("E820 usable RAM regions:\n");
-    bool sorted   = true;
-    uint64_t prev = 0;
+    dma_addr64 last_dma = usable_regions[-1].last + 1;
     for (auto& r : usable_regions)
     {
         printf("  0x%016lX - 0x%016lX\n",r.first,r.last);
-        if (prev >= r.first)
-            sorted = false;
-        prev = r.last;
+        if (r.last + 1 > last_dma)
+            last_dma = r.last + 1;
     }
-    kassert(sorted);
 
     // Remove everything above the top bootloader address since those pages,
     // while free, aren't currently mapped.
     region_remove(usable_regions,top_addr,0xFFFFFFFFFFFFFFFF);
 
-    // We are kind of relying on the fact that sbrk() can allocate a
-    // contiguous range without there being any holes in the memory map.
-    // Basically that means that after removing the top and bottom regions
-    // above that we should have been reduced to a single range.
-    kassert(usable_regions.size() == 1);
-    kassert(usable_regions[0].first == KERNEL_SBRK_END);
-    kassert(usable_regions[0].last == top_addr - 1);
-
     // Initialize and populate the buddy allocator.
-    uint64_t begin_pfn = ceil_div(usable_regions[0].first,PAGE_SIZE);
-    uint64_t end_pfn   = floor_div(usable_regions[0].last+1,PAGE_SIZE);
-    kassert(begin_pfn < end_pfn);
-    buddy_init(first_dma,last_dma - first_dma,bitmap_base);
-    for (uint64_t pfn = begin_pfn; pfn != end_pfn; ++pfn)
-        buddy_free(phys_to_virt(pfn*PAGE_SIZE),0);
+    size_t bitmap_len = buddy_init(0,last_dma,bitmap_base);
+
+    // Remove all pages below the end of the buddy bitmap.
+    dma_addr64 bitmap_end = round_up_pow2(bitmap_base+bitmap_len,PAGE_SIZE);
+    region_remove(usable_regions,0,bitmap_end);
+
+    // Add all remaining pages to the buddy allocator.
+    for (auto& r : usable_regions)
+    {
+        uint64_t begin_pfn = ceil_div(r.first,PAGE_SIZE);
+        uint64_t end_pfn   = floor_div(r.last+1,PAGE_SIZE);
+        if (begin_pfn > end_pfn)
+            continue;
+
+        for (uint64_t pfn = begin_pfn; pfn != end_pfn; ++pfn)
+            buddy_free(phys_to_virt(pfn*PAGE_SIZE),0);
+    }
 }
 
 void
