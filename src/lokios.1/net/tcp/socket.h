@@ -79,7 +79,7 @@ namespace tcp
         kernel::kdlink                      link;
         kernel::delegate<void(send_op*)>    cb;
         uint64_t                            flags;
-        size_t                              refcount;
+        kernel::klist<tcp::tx_op>           posted_ops;
         size_t                              nalps;
         size_t                              unacked_alp_index;
         size_t                              unsent_alp_index;
@@ -193,6 +193,7 @@ namespace tcp
         tcp::tx_op*     make_one_packet(tcp::send_op* sop);
         void            process_send_queue();
         void            process_ack(uint32_t ack_num, uint32_t lower_bound);
+        void            process_ack_queue();
 
         // Receive data.
         void    rx_append(net::rx_page* p);

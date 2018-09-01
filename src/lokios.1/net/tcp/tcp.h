@@ -18,6 +18,7 @@ namespace tcp
     struct tx_op : public net::tx_op
     {
         kernel::klink       tcp_link;
+        kernel::klink       sop_link;
         send_op*            sop;
 
         uint8_t             llhdr[16];

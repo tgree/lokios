@@ -170,7 +170,7 @@ tcp::socket::alloc_tx_op(tcp::send_op* sop)
                    SPORT{local_port},DPORT{remote_port});
 
     if (sop)
-        ++sop->refcount;
+        sop->posted_ops.push_back(&top->sop_link);
     return top;
 }
 
@@ -180,13 +180,11 @@ tcp::socket::free_tx_op(tcp::tx_op* top)
     auto* sop = top->sop;
     if (sop)
     {
-        kassert(sop->refcount != 0);
-        if (!--sop->refcount && sop->is_fully_acked())
-        {
-            sop->link.unlink();
-            sop->cb(sop);
-            send_ops_slab.free(sop);
-        }
+        kassert(!sop->posted_ops.empty());
+        kassert(klist_front(sop->posted_ops,sop_link) == top);
+        sop->posted_ops.pop_front();
+        if (sop->posted_ops.empty() && sop->is_fully_acked())
+            process_ack_queue();
     }
     tx_ops_slab.free(top);
 }
@@ -265,7 +263,6 @@ tcp::socket::send(size_t nalps, kernel::dma_alp* alps,
     auto* sop               = send_ops_slab.alloc<tcp::send_op>();
     sop->cb                 = cb;
     sop->flags              = flags;
-    sop->refcount           = 0;
     sop->nalps              = nalps;
     sop->unacked_alp_index  = 0;
     sop->unsent_alp_index   = 0;
@@ -441,13 +438,7 @@ tcp::socket::process_ack(uint32_t ack_num, uint32_t lower_bound)
         if (sop->is_fully_acked())
         {
             sent_send_ops.pop_front();
-            if (!sop->refcount)
-            {
-                sop->cb(sop);
-                send_ops_slab.free(sop);
-            }
-            else
-                acked_send_ops.push_back(&sop->link);
+            acked_send_ops.push_back(&sop->link);
         }
     }
     if (ack_len && !unsent_send_ops.empty())
@@ -463,6 +454,23 @@ tcp::socket::process_ack(uint32_t ack_num, uint32_t lower_bound)
 
     if (snd_una == snd_nxt && retransmit_wqe.is_armed())
         kernel::cpu::cancel_timer(&retransmit_wqe);
+
+    process_ack_queue();
+}
+
+void
+tcp::socket::process_ack_queue()
+{
+    while (!acked_send_ops.empty())
+    {
+        auto* sop = klist_front(acked_send_ops,link);
+        if (!sop->posted_ops.empty())
+            break;
+
+        acked_send_ops.pop_front();
+        sop->cb(sop);
+        send_ops_slab.free(sop);
+    }
 }
 
 void
