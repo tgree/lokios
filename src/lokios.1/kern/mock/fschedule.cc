@@ -20,6 +20,9 @@ kernel::fire_timer(timer_entry* wqe)
 void
 kernel::fire_work(work_entry* wqe)
 {
+    kassert(wqe->is_armed());
+    wqe->link.nextu = KLINK_NOT_IN_USE;
+    kassert(!wqe->is_armed());
     wqe->fn(wqe);
 }
 
@@ -38,11 +41,15 @@ kernel::scheduler::~scheduler()
 void
 kernel::scheduler::schedule_local_work(work_entry* wqe)
 {
+    kassert(!wqe->is_armed());
+    wqe->link.nextu = ~KLINK_NOT_IN_USE;
 }
 
 void
 kernel::scheduler::schedule_remote_work(work_entry* wqe)
 {
+    kassert(!wqe->is_armed());
+    wqe->link.nextu = ~KLINK_NOT_IN_USE;
 }
 
 void
