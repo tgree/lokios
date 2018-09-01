@@ -252,6 +252,8 @@ namespace tcp
         socket(net::interface* intf, ipv4::addr remote_ip, uint16_t local_port,
                uint16_t remote_port, const void* llhdr, size_t llsize,
                socket_observer* observer, uint32_t rcv_wnd = 32768);
+
+        ~socket();
     };
 
     struct socket_id

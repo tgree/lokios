@@ -39,3 +39,8 @@ tcp::socket::socket(net::interface* intf, ipv4::addr remote_ip,
         last_ack_wnd_size(0)
 {
 }
+
+tcp::socket::~socket()
+{
+    mock("tcp::socket::~socket");
+}

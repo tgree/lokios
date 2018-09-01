@@ -185,6 +185,18 @@ tcp::socket::socket(net::interface* intf, ipv4::addr remote_ip,
     TRANSITION(TCP_SYN_SENT);
 }
 
+tcp::socket::~socket()
+{
+    // If the client has left any rx_pages on the receive queue, then at this
+    // point they don't care about them.
+    while (!rx_pages.empty())
+    {
+        auto* p = klist_front(rx_pages,link);
+        rx_pages.pop_front();
+        intf->free_rx_page(p);
+    }
+}
+
 tcp::tx_op*
 tcp::socket::alloc_tx_op(tcp::send_op* sop)
 {
