@@ -21,6 +21,11 @@ namespace kernel
         klink           link;
         work_handler    fn;
         uint64_t        args[6];
+
+        inline bool is_armed() const
+        {
+            return link.nextu != KLINK_NOT_IN_USE;
+        }
     };
     KASSERT(sizeof(work_entry) == 64);
     KASSERT(offsetof(work_entry,args) == 16);
