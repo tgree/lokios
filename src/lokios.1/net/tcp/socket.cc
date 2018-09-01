@@ -310,6 +310,7 @@ tcp::socket::send(size_t nalps, kernel::dma_alp* alps,
             process_send_queue();
         break;
 
+        case TCP_RESET:
         case TCP_SYN_SENT:
         case TCP_SYN_SENT_ACKED_WAIT_SYN:
         case TCP_SYN_SENT_SYN_RECVD_WAIT_ACK:
@@ -560,6 +561,7 @@ tcp::socket::syn_send_op_cb(tcp::send_op* sop)
         break;
 
         case TCP_CLOSED:
+        case TCP_RESET:
         case TCP_SYN_SENT_ACKED_WAIT_SYN:
         case TCP_ESTABLISHED:
         case TCP_FIN_WAIT_1:
@@ -593,6 +595,7 @@ tcp::socket::fin_send_op_cb(tcp::send_op* sop)
         break;
 
         case TCP_CLOSED:
+        case TCP_RESET:
         case TCP_SYN_SENT:
         case TCP_SYN_SENT_ACKED_WAIT_SYN:
         case TCP_SYN_SENT_SYN_RECVD_WAIT_ACK:
@@ -690,6 +693,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
         break;
 
         case TCP_CLOSED:
+        case TCP_RESET:
             kernel::panic("rx packet when we should be unlinked");
         break;
     }
@@ -717,6 +721,7 @@ catch (fin_recvd_exception& e)
         break;
 
         case TCP_CLOSED:
+        case TCP_RESET:
         case TCP_SYN_SENT:
         case TCP_SYN_SENT_ACKED_WAIT_SYN:
         case TCP_CLOSING:
@@ -769,6 +774,7 @@ catch (ack_unacceptable_exception)
         break;
 
         case TCP_CLOSED:
+        case TCP_RESET:
             kernel::panic("ack-unacceptable thrown from impossible state");
         break;
     }
@@ -803,6 +809,7 @@ tcp::socket::close_send()
         break;
 
         case TCP_CLOSED:
+        case TCP_RESET:
         case TCP_FIN_WAIT_1:
         case TCP_FIN_WAIT_2:
         case TCP_CLOSING:
@@ -824,9 +831,12 @@ tcp::socket::socket_closed()
 void
 tcp::socket::socket_reset()
 {
-    TRANSITION(TCP_CLOSED);
+    TRANSITION(TCP_RESET);
     intf->tcp_unlink(this);
     observer->socket_reset(this);
+
+    TRANSITION(TCP_CLOSED);
+    observer->socket_closed(this);
 }
 
 void

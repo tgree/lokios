@@ -324,7 +324,8 @@ class tmock_test
         // Active socket:
         //  - rx RST/ACK -> socket_reset -> go to CLOSED
         //    -> disarm retransmit timer
-        auto e = texpect("mock_observer::socket_reset",want(s,active_socket));
+        texpect("mock_observer::socket_reset",want(s,active_socket));
+        auto e = texpect("mock_observer::socket_closed",want(s,active_socket));
         tmock::assert_equiv(intf_pipe.process_queues(),1U);
         tcheckpoint(e);
         TASSERT(!active_socket->retransmit_wqe.is_armed());
