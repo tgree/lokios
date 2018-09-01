@@ -44,7 +44,7 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr,
     // Remove everything below the sbrk limit.  This includes all of the
     // kernel image, all of BIOS stuff in low memory and anything that gets
     // allocated out of the sbrk pool.
-    region_remove(usable_regions,0,(uintptr_t)get_sbrk_limit()-1);
+    region_remove(usable_regions,0,KERNEL_SBRK_END-1);
 
     // What we have now is the working set of free pages for use by the kernel,
     // following the sbrk region.  Record this for later.
@@ -73,7 +73,7 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr,
     // Basically that means that after removing the top and bottom regions
     // above that we should have been reduced to a single range.
     kassert(usable_regions.size() == 1);
-    kassert(usable_regions[0].first == (uintptr_t)get_sbrk_limit());
+    kassert(usable_regions[0].first == KERNEL_SBRK_END);
     kassert(usable_regions[0].last == top_addr - 1);
 
     // Initialize and populate the buddy allocator.
