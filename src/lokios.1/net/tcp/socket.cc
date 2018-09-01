@@ -280,6 +280,8 @@ tcp::socket::send_complete(net::tx_op* nop)
     {
         if (state == TCP_DRAIN_NIC_OPS)
             socket_closed();
+        else if (state == TCP_RESET)
+            socket_reset_drained();
     }
 }
 
@@ -567,8 +569,10 @@ tcp::socket::syn_send_op_cb(tcp::send_op* sop)
                 observer->socket_readable(this);
         break;
 
-        case TCP_CLOSED:
         case TCP_RESET:
+        break;
+
+        case TCP_CLOSED:
         case TCP_DRAIN_NIC_OPS:
         case TCP_SYN_SENT_ACKED_WAIT_SYN:
         case TCP_ESTABLISHED:
@@ -604,8 +608,10 @@ tcp::socket::fin_send_op_cb(tcp::send_op* sop)
             socket_drain();
         break;
 
-        case TCP_CLOSED:
         case TCP_RESET:
+        break;
+
+        case TCP_CLOSED:
         case TCP_DRAIN_NIC_OPS:
         case TCP_SYN_SENT:
         case TCP_SYN_SENT_ACKED_WAIT_SYN:
@@ -838,8 +844,11 @@ tcp::socket::close_send()
 void
 tcp::socket::socket_drain()
 {
+    bool unlink = (state != TCP_RESET);
+
     TRANSITION(TCP_DRAIN_NIC_OPS);
-    intf->tcp_unlink(this);
+    if (unlink)
+        intf->tcp_unlink(this);
 
     kassert(unsent_send_ops.empty());
     kassert(sent_send_ops.empty());
@@ -861,6 +870,28 @@ tcp::socket::socket_reset()
     TRANSITION(TCP_RESET);
     intf->tcp_unlink(this);
     observer->socket_reset(this);
+
+    if (posted_ops.empty())
+        socket_reset_drained();
+}
+
+void
+tcp::socket::socket_reset_drained()
+{
+    kassert(acked_send_ops.empty());
+
+    kernel::kdlist<tcp::send_op> ops_list;
+    ops_list.append(sent_send_ops);
+    ops_list.append(unsent_send_ops);
+    while (!ops_list.empty())
+    {
+        auto* sop = klist_front(ops_list,link);
+        ops_list.pop_front();
+        kassert(sop->posted_ops.empty());
+        sop->flags |= SEND_OP_FLAG_UNACKED;
+        sop->cb(sop);
+        send_ops_slab.free(sop);
+    }
 
     TRANSITION(TCP_CLOSED);
     observer->socket_closed(this);
