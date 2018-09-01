@@ -70,10 +70,10 @@ namespace tcp
         virtual void socket_reset(socket*) = 0;
     };
 
-#define SEND_OP_FLAG_SYN        (1<<0)   // SYN before any payload alps.
-#define SEND_OP_FLAG_FIN        (1<<1)   // FIN after any payload alps.
-#define SEND_OP_FLAG_SET_ACK    (1<<2)   // Set the ACK bit on the SYN.
-#define SEND_OP_FLAG_SET_SCALE  (1<<3)   // Set window scaling option on SYN.
+#define SEND_OP_FLAG_SYN        (1<<0)  // SYN before any payload alps.
+#define SEND_OP_FLAG_FIN        (1<<1)  // FIN after any payload alps.
+#define SEND_OP_FLAG_SET_ACK    (1<<2)  // Set the ACK bit on the SYN.
+#define SEND_OP_FLAG_SET_SCALE  (1<<3)  // Set window scaling option on SYN.
     struct send_op
     {
         kernel::kdlink                      link;
