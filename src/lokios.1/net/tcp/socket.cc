@@ -710,8 +710,6 @@ catch (fin_recvd_exception& e)
             TRANSITION(TCP_CLOSING);
         break;
 
-        case TCP_TIME_WAIT:
-            kernel::cpu::cancel_timer(&time_wait_wqe);
         case TCP_FIN_WAIT_2:
             TRANSITION(TCP_TIME_WAIT);
             kernel::cpu::schedule_timer_sec(&time_wait_wqe,
@@ -722,6 +720,7 @@ catch (fin_recvd_exception& e)
         case TCP_SYN_SENT:
         case TCP_SYN_SENT_ACKED_WAIT_SYN:
         case TCP_CLOSING:
+        case TCP_TIME_WAIT:
         case TCP_CLOSE_WAIT:
         case TCP_LAST_ACK:
             kernel::panic("Impossible!");
