@@ -662,7 +662,7 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
         break;
 
         case TCP_CLOSED:
-            intf->intf_dbg("dropping packet\n");
+            kernel::panic("rx packet when we should be unlinked");
         break;
     }
 
