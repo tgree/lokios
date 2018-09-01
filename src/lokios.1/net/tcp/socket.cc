@@ -559,7 +559,7 @@ tcp::socket::fin_send_op_cb(tcp::send_op* sop)
         break;
 
         case TCP_LAST_ACK:
-            TRANSITION(TCP_CLOSED);
+            socket_closed();
         break;
 
         case TCP_CLOSED:
@@ -600,9 +600,7 @@ void
 tcp::socket::handle_time_wait_expiry(kernel::tqe* wqe)
 {
     kassert(state == TCP_TIME_WAIT);
-    TRANSITION(TCP_CLOSED);
-    intf->tcp_unlink(this);
-    observer->socket_closed(this);
+    socket_closed();
 }
 
 uint64_t
@@ -657,16 +655,8 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
         case TCP_CLOSING:
         case TCP_CLOSE_WAIT:
         case TCP_TIME_WAIT:
-            process_header_synchronized(h);
-        break;
-
         case TCP_LAST_ACK:
             process_header_synchronized(h);
-            if (state == TCP_CLOSED)
-            {
-                intf->tcp_unlink(this);
-                observer->socket_closed(this);
-            }
         break;
 
         case TCP_CLOSED:
@@ -711,9 +701,7 @@ catch (fin_recvd_exception& e)
 }
 catch (socket_reset_exception)
 {
-    TRANSITION(TCP_CLOSED);
-    intf->tcp_unlink(this);
-    observer->socket_reset(this);
+    socket_reset();
     return 0;
 }
 catch (const header_invalid_exception& e)
@@ -770,9 +758,7 @@ tcp::socket::close_send()
         case TCP_SYN_SENT:
         case TCP_SYN_SENT_ACKED_WAIT_SYN:
         case TCP_SYN_SENT_SYN_RECVD_WAIT_ACK:
-            TRANSITION(TCP_CLOSED);
-            intf->tcp_unlink(this);
-            observer->socket_closed(this);
+            socket_closed();
         break;
 
         case TCP_SYN_RECVD:
@@ -795,6 +781,22 @@ tcp::socket::close_send()
             kernel::panic("close_send() in unexpected state!");
         break;
     }
+}
+
+void
+tcp::socket::socket_closed()
+{
+    TRANSITION(TCP_CLOSED);
+    intf->tcp_unlink(this);
+    observer->socket_closed(this);
+}
+
+void
+tcp::socket::socket_reset()
+{
+    TRANSITION(TCP_CLOSED);
+    intf->tcp_unlink(this);
+    observer->socket_reset(this);
 }
 
 void
