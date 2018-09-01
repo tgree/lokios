@@ -210,6 +210,8 @@ namespace tcp
         // Close the send side of the socket.  This transmits a FIN packet and
         // we can no longer send any data packets after this.
         void        close_send();
+        void        socket_closed();
+        void        socket_reset();
 
         // Helpers.
         void        process_header_synchronized(const ipv4_tcp_headers* h);
