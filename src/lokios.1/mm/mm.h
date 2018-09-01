@@ -113,7 +113,7 @@ namespace kernel
         return *(T*)phys_to_virt(p);
     }
 
-    void preinit_mm(const e820_map* m);
+    void preinit_mm(const e820_map* m, dma_addr64 bitmap_base);
     void init_mm(const e820_map* m);
 }
 

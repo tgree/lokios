@@ -38,7 +38,8 @@ namespace kernel
         inline void  free(void* p) {kernel::page_free(p);}
     };
 
-    void page_preinit(const e820_map* m, uintptr_t top_addr);
+    void page_preinit(const e820_map* m, uintptr_t top_addr,
+                      dma_addr64 kernel_end);
     void page_init(const e820_map* m, uintptr_t top_addr);
 }
 

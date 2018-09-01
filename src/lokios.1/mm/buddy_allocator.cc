@@ -1,5 +1,4 @@
 #include "buddy_allocator.h"
-#include "sbrk.h"
 #include "kern/spinlock.h"
 #include "k++/deferred_init.h"
 
@@ -31,11 +30,13 @@ kernel::buddy_count_free()
     return buddy_pages->nfree_pages;
 }
 
-void
-kernel::buddy_init(dma_addr64 dma_base, size_t len)
+size_t
+kernel::buddy_init(dma_addr64 dma_base, size_t len, dma_addr64 bitmap_base)
 {
     // Reserve memory for the buddy allocator bitmap.
-    auto params = buddy_allocator_params(dma_base,len);
-    void* bitmap = phys_to_virt(sbrk(params.get_inuse_bitmask_size()));
+    auto params  = buddy_allocator_params(dma_base,len);
+    auto bmlen   = params.get_inuse_bitmask_size();
+    void* bitmap = phys_to_virt(bitmap_base);
     buddy_pages.init(dma_base,len,bitmap);
+    return bmlen;
 }

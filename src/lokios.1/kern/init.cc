@@ -81,7 +81,7 @@ init_bsp()
 
     // Initialize the memory map.
     e820_base = (kernel::e820_map*)kernel::phys_to_virt(kargs->e820_base);
-    kernel::preinit_mm(e820_base);
+    kernel::preinit_mm(e820_base,kargs->kernel_end);
 
     // Register exception handling support.  This is going to require the use
     // of malloc() which is why we can't set up exceptions before preinit_mm()

@@ -27,7 +27,8 @@ kernel::page_count_free()
 }
 
 void
-kernel::page_preinit(const e820_map* m, uint64_t top_addr)
+kernel::page_preinit(const e820_map* m, uint64_t top_addr,
+    dma_addr64 bitmap_base)
 {
     // Populate the buddy allocator with the free bootloader-mapped pages that
     // come following the sbrk region.
@@ -79,7 +80,7 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr)
     uint64_t begin_pfn = ceil_div(usable_regions[0].first,PAGE_SIZE);
     uint64_t end_pfn   = floor_div(usable_regions[0].last+1,PAGE_SIZE);
     kassert(begin_pfn < end_pfn);
-    buddy_init(first_dma,last_dma - first_dma);
+    buddy_init(first_dma,last_dma - first_dma,bitmap_base);
     for (uint64_t pfn = begin_pfn; pfn != end_pfn; ++pfn)
         buddy_free(phys_to_virt(pfn*PAGE_SIZE),0);
 }

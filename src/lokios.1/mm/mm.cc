@@ -12,7 +12,7 @@ dma_addr64 kernel::trash_page_dma;
 static uintptr_t top_addr;
 
 void
-kernel::preinit_mm(const e820_map* m)
+kernel::preinit_mm(const e820_map* m, dma_addr64 bitmap_base)
 {
     // Walk the page tables to find the last mapped address.
     for (const auto pte : page_table_leaf_iterator(mfcr3()))
@@ -20,7 +20,7 @@ kernel::preinit_mm(const e820_map* m)
     printf("End of bootloader-mapped RAM: 0x%016lX\n",top_addr);
 
     // Pre-initialize the page list.
-    page_preinit(m,top_addr);
+    page_preinit(m,top_addr,bitmap_base);
     
     // Set up the zero/trash pages.
     zero_page_dma  = virt_to_phys(page_zalloc());

@@ -211,7 +211,7 @@ namespace kernel
 
     size_t buddy_count_free();
 
-    void buddy_init(dma_addr64 dma_base, size_t len);
+    size_t buddy_init(dma_addr64 dma_base, size_t len, dma_addr64 bitmap_base);
 
     template<size_t Order>
     struct buddy_block
