@@ -40,12 +40,7 @@ struct cmd_sock_net_observer : public net::observer
 
     void cmd_socket_accepted(tcp::socket* s)
     {
-        s->intf->intf_dbg("cmd_sock connect from %u.%u.%u.%u:%u accepted\n",
-                          s->remote_ip[0],
-                          s->remote_ip[1],
-                          s->remote_ip[2],
-                          s->remote_ip[3],
-                          (uint16_t)s->remote_port);
+        s->dbg("cmd_sock connect accepted\n");
         s->observer = connection_slab.alloc<cmd_sock_connection>(s);
     }
 
@@ -83,12 +78,7 @@ cmd_sock_connection::socket_established(tcp::socket* _s)
 {
     kassert(_s == s);
 
-    intf->intf_dbg("cmd_sock connect from %u.%u.%u.%u:%u established\n",
-                   s->remote_ip[0],
-                   s->remote_ip[1],
-                   s->remote_ip[2],
-                   s->remote_ip[3],
-                   (uint16_t)s->remote_port);
+    s->dbg("cmd_sock connect established\n");
 }
 
 void
@@ -101,7 +91,7 @@ cmd_sock_connection::socket_readable(tcp::socket* _s)
         size_t rem = sizeof(buf) - 1 - buf_len;
         if (rem == 0)
         {
-            intf->intf_dbg("command too long, discarding\n");
+            s->dbg("command too long, discarding\n");
             buf_len = 0;
             rem     = sizeof(buf);
         }
@@ -152,6 +142,7 @@ void
 cmd_sock_connection::socket_recv_closed(tcp::socket* _s)
 {
     kassert(_s == s);
+    s->dbg("receive closed\n");
     if (s->in_passive_close_state())
         s->close_send();
 }
@@ -160,7 +151,7 @@ void
 cmd_sock_connection::socket_closed(tcp::socket* _s)
 {
     kassert(_s == s);
-    intf->intf_dbg("error: connection closed\n");
+    s->dbg("connection closed\n");
     intf->tcp_delete(s);
     cmd_sock_observer.connection_slab.free(this);
 }
@@ -169,7 +160,7 @@ void
 cmd_sock_connection::socket_reset(tcp::socket* _s)
 {
     kassert(_s == s);
-    intf->intf_dbg("error: connection reset\n");
+    s->dbg("error: connection reset\n");
 }
 
 void
@@ -186,9 +177,9 @@ cmd_sock_connection::handle_cmd_arp()
 void
 cmd_sock_connection::handle_cmd_mem()
 {
-    intf->intf_dbg("Free pages: %zu  PT Used Pages: %zu\n",
-                   kernel::page_count_free(),
-                   kernel::kernel_task->pt.page_count);
+    s->dbg("Free pages: %zu  PT Used Pages: %zu\n",
+           kernel::page_count_free(),
+           kernel::kernel_task->pt.page_count);
 }
 
 void
@@ -218,5 +209,5 @@ cmd_sock_connection::handle_cmd_close()
 void
 cmd_sock_connection::handle_unrecognized_cmd()
 {
-    intf->intf_dbg("Unrecognized command\n");
+    s->dbg("Unrecognized command\n");
 }
