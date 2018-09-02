@@ -30,6 +30,8 @@ namespace kernel
     KASSERT(sizeof(work_entry) == 64);
     KASSERT(offsetof(work_entry,args) == 16);
 
+    typedef work_entry wqe;
+
     typedef void (*timer_handler)(timer_entry* wqe);
 
     struct timer_entry
@@ -47,6 +49,8 @@ namespace kernel
         inline timer_entry():pos(-1) {}
     };
     KASSERT(sizeof(timer_entry) == 64);
+
+    typedef timer_entry tqe;
 
     struct timer_entry_expiry_less
     {
