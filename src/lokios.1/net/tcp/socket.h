@@ -136,29 +136,31 @@ namespace tcp
         // - acked_send_ops  - the bytes for these ops have all been posted and
         //                     acked but the op still has a non-zero refcount
         //                     (missing send completions from the chip).
-        kernel::slab                    tx_ops_slab;
-        kernel::slab                    send_ops_slab;
+        kernel::slab    tx_ops_slab = kernel::slab(sizeof(tcp::tx_op));
+        kernel::slab    send_ops_slab = kernel::slab(sizeof(tcp::send_op));
         kernel::klist<tcp::tx_op>       posted_ops;
         kernel::kdlist<tcp::send_op>    unsent_send_ops;
         kernel::kdlist<tcp::send_op>    sent_send_ops;
         kernel::kdlist<tcp::send_op>    acked_send_ops;
-        kernel::tqe                     retransmit_wqe;
-        kernel::tqe                     time_wait_wqe;
+
+        // WQEs.
+        kernel::tqe retransmit_wqe    = method_tqe(handle_retransmit_expiry);
+        kernel::tqe time_wait_wqe     = method_tqe(handle_time_wait_expiry);
 
         // Receive queue.
         kernel::klist<net::rx_page>     rx_pages;
-        size_t                          rx_avail_bytes;
+        size_t                          rx_avail_bytes = 0;
 
         // Options we received from the remote guy.
         parsed_options                  rx_opts;
 
         // Send sequence variables.
-        uint32_t                        snd_una;
-        uint32_t                        snd_nxt;
+        uint32_t                        iss     = kernel::random(0,0xFFFF);
+        uint32_t                        snd_una = iss;
+        uint32_t                        snd_nxt = iss;
         uint32_t                        snd_wnd;
         uint16_t                        snd_mss;
-        uint8_t                         snd_wnd_shift;
-        uint32_t                        iss;
+        uint8_t                         snd_wnd_shift = 0;
 
         // Receive sequence variables.
         uint32_t                        rcv_nxt;
@@ -167,8 +169,8 @@ namespace tcp
         uint16_t                        rcv_mss;
 
         // ACK tracking.
-        uint32_t                        last_ack_ack_num;
-        size_t                          last_ack_wnd_size;
+        uint32_t                        last_ack_ack_num  = 0;
+        size_t                          last_ack_wnd_size = 0;
 
         // Allocate send ops.
         tcp::tx_op* alloc_tx_op(tcp::send_op* sop = NULL);

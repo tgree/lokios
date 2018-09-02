@@ -6,6 +6,7 @@ dhcpc_test.objs := \
 	$(PARENT_TBUILD_DIR)/dhcp.o \
 	$(BUILD_TO_DIR)/lokios.1/net/mock/minterface.o \
 	$(BUILD_TO_DIR)/lokios.1/net/eth/mock/minterface.o \
+	$(BUILD_TO_DIR)/lokios.1/k++/mock/frandom.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fmm.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fpage.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fbuddy_allocator.o \

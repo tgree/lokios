@@ -98,13 +98,8 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p,
         local_port(p->payload_cast<tcp::ipv4_tcp_headers*>()->tcp.dst_port),
         remote_port(p->payload_cast<tcp::ipv4_tcp_headers*>()->tcp.src_port),
         observer(NULL),
-        tx_ops_slab(sizeof(tcp::tx_op)),
-        send_ops_slab(sizeof(tcp::send_op)),
-        rx_avail_bytes(0),
         rx_opts(rx_opts),
-        rcv_wnd(rcv_wnd),
-        last_ack_ack_num(0),
-        last_ack_wnd_size(0)
+        rcv_wnd(rcv_wnd)
 {
     auto* h = p->payload_cast<ipv4_tcp_headers*>();
     kassert(!h->tcp.rst);
@@ -116,18 +111,8 @@ tcp::socket::socket(net::interface* intf, net::rx_page* p,
     memset(llhdr,0xDD,sizeof(llhdr));
     memcpy(llhdr + sizeof(llhdr) - llsize,llh,llsize);
 
-    retransmit_wqe.fn      = timer_delegate(handle_retransmit_expiry);
-    retransmit_wqe.args[0] = (uint64_t)this;
-    time_wait_wqe.fn       = timer_delegate(handle_time_wait_expiry);
-    time_wait_wqe.args[0]  = (uint64_t)this;
-
-    iss           = kernel::random(0,0xFFFF);
-    snd_una       = iss;
-    snd_nxt       = iss;
-    snd_wnd       = h->tcp.window_size;
-    snd_wnd_shift = 0;
-    snd_mss       = MIN(MAX_SAFE_IP_SIZE,intf->tx_mtu) -
-                    sizeof(ipv4_tcp_headers);
+    snd_wnd = h->tcp.window_size;
+    snd_mss = MIN(MAX_SAFE_IP_SIZE,intf->tx_mtu) - sizeof(ipv4_tcp_headers);
 
     rcv_nxt       = h->tcp.seq_num + 1;
     rcv_wnd_shift = 0;
@@ -152,29 +137,14 @@ tcp::socket::socket(net::interface* intf, ipv4::addr remote_ip,
         local_port(local_port),
         remote_port(remote_port),
         observer(observer),
-        tx_ops_slab(sizeof(tcp::tx_op)),
-        send_ops_slab(sizeof(tcp::send_op)),
-        rx_avail_bytes(0),
-        rcv_wnd(rcv_wnd),
-        last_ack_ack_num(0),
-        last_ack_wnd_size(0)
+        rcv_wnd(rcv_wnd)
 {
     kassert(llsize <= sizeof(llhdr));
     memset(llhdr,0xDD,sizeof(llhdr));
     memcpy(llhdr + sizeof(llhdr) - llsize,llh,llsize);
 
-    retransmit_wqe.fn      = timer_delegate(handle_retransmit_expiry);
-    retransmit_wqe.args[0] = (uint64_t)this;
-    time_wait_wqe.fn       = timer_delegate(handle_time_wait_expiry);
-    time_wait_wqe.args[0]  = (uint64_t)this;
-
-    iss           = kernel::random(0,0xFFFF);
-    snd_una       = iss;
-    snd_nxt       = iss;
-    snd_wnd       = 1;
-    snd_wnd_shift = 0;
-    snd_mss       = MIN(MAX_SAFE_IP_SIZE,intf->tx_mtu) -
-                    sizeof(ipv4_tcp_headers);
+    snd_wnd = 1;
+    snd_mss = MIN(MAX_SAFE_IP_SIZE,intf->tx_mtu) - sizeof(ipv4_tcp_headers);
 
     rcv_nxt       = 0;
     rcv_wnd_shift = compute_wnd_shift(rcv_wnd);
