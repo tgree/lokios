@@ -14,7 +14,7 @@
 #define TRANSITION(s) \
     do                                                                   \
     {                                                                    \
-        intf->intf_dbg("%s:%u: %u -> " #s "\n",__FILE__,__LINE__,state); \
+        dbg("%s:%u: %u -> " #s "\n",__FILE__,__LINE__,state); \
         state = (s);                                                     \
     } while(0)
 #else
@@ -411,8 +411,8 @@ tcp::socket::process_send_queue()
 {
     if (!seq_range{snd_una,snd_wnd}.seq_in_range(snd_nxt))
     {
-        intf->intf_dbg("snd window empty snd_nxt %u snd_una %u snd_wnd %u\n",
-                       snd_nxt,snd_una,snd_wnd);
+        dbg("snd window empty snd_nxt %u snd_una %u snd_wnd %u\n",
+            snd_nxt,snd_una,snd_wnd);
         return;
     }
 
@@ -781,7 +781,7 @@ catch (ack_unacceptable_exception)
 }
 catch (option_parse_exception& e)
 {
-    intf->intf_dbg("option parse error: %s (%lu)\n",e.msg,e.val);
+    dbg("option parse error: %s (%lu)\n",e.msg,e.val);
     return 0;
 }
 
@@ -937,26 +937,10 @@ tcp::socket::process_options(parsed_options opts)
 void
 tcp::socket::dump_socket()
 {
-    intf->intf_dbg("%u.%u.%u.%u:%u <-> %u.%u.%u.%u:%u state=%u snd_mss=%u "
-                   "snd_window=%u snd_shift=%u rcv_mss=%u rcv_window=%u "
-                   "rcv_shift=%u\n",
-                   intf->ip_addr[0],
-                   intf->ip_addr[1],
-                   intf->ip_addr[2],
-                   intf->ip_addr[3],
-                   local_port,
-                   remote_ip[0],
-                   remote_ip[1],
-                   remote_ip[2],
-                   remote_ip[3],
-                   remote_port,
-                   state,
-                   snd_mss,
-                   snd_wnd,
-                   snd_wnd_shift,
-                   rcv_mss,
-                   (uint16_t)(rcv_wnd >> rcv_wnd_shift),
-                   rcv_wnd_shift);
+    dbg("state=%u snd_mss=%u snd_window=%u snd_shift=%u rcv_mss=%u "
+        "rcv_window=%u rcv_shift=%u\n",
+        state,snd_mss,snd_wnd,snd_wnd_shift,rcv_mss,
+        (uint16_t)(rcv_wnd >> rcv_wnd_shift),rcv_wnd_shift);
 }
 
 void
