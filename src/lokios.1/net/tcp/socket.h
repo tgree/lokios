@@ -203,6 +203,8 @@ namespace tcp
         // Receive data.
         void    rx_append(net::rx_page* p);
         void    read(void* dst, uint32_t len);
+        void    skip(uint32_t len);
+        void    skip_page();
 
         // ACK completion for SYN/FIN packets - these are invoked when the
         // remote guy ACKs our SYN or FIN.

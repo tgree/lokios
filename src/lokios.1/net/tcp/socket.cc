@@ -529,6 +529,42 @@ tcp::socket::read(void* _dst, uint32_t rem)
 }
 
 void
+tcp::socket::skip(uint32_t rem)
+{
+    kassert(rem <= rx_avail_bytes);
+    rx_avail_bytes -= rem;
+    rcv_wnd        += rem;
+
+    while (rem)
+    {
+        net::rx_page* p   = klist_front(rx_pages,link);
+        uint32_t len      = MIN(rem,p->client_len);
+        p->client_offset += len;
+        p->client_len    -= len;
+        rem              -= len;
+
+        if (!p->client_len)
+        {
+            rx_pages.pop_front();
+            intf->free_rx_page(p);
+        }
+    }
+
+    post_update_ack();
+}
+
+void
+tcp::socket::skip_page()
+{
+    net::rx_page* p = klist_front(rx_pages,link);
+    rx_avail_bytes -= p->client_len;
+    rcv_wnd        += p->client_len;
+    rx_pages.pop_front();
+    intf->free_rx_page(p);
+    post_update_ack();
+}
+
+void
 tcp::socket::syn_send_op_cb(tcp::send_op* sop)
 {
     switch (state)
