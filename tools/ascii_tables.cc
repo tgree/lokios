@@ -2,6 +2,28 @@
 #include <stdio.h>
 #include <stdint.h>
 
+static int
+istchar(int c)
+{
+    // HTTP "token-char" character class.
+    return isdigit(c) || isalpha(c) ||
+        c == '!' ||
+        c == '#' ||
+        c == '$' ||
+        c == '%' ||
+        c == '&' ||
+        c == '\'' ||
+        c == '*' ||
+        c == '+' ||
+        c == '-' ||
+        c == '.' ||
+        c == '^' ||
+        c == '_' ||
+        c == '`' ||
+        c == '|' ||
+        c == '~';
+}
+
 static void
 update(int i, __uint128_t* v, int (*checker)(int))
 {
@@ -29,6 +51,7 @@ main(int argc, const char* argv[])
     __uint128_t xdigit = 0;
     __uint128_t ascii = 0;
     __uint128_t blank = 0;
+    __uint128_t tchar = 0;
 
     for (int i=0; i<128; ++i)
     {
@@ -45,6 +68,7 @@ main(int argc, const char* argv[])
         update(i,&xdigit,isxdigit);
         update(i,&ascii,isascii);
         update(i,&blank,isblank);
+        update(i,&tchar,istchar);
     }
 
     PRINT(alnum);
@@ -60,4 +84,5 @@ main(int argc, const char* argv[])
     PRINT(xdigit);
     PRINT(ascii);
     PRINT(blank);
+    PRINT(tchar);
 }
