@@ -136,6 +136,11 @@ namespace kernel
         kernel::timer_entry, \
         &loki::remove_reference_t<decltype(*this)>::fn>::handler
 
+#define method_tqe(fn) \
+    kernel::timer_entry(timer_delegate(fn),(uint64_t)this)
+#define method_wqe(fn) \
+    kernel::work_entry(work_delegate(fn),(uint64_t)this)
+
     // These will allocate/free WQEs off a locked, shared internal slab.  Use
     // of these is optional, you can define WQE objects anywhere.
     work_entry* alloc_wqe();
