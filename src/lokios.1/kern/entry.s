@@ -14,6 +14,7 @@
 # Offsets of struct work_entry stuff.
 .equiv work_entry_args0_offset, 16
 .equiv work_entry_args1_offset, (work_entry_args0_offset + 8)
+.equiv work_entry_size, 64
 
 .org 0
     jmp     _bsp_entry
@@ -428,7 +429,7 @@ _interrupt_entry_tlb_shootdown:
 .global _msix_entry_\num
 _msix_entry_\num :
     push    %rbx
-    movq    $(cpu_msix_entries_offset + (64 * \num)), %rbx
+    movq    $(cpu_msix_entries_offset + (work_entry_size * \num)), %rbx
     jmp     _msix_entry_generic
 .endm
 
