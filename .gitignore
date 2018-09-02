@@ -6,6 +6,7 @@
 *.a
 *.map
 *.pcap
+*.out
 build
 bin
 tests
