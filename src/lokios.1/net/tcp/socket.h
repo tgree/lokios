@@ -149,6 +149,7 @@ namespace tcp
         // WQEs.
         kernel::tqe retransmit_wqe    = method_tqe(handle_retransmit_expiry);
         kernel::tqe time_wait_wqe     = method_tqe(handle_time_wait_expiry);
+        kernel::wqe socket_closed_wqe = method_wqe(handle_socket_closed_wqe);
 
         // Receive queue.
         kernel::klist<net::rx_page>     rx_pages;
@@ -210,6 +211,7 @@ namespace tcp
         // Handlers.
         void        handle_retransmit_expiry(kernel::tqe* wqe);
         void        handle_time_wait_expiry(kernel::tqe* wqe);
+        void        handle_socket_closed_wqe(kernel::wqe* wqe);
         uint64_t    handle_rx_ipv4_tcp_frame(net::rx_page* p);
 
         // Close the send side of the socket.  This transmits a FIN packet and

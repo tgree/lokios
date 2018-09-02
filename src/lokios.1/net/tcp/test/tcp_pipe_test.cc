@@ -324,12 +324,16 @@ class tmock_test
         // Active socket:
         //  - rx RST/ACK -> socket_reset -> go to CLOSED
         //    -> disarm retransmit timer
-        texpect("mock_observer::socket_reset",want(s,active_socket));
-        auto e = texpect("mock_observer::socket_closed",want(s,active_socket));
+        auto e = texpect("mock_observer::socket_reset",want(s,active_socket));
         tmock::assert_equiv(intf_pipe.process_queues(),1U);
         tcheckpoint(e);
         TASSERT(!active_socket->retransmit_wqe.is_armed());
         tmock::assert_equiv(active_socket->state,tcp::socket::TCP_CLOSED);
+
+        auto e2 = texpect("mock_observer::socket_closed",want(s,active_socket));
+        TASSERT(active_socket->socket_closed_wqe.is_armed());
+        kernel::fire_work(&active_socket->socket_closed_wqe);
+        tcheckpoint(e2);
         intf1.tcp_delete(active_socket);
 
         // Queue should be idle.
@@ -399,23 +403,28 @@ class tmock_test
         //  - send comp for ACK
         // Passive socket:
         //  - rx ACK -> go to CLOSED -> disarm retransmit timer
-        auto e3 = texpect("fake_observer::socket_closed",
-                          want(s,passive_socket));
         tmock::assert_equiv(intf_pipe.process_queues(),1U);
-        tcheckpoint(e3);
         tmock::assert_equiv(active_socket->state,tcp::socket::TCP_TIME_WAIT);
         tmock::assert_equiv(passive_socket->state,tcp::socket::TCP_CLOSED);
         TASSERT(!active_socket->retransmit_wqe.is_armed());
         TASSERT(active_socket->time_wait_wqe.is_armed());
         TASSERT(!passive_socket->retransmit_wqe.is_armed());
+
+        auto e3 = texpect("fake_observer::socket_closed",
+                          want(s,passive_socket));
+        TASSERT(passive_socket->socket_closed_wqe.is_armed());
+        kernel::fire_work(&passive_socket->socket_closed_wqe);
+        tcheckpoint(e3);
         intf0.tcp_delete(passive_socket);
 
         // Active socket:
         //  - TIME_WAIT expiry -> closed
-        auto e4 = texpect("mock_observer::socket_closed",want(s,active_socket));
         kernel::fire_timer(&active_socket->time_wait_wqe);
-        tcheckpoint(e4);
         tmock::assert_equiv(active_socket->state,tcp::socket::TCP_CLOSED);
+        TASSERT(active_socket->socket_closed_wqe.is_armed());
+        auto e4 = texpect("mock_observer::socket_closed",want(s,active_socket));
+        kernel::fire_work(&active_socket->socket_closed_wqe);
+        tcheckpoint(e4);
         intf1.tcp_delete(active_socket);
     }
 };

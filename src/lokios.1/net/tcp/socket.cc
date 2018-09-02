@@ -627,6 +627,12 @@ tcp::socket::handle_time_wait_expiry(kernel::tqe* wqe)
     socket_drain();
 }
 
+void
+tcp::socket::handle_socket_closed_wqe(kernel::wqe* wqe)
+{
+    observer->socket_closed(this);
+}
+
 uint64_t
 tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
 {
@@ -842,7 +848,7 @@ tcp::socket::socket_closed()
     }
 
     TRANSITION(TCP_CLOSED);
-    observer->socket_closed(this);
+    kernel::cpu::schedule_local_work(&socket_closed_wqe);
 }
 
 void

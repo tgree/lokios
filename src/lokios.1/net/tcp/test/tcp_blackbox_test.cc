@@ -2,6 +2,7 @@
 #include "../traits.h"
 #include "net/mock/finterface.h"
 #include "kern/mock/fconsole.h"
+#include "kern/mock/fschedule.h"
 #include "k++/random.h"
 #include <tmock/tmock.h>
 
@@ -158,7 +159,13 @@ cleanup_socket(tcp::socket* s, tcp::socket::tcp_state state,
         s->send_ops_slab.free(sop);
     }
     if (s->state == tcp::socket::TCP_CLOSED)
+    {
+        auto e = texpect("mock_observer::socket_closed",want(s,s));
+        TASSERT(s->socket_closed_wqe.is_armed());
+        kernel::fire_work(&s->socket_closed_wqe);
+        tcheckpoint(e);
         intf.tcp_delete(s);
+    }
 }
 
 static tcp::socket*
@@ -440,7 +447,6 @@ class tmock_test
 
         // SYN_SENT: if the ACK was acceptable and RST=1, reset the connection.
         texpect("mock_observer::socket_reset",want(s,s));
-        texpect("mock_observer::socket_closed",want(s,s));
         rx_packet(SEQ{REMOTE_ISS},ACK{s->iss+1},CTL{FACK|FRST});
         tx_expect_none();
 
@@ -682,9 +688,9 @@ class tmock_test
 
     static void test_syncd_acceptable_rst(socket* s)
     {
-        texpect("mock_observer::socket_reset",want(s,s));
-        texpect("mock_observer::socket_closed",want(s,s));
+        auto e = texpect("mock_observer::socket_reset",want(s,s));
         rx_packet(ACK{s->snd_nxt},CTL{FRST});
+        tcheckpoint(e);
         tx_expect_none();
 
         cleanup_socket(s,tcp::socket::TCP_CLOSED);
@@ -694,9 +700,9 @@ class tmock_test
     {
         // "If the SYN is in the window it is an error, send a reset, ...".
         // Not very clear on what the RST should be.
-        texpect("mock_observer::socket_reset",want(s,s));
-        texpect("mock_observer::socket_closed",want(s,s));
+        auto e = texpect("mock_observer::socket_reset",want(s,s));
         rx_packet(CTL{FSYN});
+        tcheckpoint(e);
         tx_expect(SEQ{s->snd_nxt},CTL{FRST});
 
         cleanup_socket(s,tcp::socket::TCP_CLOSED);
@@ -899,7 +905,7 @@ class tmock_test
     TEST_ALL(CLOSING,TCP_TIME_WAIT,NULL);
     TEST_ALL(TIME_WAIT,TCP_TIME_WAIT,NULL);
     TEST_ALL(CLOSE_WAIT,TCP_CLOSE_WAIT,NULL);
-    TEST_ALL(LAST_ACK,TCP_CLOSED,"mock_observer::socket_closed");
+    TEST_ALL(LAST_ACK,TCP_CLOSED,NULL);
 
     TMOCK_TEST(test_CLOSING_rx_retx_fin)
     {
