@@ -39,14 +39,13 @@ namespace kernel
         kdlink          link;
         timer_handler   fn;
         uint64_t        texpiry;
-        size_t          pos;
+        size_t          pos = -1;
         uint64_t        args[3];
 
         inline bool is_armed() const
         {
             return link.nextu != KLINK_NOT_IN_USE || pos != (size_t)-1;
         }
-        inline timer_entry():pos(-1) {}
     };
     KASSERT(sizeof(timer_entry) == 64);
 
