@@ -197,7 +197,7 @@ net::interface::handle_tx_completion(net::tx_op* op)
 }
 
 void
-net::interface::handle_delayed_completion(kernel::timer_entry* wqe)
+net::interface::handle_delayed_completion(kernel::tqe* wqe)
 {
     auto* op = (net::tx_op*)wqe->args[1];
     op->cb(op);

@@ -5,7 +5,7 @@
 
 namespace kernel
 {
-    void fire_timer(timer_entry* wqe);
+    void fire_timer(kernel::tqe* wqe);
     void fire_work(kernel::wqe* wqe);
 }
 

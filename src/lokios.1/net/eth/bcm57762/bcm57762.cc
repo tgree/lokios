@@ -346,7 +346,7 @@ bcm57762::dev::handle_vec0_dsr(kernel::wqe*)
 }
 
 void
-bcm57762::dev::handle_timer(kernel::timer_entry*)
+bcm57762::dev::handle_timer(kernel::tqe*)
 {
     char sig[4];
     uint32_t high;

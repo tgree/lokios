@@ -81,8 +81,8 @@ struct phy_resetter : public eth::phy_state_machine
         WAIT_RESET_READ_DONE,
         WAIT_RESET_TIMEOUT,
     } state;
-    kernel::timer_entry timer_wqe;
-    size_t              timer_retries;
+    kernel::tqe timer_wqe;
+    size_t      timer_retries;
 
     void handle_phy_success(kernel::wqe* wqe)
     {
@@ -114,7 +114,7 @@ struct phy_resetter : public eth::phy_state_machine
         }
     }
 
-    void handle_timeout(kernel::timer_entry* wqe)
+    void handle_timeout(kernel::tqe* wqe)
     {
         kassert(state == WAIT_RESET_TIMEOUT);
         intf->issue_phy_read_16(0,&phy_wqe);

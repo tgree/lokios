@@ -81,22 +81,22 @@ namespace kernel
             get_current_cpu()->scheduler.schedule_local_work(wqe);
         }
 
-        static inline void schedule_timer(timer_entry* wqe, uint64_t dt10ms)
+        static inline void schedule_timer(kernel::tqe* wqe, uint64_t dt10ms)
         {
             get_current_cpu()->scheduler.schedule_timer(wqe,dt10ms);
         }
 
-        static inline void schedule_timer_ms(timer_entry* wqe, uint64_t dtms)
+        static inline void schedule_timer_ms(kernel::tqe* wqe, uint64_t dtms)
         {
             get_current_cpu()->scheduler.schedule_timer_ms(wqe,dtms);
         }
 
-        static inline void schedule_timer_sec(timer_entry* wqe, uint64_t secs)
+        static inline void schedule_timer_sec(kernel::tqe* wqe, uint64_t secs)
         {
             get_current_cpu()->scheduler.schedule_timer_sec(wqe,secs);
         }
 
-        static inline void cancel_timer(timer_entry* wqe)
+        static inline void cancel_timer(kernel::tqe* wqe)
         {
             get_current_cpu()->scheduler.cancel_timer(wqe);
         }

@@ -575,7 +575,7 @@ tcp::socket::fin_send_op_cb(tcp::send_op* sop)
 }
 
 void
-tcp::socket::handle_retransmit_expiry(kernel::timer_entry*)
+tcp::socket::handle_retransmit_expiry(kernel::tqe*)
 {
     if (!unsent_send_ops.empty())
     {
@@ -595,7 +595,7 @@ tcp::socket::handle_retransmit_expiry(kernel::timer_entry*)
 }
 
 void
-tcp::socket::handle_time_wait_expiry(kernel::timer_entry* wqe)
+tcp::socket::handle_time_wait_expiry(kernel::tqe* wqe)
 {
     kassert(state == TCP_TIME_WAIT);
     TRANSITION(TCP_CLOSED);

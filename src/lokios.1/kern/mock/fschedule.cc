@@ -9,7 +9,7 @@ kernel::get_current_cpu()
 }
 
 void
-kernel::fire_timer(timer_entry* wqe)
+kernel::fire_timer(kernel::tqe* wqe)
 {
     kassert(wqe->is_armed());
     wqe->pos = -1;
@@ -46,7 +46,7 @@ kernel::scheduler::schedule_remote_work(kernel::wqe* wqe)
 }
 
 void
-kernel::scheduler::schedule_timer(timer_entry* wqe, uint64_t dt)
+kernel::scheduler::schedule_timer(kernel::tqe* wqe, uint64_t dt)
 {
     kassert(!wqe->is_armed());
     wqe->pos = 0;
@@ -54,7 +54,7 @@ kernel::scheduler::schedule_timer(timer_entry* wqe, uint64_t dt)
 }
 
 void
-kernel::scheduler::cancel_timer(timer_entry* wqe)
+kernel::scheduler::cancel_timer(kernel::tqe* wqe)
 {
     kassert(wqe->is_armed());
     wqe->pos = -1;

@@ -122,7 +122,7 @@ namespace net
         // be deleted by someone else then the NRX_FLAG_NO_DELETE flag should
         // be set in the return code.
                 void        handle_tx_completion(net::tx_op* op);
-                void        handle_delayed_completion(kernel::timer_entry* wqe);
+                void        handle_delayed_completion(kernel::tqe* wqe);
                 uint64_t    handle_rx_ipv4_frame(net::rx_page* p);
                 uint64_t    handle_rx_ipv4_udp_frame(net::rx_page* p);
 

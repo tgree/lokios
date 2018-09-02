@@ -12,7 +12,7 @@ namespace kernel
     struct tls_tcb;
     struct cpu;
     struct wqe;
-    struct timer_entry;
+    struct tqe;
 
     typedef void (*work_handler)(kernel::wqe* wqe);
 
@@ -33,9 +33,9 @@ namespace kernel
     KASSERT(sizeof(wqe) == 64);
     KASSERT(offsetof(wqe,args) == 16);
 
-    typedef void (*timer_handler)(timer_entry* wqe);
+    typedef void (*timer_handler)(kernel::tqe* wqe);
 
-    struct timer_entry
+    struct tqe
     {
         kdlink          link;
         timer_handler   fn;
@@ -48,21 +48,14 @@ namespace kernel
             return link.nextu != KLINK_NOT_IN_USE || pos != (size_t)-1;
         }
 
-        timer_entry() = default;
-        timer_entry(timer_handler fn, uint64_t arg0):
-            fn(fn),
-            args{arg0}
-        {
-        }
+        tqe() = default;
+        tqe(timer_handler fn, uint64_t arg0):fn(fn),args{arg0} {}
     };
-    KASSERT(sizeof(timer_entry) == 64);
+    KASSERT(sizeof(tqe) == 64);
 
-    typedef timer_entry tqe;
-
-    struct timer_entry_expiry_less
+    struct tqe_less
     {
-        constexpr bool operator()(const timer_entry* lhs,
-                                  const timer_entry* rhs) const
+        constexpr bool operator()(const tqe* lhs, const tqe* rhs) const
         {
             return lhs->texpiry < rhs->texpiry;
         }
@@ -70,7 +63,7 @@ namespace kernel
 
     struct scheduler_table
     {
-        kdlist<timer_entry> slots[256];
+        kdlist<tqe> slots[256];
     };
     KASSERT(sizeof(scheduler_table) == PAGE_SIZE);
 
@@ -84,21 +77,20 @@ namespace kernel
         uint64_t                        tbase;
         size_t                          current_slot;
         scheduler_table*                wheel;
-        heap<vector<timer_entry*>,
-             timer_entry_expiry_less>   overflow_heap;
+        heap<vector<tqe*>, tqe_less>    overflow_heap;
 
         void schedule_local_work(kernel::wqe* wqe);
         void schedule_remote_work(kernel::wqe* wqe);
-        void schedule_timer(timer_entry* wqe, uint64_t dt10ms);
-        void schedule_timer_ms(timer_entry* wqe, uint64_t dtms)
+        void schedule_timer(kernel::tqe* wqe, uint64_t dt10ms);
+        void schedule_timer_ms(kernel::tqe* wqe, uint64_t dtms)
         {
             schedule_timer(wqe,(dtms+9)/10);
         }
-        void schedule_timer_sec(timer_entry* wqe, uint64_t secs)
+        void schedule_timer_sec(kernel::tqe* wqe, uint64_t secs)
         {
             schedule_timer(wqe,secs*100);
         }
-        void cancel_timer(timer_entry* wqe);
+        void cancel_timer(kernel::tqe* wqe);
 
         void workloop();
 
@@ -127,11 +119,11 @@ namespace kernel
 #define timer_delegate(fn) \
     kernel::_work_delegate< \
         loki::remove_reference_t<decltype(*this)>, \
-        kernel::timer_entry, \
+        kernel::tqe, \
         &loki::remove_reference_t<decltype(*this)>::fn>::handler
 
 #define method_tqe(fn) \
-    kernel::timer_entry(timer_delegate(fn),(uint64_t)this)
+    kernel::tqe(timer_delegate(fn),(uint64_t)this)
 #define method_wqe(fn) \
     kernel::wqe(work_delegate(fn),(uint64_t)this)
 
@@ -142,8 +134,7 @@ namespace kernel
 }
 
 template<>
-inline void notify_moved<kernel::timer_entry*>(
-        kernel::timer_entry*& wqe, size_t new_pos)
+inline void notify_moved<kernel::tqe*>(kernel::tqe*& wqe, size_t new_pos)
 {
     wqe->pos = new_pos;
 }

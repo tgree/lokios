@@ -65,7 +65,7 @@ namespace arp
             service*            serv;
             net::tx_op          op;
             kernel::wqe*        cqe;
-            kernel::timer_entry timeout_cqe;
+            kernel::tqe         timeout_cqe;
             uint64_t            timeout_ms;
             hw_addr*            tha;
             ll_arp_frame        frame;
@@ -121,7 +121,7 @@ namespace arp
                 }
             }
 
-            void handle_lookup_timeout(kernel::timer_entry* timeout_cqe)
+            void handle_lookup_timeout(kernel::tqe* timeout_cqe)
             {
                 switch (state)
                 {

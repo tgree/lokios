@@ -23,7 +23,7 @@ namespace net
         kernel::klink                   link;
         kernel::delegate<void(tx_op*)>  cb;
 #if TX_COMPLETION_DELAY_10MS
-        kernel::timer_entry             delay_wqe;
+        kernel::tqe                     delay_wqe;
 #endif
         uint32_t                        flags;
         uint32_t                        nalps;

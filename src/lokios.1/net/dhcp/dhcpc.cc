@@ -374,7 +374,7 @@ dhcp::client::handle_tx_send_comp(net::tx_op*)
 }
 
 void
-dhcp::client::handle_rx_expiry(kernel::timer_entry*)
+dhcp::client::handle_rx_expiry(kernel::tqe*)
 {
     switch (state)
     {
@@ -634,7 +634,7 @@ dhcp::client::handle_arp_completion(kernel::wqe* wqe)
 }
 
 void
-dhcp::client::handle_t1_expiry(kernel::timer_entry*)
+dhcp::client::handle_t1_expiry(kernel::tqe*)
 {
     switch (state)
     {
@@ -669,7 +669,7 @@ dhcp::client::handle_t1_expiry(kernel::timer_entry*)
 }
 
 void
-dhcp::client::handle_t2_expiry(kernel::timer_entry*)
+dhcp::client::handle_t2_expiry(kernel::tqe*)
 {
     switch (state)
     {
@@ -708,7 +708,7 @@ dhcp::client::handle_t2_expiry(kernel::timer_entry*)
 }
 
 void
-dhcp::client::handle_lease_expiry(kernel::timer_entry*)
+dhcp::client::handle_lease_expiry(kernel::tqe*)
 {
     switch (state)
     {

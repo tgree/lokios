@@ -280,7 +280,7 @@ virtio_net::dev::post_rx_pages(kernel::klist<net::rx_page>& pages)
 }
 
 void
-virtio_net::dev::handle_timer(kernel::timer_entry*)
+virtio_net::dev::handle_timer(kernel::tqe*)
 {
     switch (state)
     {

@@ -67,9 +67,9 @@ namespace dhcp
         net::tx_op          send_op;
 
         // State machine timers: T1, T2 and lease timer.
-        kernel::timer_entry t1_wqe;
-        kernel::timer_entry t2_wqe;
-        kernel::timer_entry lease_timer_wqe;
+        kernel::tqe         t1_wqe;
+        kernel::tqe         t2_wqe;
+        kernel::tqe         lease_timer_wqe;
 
         // The transaction ID we are currently using.
         uint32_t            xid;
@@ -95,7 +95,7 @@ namespace dhcp
         size_t              arp_attempt;
 
         // The dhcp message we will transmit.
-        kernel::timer_entry rx_dropped_timer;
+        kernel::tqe         rx_dropped_timer;
         dhcp::eth_message   packet;
 
         // Transition helpers.
@@ -118,15 +118,15 @@ namespace dhcp
 
         // Handlers.
         void        handle_tx_send_comp(net::tx_op*);
-        void        handle_rx_expiry(kernel::timer_entry*);
+        void        handle_rx_expiry(kernel::tqe*);
         uint64_t    handle_rx_dhcp(net::interface* intf, net::rx_page* p);
         void        handle_rx_dhcp_offer(const dhcp::eth_message* m);
         void        handle_rx_dhcp_ack(const dhcp::message* m);
         void        handle_rx_dhcp_nak(const dhcp::message* m);
         void        handle_arp_completion(kernel::wqe*);
-        void        handle_t1_expiry(kernel::timer_entry*);
-        void        handle_t2_expiry(kernel::timer_entry*);
-        void        handle_lease_expiry(kernel::timer_entry*);
+        void        handle_t1_expiry(kernel::tqe*);
+        void        handle_t2_expiry(kernel::tqe*);
+        void        handle_lease_expiry(kernel::tqe*);
 
         // Constructor.
         client(eth::interface* intf);

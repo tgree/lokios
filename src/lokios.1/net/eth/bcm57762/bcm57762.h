@@ -90,7 +90,7 @@ namespace bcm57762
             WAIT_DEAD,
         } state;
         size_t                  timer_retries;
-        kernel::timer_entry     timer_wqe;
+        kernel::tqe             timer_wqe;
         kernel::wqe             phy_probe_wqe;
         kernel::wqe             phy_reset_wqe;
         kernel::wqe             phy_an_wqe;
@@ -156,7 +156,7 @@ namespace bcm57762
 
         // Handlers.
         void    handle_vec0_dsr(kernel::wqe*);
-        void    handle_timer(kernel::timer_entry*);
+        void    handle_timer(kernel::tqe*);
         void    handle_link_up();
         void    handle_link_down();
         void    handle_phy_completion();

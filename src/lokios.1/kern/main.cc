@@ -23,18 +23,18 @@ kernel_hello(kernel::wqe* wqe)
     printf("Hello from CPU%zu.\n",kernel::get_current_cpu()->cpu_number);
 }
 
-static kernel::timer_entry mem_info_wqe;
+static kernel::tqe mem_info_wqe;
 static void
-kernel_ticker(kernel::timer_entry* wqe)
+kernel_ticker(kernel::tqe* wqe)
 {
     kernel::get_current_cpu()->scheduler.schedule_timer(wqe,MEM_INFO_TICKS);
     printf("Free pages: %zu  PT Used Pages: %zu\n",
            kernel::page_count_free(),kernel::kernel_task->pt.page_count);
 }
 
-static kernel::timer_entry ten_sec_wqe;
+static kernel::tqe ten_sec_wqe;
 static void
-integration_test_timeout(kernel::timer_entry* wqe)
+integration_test_timeout(kernel::tqe* wqe)
 {
     kernel::panic("integration test timeout");
 }

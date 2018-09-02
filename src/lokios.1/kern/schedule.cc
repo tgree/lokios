@@ -61,7 +61,7 @@ kernel::scheduler::schedule_remote_work(kernel::wqe* wqe)
 }
 
 void
-kernel::scheduler::schedule_timer(timer_entry* wqe, uint64_t dt)
+kernel::scheduler::schedule_timer(kernel::tqe* wqe, uint64_t dt)
 {
     // The currently-executing CPU is the local CPU and in non-interrupt
     // context.
@@ -79,7 +79,7 @@ kernel::scheduler::schedule_timer(timer_entry* wqe, uint64_t dt)
 }
 
 void
-kernel::scheduler::cancel_timer(timer_entry* wqe)
+kernel::scheduler::cancel_timer(kernel::tqe* wqe)
 {
     if (wqe->link.nextu != KLINK_NOT_IN_USE)
         wqe->link.unlink();
@@ -98,7 +98,7 @@ kernel::scheduler::workloop()
     {
         // This list of work we are going to do this iteration.
         klist<kernel::wqe> wq;
-        kdlist<timer_entry> tq;
+        kdlist<kernel::tqe> tq;
 
         // Disable interrupts, check for work and then halt if there is no work
         // to do presently.
@@ -168,7 +168,7 @@ kernel::scheduler::workloop()
         // Process all timers.
         while (!tq.empty())
         {
-            timer_entry* wqe = klist_front(tq,link);
+            kernel::tqe* wqe = klist_front(tq,link);
             tq.pop_front();
             wqe->fn(wqe);
         }
