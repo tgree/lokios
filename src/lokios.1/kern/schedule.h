@@ -11,12 +11,12 @@ namespace kernel
 {
     struct tls_tcb;
     struct cpu;
-    struct work_entry;
+    struct wqe;
     struct timer_entry;
 
-    typedef void (*work_handler)(work_entry* wqe);
+    typedef void (*work_handler)(kernel::wqe* wqe);
 
-    struct work_entry
+    struct wqe
     {
         klink           link;
         work_handler    fn;
@@ -27,17 +27,11 @@ namespace kernel
             return link.nextu != KLINK_NOT_IN_USE;
         }
 
-        work_entry() = default;
-        work_entry(work_handler fn, uint64_t arg0):
-            fn(fn),
-            args{arg0}
-        {
-        }
+        wqe() = default;
+        wqe(work_handler fn, uint64_t arg0):fn(fn),args{arg0} {}
     };
-    KASSERT(sizeof(work_entry) == 64);
-    KASSERT(offsetof(work_entry,args) == 16);
-
-    typedef work_entry wqe;
+    KASSERT(sizeof(wqe) == 64);
+    KASSERT(offsetof(wqe,args) == 16);
 
     typedef void (*timer_handler)(timer_entry* wqe);
 
@@ -83,9 +77,9 @@ namespace kernel
     struct scheduler
     {
         spinlock                        remote_work_lock;
-        klist<work_entry>               remote_work;
+        klist<wqe>                      remote_work;
 
-        klist<work_entry>               local_work __CACHE_ALIGNED__;
+        klist<wqe>                      local_work __CACHE_ALIGNED__;
 
         uint64_t                        tbase;
         size_t                          current_slot;
@@ -93,8 +87,8 @@ namespace kernel
         heap<vector<timer_entry*>,
              timer_entry_expiry_less>   overflow_heap;
 
-        void schedule_local_work(work_entry* wqe);
-        void schedule_remote_work(work_entry* wqe);
+        void schedule_local_work(kernel::wqe* wqe);
+        void schedule_remote_work(kernel::wqe* wqe);
         void schedule_timer(timer_entry* wqe, uint64_t dt10ms);
         void schedule_timer_ms(timer_entry* wqe, uint64_t dtms)
         {
@@ -128,7 +122,7 @@ namespace kernel
 #define work_delegate(fn) \
     kernel::_work_delegate< \
         loki::remove_reference_t<decltype(*this)>, \
-        kernel::work_entry, \
+        kernel::wqe, \
         &loki::remove_reference_t<decltype(*this)>::fn>::handler
 #define timer_delegate(fn) \
     kernel::_work_delegate< \
@@ -139,12 +133,12 @@ namespace kernel
 #define method_tqe(fn) \
     kernel::timer_entry(timer_delegate(fn),(uint64_t)this)
 #define method_wqe(fn) \
-    kernel::work_entry(work_delegate(fn),(uint64_t)this)
+    kernel::wqe(work_delegate(fn),(uint64_t)this)
 
     // These will allocate/free WQEs off a locked, shared internal slab.  Use
     // of these is optional, you can define WQE objects anywhere.
-    work_entry* alloc_wqe();
-    void free_wqe(work_entry* wqe);
+    kernel::wqe* alloc_wqe();
+    void free_wqe(kernel::wqe* wqe);
 }
 
 template<>

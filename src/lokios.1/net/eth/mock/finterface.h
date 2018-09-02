@@ -8,13 +8,13 @@ namespace eth
 {
     struct finterface : public interface
     {
-        virtual void issue_phy_read_16(uint8_t offset, kernel::work_entry* cqe)
+        virtual void issue_phy_read_16(uint8_t offset, kernel::wqe* cqe)
         {
             mock("eth::interface::issue_phy_read_16",offset,cqe);
         }
 
         virtual void issue_phy_write_16(uint16_t v, uint8_t offset,
-                                        kernel::work_entry* cqe)
+                                        kernel::wqe* cqe)
         {
             mock("eth::interface::issue_phy_write_16",v,offset,cqe);
         }

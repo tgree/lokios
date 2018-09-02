@@ -21,7 +21,7 @@ namespace eth
         const char* const       name;
         kernel::klist<eth::phy> phys;
 
-        static void       issue_probe(interface* intf, kernel::work_entry* cqe);
+        static void       issue_probe(interface* intf, kernel::wqe* cqe);
 
         virtual uint64_t  score(interface* intf, uint32_t phy_id) = 0;
         virtual eth::phy* alloc(interface* intf, uint32_t phy_id) = 0;
@@ -86,9 +86,9 @@ namespace eth
         //      args[3] - flags
         //      args[4] - local advertised autonegotiate params
         //      args[5] - remove advertised autonegotiate params
-                void issue_reset(kernel::work_entry* wqe);
-                void issue_start_autonegotiation(kernel::work_entry* wqe);
-        virtual void issue_get_link_mode(kernel::work_entry* wqe) = 0;
+                void issue_reset(kernel::wqe* wqe);
+                void issue_start_autonegotiation(kernel::wqe* wqe);
+        virtual void issue_get_link_mode(kernel::wqe* wqe) = 0;
 
         phy(eth::interface* intf, phy_driver* owner);
         virtual ~phy();
@@ -97,9 +97,9 @@ namespace eth
     // Helper base class for PHY drivers that need to perform transactions.
     struct phy_state_machine
     {
-        eth::interface*     intf;
-        kernel::work_entry  phy_wqe;
-        kernel::work_entry* cqe;
+        eth::interface* intf;
+        kernel::wqe     phy_wqe;
+        kernel::wqe*    cqe;
 
         void complete()
         {
@@ -114,7 +114,7 @@ namespace eth
             delete this;
         }
 
-        void handle_phy_completion(kernel::work_entry* wqe)
+        void handle_phy_completion(kernel::wqe* wqe)
         {
             cqe->args[1] = wqe->args[1];
             if (wqe->args[1])
@@ -123,9 +123,9 @@ namespace eth
                 handle_phy_success(wqe);
         }
 
-        virtual void handle_phy_success(kernel::work_entry* wqe) = 0;
+        virtual void handle_phy_success(kernel::wqe* wqe) = 0;
 
-        phy_state_machine(eth::interface* intf, kernel::work_entry* cqe):
+        phy_state_machine(eth::interface* intf, kernel::wqe* cqe):
             intf(intf),
             cqe(cqe)
         {

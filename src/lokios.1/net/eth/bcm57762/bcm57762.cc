@@ -144,7 +144,7 @@ bcm57762::dev::reg_write_32(uint32_t val, uint32_t offset)
 }
 
 void
-bcm57762::dev::issue_phy_read_16(uint8_t offset, kernel::work_entry* cqe)
+bcm57762::dev::issue_phy_read_16(uint8_t offset, kernel::wqe* cqe)
 {
     kassert(!phy_cqe);
     kassert(offset < 32);
@@ -158,8 +158,7 @@ bcm57762::dev::issue_phy_read_16(uint8_t offset, kernel::work_entry* cqe)
 }
 
 void
-bcm57762::dev::issue_phy_write_16(uint16_t v, uint8_t offset,
-    kernel::work_entry* cqe)
+bcm57762::dev::issue_phy_write_16(uint16_t v, uint8_t offset, kernel::wqe* cqe)
 {
     kassert(!phy_cqe);
     kassert(offset < 32);
@@ -219,7 +218,7 @@ bcm57762::dev::complete_phy_transaction()
     }
 
     // Invoke the completion callback.
-    kernel::work_entry* cqe = phy_cqe;
+    kernel::wqe* cqe = phy_cqe;
     phy_cqe = NULL;
     cqe->fn(cqe);
 }
@@ -270,7 +269,7 @@ bcm57762::dev::issue_reset()
 }
 
 void
-bcm57762::dev::handle_vec0_dsr(kernel::work_entry*)
+bcm57762::dev::handle_vec0_dsr(kernel::wqe*)
 {
     uint32_t status_word = mem->status_block.status_word;
     uint32_t tag         = mem->status_block.tag;
@@ -979,7 +978,7 @@ bcm57762::dev::handle_phy_completion()
 }
 
 void
-bcm57762::dev::handle_phy_probe_complete(kernel::work_entry* wqe)
+bcm57762::dev::handle_phy_probe_complete(kernel::wqe* wqe)
 {
     kassert(state == WAIT_PHY_PROBE_DONE);
     if (wqe->args[1])
@@ -994,7 +993,7 @@ bcm57762::dev::handle_phy_probe_complete(kernel::work_entry* wqe)
 }
 
 void
-bcm57762::dev::handle_phy_reset_complete(kernel::work_entry* wqe)
+bcm57762::dev::handle_phy_reset_complete(kernel::wqe* wqe)
 {
     kassert(state == WAIT_PHY_RESET_DONE);
     if (wqe->args[1])
@@ -1009,7 +1008,7 @@ bcm57762::dev::handle_phy_reset_complete(kernel::work_entry* wqe)
 }
 
 void
-bcm57762::dev::handle_phy_start_autoneg_complete(kernel::work_entry* wqe)
+bcm57762::dev::handle_phy_start_autoneg_complete(kernel::wqe* wqe)
 {
     kassert(state == WAIT_PHY_START_AUTONEG_DONE);
     if (wqe->args[1])
@@ -1034,7 +1033,7 @@ bcm57762::dev::handle_phy_start_autoneg_complete(kernel::work_entry* wqe)
 }
 
 void
-bcm57762::dev::handle_phy_get_link_mode_complete(kernel::work_entry* wqe)
+bcm57762::dev::handle_phy_get_link_mode_complete(kernel::wqe* wqe)
 {
     switch (state)
     {
@@ -1196,14 +1195,14 @@ bcm57762::interface::~interface()
 }
 
 void
-bcm57762::interface::issue_phy_read_16(uint8_t offset, kernel::work_entry* cqe)
+bcm57762::interface::issue_phy_read_16(uint8_t offset, kernel::wqe* cqe)
 {
     dev->issue_phy_read_16(offset,cqe);
 }
 
 void
 bcm57762::interface::issue_phy_write_16(uint16_t v, uint8_t offset,
-    kernel::work_entry* cqe)
+    kernel::wqe* cqe)
 {
     return dev->issue_phy_write_16(v,offset,cqe);
 }

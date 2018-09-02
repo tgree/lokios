@@ -42,11 +42,10 @@ namespace eth
         virtual size_t  format_arp_broadcast(void* arp_payload);
 
         // Access the PHY.  These are asynchronous and result in callbacks.
-                void        issue_probe_phy(kernel::work_entry* cqe);
-        virtual void        issue_phy_read_16(uint8_t offset,
-                                kernel::work_entry* cqe) = 0;
-        virtual void        issue_phy_write_16(uint16_t v, uint8_t offset,
-                                kernel::work_entry* cqe) = 0;
+                void    issue_probe_phy(kernel::wqe* cqe);
+        virtual void    issue_phy_read_16(uint8_t offset, kernel::wqe* cqe) = 0;
+        virtual void    issue_phy_write_16(uint16_t v, uint8_t offset,
+                                           kernel::wqe* cqe) = 0;
 
         // Handle DHCP status updates.
                 void    handle_dhcp_success();

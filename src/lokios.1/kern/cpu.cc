@@ -72,10 +72,10 @@ kernel::cpu::claim_current_cpu()
     kassert(get_current_cpu() == this);
 }
 
-kernel::work_entry*
+kernel::wqe*
 kernel::cpu::alloc_msix_interrupt()
 {
-    kernel::work_entry* wqe = klist_front(free_msix_interrupts,link);
+    kernel::wqe* wqe = klist_front(free_msix_interrupts,link);
     free_msix_interrupts.pop_front();
     return wqe;
 }

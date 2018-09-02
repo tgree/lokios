@@ -8,19 +8,19 @@
 #include "interrupts/lapic.h"
 
 static kernel::spinlock wqe_slab_lock;
-static kernel::slab wqe_slab(sizeof(kernel::work_entry));
+static kernel::slab wqe_slab(sizeof(kernel::wqe));
 
-kernel::work_entry*
+kernel::wqe*
 kernel::alloc_wqe()
 {
     with (wqe_slab_lock)
     {
-        return wqe_slab.alloc<kernel::work_entry>();
+        return wqe_slab.alloc<kernel::wqe>();
     }
 }
 
 void
-kernel::free_wqe(work_entry* wqe)
+kernel::free_wqe(kernel::wqe* wqe)
 {
     with (wqe_slab_lock)
     {
@@ -41,7 +41,7 @@ kernel::scheduler::~scheduler()
 }
 
 void
-kernel::scheduler::schedule_local_work(work_entry* wqe)
+kernel::scheduler::schedule_local_work(kernel::wqe* wqe)
 {
     // The currently-executing CPU is the local CPU.
     kassert(get_current_cpu() == container_of(this,cpu,scheduler));
@@ -49,7 +49,7 @@ kernel::scheduler::schedule_local_work(work_entry* wqe)
 }
 
 void
-kernel::scheduler::schedule_remote_work(work_entry* wqe)
+kernel::scheduler::schedule_remote_work(kernel::wqe* wqe)
 {
     // The currently-executing CPU is a remote CPU trying to schedule work on
     // us.
@@ -97,7 +97,7 @@ kernel::scheduler::workloop()
     for (;;)
     {
         // This list of work we are going to do this iteration.
-        klist<work_entry> wq;
+        klist<kernel::wqe> wq;
         kdlist<timer_entry> tq;
 
         // Disable interrupts, check for work and then halt if there is no work
@@ -160,7 +160,7 @@ kernel::scheduler::workloop()
         // Process all work elements.
         while (!wq.empty())
         {
-            work_entry* wqe = klist_front(wq,link);
+            kernel::wqe* wqe = klist_front(wq,link);
             wq.pop_front();
             wqe->fn(wqe);
         }

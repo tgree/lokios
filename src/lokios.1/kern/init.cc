@@ -36,7 +36,7 @@ extern "C" void init_bsp();
 extern "C" void init_ap();
 extern "C" void __register_frame(char*);
 
-extern void kernel_main(kernel::work_entry* wqe);
+extern void kernel_main(kernel::wqe* wqe);
 
 static void init_bsp_stage2();
 static void init_ap_stage2();

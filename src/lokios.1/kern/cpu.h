@@ -13,7 +13,7 @@
 namespace kernel
 {
     struct thread;
-    struct work_entry;
+    struct wqe;
     struct cpu;
 
 #ifndef BUILDING_UNITTEST
@@ -42,7 +42,7 @@ namespace kernel
         uint8_t             rsrv[8];                                // 24
         thread*             schedule_thread;                        // 32
         uint64_t            stack_guard;                            // 40
-        klist<work_entry>   free_msix_interrupts;                   // 48
+        klist<kernel::wqe>  free_msix_interrupts;                   // 48
 
         const uint32_t      max_basic_cpuid;                        // 56
         const uint32_t      max_extended_cpuid;                     // 60
@@ -55,7 +55,7 @@ namespace kernel
         struct scheduler    scheduler;                              // 128
 
         // Page boundary
-        work_entry          msix_entries[256] __PAGE_ALIGNED__;     // 4096
+        kernel::wqe         msix_entries[256] __PAGE_ALIGNED__;     // 4096
 
         // Page boundary.
         struct
@@ -70,13 +70,13 @@ namespace kernel
         const uint16_t  ones;
 
         void claim_current_cpu();
-        kernel::work_entry* alloc_msix_interrupt();
+        kernel::wqe* alloc_msix_interrupt();
         void register_exception_vector(size_t v, void (*handler)());
 
         static  void*   operator new(size_t size);
         static  void    operator delete(void*);
 
-        static inline void schedule_local_work(work_entry* wqe)
+        static inline void schedule_local_work(kernel::wqe* wqe)
         {
             get_current_cpu()->scheduler.schedule_local_work(wqe);
         }

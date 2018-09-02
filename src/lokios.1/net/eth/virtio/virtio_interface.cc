@@ -17,15 +17,14 @@ virtio_net::interface::~interface()
 }
 
 void
-virtio_net::interface::issue_phy_read_16(uint8_t offset,
-    kernel::work_entry* cqe)
+virtio_net::interface::issue_phy_read_16(uint8_t offset, kernel::wqe* cqe)
 {
     kernel::panic("virtio_net doesn't implement phy_read_16!");
 }
 
 void
 virtio_net::interface::issue_phy_write_16(uint16_t v, uint8_t offset,
-    kernel::work_entry* cqe)
+    kernel::wqe* cqe)
 {
     kernel::panic("virtio_net doesn't implement phy_write_16!");
 }

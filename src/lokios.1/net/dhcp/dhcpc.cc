@@ -603,7 +603,7 @@ dhcp::client::handle_rx_dhcp_nak(const dhcp::message* m)
 }
 
 void
-dhcp::client::handle_arp_completion(kernel::work_entry* wqe)
+dhcp::client::handle_arp_completion(kernel::wqe* wqe)
 {
     kassert(state == DHCP_REQUESTING_WAIT_ARP_COMP);
     if (!wqe->args[1])

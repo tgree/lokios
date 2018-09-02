@@ -90,7 +90,7 @@ namespace dhcp
         uint32_t            t1;
 
         // ARP stuff.
-        kernel::work_entry  arp_cqe;
+        kernel::wqe         arp_cqe;
         eth::addr           arp_eth_addr;
         size_t              arp_attempt;
 
@@ -123,7 +123,7 @@ namespace dhcp
         void        handle_rx_dhcp_offer(const dhcp::eth_message* m);
         void        handle_rx_dhcp_ack(const dhcp::message* m);
         void        handle_rx_dhcp_nak(const dhcp::message* m);
-        void        handle_arp_completion(kernel::work_entry*);
+        void        handle_arp_completion(kernel::wqe*);
         void        handle_t1_expiry(kernel::timer_entry*);
         void        handle_t2_expiry(kernel::timer_entry*);
         void        handle_lease_expiry(kernel::timer_entry*);

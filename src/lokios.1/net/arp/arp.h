@@ -64,7 +64,7 @@ namespace arp
 
             service*            serv;
             net::tx_op          op;
-            kernel::work_entry* cqe;
+            kernel::wqe*        cqe;
             kernel::timer_entry timeout_cqe;
             uint64_t            timeout_ms;
             hw_addr*            tha;
@@ -138,7 +138,7 @@ namespace arp
             }
 
             lookup_op(service* serv, proto_addr tpa, hw_addr* tha,
-                      kernel::work_entry* cqe, size_t timeout_ms):
+                      kernel::wqe* cqe, size_t timeout_ms):
                 state(WAIT_POST),
                 serv(serv),
                 cqe(cqe),
@@ -222,7 +222,7 @@ namespace arp
         }
 
         void enqueue_lookup(proto_addr tpa, hw_addr* tha,
-                            kernel::work_entry* cqe, size_t timeout_ms)
+                            kernel::wqe* cqe, size_t timeout_ms)
         {
             arp_lookup_ops.emplace(tpa,this,tpa,tha,cqe,timeout_ms).post();
         }

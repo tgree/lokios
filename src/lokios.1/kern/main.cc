@@ -17,7 +17,7 @@ using kernel::console::printf;
 __thread uint64_t tls_signature = 0x135724683579468A;
 
 static void
-kernel_hello(kernel::work_entry* wqe)
+kernel_hello(kernel::wqe* wqe)
 {
     kernel::free_wqe(wqe);
     printf("Hello from CPU%zu.\n",kernel::get_current_cpu()->cpu_number);
@@ -40,7 +40,7 @@ integration_test_timeout(kernel::timer_entry* wqe)
 }
 
 void
-kernel_main(kernel::work_entry* wqe)
+kernel_main(kernel::wqe* wqe)
 {
     // Free the wqe.
     kernel::free_wqe(wqe);

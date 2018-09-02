@@ -374,7 +374,7 @@ virtio_net::dev::handle_timer(kernel::timer_entry*)
 }
 
 void
-virtio_net::dev::handle_rq_dsr(kernel::work_entry*)
+virtio_net::dev::handle_rq_dsr(kernel::wqe*)
 {
     // Handle completed RQ buffers from the used_ring.  The id field of the
     // used_elem struct is equal to the value that we pushed into the
@@ -399,7 +399,7 @@ virtio_net::dev::handle_rq_dsr(kernel::work_entry*)
 }
 
 void
-virtio_net::dev::handle_tq_dsr(kernel::work_entry*)
+virtio_net::dev::handle_tq_dsr(kernel::wqe*)
 {
     // Handle completed TQ buffers from the used_ring.  The id field of the
     // used_elem struct is equal to the value that we pushed into the
@@ -417,7 +417,7 @@ virtio_net::dev::handle_tq_dsr(kernel::work_entry*)
 }
 
 void
-virtio_net::dev::handle_cq_dsr(kernel::work_entry*)
+virtio_net::dev::handle_cq_dsr(kernel::wqe*)
 {
     while (!cq.empty())
     {
@@ -460,7 +460,7 @@ virtio_net::dev::handle_cq_completion(uint16_t index)
 }
 
 void
-virtio_net::dev::handle_config_change_dsr(kernel::work_entry*)
+virtio_net::dev::handle_config_change_dsr(kernel::wqe*)
 {
     printf("virtio_net: config change dsr\n");
 }

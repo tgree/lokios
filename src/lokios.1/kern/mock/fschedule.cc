@@ -18,7 +18,7 @@ kernel::fire_timer(timer_entry* wqe)
 }
 
 void
-kernel::fire_work(work_entry* wqe)
+kernel::fire_work(kernel::wqe* wqe)
 {
     wqe->fn(wqe);
 }
@@ -36,12 +36,12 @@ kernel::scheduler::~scheduler()
 }
 
 void
-kernel::scheduler::schedule_local_work(work_entry* wqe)
+kernel::scheduler::schedule_local_work(kernel::wqe* wqe)
 {
 }
 
 void
-kernel::scheduler::schedule_remote_work(work_entry* wqe)
+kernel::scheduler::schedule_remote_work(kernel::wqe* wqe)
 {
 }
 

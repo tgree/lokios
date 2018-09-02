@@ -159,8 +159,8 @@ namespace kernel::pci
         void* map_bar(uint8_t bari, size_t len, size_t offset = 0);
 
         void map_msix_table();
-        kernel::work_entry* alloc_msix_vector(size_t vec,
-                                              kernel::work_handler handler);
+        kernel::wqe* alloc_msix_vector(size_t vec,
+                                       kernel::work_handler handler);
         void enable_msix_vector(size_t vec);
         void dump_msix_table();
 

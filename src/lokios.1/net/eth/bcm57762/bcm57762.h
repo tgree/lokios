@@ -91,10 +91,10 @@ namespace bcm57762
         } state;
         size_t                  timer_retries;
         kernel::timer_entry     timer_wqe;
-        kernel::work_entry      phy_probe_wqe;
-        kernel::work_entry      phy_reset_wqe;
-        kernel::work_entry      phy_an_wqe;
-        kernel::work_entry      phy_lm_wqe;
+        kernel::wqe             phy_probe_wqe;
+        kernel::wqe             phy_reset_wqe;
+        kernel::wqe             phy_an_wqe;
+        kernel::wqe             phy_lm_wqe;
 
         registers*              regs;
         mem_block*              mem;
@@ -104,7 +104,7 @@ namespace bcm57762
         uint16_t                rx_bd_producer_index;
         uint16_t                rx_bd_consumer_index;
         eth::addr               mac;
-        kernel::work_entry*     phy_cqe;
+        kernel::wqe*            phy_cqe;
         bool                    phy_autopoll;
 
         kernel::klist<net::tx_op>   tx_send_queue;
@@ -119,9 +119,9 @@ namespace bcm57762
         // interface and we get interrupt completions when the accesses
         // complete.  An error code will be populated in args[1] and the
         // transferred data will be populated in cqe->args[2].
-        void    issue_phy_read_16(uint8_t offset, kernel::work_entry* cqe);
+        void    issue_phy_read_16(uint8_t offset, kernel::wqe* cqe);
         void    issue_phy_write_16(uint16_t v, uint8_t offset,
-                                   kernel::work_entry* cqe);
+                                   kernel::wqe* cqe);
         void    begin_phy_transaction(uint32_t v);
         void    complete_phy_transaction();
 
@@ -155,15 +155,15 @@ namespace bcm57762
         void    issue_reset();
 
         // Handlers.
-        void    handle_vec0_dsr(kernel::work_entry*);
+        void    handle_vec0_dsr(kernel::wqe*);
         void    handle_timer(kernel::timer_entry*);
         void    handle_link_up();
         void    handle_link_down();
         void    handle_phy_completion();
-        void    handle_phy_probe_complete(kernel::work_entry*);
-        void    handle_phy_reset_complete(kernel::work_entry*);
-        void    handle_phy_start_autoneg_complete(kernel::work_entry*);
-        void    handle_phy_get_link_mode_complete(kernel::work_entry*);
+        void    handle_phy_probe_complete(kernel::wqe*);
+        void    handle_phy_reset_complete(kernel::wqe*);
+        void    handle_phy_start_autoneg_complete(kernel::wqe*);
+        void    handle_phy_get_link_mode_complete(kernel::wqe*);
 
         // Interface API.
         void    post_tx_frame(net::tx_op* op);
@@ -178,10 +178,9 @@ namespace bcm57762
     {
         bcm57762::dev*  dev;
 
-        virtual void    issue_phy_read_16(uint8_t offset,
-                                          kernel::work_entry* cqe);
+        virtual void    issue_phy_read_16(uint8_t offset, kernel::wqe* cqe);
         virtual void    issue_phy_write_16(uint16_t v, uint8_t offset,
-                                           kernel::work_entry* cqe);
+                                           kernel::wqe* cqe);
 
         virtual void    post_tx_frame(net::tx_op* op);
         virtual void    post_rx_pages(kernel::klist<net::rx_page>& pages);

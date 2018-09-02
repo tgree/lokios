@@ -156,11 +156,11 @@ namespace virtio_net
         void        post_rx_pages(kernel::klist<net::rx_page>& pages);
             
         void        handle_timer(kernel::timer_entry*);
-        void        handle_rq_dsr(kernel::work_entry*);
-        void        handle_tq_dsr(kernel::work_entry*);
-        void        handle_cq_dsr(kernel::work_entry*);
+        void        handle_rq_dsr(kernel::wqe*);
+        void        handle_tq_dsr(kernel::wqe*);
+        void        handle_cq_dsr(kernel::wqe*);
         void        handle_cq_completion(uint16_t index);
-        void        handle_config_change_dsr(kernel::work_entry*);
+        void        handle_config_change_dsr(kernel::wqe*);
 
         dev(const kernel::pci::dev* pd, const virtio_net::driver* owner);
     };

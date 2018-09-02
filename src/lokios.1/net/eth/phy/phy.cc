@@ -46,7 +46,7 @@ struct phy_prober : public eth::phy_state_machine
     } state;
     uint32_t phy_id;
 
-    void handle_phy_success(kernel::work_entry* wqe)
+    void handle_phy_success(kernel::wqe* wqe)
     {
         switch (state)
         {
@@ -65,7 +65,7 @@ struct phy_prober : public eth::phy_state_machine
         }
     }
 
-    phy_prober(eth::interface* intf, kernel::work_entry* cqe):
+    phy_prober(eth::interface* intf, kernel::wqe* cqe):
         phy_state_machine(intf,cqe),
         state(WAIT_READ_ID_MSB)
     {
@@ -84,7 +84,7 @@ struct phy_resetter : public eth::phy_state_machine
     kernel::timer_entry timer_wqe;
     size_t              timer_retries;
 
-    void handle_phy_success(kernel::work_entry* wqe)
+    void handle_phy_success(kernel::wqe* wqe)
     {
         switch (state)
         {
@@ -121,7 +121,7 @@ struct phy_resetter : public eth::phy_state_machine
         state = WAIT_RESET_READ_DONE;
     }
 
-    phy_resetter(eth::interface* intf, kernel::work_entry* cqe):
+    phy_resetter(eth::interface* intf, kernel::wqe* cqe):
         phy_state_machine(intf,cqe),
         state(WAIT_RESET_WRITE_DONE)
     {
@@ -140,7 +140,7 @@ struct phy_start_autonegotiator : public eth::phy_state_machine
         WAIT_WRITE_MII_CONTROL,
     } state;
 
-    void handle_phy_success(kernel::work_entry* wqe)
+    void handle_phy_success(kernel::wqe* wqe)
     {
         switch (state)
         {
@@ -155,7 +155,7 @@ struct phy_start_autonegotiator : public eth::phy_state_machine
         }
     }
 
-    phy_start_autonegotiator(eth::interface* intf, kernel::work_entry* cqe):
+    phy_start_autonegotiator(eth::interface* intf, kernel::wqe* cqe):
         phy_state_machine(intf,cqe),
         state(WAIT_READ_MII_CONTROL)
     {
@@ -170,7 +170,7 @@ eth::phy_driver::phy_driver(const char* name):
 }
 
 void
-eth::phy_driver::issue_probe(eth::interface* intf, kernel::work_entry* cqe)
+eth::phy_driver::issue_probe(eth::interface* intf, kernel::wqe* cqe)
 {
     new phy_prober(intf,cqe);
 }
@@ -187,13 +187,13 @@ eth::phy::~phy()
 }
 
 void
-eth::phy::issue_reset(kernel::work_entry* cqe)
+eth::phy::issue_reset(kernel::wqe* cqe)
 {
     new phy_resetter(intf,cqe);
 }
 
 void
-eth::phy::issue_start_autonegotiation(kernel::work_entry* cqe)
+eth::phy::issue_start_autonegotiation(kernel::wqe* cqe)
 {
     new phy_start_autonegotiator(intf,cqe);
 }

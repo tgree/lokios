@@ -65,9 +65,8 @@ kernel::pci::dev::map_msix_table()
                     msix_pos + 2);
 }
 
-kernel::work_entry*
-kernel::pci::dev::alloc_msix_vector(size_t vec,
-    kernel::work_handler handler)
+kernel::wqe*
+kernel::pci::dev::alloc_msix_vector(size_t vec, kernel::work_handler handler)
 {
     if (!msix_table)
         map_msix_table();
@@ -75,15 +74,15 @@ kernel::pci::dev::alloc_msix_vector(size_t vec,
     kassert(msix_table != 0);
     kassert(vec < msix_nvecs);
 
-    cpu* c                  = get_current_cpu();
-    kernel::work_entry* wqe = c->alloc_msix_interrupt();
-    msix_entry* me          = &msix_table[vec];
-    me->msg_addr_high       = 0;
-    me->msg_addr_low        = 0xFEE00000;
-    me->msg_data            = wqe - c->msix_entries;
-    wqe->fn                 = handler;
-    wqe->args[0]            = (uintptr_t)this;
-    wqe->args[1]            = (uintptr_t)&me->vector_control;
+    cpu* c            = get_current_cpu();
+    kernel::wqe* wqe  = c->alloc_msix_interrupt();
+    msix_entry* me    = &msix_table[vec];
+    me->msg_addr_high = 0;
+    me->msg_addr_low  = 0xFEE00000;
+    me->msg_data      = wqe - c->msix_entries;
+    wqe->fn           = handler;
+    wqe->args[0]      = (uintptr_t)this;
+    wqe->args[1]      = (uintptr_t)&me->vector_control;
     return wqe;
 }
 

@@ -70,7 +70,7 @@ eth::interface::format_arp_broadcast(void* arp_payload)
 }
 
 void
-eth::interface::issue_probe_phy(kernel::work_entry* cqe)
+eth::interface::issue_probe_phy(kernel::wqe* cqe)
 {
     eth::phy_driver::issue_probe(this,cqe);
 }

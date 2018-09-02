@@ -46,7 +46,7 @@ struct linkmode_getter : public eth::phy_state_machine
         WAIT_READ_LPA,
     } state;
 
-    void start(kernel::work_entry* wqe)
+    void start(kernel::wqe* wqe)
     {
         kassert(!cqe);
         cqe = wqe;
@@ -54,7 +54,7 @@ struct linkmode_getter : public eth::phy_state_machine
         state = WAIT_READ_AUX_STAT;
     }
 
-    virtual void handle_phy_success(kernel::work_entry* wqe)
+    virtual void handle_phy_success(kernel::wqe* wqe)
     {
         const link_mode* lm;
 
@@ -101,7 +101,7 @@ struct bcm57765 : public eth::phy
 {
     linkmode_getter     lmg;
 
-    virtual void issue_get_link_mode(kernel::work_entry* cqe)
+    virtual void issue_get_link_mode(kernel::wqe* cqe)
     {
         lmg.start(cqe);
     }
