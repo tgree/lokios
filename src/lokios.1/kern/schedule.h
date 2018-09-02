@@ -26,6 +26,13 @@ namespace kernel
         {
             return link.nextu != KLINK_NOT_IN_USE;
         }
+
+        work_entry() = default;
+        work_entry(work_handler fn, uint64_t arg0):
+            fn(fn),
+            args{arg0}
+        {
+        }
     };
     KASSERT(sizeof(work_entry) == 64);
     KASSERT(offsetof(work_entry,args) == 16);
@@ -45,6 +52,13 @@ namespace kernel
         inline bool is_armed() const
         {
             return link.nextu != KLINK_NOT_IN_USE || pos != (size_t)-1;
+        }
+
+        timer_entry() = default;
+        timer_entry(timer_handler fn, uint64_t arg0):
+            fn(fn),
+            args{arg0}
+        {
         }
     };
     KASSERT(sizeof(timer_entry) == 64);
