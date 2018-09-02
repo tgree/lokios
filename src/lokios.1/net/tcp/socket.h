@@ -35,6 +35,7 @@
 #include "net/ip/ip.h"
 #include "mm/slab.h"
 #include "k++/delegate.h"
+#include <stdarg.h>
 
 namespace net
 {
@@ -225,6 +226,16 @@ namespace tcp
         uint64_t    process_payload_synchronized(net::rx_page* p);
         void        process_options(parsed_options opts);
         void        dump_socket();
+
+        // Emit log messages.
+                void                    vdbg(const char* fmt, va_list ap);
+        inline  void __PRINTF__(2,3)    dbg(const char* fmt, ...)
+        {
+            va_list ap;
+            va_start(ap,fmt);
+            vdbg(fmt,ap);
+            va_end(ap);
+        }
 
         // State checkers.
         inline bool in_passive_close_state() const

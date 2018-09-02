@@ -3,6 +3,7 @@
 #include "net/interface.h"
 #include "k++/random.h"
 #include "kern/cpu.h"
+#include "kern/console.h"
 
 #define RETRANSMIT_TIMEOUT_MS   1000
 #define TIME_WAIT_TIMEOUT_SEC   60*4
@@ -956,4 +957,21 @@ tcp::socket::dump_socket()
                    rcv_mss,
                    (uint16_t)(rcv_wnd >> rcv_wnd_shift),
                    rcv_wnd_shift);
+}
+
+void
+tcp::socket::vdbg(const char* fmt, va_list ap)
+{
+    kernel::console::p2printf(fmt,ap,"net%zu:%u.%u.%u.%u:%u:%u.%u.%u.%u:%u: ",
+                              intf->id,
+                              intf->ip_addr[0],
+                              intf->ip_addr[1],
+                              intf->ip_addr[2],
+                              intf->ip_addr[3],
+                              local_port,
+                              remote_ip[0],
+                              remote_ip[1],
+                              remote_ip[2],
+                              remote_ip[3],
+                              remote_port);
 }
