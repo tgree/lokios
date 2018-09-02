@@ -35,6 +35,51 @@ namespace hash
             }
         };
 
+        struct rbfl_adapter
+        {
+            table&                  t;
+            size_t                  bin;
+            kernel::kdlink_leaks*   pos;
+
+            inline node& operator*() const
+            {
+                return *container_of(pos,node,link);
+            }
+
+            inline void operator++()
+            {
+                kernel::kassert(pos != (kernel::kdlink_leaks*)this);
+                pos = pos->next;
+                while (pos == t.bins[bin].sentinel_link())
+                {
+                    if (++bin == t.nbins)
+                    {
+                        // We just need a unique address that's guaranteed to
+                        // not be NULL and not be on any queue.  A pointer to
+                        // our iterator will do just fine.
+                        pos = (kernel::kdlink_leaks*)this;
+                        break;
+                    }
+
+                    pos = t.bins[bin].first_link();
+                }
+            }
+
+            inline bool operator!=(kernel::end_sentinel) const
+            {
+                return pos != (kernel::kdlink_leaks*)this;
+            }
+
+            rbfl_adapter(table& t):
+                t(t),
+                bin(0)
+            {
+                pos = t.bins[0].first_link();
+                if (pos == t.bins[0].sentinel_link())
+                    ++(*this);
+            }
+        };
+
         size_t                  nelems;
         size_t                  nbins;
         kernel::kdlist<node>*   bins;
@@ -43,6 +88,16 @@ namespace hash
 
         size_t size() const {return nelems;}
         bool empty() const  {return size() == 0;}
+
+        rbfl_adapter begin()
+        {
+            return rbfl_adapter(*this);
+        }
+
+        inline kernel::end_sentinel end() const
+        {
+            return kernel::end_sentinel();
+        }
 
         static size_t compute_slot(const Key& k, size_t nbins)
         {

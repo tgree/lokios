@@ -4,6 +4,7 @@
 #include "tmock/tmock.h"
 #include <vector>
 #include <algorithm>
+#include <unordered_map>
 
 static size_t constructions;
 static size_t destructions;
@@ -234,6 +235,49 @@ class tmock_test
         tmock::assert_equiv(t.size(),0U);
         for (size_t i=0; i<t.nbins; ++i)
             TASSERT(t.bins[i].empty());
+    }
+
+    TMOCK_TEST(test_iterator_empty)
+    {
+        hash::table<const char*,int> ht;
+        size_t count = 0;
+        for (auto& e __UNUSED__ : ht)
+            ++count;
+        tmock::assert_equiv(count,0U);
+    }
+
+    struct iterator_test_elem
+    {
+        const char* k;
+        int         v;
+    };
+    TMOCK_TEST(test_iterator_many)
+    {
+        iterator_test_elem elems[] = {
+            {"one",  1},
+            {"two",  2},
+            {"three",3},
+            {"four", 4},
+            {"five", 5},
+            {"six",  6},
+            {"seven",7},
+            {"eight",8},
+            {"nine", 9},
+            {"ten",  10},
+        };
+        std::unordered_map<std::string,int> um;
+        hash::table<const char*,int> ht;
+        for (auto& e : elems)
+        {
+            um.emplace(e.k,e.v);
+            ht.emplace(e.k,e.v);
+        }
+        for (auto& e : ht)
+        {
+            TASSERT(um.count(e.k));
+            um.erase(e.k);
+        }
+        TASSERT(um.empty());
     }
 };
 
