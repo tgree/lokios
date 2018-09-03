@@ -5,6 +5,8 @@
 #include "hdr/kassert.h"
 #include <stddef.h>
 
+class tmock_test;
+
 namespace kernel
 {
     class string_stream : public char_stream<noop_lock>
@@ -40,6 +42,8 @@ namespace kernel
             kassert(len > 0);
             *pos = '\0';
         }
+
+        friend class ::tmock_test;
     };
 
     template<size_t N>
