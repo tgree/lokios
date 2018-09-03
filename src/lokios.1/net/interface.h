@@ -87,7 +87,7 @@ namespace net
                 void    tcp_listen(uint16_t port, uint32_t rcv_wnd,
                                    tcp::socket_accepted_delegate ad,
                                    tcp::should_accept_delegate sad =
-                                    kernel::func_delegate(tcp_always_accept));
+                                    func_delegate(tcp_always_accept));
                 void    tcp_ignore(uint16_t port);
         static  bool    tcp_always_accept(const tcp::header*) {return true;}
         tcp::socket*    tcp_connect(ipv4::addr remote_ip, uint16_t remote_port,
