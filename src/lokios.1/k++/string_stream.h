@@ -9,9 +9,10 @@ namespace kernel
 {
     class string_stream : public char_stream<noop_lock>
     {
-        char*       base;
-        char*       pos;
-        char* const end;
+    protected:
+        char*   base;
+        char*   pos;
+        size_t  len;
 
         virtual void _putc(char c)
         {
@@ -25,7 +26,7 @@ namespace kernel
     public:
         inline operator const char*() const {return base;}
         inline size_t strlen() const {return pos-base;}
-        inline size_t avail() const {return end-pos-1;}
+        inline size_t avail() const {return base+len-pos-1;}
 
         inline void clear()
         {
@@ -34,7 +35,7 @@ namespace kernel
         }
 
         inline string_stream(char* base, size_t len):
-            base(base),pos(base),end(base+len)
+            base(base),pos(base),len(len)
         {
             kassert(len > 0);
             *pos = '\0';
