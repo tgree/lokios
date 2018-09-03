@@ -193,8 +193,10 @@ namespace tcp
         // Send data.  This is async; the alps and data must remain valid until
         // after the callback is invoked.
         tcp::send_op*   send(size_t nalps, const kernel::dma_alp* alps,
-                             kernel::delegate<void(send_op*)> cb,
+                             kernel::delegate<void(send_op*)> cb =
+                                kernel::func_delegate(send_noop_cb),
                              uint64_t flags = 0);
+        static void     send_noop_cb(send_op*) {}
         tcp::tx_op*     make_one_packet(tcp::send_op* sop);
         void            process_send_queue();
         void            process_ack(uint32_t ack_num, uint32_t lower_bound);
