@@ -173,7 +173,7 @@ class tmock_test
         kernel::dma_alp alps[1] = {{kernel::virt_to_phys(snd_data),
                                     sizeof(snd_data)}};
         auto* sop = active_socket->send(NELEMS(alps),alps,
-                                        kernel::func_delegate(send_complete));
+                                        func_delegate(send_complete));
         texpect("send_complete",want(sop,sop));
         while (intf_pipe.process_queues())
             ;
@@ -282,7 +282,7 @@ class tmock_test
         kernel::dma_alp alps[1] = {{kernel::virt_to_phys(snd_data),
                                     sizeof(snd_data)}};
         auto* sop = active_socket->send(NELEMS(alps),alps,
-                                        kernel::func_delegate(send_complete));
+                                        func_delegate(send_complete));
 
         // Drop everything, trigger the retransmit timer.
         TASSERT(!active_socket->retransmit_wqe.is_armed());

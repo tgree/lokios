@@ -195,7 +195,7 @@ namespace tcp
         // after the callback is invoked.
         tcp::send_op*   send(size_t nalps, const kernel::dma_alp* alps,
                              kernel::delegate<void(send_op*)> cb =
-                                kernel::func_delegate(send_noop_cb),
+                                func_delegate(send_noop_cb),
                              uint64_t flags = 0);
         static void     send_noop_cb(send_op*) {}
         tcp::tx_op*     make_one_packet(tcp::send_op* sop);

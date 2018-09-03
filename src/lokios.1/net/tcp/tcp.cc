@@ -30,7 +30,7 @@ alloc_reply(net::interface* intf, net::rx_page* p)
     size_t llsize = intf->format_ll_reply(p,llh,sizeof(llh));
     memcpy(top->llhdr + sizeof(top->llhdr) - llsize,llh,llsize);
 
-    top->cb            = kernel::func_delegate(tcp_reply_cb);
+    top->cb            = func_delegate(tcp_reply_cb);
     top->flags         = NTX_FLAG_INSERT_IP_CSUM | NTX_FLAG_INSERT_TCP_CSUM;
     top->nalps         = 1;
     top->alps[0].paddr = kernel::virt_to_phys(&top->hdrs.ip) - llsize;

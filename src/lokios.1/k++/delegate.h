@@ -60,7 +60,7 @@ namespace kernel
 #define method_delegate(m) \
     method_delegate_ptmf(&this_type::m)
 
-#define func_delegate(f) delegate<typeof(f)> \
+#define func_delegate(f) kernel::delegate<typeof(f)> \
     ((void*)f, \
      decltype(kernel::delegate_convert(f))::fbounce)
 }
