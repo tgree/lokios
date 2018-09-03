@@ -15,7 +15,7 @@ namespace kernel
 
         virtual void _putc(char c)
         {
-            if (pos < end-1)
+            if (avail())
             {
                 *pos++ = c;
                 *pos   = '\0';
@@ -25,6 +25,13 @@ namespace kernel
     public:
         inline operator const char*() const {return base;}
         inline size_t strlen() const {return pos-base;}
+        inline size_t avail() const {return end-pos-1;}
+
+        inline void clear()
+        {
+            pos  = base;
+            *pos = '\0';
+        }
 
         inline string_stream(char* base, size_t len):
             base(base),pos(base),end(base+len)
