@@ -87,7 +87,7 @@ namespace tcp
         size_t                              unsent_alp_index;
         size_t                              unacked_alp_offset;
         size_t                              unsent_alp_offset;
-        kernel::dma_alp*                    alps;
+        const kernel::dma_alp*              alps;
 
         // Marks as many bytes ACKed as possible and returns the remainder of
         // ack_len.
@@ -192,7 +192,7 @@ namespace tcp
 
         // Send data.  This is async; the alps and data must remain valid until
         // after the callback is invoked.
-        tcp::send_op*   send(size_t nalps, kernel::dma_alp* alps,
+        tcp::send_op*   send(size_t nalps, const kernel::dma_alp* alps,
                              kernel::delegate<void(send_op*)> cb,
                              uint64_t flags = 0);
         tcp::tx_op*     make_one_packet(tcp::send_op* sop);

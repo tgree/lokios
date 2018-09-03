@@ -273,7 +273,7 @@ tcp::socket::send_complete_arm_retransmit(net::tx_op* nop)
 }
 
 tcp::send_op*
-tcp::socket::send(size_t nalps, kernel::dma_alp* alps,
+tcp::socket::send(size_t nalps, const kernel::dma_alp* alps,
     kernel::delegate<void(send_op*)> cb, uint64_t flags)
 {
     auto* sop               = send_ops_slab.alloc<tcp::send_op>();
@@ -356,8 +356,8 @@ tcp::socket::make_one_packet(tcp::send_op* sop)
 
     // Drop some alps in if we have payload remaining to process.
     kassert(top->nalps == 1);
-    kernel::dma_alp* salp = &sop->alps[sop->unsent_alp_index];
-    kernel::dma_alp* dalp = &top->alps[1];
+    const kernel::dma_alp* salp = &sop->alps[sop->unsent_alp_index];
+    kernel::dma_alp* dalp       = &top->alps[1];
     while (avail_len &&
            sop->unsent_alp_index < sop->nalps &&
            top->nalps < NELEMS(top->alps))
