@@ -55,6 +55,14 @@ namespace kernel
         char    storage[N];
 
         inline fixed_string_stream():string_stream(storage,N) {}
+        inline fixed_string_stream(const char* fmt, ...):
+            string_stream(storage,N)
+        {
+            va_list ap;
+            va_start(ap,fmt);
+            vprintf(fmt,ap);
+            va_end(ap);
+        }
     };
 }
 
