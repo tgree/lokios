@@ -167,7 +167,9 @@ kernel::pci::init_pci()
                         }
                     }
 
-                    driver->devices.push_back(&driver->claim(&pd)->link);
+                    auto* pdp = driver->claim(&pd);
+                    d.devices.push_back(&pdp->domain_link);
+                    driver->devices.push_back(&pdp->driver_link);
                 }
             }
         }
