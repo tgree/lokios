@@ -1,5 +1,6 @@
 #include "../socket.h"
 #include "../traits.h"
+#include "kern/cpu.h"
 #include "net/mock/finterface.h"
 #include "kern/mock/fconsole.h"
 #include "k++/random.h"
@@ -116,7 +117,7 @@ class tmock_test
         intf.handle_tx_completion(op);
     }
 
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_passive_connect)
+    TMOCK_TEST(test_passive_connect)
     {
         mock_listener ml(LOCAL_PORT);
 
@@ -159,9 +160,10 @@ class tmock_test
         auto* sop = klist_front(s->sent_send_ops,link);
         s->sent_send_ops.pop_front();
         s->send_ops_slab.free(sop);
+        kernel::cpu::cancel_timer(&s->retransmit_wqe);
     }
 
-    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_active_connect)
+    TMOCK_TEST(test_active_connect)
     {
         tcp::socket s(&intf,REMOTE_IP,LOCAL_PORT,REMOTE_PORT,NULL,0,NULL,
                       WND_SIZE);
@@ -208,6 +210,7 @@ class tmock_test
         auto* sop = klist_front(s.sent_send_ops,link);
         s.sent_send_ops.pop_front();
         s.send_ops_slab.free(sop);
+        kernel::cpu::cancel_timer(&s.retransmit_wqe);
     }
 };
 
