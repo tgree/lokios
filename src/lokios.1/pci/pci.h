@@ -73,7 +73,8 @@ namespace kernel::pci
             }
         };
 
-        klink               link;
+        klink               domain_link;
+        klink               driver_link;
         pci::domain*        domain;
         const uint8_t       bus;
         const uint8_t       devfn;
