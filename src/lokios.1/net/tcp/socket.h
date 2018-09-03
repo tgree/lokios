@@ -80,6 +80,7 @@ namespace tcp
     {
         kernel::kdlink                      link;
         kernel::delegate<void(send_op*)>    cb;
+        void*                               cookie;
         uint64_t                            flags;
         kernel::klist<tcp::tx_op>           posted_ops;
         size_t                              nalps;
