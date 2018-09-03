@@ -20,9 +20,7 @@ operator new(std::size_t count, std::align_val_t al)
 void
 operator delete(void* p)
 {
-    kernel::kassert(((uintptr_t)p & PAGE_OFFSET_MASK) == 0);
-    if (p)
-        kernel::page_free(p);
+    kernel::panic("unsized delete operator invoked");
 }
 
 void
