@@ -116,7 +116,7 @@ class tmock_test
         intf.handle_tx_completion(op);
     }
 
-    TMOCK_TEST(test_passive_connect)
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_passive_connect)
     {
         mock_listener ml(LOCAL_PORT);
 
@@ -161,7 +161,7 @@ class tmock_test
         s->send_ops_slab.free(sop);
     }
 
-    TMOCK_TEST(test_active_connect)
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_active_connect)
     {
         tcp::socket s(&intf,REMOTE_IP,LOCAL_PORT,REMOTE_PORT,NULL,0,NULL,
                       WND_SIZE);

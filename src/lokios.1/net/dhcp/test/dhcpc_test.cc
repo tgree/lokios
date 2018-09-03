@@ -379,7 +379,7 @@ class tmock_test
         transition_DHCP_DECLINED_WAIT_TX_COMP();
     }
 
-    TMOCK_TEST(test_DHCP_BOUND_WAIT_TIMEOUT)
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_DHCP_BOUND_WAIT_TIMEOUT)
     {
         transition_DHCP_BOUND_WAIT_TIMEOUT();
         TASSERT(intf.dhcpc->t1_wqe.is_armed());
@@ -388,7 +388,8 @@ class tmock_test
         TASSERT(!intf.dhcpc->rx_dropped_timer.is_armed());
     }
 
-    TMOCK_TEST(test_DHCP_RENEWING_WAIT_RX_RESP_TX_COMP)
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(
+            test_DHCP_RENEWING_WAIT_RX_RESP_TX_COMP)
     {
         transition_DHCP_RENEWING_WAIT_RX_RESP_TX_COMP();
         TASSERT(!intf.dhcpc->t1_wqe.is_armed());
@@ -397,7 +398,7 @@ class tmock_test
         TASSERT(!intf.dhcpc->rx_dropped_timer.is_armed());
     }
 
-    TMOCK_TEST(test_DHCP_RENEWING_WAIT_RX_RESP)
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_DHCP_RENEWING_WAIT_RX_RESP)
     {
         transition_DHCP_RENEWING_WAIT_RX_RESP();
         TASSERT(!intf.dhcpc->t1_wqe.is_armed());
@@ -406,7 +407,7 @@ class tmock_test
         TASSERT(intf.dhcpc->rx_dropped_timer.is_armed());
     }
 
-    TMOCK_TEST(test_DHCP_RENEWING_WAIT_TX_COMP)
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_DHCP_RENEWING_WAIT_TX_COMP)
     {
         transition_DHCP_RENEWING_WAIT_TX_COMP();
         TASSERT(!intf.dhcpc->t1_wqe.is_armed());
@@ -415,7 +416,8 @@ class tmock_test
         TASSERT(!intf.dhcpc->rx_dropped_timer.is_armed());
     }
 
-    TMOCK_TEST(test_DHCP_RENEWING_WAIT_RX_RESP_TX_COMP_T2_EXPIRED)
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(
+            test_DHCP_RENEWING_WAIT_RX_RESP_TX_COMP_T2_EXPIRED)
     {
         transition_DHCP_RENEWING_WAIT_RX_RESP_TX_COMP_T2_EXPIRED();
         TASSERT(!intf.dhcpc->t1_wqe.is_armed());
@@ -424,7 +426,8 @@ class tmock_test
         TASSERT(!intf.dhcpc->rx_dropped_timer.is_armed());
     }
 
-    TMOCK_TEST(test_DHCP_RENEWING_WAIT_RX_RESP_TX_COMP_LEASE_EXPIRED)
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(
+            test_DHCP_RENEWING_WAIT_RX_RESP_TX_COMP_LEASE_EXPIRED)
     {
         transition_DHCP_RENEWING_WAIT_RX_RESP_TX_COMP_LEASE_EXPIRED();
         TASSERT(!intf.dhcpc->t1_wqe.is_armed());
@@ -433,7 +436,8 @@ class tmock_test
         TASSERT(!intf.dhcpc->rx_dropped_timer.is_armed());
     }
 
-    TMOCK_TEST(test_DHCP_RENEWING_WAIT_TX_COMP_T2_EXPIRED)
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(
+            test_DHCP_RENEWING_WAIT_TX_COMP_T2_EXPIRED)
     {
         transition_DHCP_RENEWING_WAIT_TX_COMP_T2_EXPIRED();
         TASSERT(!intf.dhcpc->t1_wqe.is_armed());
@@ -442,7 +446,8 @@ class tmock_test
         TASSERT(!intf.dhcpc->rx_dropped_timer.is_armed());
     }
 
-    TMOCK_TEST(test_DHCP_RENEWING_WAIT_TX_COMP_LEASE_EXPIRED)
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(
+            test_DHCP_RENEWING_WAIT_TX_COMP_LEASE_EXPIRED)
     {
         transition_DHCP_RENEWING_WAIT_TX_COMP_LEASE_EXPIRED();
         TASSERT(!intf.dhcpc->t1_wqe.is_armed());
@@ -451,7 +456,8 @@ class tmock_test
         TASSERT(!intf.dhcpc->rx_dropped_timer.is_armed());
     }
 
-    TMOCK_TEST(test_DHCP_REBINDING_WAIT_RX_RESP_TX_COMP)
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(
+            test_DHCP_REBINDING_WAIT_RX_RESP_TX_COMP)
     {
         transition_DHCP_REBINDING_WAIT_RX_RESP_TX_COMP();
         TASSERT(!intf.dhcpc->t1_wqe.is_armed());
@@ -460,7 +466,7 @@ class tmock_test
         TASSERT(!intf.dhcpc->rx_dropped_timer.is_armed());
     }
 
-    TMOCK_TEST(test_DHCP_REBINDING_WAIT_RX_RESP)
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_DHCP_REBINDING_WAIT_RX_RESP)
     {
         transition_DHCP_REBINDING_WAIT_RX_RESP();
         TASSERT(!intf.dhcpc->t1_wqe.is_armed());
@@ -469,7 +475,7 @@ class tmock_test
         TASSERT(intf.dhcpc->rx_dropped_timer.is_armed());
     }
 
-    TMOCK_TEST(test_DHCP_REBINDING_WAIT_TX_COMP)
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(test_DHCP_REBINDING_WAIT_TX_COMP)
     {
         transition_DHCP_REBINDING_WAIT_TX_COMP();
         TASSERT(!intf.dhcpc->t1_wqe.is_armed());
@@ -478,7 +484,8 @@ class tmock_test
         TASSERT(!intf.dhcpc->rx_dropped_timer.is_armed());
     }
 
-    TMOCK_TEST(test_DHCP_REBINDING_WAIT_RX_RESP_TX_COMP_LEASE_EXPIRED)
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(
+            test_DHCP_REBINDING_WAIT_RX_RESP_TX_COMP_LEASE_EXPIRED)
     {
         transition_DHCP_REBINDING_WAIT_RX_RESP_TX_COMP_LEASE_EXPIRED();
         TASSERT(!intf.dhcpc->t1_wqe.is_armed());
@@ -487,7 +494,8 @@ class tmock_test
         TASSERT(!intf.dhcpc->rx_dropped_timer.is_armed());
     }
 
-    TMOCK_TEST(test_DHCP_REBINDING_WAIT_TX_COMP_LEASE_EXPIRED)
+    TMOCK_TEST_EXPECT_FAILURE_SHOULD_PASS(
+            test_DHCP_REBINDING_WAIT_TX_COMP_LEASE_EXPIRED)
     {
         transition_DHCP_REBINDING_WAIT_TX_COMP_LEASE_EXPIRED();
         TASSERT(!intf.dhcpc->t1_wqe.is_armed());

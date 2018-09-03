@@ -50,6 +50,7 @@ namespace kernel
 
         tqe() = default;
         tqe(timer_handler fn, uint64_t arg0):fn(fn),args{arg0} {}
+        inline ~tqe() {kernel::kassert(pos == (size_t)-1);}
     };
     KASSERT(sizeof(tqe) == 64);
 
