@@ -31,6 +31,13 @@ namespace kernel
         inline operator const char*() const {return c_str();}
         inline size_t strlen() const {return pos-base;}
         inline size_t avail() const {return len ? base+len-pos-1 : 0;}
+        inline bool empty() const {return strlen() == 0;}
+
+        inline void shrink()
+        {
+            kassert(!empty());
+            *--pos = '\0';
+        }
 
         inline void clear()
         {
