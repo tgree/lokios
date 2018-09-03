@@ -1,5 +1,6 @@
 #include "../socket.h"
 #include "../traits.h"
+#include "kern/cpu.h"
 #include "net/mock/finterface.h"
 #include "kern/mock/fconsole.h"
 #include "kern/mock/fschedule.h"
@@ -165,6 +166,13 @@ cleanup_socket(tcp::socket* s, tcp::socket::tcp_state state,
         kernel::fire_work(&s->socket_closed_wqe);
         tcheckpoint(e);
         intf.tcp_delete(s);
+    }
+    else
+    {
+        if (s->retransmit_wqe.is_armed())
+            kernel::cpu::cancel_timer(&s->retransmit_wqe);
+        if (s->time_wait_wqe.is_armed())
+            kernel::cpu::cancel_timer(&s->time_wait_wqe);
     }
 }
 
