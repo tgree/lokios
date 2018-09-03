@@ -167,9 +167,6 @@ kernel::pci::init_pci()
                         }
                     }
 
-                    if (!driver)
-                        continue;
-
                     driver->devices.push_back(&driver->claim(&pd)->link);
                 }
             }

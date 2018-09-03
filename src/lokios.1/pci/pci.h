@@ -173,9 +173,7 @@ namespace kernel::pci
             msix_table(NULL)
         {
         }
-        virtual ~dev() {}
 
-    protected:
         dev(const dev* pd, const pci::driver* owner):
             domain(pd->domain),
             bus(pd->bus),
@@ -185,6 +183,8 @@ namespace kernel::pci
             msix_table(pd->msix_table)
         {
         }
+
+        virtual ~dev() {}
     };
 
     extern vector<pci::domain> domains;
