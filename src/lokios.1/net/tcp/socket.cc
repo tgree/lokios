@@ -770,6 +770,38 @@ catch (fin_recvd_exception& e)
 }
 catch (socket_reset_exception)
 {
+    switch (state)
+    {
+        case TCP_SYN_SENT_ACKED_WAIT_SYN:
+        case TCP_SYN_SENT_SYN_RECVD_WAIT_ACK:
+        case TCP_FIN_WAIT_2:
+            kassert(!retransmit_wqe.is_armed());
+            kassert(!time_wait_wqe.is_armed());
+        break;
+
+        case TCP_SYN_SENT:
+        case TCP_SYN_RECVD:
+        case TCP_ESTABLISHED:
+        case TCP_FIN_WAIT_1:
+        case TCP_CLOSING:
+        case TCP_CLOSE_WAIT:
+        case TCP_LAST_ACK:
+            if (retransmit_wqe.is_armed())
+                kernel::cpu::cancel_timer(&retransmit_wqe);
+            kassert(!time_wait_wqe.is_armed());
+        break;
+
+        case TCP_TIME_WAIT:
+            kassert(!retransmit_wqe.is_armed());
+            kernel::cpu::cancel_timer(&time_wait_wqe);
+        break;
+
+        case TCP_DRAIN_NIC_OPS:
+        case TCP_CLOSED:
+            kernel::panic("rst-received thrown from impossible state");
+        break;
+    }
+
     observer->socket_reset(this);
     socket_drain();
     return 0;
