@@ -22,6 +22,7 @@ RUN apt-get update -y                                   \
     manpages                                            \
     manpages-dev                                        \
     python                                              \
+    python-requests                                     \
     qemu                                                \
     software-properties-common                          \
     sudo                                                \
