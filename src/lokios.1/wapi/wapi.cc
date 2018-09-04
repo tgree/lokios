@@ -20,30 +20,23 @@ wapi::send_404_response(tcp::socket* s)
 wapi::node*
 wapi::find_node_for_path(const char* path)
 {
-    kassert(strlen(path) <= HTTP_MAX_PATH_LEN);
-
-    char segment[HTTP_MAX_PATH_LEN+1] = {'\0'};
-    const char* src                   = path;
-    char* dst                         = segment;
-    wapi::node* n                     = wapi::root_node;
+    const char* start = path;
+    const char* p     = start;
+    wapi::node* n     = wapi::root_node;
     for (;;)
     {
-        if (*src == '\0' || *src == '/')
+        if (*p == '\0' || *p == '/')
         {
-            if (segment[0] != '\0')
-                n = n->find_child(segment);
+            if (p != start)
+                n = n->find_child(start,p-start);
             if (!n)
                 return NULL;
-            if (*src == '\0')
+            if (*p == '\0')
                 return n;
 
-            ++src;
-            dst = segment;
+            start = p + 1;
         }
-        else
-            *dst++ = *src++;
-
-        *dst = '\0';
+        ++p;
     }
 }
 
@@ -63,17 +56,17 @@ wapi::node::node(const char* fmt, ...)
 void
 wapi::node::register_child(wapi::node* c)
 {
-    kassert(find_child(c->name) == NULL);
+    kassert(find_child(c->name,c->name.strlen()) == NULL);
     children.push_back(&c->link);
     c->parent = this;
 }
 
 wapi::node*
-wapi::node::find_child(const char* name)
+wapi::node::find_child(const char* name, size_t len)
 {
     for (auto& c : klist_elems(children,link))
     {
-        if (!strcmp(c.name,name))
+        if (c.name.strlen() == len && !strncmp(c.name,name,len))
             return &c;
     }
     return NULL;

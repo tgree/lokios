@@ -1,132 +1,97 @@
 #include "request.h"
 
-http::request::request():
-    state(PARSING_METHOD),
-    method(METHOD_UNKNOWN)
-{
-}
+using kernel::_kassert;
 
-int
-http::request::parse(char c)
+size_t
+http::request::parse(const char* start, size_t rem)
 {
-    switch (state)
+    kassert(!is_done());
+
+    const char* p = start;
+    const char* end = start + rem;
+    while (p != end)
     {
-        case PARSING_METHOD:
-            if (c == ' ')
-            {
-                method = get_method(parsing_key);
-                if (method == METHOD_UNKNOWN)
-                    throw unrecognized_method_exception();
-                state = PARSING_REQUEST_TARGET;
-            }
-            else if (!kisalnum(c))
-                throw header_invalid_exception();
-            else
-                parsing_key.append(c);
-        break;
+        const char* base = p;
+        while (p != end && *p++ != '\n')
+            ;
 
-        case PARSING_REQUEST_TARGET:
-            if (c == ' ')
-                state = PARSING_HTTP_VERSION_HTTP_SLASH;
-            else if (!kisgraph(c))
-                throw header_invalid_exception();
-            else
-                request_target.append(c);
-        break;
-
-        case PARSING_HTTP_VERSION_HTTP_SLASH:
-            if (c != "HTTP/"[http_slash_pos++])
-                throw header_invalid_exception();
-            else if (http_slash_pos == 5)
-                state = PARSING_HTTP_VERSION_MAJOR;
-        break;
-
-        case PARSING_HTTP_VERSION_MAJOR:
-            if (!kisdigit(c))
-                throw header_invalid_exception();
-            version |= ((c - '0') << 4);
-            state = PARSING_HTTP_VERSION_DOT;
-        break;
-
-        case PARSING_HTTP_VERSION_DOT:
-            if (c != '.')
-                throw header_invalid_exception();
-            state = PARSING_HTTP_VERSION_MINOR;
-        break;
-
-        case PARSING_HTTP_VERSION_MINOR:
-            if (!kisdigit(c))
-                throw header_invalid_exception();
-            version |= (c - '0');
-            state = PARSING_REQUEST_LINE_CR;
-        break;
-
-        case PARSING_REQUEST_LINE_CR:
-            if (c != '\r')
-                throw header_invalid_exception();
-            state = PARSING_REQUEST_LINE_LF;
-        break;
-
-        case PARSING_REQUEST_LINE_LF:
-            if (c != '\n')
-                throw header_invalid_exception();
-            state = PARSING_WAIT_NEXT_HEADER;
-        break;
-
-        case PARSING_WAIT_NEXT_HEADER:
-            if (c == '\r')
-                state = PARSING_FINAL_LF;
-            else if (!http::istchar(c))
-                throw header_invalid_exception();
-            else
-            {
-                parsing_key.clear();
-                parsing_key.append(c);
-                state = PARSING_HEADER_KEY;
-            }
-        break;
-
-        case PARSING_HEADER_KEY:
-            if (c == ':')
-            {
-                parsing_val = &headers.emplace(parsing_key,"");
-                state = PARSING_HEADER_VAL;
-            }
-            else if (!http::istchar(c))
-                throw header_invalid_exception();
-            else
-                parsing_key.append(c);
-        break;
-
-        case PARSING_HEADER_VAL:
-            if (c == '\r')
-            {
-                while (parsing_val->size() && kisblank((*parsing_val)[-1]))
-                    parsing_val->shrink(1);
-                state = PARSING_HEADER_LF;
-            }
-            else if (c == ' ' && parsing_val->size() == 0)
-                break;
-            else
-                parsing_val->append(c);
-        break;
-
-        case PARSING_HEADER_LF:
-            if (c != '\n')
-                throw header_invalid_exception();
-            state = PARSING_WAIT_NEXT_HEADER;
-        break;
-
-        case PARSING_FINAL_LF:
-            if (c != '\n')
-                throw header_invalid_exception();
-            state = PARSING_DONE;
-        break;
-
-        case PARSING_DONE:
-            kernel::panic("header parsing already finished");
-        break;
+        size_t len = p - base;
+        header_table.append(base,len);
+        if (header_table.ends_with("\r\n\r\n"))
+        {
+            parse_header();
+            done = true;
+            break;
+        }
     }
 
-    return !(state == PARSING_DONE);
+    return p - start;
+}
+
+void
+http::request::parse_header()
+{
+    // Parse the method field.
+    char* start = header_table.begin();
+    char* p     = header_table.find(' ',start);
+    if (p == header_table.end())
+        throw header_invalid_exception();
+    *p = '\0';
+    method = get_method(start);
+    if (method == METHOD_UNKNOWN)
+        throw unrecognized_method_exception();
+
+    // Parse the target field.
+    start = p + 1;
+    p     = header_table.find(' ',start);
+    if (p == header_table.end())
+        throw header_invalid_exception();
+    *p = '\0';
+    request_target = start;
+
+    // Parse the HTTP version.
+    start = p + 1;
+    if (header_table.avail_after(start) < 10)
+        throw header_invalid_exception();
+    if (strncmp(start,"HTTP/",5))
+        throw header_invalid_exception();
+    if (!kisdigit(start[5]) || start[6] != '.' || !kisdigit(start[7]) ||
+        start[8] != '\r' || start[9] != '\n')
+    {
+        throw header_invalid_exception();
+    }
+    version = ((start[5] - '0') << 4) |
+              ((start[7] - '0') << 0);
+
+    // Parse headers.
+    start += 10;
+    for (;;)
+    {
+        if (header_table.avail_after(start) < 2)
+            throw header_invalid_exception();
+
+        if (start[0] == '\r' && start[1] == '\n')
+            break;
+
+        const char* key = start;
+        p = header_table.find(':',start);
+        if (p == header_table.end())
+            throw header_invalid_exception();
+        *p = '\0';
+        ++p;
+
+        while (kisblank(*p) && p != header_table.end())
+            ++p;
+        if (p == header_table.end())
+            throw header_invalid_exception();
+        const char* val = p;
+        p = header_table.find('\n',p);
+        if (p[-1] != '\r')
+            throw header_invalid_exception();
+        p[-1] = '\0';
+
+        headers.emplace(key,val);
+
+        start = p + 1;
+    }
 }

@@ -48,15 +48,10 @@ wapi_connection::socket_readable(tcp::socket* s) try
 
     while (s->rx_avail_bytes && !request.is_done())
     {
-        auto* p        = klist_front(s->rx_pages,link);
-        uint8_t* start = p->payload + p->client_offset;
-        uint8_t* c     = start;
-        for (size_t i=0; i<p->client_len; ++i)
-        {
-            if (!request.parse(*c++))
-                break;
-        }
-        s->skip(c - start);
+        auto* p     = klist_front(s->rx_pages,link);
+        char* start = (char*)p->payload + p->client_offset;
+        size_t n    = request.parse(start,p->client_len);
+        s->skip(n);
     }
 
     if (!request.is_done())
@@ -64,13 +59,9 @@ wapi_connection::socket_readable(tcp::socket* s) try
 
     s->dbg("%s %s HTTP/%u.%u\n",
            http::get_method_name(request.method),
-           request.request_target.c_str(),
+           request.request_target,
            (request.version >> 4),
            (request.version & 0xF));
-#if 0
-    for (auto& n : request.headers)
-        s->dbg("%s: %s\n",n.k.c_str(),n.v.c_str());
-#endif
 
     auto* n = wapi::find_node_for_path(request.request_target);
     if (n)
@@ -86,18 +77,6 @@ catch (http::unrecognized_method_exception& e)
 {
     s->dbg("unrecognized method\n");
 }
-catch (http::header_path_too_long_exception& e)
-{
-    s->dbg("path too long\n");
-}
-catch (http::header_key_too_long_exception& e)
-{
-    s->dbg("header field name too long\n");
-}
-catch (http::header_val_too_long_exception& e)
-{
-    s->dbg("header field value too long\n");
-}
 catch (http::exception& e)
 {
     s->dbg("some sort of http exception\n");
@@ -106,13 +85,11 @@ catch (http::exception& e)
 void
 wapi_connection::socket_recv_closed(tcp::socket* s)
 {
-    //s->dbg("wapi recv closed\n");
 }
 
 void
 wapi_connection::socket_closed(tcp::socket* s)
 {
-    //s->dbg("wapi socket closed\n");
     s->intf->tcp_delete(s);
     connection_slab.free(this);
 }

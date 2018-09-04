@@ -4,14 +4,6 @@
 #include "hdr/chartype.h"
 #include <stddef.h>
 
-// Maximum path length that we will support.  The HTTP spec doesn't actually
-// define one, but our paths will all be short.
-#define HTTP_MAX_PATH_LEN   256
-
-// Maximum length of a header field that we will support.
-#define HTTP_MAX_HEADER_KEY_LEN     64
-#define HTTP_MAX_HEADER_VAL_LEN     256
-
 namespace http
 {
     struct exception {};
