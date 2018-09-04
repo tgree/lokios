@@ -29,19 +29,20 @@ namespace kernel
         inline const char* c_str() const {return base;}
         inline operator const char*() const {return c_str();}
         inline size_t strlen() const {return pos-base;}
-        inline size_t avail() const {return base+len-pos-1;}
+        inline size_t avail() const {return len ? base+len-pos-1 : 0;}
 
         inline void clear()
         {
-            pos  = base;
-            *pos = '\0';
+            pos = base;
+            if (len)
+                *pos = '\0';
         }
 
         inline string_stream(char* base, size_t len):
             base(base),pos(base),len(len)
         {
-            kassert(len > 0);
-            *pos = '\0';
+            if (len)
+                *pos = '\0';
         }
 
         friend class ::tmock_test;
