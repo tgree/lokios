@@ -19,6 +19,8 @@ namespace kernel::pci
     {
         return lhs.id < rhs.id;
     }
+
+    void wapi_register(domain* d);
 }
 
 #endif /* __KERNEL_PCI_DOMAIN_H */

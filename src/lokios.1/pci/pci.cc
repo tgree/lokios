@@ -1,6 +1,7 @@
 #include "pci.h"
 #include "iocfg.h"
 #include "mcfg.h"
+#include "wapi.h"
 #include "acpi/tables.h"
 #include "mm/mm.h"
 #include "k++/sort.h"
@@ -173,5 +174,9 @@ kernel::pci::init_pci()
                 }
             }
         }
+        kernel::pci::wapi_register(&d);
     }
+
+    // Register WAPI nodes.
+    kernel::pci::wapi_register();
 }
