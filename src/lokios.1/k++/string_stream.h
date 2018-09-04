@@ -26,6 +26,7 @@ namespace kernel
         }
 
     public:
+        inline char* c_str() {return base;}
         inline const char* c_str() const {return base;}
         inline operator const char*() const {return c_str();}
         inline size_t strlen() const {return pos-base;}
