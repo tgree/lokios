@@ -1,4 +1,4 @@
-SUBMODULES :=
+SUBMODULES := test
 HEADERS += $(MODULE_SRC_DIR)
 
 HTTP_SRC := $(wildcard $(MODULE_SRC_DIR)/*.cc)
