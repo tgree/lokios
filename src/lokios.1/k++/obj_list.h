@@ -4,7 +4,6 @@
 #include "klist.h"
 #include "mm/slab.h"
 #include "kern/spinlock.h"
-#include <utility>
 
 namespace kernel
 {
@@ -17,7 +16,7 @@ namespace kernel
             T       obj;
 
             template<typename ...Args>
-            node(Args&& ...args):obj(std::forward<Args>(args)...) {}
+            node(Args&& ...args):obj(loki::forward<Args>(args)...) {}
         };
 
         struct iterator
@@ -83,7 +82,7 @@ namespace kernel
             node* n;
             with (obj_slab_lock)
             {
-                n = obj_slab.alloc<node>(std::forward<Args>(args)...);
+                n = obj_slab.alloc<node>(loki::forward<Args>(args)...);
             }
             n->link.insert_before(pos.n);
             return iterator(&n->link);
@@ -97,7 +96,7 @@ namespace kernel
         template<typename ...Args>
         inline void emplace_back(Args&& ...args)
         {
-            emplace(end(),std::forward<Args>(args)...);
+            emplace(end(),loki::forward<Args>(args)...);
         }
 
         inline void push_back(const T& obj)
