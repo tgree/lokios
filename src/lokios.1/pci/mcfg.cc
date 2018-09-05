@@ -98,3 +98,17 @@ kernel::mem_config_accessor::config_write_64(uint64_t val, uint8_t bus,
     kassert((offset & 7) == 0);
     *(uint64_t*)config_addr(vbase,bus,start_bus_num,devfn,offset) = val;
 }
+
+void
+kernel::mem_config_accessor::handle_wapi_request(wapi::node* node,
+    http::request* req, json::object* obj, http::response* rsp)
+{
+    // GET /pci/0000/cfg
+    rsp->printf("{\r\n"
+                "    \"type\"      : \"mcfg\",\r\n"
+                "    \"base\"      : \"0x%016lX\",\r\n"
+                "    \"first_bus\" : \"0x%02X\",\r\n"
+                "    \"last_bus\"  : \"0x%02X\"\r\n"
+                "}\r\n",
+                base,start_bus_num,end_bus_num);
+}
