@@ -1,4 +1,4 @@
-SUBMODULES := kern mm acpi interrupts dev pci platform k++ net cmd
+SUBMODULES := kern mm acpi interrupts dev pci platform k++ net cmd http
 
 CRTBEGIN_OBJ := $(shell $(CC) $(CFLAGS) -print-file-name=crtbeginS.o)
 CRTEND_OBJ   := $(shell $(CC) $(CFLAGS) -print-file-name=crtendS.o)
@@ -8,7 +8,7 @@ LOKIOS_1_OBJ :=
 LOKIOS_1_DRIVERS := e1000 virtio_net bcm57762
 LOKIOS_1_CONSTRUCTORS :=
 LOKIOS_1_LIB := kern.a mm.a acpi.a interrupts.a dev.a pci.a platform.a k++.a \
-                dhcp.a arp.a net.a eth.a eth_phys.a tcp.a udp.a \
+                dhcp.a arp.a net.a eth.a eth_phys.a tcp.a udp.a http.a \
                 cmd.a $(LOKIOS_1_DRIVERS:%=%.a)
 LOKIOS_1_WEAK := libsupc++.a
 
