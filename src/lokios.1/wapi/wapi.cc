@@ -5,7 +5,24 @@ using kernel::_kassert;
 wapi::node*
 wapi::find_node_for_path(const char* path)
 {
-    return NULL;
+    const char* start = path;
+    const char* p     = start;
+    wapi::node* n     = &wapi::root_node;
+    for (;;)
+    {
+        if (*p == '\0' || *p == '/')
+        {
+            if (p != start)
+                n = n->find_child(start,p-start);
+            if (!n)
+                return NULL;
+            if (*p == '\0')
+                return n;
+
+            start = p + 1;
+        }
+        ++p;
+    }
 }
 
 wapi::node::node(wapi::delegate handler, uint64_t method_mask,
