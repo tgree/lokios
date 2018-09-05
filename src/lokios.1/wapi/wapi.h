@@ -38,6 +38,8 @@ namespace wapi
         node(wapi::delegate handler, uint64_t method_mask,
              const char* fmt, ...);
     };
+
+    wapi::node* find_node_for_path(const char* path);
 }
 
 #endif /* __KERNEL_WAPI_WAPI_H */

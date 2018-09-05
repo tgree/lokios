@@ -2,6 +2,12 @@
 
 using kernel::_kassert;
 
+wapi::node*
+wapi::find_node_for_path(const char* path)
+{
+    return NULL;
+}
+
 wapi::node::node(wapi::delegate handler, uint64_t method_mask,
     const char* fmt, ...):
         method_mask(method_mask),
