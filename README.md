@@ -23,10 +23,10 @@ make -j5
 
 # Typical build/test cycle
 
-qemu comes preinstalled in the docker image, so you can just test your changes immediately from the command line.  This version of the qemu invocation sets up TCP forwarding on localhost port 12345 into guest port 12345.  This can be used to initiate a TCP connection from the docker container to the lokios kernel for testing purposes (say, by using the telnet tool):
+qemu comes preinstalled in the docker image, so you can just test your changes immediately from the command line.  This version of the qemu invocation sets up TCP forwarding on localhost ports 12345/6 into guest ports 12345/6.  This can be used to initiate a TCP connection from the docker container to the lokios kernel for testing purposes (say, by using the telnet tool to 12345 or issuing wapi operations on 12346):
 
 ```
-make -j && qemu-system-x86_64 -cpu qemu64,+popcnt -drive file=bin/lokios.elf.mbr,format=raw -smp 4 -nographic -device isa-debug-exit -device virtio-net-pci,netdev=net0,disable-legacy=on,disable-modern=off,vectors=4 -netdev user,id=net0,hostfwd=tcp::12345-:12345 -object filter-dump,id=dump0,netdev=net0,file=net0dump.pcap -m 64M
+make -j && qemu-system-x86_64 -cpu qemu64,+popcnt -drive file=bin/lokios.elf.mbr,format=raw -smp 4 -nographic -device isa-debug-exit -device virtio-net-pci,netdev=net0,disable-legacy=on,disable-modern=off,vectors=4 -netdev user,id=net0,hostfwd=tcp::12345-:12345,hostfwd=tcp::12346-:12346 -object filter-dump,id=dump0,netdev=net0,file=net0dump.pcap -m 64M
 ```
 
 To exit qemu: Type Ctrl-A X.  Or, if you are within tmux: Ctrl-A A X.
