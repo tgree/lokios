@@ -28,9 +28,10 @@ namespace kernel
             return (((T*)obj)->*Method)(loki::forward<Args>(args)...);
         }
 
-        static RC fbounce(void* func, Args... args)
+        template<RC (&Func)(Args...)>
+        static RC fbounce(void* junk, Args... args)
         {
-            return ((RC(*)(Args...))func)(loki::forward<Args>(args)...);
+            return Func(loki::forward<Args>(args)...);
         }
 
         template<typename T, RC(T::*Method)(Args...)>
@@ -61,8 +62,8 @@ namespace kernel
     method_delegate_ptmf(&this_type::m)
 
 #define func_delegate(f) kernel::delegate<typeof(f)> \
-    ((void*)f, \
-     decltype(kernel::delegate_convert(f))::fbounce)
+    (NULL, \
+     decltype(kernel::delegate_convert(f))::fbounce<f>)
 }
 
 #endif /* __KERNEL_DELEGATE_H */
