@@ -3,16 +3,16 @@
 
 struct klinked_object
 {
-    kernel::klink   link;
     int             val;
+    kernel::klink   link;
 
     constexpr klinked_object(int val):val(val) {}
 };
 
 struct kdlinked_object
 {
-    kernel::kdlink  link;
     int             val;
+    kernel::kdlink  link;
 
     constexpr kdlinked_object(int val):val(val) {}
 };
@@ -273,6 +273,22 @@ class tmock_test
         kernel::kassert(vp == &vals[4]);
 
         kdl.pop_all();
+    }
+
+    TMOCK_TEST(test_iterator_works)
+    {
+        klinked_object o1(1);
+        klinked_object o2(2);
+        klinked_object o3(3);
+        klinked_object o4(4);
+        klinked_object o5(5);
+        kernel::klist<klinked_object> kl;
+
+        auto pos = klist_begin(kl,link);
+        auto end = klist_end(kl,link);
+        for (auto& o : klist_elems(kl,link))
+            TASSERT(&*pos == &o);
+        TASSERT(pos == end);
     }
 };
 

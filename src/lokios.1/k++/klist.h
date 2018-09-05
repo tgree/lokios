@@ -8,6 +8,38 @@
 
 namespace kernel
 {
+    template<typename L, size_t OFFSET>
+    struct klist_iterator
+    {
+        typedef typename L::elem_type elem_type;
+        typedef typename L::link_type link_type;
+
+        const link_type*  pos;
+
+        inline elem_type& operator*() const
+        {
+            return *(elem_type*)((char*)pos - OFFSET);
+        }
+
+        inline void operator++()
+        {
+            pos = pos->next;
+        }
+
+        constexpr bool operator==(const klist_iterator& other) const
+        {
+            return pos == other.pos;
+        }
+
+        constexpr bool operator!=(const klist_iterator& other) const
+        {
+            return pos != other.pos;
+        }
+
+        constexpr klist_iterator(const link_type* pos):pos(pos) {}
+        constexpr klist_iterator(const klist_iterator& o):pos(o.pos) {}
+    };
+
 #define KLINK_NOT_IN_USE 0x4444444444444444U
     struct klink
     {
@@ -36,6 +68,18 @@ namespace kernel
         constexpr klink* first_link() const {return head;}
         constexpr const klink* sentinel_link() const {return NULL;}
 
+        template<size_t OFFSET>
+        constexpr auto begin() const
+        {
+            return klist_iterator<klist_leaks,OFFSET>(first_link());
+        }
+
+        template<size_t OFFSET>
+        constexpr auto end() const
+        {
+            return klist_iterator<klist_leaks,OFFSET>(sentinel_link());
+        }
+
         inline size_t size() const    
         {
             size_t n = 0;
@@ -47,6 +91,8 @@ namespace kernel
             }
             return n;
         }
+
+        constexpr klink* front() const {return first_link();}
 
         inline void push_front(klink* l)
         {
@@ -183,6 +229,18 @@ namespace kernel
         constexpr kdlink_leaks* first_link() const {return sentinel.next;}
         constexpr const kdlink_leaks* sentinel_link() const {return &sentinel;}
 
+        template<size_t OFFSET>
+        constexpr auto begin() const
+        {
+            return klist_iterator<kdlist_leaks,OFFSET>(first_link());
+        }
+
+        template<size_t OFFSET>
+        constexpr auto end() const
+        {
+            return klist_iterator<kdlist_leaks,OFFSET>(sentinel_link());
+        }
+
         inline size_t size() const
         {
             size_t n = 0;
@@ -251,37 +309,13 @@ namespace kernel
     template<typename L, size_t OFFSET>
     struct klist_rbfl_adapter
     {
-        typedef typename L::elem_type T;
+        klist_iterator<L,OFFSET> pos;
+        const klist_iterator<L,OFFSET> sentinel;
 
-        typename L::link_type* pos;
-        const typename L::link_type* sentinel;
-
-        inline T& operator*() const
-        {
-            return *(T*)((char*)pos - OFFSET);
-        }
-
-        inline void operator++()
-        {
-            pos = pos->next;
-        }
-
-        inline bool operator!=(kernel::end_sentinel) const
-        {
-            // We only allow testing for a loop termination condition - this is
-            // a RBFL adapter and not a general iterator.
-            return pos != sentinel;
-        }
-
-        inline klist_rbfl_adapter begin()
-        {
-            return *this;
-        }
-
-        inline kernel::end_sentinel end() const
-        {
-            return kernel::end_sentinel();
-        }
+        inline auto& operator*() const {return *pos;}
+        inline void operator++()       {++pos;}
+        inline auto begin()            {return pos;}
+        inline auto end() const        {return sentinel;}
 
         constexpr klist_rbfl_adapter(L& kl):
             pos(kl.first_link()),
@@ -297,6 +331,16 @@ namespace kernel
 #define klist_elems(q,field) \
     kernel::klist_rbfl_adapter<loki::remove_reference_t<decltype(q)>, \
    offsetof(typename loki::remove_reference_t<decltype(q)>::elem_type,field)>(q)
+
+#define klist_begin(q,field) \
+    q.begin< \
+        offsetof(typename loki::remove_reference_t<decltype(q)>::elem_type, \
+                 field)>()
+
+#define klist_end(q,field) \
+    q.end< \
+        offsetof(typename loki::remove_reference_t<decltype(q)>::elem_type, \
+                 field)>()
 }
 
 #endif /* __KERNEL_LIST_H */
