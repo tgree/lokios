@@ -30,6 +30,10 @@ namespace kernel
         virtual void config_write_64(uint64_t val, uint8_t bus, uint8_t devfn,
                                      uint16_t offset);
 
+        virtual void handle_wapi_request(wapi::node* node, http::request* req,
+                                         json::object* obj,
+                                         http::response* rsp);
+
         mem_config_accessor(uint64_t base, uint8_t start_bus_num,
                             uint8_t end_bus_num);
     };

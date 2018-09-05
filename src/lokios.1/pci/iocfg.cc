@@ -85,3 +85,16 @@ kernel::io_config_accessor::config_write_64(uint64_t val, uint8_t bus,
 {
     kernel::panic("iocfg 64-bit write accesses are forbidden!");
 }
+
+void
+kernel::io_config_accessor::handle_wapi_request(wapi::node* node,
+    http::request* req, json::object* obj, http::response* rsp)
+{
+    // GET /pci/0000/cfg
+    rsp->printf("{\r\n"
+                "    \"type\"        : \"iocfg\",\r\n"
+                "    \"config_addr\" : \"0x%04X\",\r\n"
+                "    \"config_data\" : \"0x%04X\"\r\n"
+                "}\r\n",
+                config_addr,config_data);
+}
