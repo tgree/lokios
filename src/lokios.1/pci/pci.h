@@ -3,6 +3,7 @@
 
 #include "domain.h"
 #include "kern/schedule.h"
+#include "wapi/wapi.h"
 #include "k++/obj_list.h"
 
 namespace kernel::pci
@@ -189,6 +190,7 @@ namespace kernel::pci
     };
 
     extern obj_list<pci::domain> domains;
+    extern wapi::node wapi_node;
 
     void init_pci();
 }

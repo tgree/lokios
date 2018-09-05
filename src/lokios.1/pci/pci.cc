@@ -176,4 +176,23 @@ kernel::pci::init_pci()
             }
         }
     }
+
+    // Register WAPI nodes.
+    wapi::root_node.register_child(&kernel::pci::wapi_node);
 }
+
+static void
+pci_request(wapi::node* node, http::request* req, json::object* obj,
+    http::response* rsp)
+{
+    // GET /pci
+    rsp->printf("{\r\n"
+                "    \"domains\" : [");
+    for (auto& d : kernel::pci::domains)
+        rsp->printf(" \"0x%04X\",",d.id);
+    rsp->ks.shrink();
+    rsp->printf(" ]\r\n}\r\n");
+}
+
+wapi::node kernel::pci::wapi_node(func_delegate(pci_request),METHOD_GET_MASK,
+                                  "pci");
