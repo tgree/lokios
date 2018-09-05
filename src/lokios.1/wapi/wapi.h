@@ -40,6 +40,8 @@ namespace wapi
     };
 
     wapi::node* find_node_for_path(const char* path);
+
+    extern wapi::node root_node;
 }
 
 #endif /* __KERNEL_WAPI_WAPI_H */
