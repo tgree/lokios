@@ -3,7 +3,7 @@
 
 #include "domain.h"
 #include "kern/schedule.h"
-#include "k++/vector.h"
+#include "k++/obj_list.h"
 
 namespace kernel::pci
 {
@@ -188,7 +188,7 @@ namespace kernel::pci
         virtual ~dev() {}
     };
 
-    extern vector<pci::domain> domains;
+    extern obj_list<pci::domain> domains;
 
     void init_pci();
 }

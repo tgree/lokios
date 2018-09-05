@@ -13,6 +13,8 @@ namespace kernel::pci
         uint16_t                        id;
         struct config_accessor*         cfg;
         kernel::klist<kernel::pci::dev> devices;
+
+        domain(uint16_t id, config_accessor* cfg):id(id),cfg(cfg) {}
     };
 
     static inline bool operator<(const domain& lhs, const domain& rhs)
