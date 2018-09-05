@@ -37,10 +37,11 @@ process_elf_image(image_stream* is, void* sector0, uintptr_t* image_end)
                         "version %u.\n",ehdr->e_ident[EI_VERSION],EV_CURRENT);
         return -3;
     }
-    if (ehdr->e_ident[EI_OSABI] != ELFOSABI_SYSV)
+    if (ehdr->e_ident[EI_OSABI] != ELFOSABI_SYSV &&
+        ehdr->e_ident[EI_OSABI] != ELFOSABI_GNU)
     {
-        console::printf("ELF OS ABI %u isn't SYSV %u.\n",
-                        ehdr->e_ident[EI_OSABI],ELFOSABI_SYSV);
+        console::printf("ELF OS ABI %u isn't SYSV %u or GNU %u.\n",
+                        ehdr->e_ident[EI_OSABI],ELFOSABI_SYSV,ELFOSABI_GNU);
         return -4;
     }
     if (ehdr->e_version != EV_CURRENT)
