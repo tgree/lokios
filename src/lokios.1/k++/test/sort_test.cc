@@ -1,4 +1,5 @@
 #include "../sort.h"
+#include "../klist.h"
 #include "hdr/types.h"
 #include "kern/kassert.h"
 #include "tmock/tmock.h"
@@ -99,6 +100,23 @@ static uint64_t sorted[] = {
     18314874294901963553U, 18329021337179044916U,
 };
 KASSERT(NELEMS(sorted) == NELEMS(unsorted));
+
+struct kl_elem
+{
+    kernel::klink   link;
+    uint64_t        val;
+    kl_elem(uint64_t val):val(val) {}
+};
+
+struct kl_le
+{
+    inline bool operator()(kernel::klink* l, kernel::klink* r) const
+    {
+        kl_elem* lke = container_of(l,kl_elem,link);
+        kl_elem* rke = container_of(r,kl_elem,link);
+        return lke->val <= rke->val;
+    }
+};
 
 class tmock_test
 {
@@ -248,6 +266,29 @@ class tmock_test
         kernel::sort::heapsort(two);
         kassert(two[0] == 3);
         kassert(two[1] == 1234567);
+    }
+
+    TMOCK_TEST(test_kl_mergesort)
+    {
+        kernel::klist<kl_elem> l;
+        for (auto v : unsorted)
+            l.push_back(&(new kl_elem(v))->link);
+        kernel::sort::mergesort(l,kl_le());
+
+        size_t i = 0;
+        for (auto& kle : klist_elems(l,link))
+        {
+            tmock::assert_equiv(kle.val,sorted[i]);
+            ++i;
+        }
+        tmock::assert_equiv(i,NELEMS(sorted));
+
+        while (!l.empty())
+        {
+            auto* e = klist_front(l,link);
+            l.pop_front();
+            delete e;
+        }
     }
 };
 

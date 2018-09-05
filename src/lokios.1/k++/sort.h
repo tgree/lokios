@@ -227,6 +227,56 @@ namespace heap_sort
     }
 }
 
+namespace merge_sort
+{
+    template<typename Container, typename LessEqual>
+    void merge(Container& c, Container& left, Container& right,
+               LessEqual le)
+    {
+        while (!left.empty() && !right.empty())
+        {
+            if (le(left.front(),right.front()))
+            {
+                auto e = left.front();
+                left.pop_front();
+                c.push_back(e);
+            }
+            else
+            {
+                auto e = right.front();
+                right.pop_front();
+                c.push_back(e);
+            }
+        }
+        if (!left.empty())
+            c.append(left);
+        if (!right.empty())
+            c.append(right);
+    }
+
+    template<typename Container, typename LessEqual>
+    void mergesort(Container& c, LessEqual le)
+    {
+        size_t len = c.size();
+        if (len <= 1)
+            return;
+
+        Container left;
+        Container right;
+        for (size_t i=0; i<len/2; ++i)
+        {
+            auto e = c.front();
+            c.pop_front();
+            left.push_back(e);
+        }
+        right.append(c);
+
+        mergesort(left,le);
+        mergesort(right,le);
+        merge(c,left,right,le);
+    }
+}
+
 namespace kernel::sort
 {
     template<typename T>
@@ -239,6 +289,12 @@ namespace kernel::sort
     inline void heapsort(T& c)
     {
         heap_sort::heapsort(kernel::begin(c),kernel::end(c));
+    }
+
+    template<typename C, typename LessEqual>
+    inline void mergesort(C& c, LessEqual le = LessEqual())
+    {
+        merge_sort::mergesort(c,le);
     }
 
     // Given a sorted range, find the first entry we are smaller than.
