@@ -10,7 +10,7 @@ namespace kernel
 {
     struct e820_map;
 
-#define SSDT_SIG 0x54445353
+#define SSDT_SIG char_code("SSDT")
 
     struct gen_addr
     {
@@ -22,7 +22,7 @@ namespace kernel
     } __PACKED__;
     KASSERT(sizeof(gen_addr) == 12);
 
-#define RSDP_SIG 0x2052545020445352UL
+#define RSDP_SIG char_code("RSD PTR ")
     struct rsdp_table
     {
         uint64_t    signature;
@@ -62,7 +62,7 @@ namespace kernel
     } __PACKED__;
     KASSERT(sizeof(sdt_header) == 36);
 
-#define FADT_SIG 0x50434146
+#define FADT_SIG char_code("FACP")
     struct fadt_table
     {
         sdt_header  hdr;
@@ -122,7 +122,7 @@ namespace kernel
     } __PACKED__;
     KASSERT(sizeof(fadt_table) == 268);
 
-#define MCFG_SIG 0x4746434DU
+#define MCFG_SIG char_code("MCFG")
     struct mcfg_entry
     {
         uint64_t    addr;
@@ -141,7 +141,7 @@ namespace kernel
     } __PACKED__;
     KASSERT(sizeof(mcfg_table) == 44);
 
-#define MADT_SIG 0x43495041
+#define MADT_SIG char_code("APIC")
     enum madt_record_type : uint8_t
     {
         MADT_TYPE_LAPIC                         = 0,
