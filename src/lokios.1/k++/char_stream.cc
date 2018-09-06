@@ -1,14 +1,6 @@
 #include "k++/char_stream.h"
 #include "kprintf.h"
 
-kernel::char_stream_base::char_stream_base()
-{
-}
-
-kernel::char_stream_base::~char_stream_base()
-{
-}
-
 void
 kernel::char_stream_base::_putc_bounce(void* cookie, char c)
 {

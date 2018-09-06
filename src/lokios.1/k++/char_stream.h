@@ -27,8 +27,8 @@ namespace kernel
         }
 
     protected:
-        char_stream_base();
-        virtual ~char_stream_base();
+        char_stream_base() {}
+        virtual ~char_stream_base() {}
     };
 
     template<typename Lock>
