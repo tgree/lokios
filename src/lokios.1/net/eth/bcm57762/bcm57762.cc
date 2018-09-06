@@ -280,6 +280,7 @@ bcm57762::dev::handle_vec0_dsr(kernel::wqe*)
     {
         // Instantiate the eth::interface.
         intf = new bcm57762::interface(this);
+        net::register_interface(intf);
         intf->issue_probe_phy(&phy_probe_wqe);
         TRANSITION(WAIT_PHY_PROBE_DONE);
     }
