@@ -51,3 +51,13 @@ virtio_net::interface::post_rx_pages(kernel::klist<net::rx_page>& pages)
 {
     vdev->post_rx_pages(pages);
 }
+
+void
+virtio_net::interface::add_driver_wapi_info(http::response* rsp)
+{
+    rsp->printf("\r\n"
+                "    \"driver\" : \"virtio_net\",\r\n"
+                "    \"pci\"    : \"%04X/%02X:%u.%u\",",
+                vdev->domain->id,vdev->bus,(vdev->devfn >> 3),
+                (vdev->devfn & 7));
+}
