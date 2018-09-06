@@ -1,4 +1,5 @@
 #include "tables.h"
+#include "wapi.h"
 #include "kern/console.h"
 #include "mm/e820.h"
 #include "mm/mm.h"
@@ -107,4 +108,7 @@ kernel::init_acpi_tables(const e820_map* m)
 
     // Fall back to using the legacy table.
     parse_acpi_sdts(acpi_rsdp->rsdt_base);
+
+    // Initialize WAPI.
+    init_acpi_wapi();
 }
