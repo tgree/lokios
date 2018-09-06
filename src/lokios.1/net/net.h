@@ -6,6 +6,7 @@
 #include "mm/mm.h"
 #include "mm/page.h"
 #include "kern/schedule.h"
+#include "wapi/wapi.h"
 
 namespace net
 {
@@ -105,6 +106,7 @@ namespace net
     };
 
     extern kernel::kdlist<interface> interfaces;
+    extern wapi::node wapi_node;
 
     void register_interface(interface* intf);
     void deregister_interface(interface* intf);
