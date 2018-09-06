@@ -2,6 +2,7 @@
 #define __KERNEL_NET_INTERFACE_H
 
 #include "tcp/socket.h"
+#include "wapi/wapi.h"
 #include "k++/hash_table.h"
 #include "k++/ring.h"
 #include "k++/kmath.h"
@@ -30,6 +31,7 @@ namespace net
 
         // The netX id number.
         const size_t        id;
+        wapi::node          wapi_node;
 
         // Size of the hardware transmit and receive queues.
         const size_t        tx_qlen;
@@ -131,6 +133,10 @@ namespace net
 
         // Helpers.
         virtual void    dump_arp_table() = 0;
+        virtual void    handle_wapi_request(wapi::node* node,
+                                            http::request* req,
+                                            json::object* obj,
+                                            http::response* rsp) = 0;
 
         // Constructor.
         interface(size_t tx_qlen, size_t rx_qlen, uint16_t tx_mtu,

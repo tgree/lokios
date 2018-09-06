@@ -166,3 +166,20 @@ eth::interface::dump_arp_table()
         }
     }
 }
+
+void
+eth::interface::handle_wapi_request(wapi::node* node, http::request* req,
+    json::object* obj, http::response* rsp)
+{
+    rsp->printf("{\r\n"
+                "    \"type\"   : \"ethernet\",\r\n"
+                "    \"mac\"    : \"%02X:%02X:%02X:%02X:%02X:%02X\",\r\n"
+                "    \"ip\"     : \"%u.%u.%u.%u\",\r\n"
+                "    \"tx_mtu\" : \"%u\",\r\n"
+                "    \"rx_mtu\" : \"%u\",",
+                hw_mac[0],hw_mac[1],hw_mac[2],hw_mac[3],hw_mac[4],hw_mac[5],
+                ip_addr[0],ip_addr[1],ip_addr[2],ip_addr[3],tx_mtu,rx_mtu);
+    add_driver_wapi_info(rsp);
+    rsp->ks.shrink();
+    rsp->printf("\r\n}\r\n");
+}

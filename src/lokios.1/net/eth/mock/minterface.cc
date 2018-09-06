@@ -60,3 +60,10 @@ eth::interface::dump_arp_table()
 {
     mock("eth::interface::dump_arp_table");
 }
+
+void
+eth::interface::handle_wapi_request(wapi::node* node, http::request* req,
+    json::object* obj, http::response* rsp)
+{
+    mock("eth::interface::handle_wapi_request",node,req,obj,rsp);
+}

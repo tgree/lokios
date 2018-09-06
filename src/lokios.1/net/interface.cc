@@ -43,6 +43,8 @@ free_id(size_t id)
 net::interface::interface(size_t tx_qlen, size_t rx_qlen, uint16_t tx_mtu,
     uint16_t rx_mtu):
         id(alloc_id()),
+        wapi_node(method_delegate(handle_wapi_request),METHOD_GET_MASK,"net%u",
+                  id),
         tx_qlen(tx_qlen),
         rx_qlen(rx_qlen),
         rx_posted_count(0),

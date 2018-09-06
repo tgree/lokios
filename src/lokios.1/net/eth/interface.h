@@ -57,6 +57,11 @@ namespace eth
 
         // Helpers.
         virtual void    dump_arp_table();
+        virtual void    handle_wapi_request(wapi::node* node,
+                                            http::request* req,
+                                            json::object* obj,
+                                            http::response* rsp);
+        virtual void    add_driver_wapi_info(http::response* rsp) {}
 
         interface(const eth::addr& hw_mac, size_t tx_qlen, size_t rx_qlen,
                   uint16_t tx_mtu, uint16_t rx_mtu);

@@ -82,6 +82,13 @@ net::finterface::handle_rx_page(net::rx_page* p)
     return flags;
 }
 
+void
+net::finterface::handle_wapi_request(wapi::node* node, http::request* req,
+    json::object* obj, http::response* rsp)
+{
+    kernel::panic("handle_wapi_request not supported");
+}
+
 static void
 copy_top_to_rxp(const net::tx_op* op, net::rx_page* rp)
 {

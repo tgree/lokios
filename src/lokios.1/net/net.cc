@@ -7,11 +7,13 @@ void
 net::register_interface(net::interface* intf)
 {
     net::interfaces.push_back(&intf->link);
+    net::wapi_node.register_child(&intf->wapi_node);
 }
 
 void
 net::deregister_interface(net::interface* intf)
 {
+    intf->wapi_node.deregister();
     intf->link.unlink();
 }
 

@@ -22,6 +22,8 @@ free_id(size_t id)
 net::interface::interface(size_t tx_qlen, size_t rx_qlen, uint16_t tx_mtu,
     uint16_t rx_mtu):
         id(alloc_id()),
+        wapi_node(method_delegate(handle_wapi_request),METHOD_GET_MASK,"net%u",
+                  id),
         tx_qlen(tx_qlen),
         rx_qlen(rx_qlen),
         rx_posted_count(0),
@@ -96,5 +98,12 @@ uint64_t
 net::interface::handle_rx_ipv4_udp_frame(net::rx_page* p)
 {
     return (uint64_t)mock("net::interface::handle_rx_ipv4_udp_frame",p);
+}
+
+void
+net::interface::handle_wapi_request(wapi::node* node, http::request* req,
+    json::object* obj, http::response* rsp)
+{
+    mock("net::interface::handle_wapi_request",node,req,obj,rsp);
 }
 

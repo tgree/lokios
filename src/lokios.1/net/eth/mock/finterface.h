@@ -29,6 +29,12 @@ namespace eth
             mock("eth::interface::post_rx_pages",&pages);
         }
 
+        virtual void handle_wapi_request(wapi::node* node, http::request* req,
+                                         json::object* obj, http::response* rsp)
+        {
+            mock("eth::interface::handle_wapi_request",node,req,obj,rsp);
+        }
+
         finterface(const eth::addr& hw_mac):interface(hw_mac,10,10,1500,1500) {}
     };
 }
