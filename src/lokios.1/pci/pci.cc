@@ -18,6 +18,27 @@ kernel::pci::driver::driver(const char* name):
     drivers.push_back(&link);
 }
 
+kernel::pci::dev::dev(pci::domain* domain, uint8_t bus, uint8_t devfn):
+    domain(domain),
+    bus(bus),
+    devfn(devfn),
+    owner(NULL),
+    msix_nvecs(0),
+    msix_table(NULL)
+{
+}
+
+kernel::pci::dev::dev(const dev* pd, const pci::driver* owner):
+    domain(pd->domain),
+    bus(pd->bus),
+    devfn(pd->devfn),
+    owner(owner),
+    msix_nvecs(pd->msix_nvecs),
+    msix_table(pd->msix_table)
+{
+}
+
+
 uint8_t
 kernel::pci::dev::find_pci_capability(uint8_t cap_id)
 {

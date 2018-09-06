@@ -166,26 +166,8 @@ namespace kernel::pci
         void enable_msix_vector(size_t vec);
         void dump_msix_table();
 
-        dev(pci::domain* domain, uint8_t bus, uint8_t devfn):
-            domain(domain),
-            bus(bus),
-            devfn(devfn),
-            owner(NULL),
-            msix_nvecs(0),
-            msix_table(NULL)
-        {
-        }
-
-        dev(const dev* pd, const pci::driver* owner):
-            domain(pd->domain),
-            bus(pd->bus),
-            devfn(pd->devfn),
-            owner(owner),
-            msix_nvecs(pd->msix_nvecs),
-            msix_table(pd->msix_table)
-        {
-        }
-
+        dev(pci::domain* domain, uint8_t bus, uint8_t devfn);
+        dev(const dev* pd, const pci::driver* owner);
         virtual ~dev() {}
     };
 
