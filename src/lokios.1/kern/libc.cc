@@ -44,8 +44,20 @@ void* realloc(void* ptr, size_t size)
         return NULL;
     }
 
-    // If we actually have to resize something, abort for now.
-    kernel::panic("realloc called");
+    // If we already have enough room, return the original pointer.
+    auto* mc         = container_of(ptr,malloc_chunk,data);
+    size_t new_order = kernel::buddy_order_for_len(size);
+    if (new_order == mc->order)
+    {
+        mc->len = size;
+        return mc->data;
+    }
+
+    // Allocate a new pointer.
+    void* p = malloc(size);
+    memcpy(p,ptr,mc->len);
+    free(ptr);
+    return p;
 }
 
 extern "C"
