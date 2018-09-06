@@ -245,77 +245,77 @@ fadt_request(const kernel::sdt_header* _h, const char* name,
 
     if (offsetof(kernel::fadt_table,reset_value) >= h->hdr.length)
         return;
-    rsp->printf(",\r\n    \"reset_value\"          : \"0x%02X\",\r\n",
+    rsp->printf(",\r\n    \"reset_value\"          : \"0x%02X\"",
                 h->reset_value);
 
     if (offsetof(kernel::fadt_table,x_firmware_ctrl) >= h->hdr.length)
         return;
-    rsp->printf(",\r\n    \"x_firmware_ctrl\"      : \"0x%016lX\",\r\n",
+    rsp->printf(",\r\n    \"x_firmware_ctrl\"      : \"0x%016lX\"",
                 h->x_firmware_ctrl);
 
     if (offsetof(kernel::fadt_table,x_dsdt) >= h->hdr.length)
         return;
-    rsp->printf(",\r\n    \"x_dsdt\"               : \"0x%016lX\",\r\n",
+    rsp->printf(",\r\n    \"x_dsdt\"               : \"0x%016lX\"",
                 h->x_dsdt);
 
     if (offsetof(kernel::fadt_table,x_pm1a_evt_blk) >= h->hdr.length)
         return;
     rsp->printf(",\r\n"
-                "    \"x_pm1a_evt_blk\"       : \"%u:%u:%u:%u:0x%016lX\",\r\n",
+                "    \"x_pm1a_evt_blk\"       : \"%u:%u:%u:%u:0x%016lX\"",
                 GEN_ADDR(h->x_pm1a_evt_blk));
 
     if (offsetof(kernel::fadt_table,x_pm1b_evt_blk) >= h->hdr.length)
         return;
     rsp->printf(",\r\n"
-                "    \"x_pm1b_evt_blk\"       : \"%u:%u:%u:%u:0x%016lX\",\r\n",
+                "    \"x_pm1b_evt_blk\"       : \"%u:%u:%u:%u:0x%016lX\"",
                 GEN_ADDR(h->x_pm1b_evt_blk));
 
     if (offsetof(kernel::fadt_table,x_pm1a_cnt_blk) >= h->hdr.length)
         return;
     rsp->printf(",\r\n"
-                "    \"x_pm1a_cnt_blk\"       : \"%u:%u:%u:%u:0x%016lX\",\r\n",
+                "    \"x_pm1a_cnt_blk\"       : \"%u:%u:%u:%u:0x%016lX\"",
                 GEN_ADDR(h->x_pm1a_cnt_blk));
 
     if (offsetof(kernel::fadt_table,x_pm1b_cnt_blk) >= h->hdr.length)
         return;
     rsp->printf(",\r\n"
-                "    \"x_pm1b_cnt_blk\"       : \"%u:%u:%u:%u:0x%016lX\",\r\n",
+                "    \"x_pm1b_cnt_blk\"       : \"%u:%u:%u:%u:0x%016lX\"",
                 GEN_ADDR(h->x_pm1b_cnt_blk));
 
     if (offsetof(kernel::fadt_table,x_pm2_cnt_blk) >= h->hdr.length)
         return;
     rsp->printf(",\r\n"
-                "    \"x_pm2_cnt_blk\"        : \"%u:%u:%u:%u:0x%016lX\",\r\n",
+                "    \"x_pm2_cnt_blk\"        : \"%u:%u:%u:%u:0x%016lX\"",
                 GEN_ADDR(h->x_pm2_cnt_blk));
 
     if (offsetof(kernel::fadt_table,x_pm_tmr_blk) >= h->hdr.length)
         return;
     rsp->printf(",\r\n"
-                "    \"x_pm_tmr_blk\"         : \"%u:%u:%u:%u:0x%016lX\",\r\n",
+                "    \"x_pm_tmr_blk\"         : \"%u:%u:%u:%u:0x%016lX\"",
                 GEN_ADDR(h->x_pm_tmr_blk));
 
     if (offsetof(kernel::fadt_table,x_gpe0_blk) >= h->hdr.length)
         return;
     rsp->printf(",\r\n"
-                "    \"x_gpe0_blk\"           : \"%u:%u:%u:%u:0x%016lX\",\r\n",
+                "    \"x_gpe0_blk\"           : \"%u:%u:%u:%u:0x%016lX\"",
                 GEN_ADDR(h->x_gpe0_blk));
 
     if (offsetof(kernel::fadt_table,x_gpe1_blk) >= h->hdr.length)
         return;
     rsp->printf(",\r\n"
-                "    \"x_gpe1_blk\"           : \"%u:%u:%u:%u:0x%016lX\",\r\n",
+                "    \"x_gpe1_blk\"           : \"%u:%u:%u:%u:0x%016lX\"",
                 GEN_ADDR(h->x_gpe1_blk));
 
     if (offsetof(kernel::fadt_table,sleep_control_reg) >= h->hdr.length)
         return;
     rsp->printf(",\r\n"
-                "    \"sleep_control_reg\"    : \"%u:%u:%u:%u:0x%016lX\",\r\n",
+                "    \"sleep_control_reg\"    : \"%u:%u:%u:%u:0x%016lX\"",
                 GEN_ADDR(h->sleep_control_reg));
 
     if (offsetof(kernel::fadt_table,sleep_status_reg) >= h->hdr.length)
         return;
     rsp->printf(",\r\n"
-                "    \"sleep_status_reg\"     : \"%u:%u:%u:%u:0x%016lX\",\r\n",
+                "    \"sleep_status_reg\"     : \"%u:%u:%u:%u:0x%016lX\"",
                 GEN_ADDR(h->sleep_status_reg));
 }
 
