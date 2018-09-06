@@ -1,9 +1,11 @@
 #ifndef __KERNEL_IMAGE_H
 #define __KERNEL_IMAGE_H
 
+#include "hdr/endian.h"
+
 namespace kernel
 {
-#define IMAGE_HEADER_SIG    0x494B4F4C // 'LOKI'
+#define IMAGE_HEADER_SIG char_code("LOKI")
     struct image_header
     {
         uint32_t    sig;
@@ -11,7 +13,7 @@ namespace kernel
         uint32_t    page_table_addr;
     };
 
-#define IMAGE_FOOTER_SIG    0x4C4F4B49 // 'IKOL'
+#define IMAGE_FOOTER_SIG char_code("IKOL")
     struct image_footer
     {
         uint8_t     dd[508];
