@@ -12,12 +12,12 @@ pci_domain_request(wapi::node* node, http::request* req, json::object* obj,
     for (auto& pd : klist_elems(d->devices,domain_link))
     {
         rsp->printf("\r\n        { "
-                    "\"slot\" : \"%04X:%02X:%u.%u\", "
+                    "\"slot\" : \"%02X:%u.%u\", "
                     "\"vendor_id\" : \"%04X\", "
                     "\"device_id\" : \"%04X\", "
                     "\"driver\" : \"%s\" "
                     "},",
-                    pd.domain->id,pd.bus,(pd.devfn >> 3),(pd.devfn & 7),
+                    pd.bus,(pd.devfn >> 3),(pd.devfn & 7),
                     pd.config_read_16(0),pd.config_read_16(2),pd.owner->name);
     }
     rsp->ks.shrink();
