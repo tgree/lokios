@@ -20,7 +20,7 @@ namespace kernel
     } __PACKED__;
     KASSERT(sizeof(gen_addr) == 12);
 
-#define RDSP_SIG 0x2052545020445352UL
+#define RSDP_SIG 0x2052545020445352UL
     struct rsdp_table
     {
         uint64_t    signature;

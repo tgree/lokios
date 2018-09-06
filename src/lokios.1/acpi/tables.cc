@@ -18,7 +18,7 @@ rsdp_search(dma_addr64 _base, size_t len)
     while (start < end)
     {
         uint64_t* v = (uint64_t*)kernel::phys_to_virt_maybe_0(start);
-        if (*v == RDSP_SIG)
+        if (*v == RSDP_SIG)
             return (kernel::rsdp_table*)v;
         start += 2;
     }
