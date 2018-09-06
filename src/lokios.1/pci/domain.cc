@@ -8,7 +8,10 @@ pci_domain_request(wapi::node* node, http::request* req, json::object* obj,
     // GET /pci/0000
     auto* d = container_of(node,kernel::pci::domain,wapi_node);
     rsp->printf("{\r\n"
-                "    \"devices\" : [");
+                "    \"first_bus_num\" : \"0x%02X\",\r\n"
+                "    \"last_bus_num\"  : \"0x%02X\",\r\n"
+                "    \"devices\"       : [",
+                d->first_bus_num,d->last_bus_num);
     for (auto& pd : klist_elems(d->devices,domain_link))
     {
         rsp->printf("\r\n        { "
@@ -24,10 +27,13 @@ pci_domain_request(wapi::node* node, http::request* req, json::object* obj,
     rsp->printf("\r\n    ]\r\n}\r\n");
 }
 
-kernel::pci::domain::domain(uint16_t id, config_accessor* cfg):
-    id(id),
-    cfg(cfg),
-    wapi_node(func_delegate(pci_domain_request),METHOD_GET_MASK,"%04X",id)
+kernel::pci::domain::domain(uint16_t id, uint8_t first_bus_num,
+    uint8_t last_bus_num, config_accessor* cfg):
+        id(id),
+        first_bus_num(first_bus_num),
+        last_bus_num(last_bus_num),
+        cfg(cfg),
+        wapi_node(func_delegate(pci_domain_request),METHOD_GET_MASK,"%04X",id)
 {
     wapi_node.register_child(&cfg->wapi_node);
     kernel::pci::wapi_node.register_child(&wapi_node);

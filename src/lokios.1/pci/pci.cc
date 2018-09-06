@@ -148,7 +148,7 @@ kernel::pci::init_pci()
             auto iter = domains.begin();
             for (; iter != domains.end() && iter->id < e->domain; ++iter)
                 ;
-            domains.emplace(iter,e->domain,mca);
+            domains.emplace(iter,e->domain,e->start_bus_num,e->end_bus_num,mca);
         }
     }
 
@@ -156,13 +156,14 @@ kernel::pci::init_pci()
     if (domains.empty() || domains.front().id != 0)
     {
         domains.emplace(domains.begin(),
-                        0,new io_config_accessor(0xCF8,0xCFC));
+                        0,0,255,new io_config_accessor(0xCF8,0xCFC));
     }
 
     // Probe all domains.
     for (auto& d : domains)
     {
-        for (uint16_t bus=0; bus<256; ++bus)
+        for (uint16_t bus=d.first_bus_num; bus<(uint16_t)d.last_bus_num + 1;
+             ++bus)
         {
             for (uint8_t dev=0; dev<32; ++dev)
             {

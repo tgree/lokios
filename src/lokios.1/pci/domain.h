@@ -12,11 +12,14 @@ namespace kernel::pci
     struct domain
     {
         uint16_t                        id;
+        uint8_t                         first_bus_num;
+        uint8_t                         last_bus_num;
         struct config_accessor*         cfg;
         kernel::klist<kernel::pci::dev> devices;
         wapi::node                      wapi_node;
 
-        domain(uint16_t id, config_accessor* cfg);
+        domain(uint16_t id, uint8_t first_bus_num, uint8_t last_bus_num,
+               config_accessor* cfg);
     };
 
     static inline bool operator<(const domain& lhs, const domain& rhs)
