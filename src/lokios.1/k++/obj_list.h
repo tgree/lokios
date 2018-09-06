@@ -94,9 +94,9 @@ namespace kernel
         }
 
         template<typename ...Args>
-        inline void emplace_back(Args&& ...args)
+        inline iterator emplace_back(Args&& ...args)
         {
-            emplace(end(),loki::forward<Args>(args)...);
+            return emplace(end(),loki::forward<Args>(args)...);
         }
 
         inline void push_back(const T& obj)
