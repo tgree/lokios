@@ -53,6 +53,14 @@ namespace kernel
                 *pos = '\0';
         }
 
+        template<size_t N>
+        inline string_stream(char (&base)[N]):
+            base(base),pos(base),len(N)
+        {
+            if (len)
+                *pos = '\0';
+        }
+
         friend class ::tmock_test;
     };
 
