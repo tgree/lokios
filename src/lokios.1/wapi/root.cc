@@ -23,7 +23,7 @@ root_set_state_stopped(tcp::send_op*)
 static void
 root_set_state_rebooting(tcp::send_op*)
 {
-    kernel::reboot_guest();
+    kernel::reboot();
 }
 
 static void

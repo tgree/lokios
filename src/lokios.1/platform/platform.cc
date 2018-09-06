@@ -14,7 +14,7 @@ struct dummy_platform : public kernel::platform
         printf("dummy_platform::_exit_guest(%d) invoked!\n",status);
     }
 
-    virtual void _reboot_guest()
+    virtual void _reboot()
     {
         auto* fadt = (kernel::fadt_table*)kernel::find_acpi_table(FADT_SIG);
         if (fadt && (fadt->flags & (1<<10)))
@@ -28,7 +28,7 @@ struct dummy_platform : public kernel::platform
                 outb(fadt->reset_value,fadt->reset_reg.addr);
             }
         }
-        printf("dummy_platform::_reboot_guest() invoked!\n");
+        printf("dummy_platform::_reboot() invoked!\n");
     }
 
     dummy_platform():platform("dummy") {}
@@ -48,10 +48,10 @@ kernel::exit_guest(int status)
 }
 
 void
-kernel::reboot_guest()
+kernel::reboot()
 {
     if (_platform)
-        _platform->_reboot_guest();
+        _platform->_reboot();
     kernel::halt();
 }
 

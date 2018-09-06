@@ -10,7 +10,7 @@ namespace kernel
     struct qemu_platform : public platform
     {
         virtual void _exit_guest(int status);
-        virtual void _reboot_guest();
+        virtual void _reboot();
 
         qemu_platform();
     };

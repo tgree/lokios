@@ -18,7 +18,7 @@ kernel::qemu_platform::_exit_guest(int status)
 }
 
 void
-kernel::qemu_platform::_reboot_guest()
+kernel::qemu_platform::_reboot()
 {
     // Not much we can do here.
     _exit_guest(-1);
