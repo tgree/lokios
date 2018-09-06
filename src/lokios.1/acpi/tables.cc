@@ -108,7 +108,11 @@ kernel::init_acpi_tables(const e820_map* m)
 
     // Fall back to using the legacy table.
     parse_acpi_sdts(acpi_rsdp->rsdt_base);
+}
 
-    // Initialize WAPI.
+void
+kernel::init_acpi(const e820_map* m)
+{
+    init_acpi_tables(m);
     init_acpi_wapi();
 }

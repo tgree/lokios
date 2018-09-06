@@ -254,6 +254,7 @@ namespace kernel
 
     const sdt_header* find_acpi_table(uint32_t signature);
     void init_acpi_tables(const e820_map* m);
+    void init_acpi(const e820_map* m);
 }
 
 #endif /* __KERNEL_ACPI_TABLES_H */

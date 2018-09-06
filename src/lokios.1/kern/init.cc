@@ -120,7 +120,7 @@ init_bsp_stage2()
 
     // Init more stuff.
     kernel::init_mm(e820_base);
-    kernel::init_acpi_tables(e820_base);
+    kernel::init_acpi(e820_base);
     kernel::init_mp_tables();
     kernel::init_cmos();
     kernel::random_seed(kernel::read_cmos_date_time().val);
