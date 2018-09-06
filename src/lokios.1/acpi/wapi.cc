@@ -30,17 +30,22 @@ find_name_table_entry(uint32_t signature)
 }
 
 static void
-get_acpi_table_name(uint32_t signature, char (&name)[5])
+get_acpi_table_name(const kernel::sdt_header* h, char (&name)[12])
 {
-    auto* e = find_name_table_entry(signature);
+    auto* e = find_name_table_entry(h->signature);
     if (e)
     {
         strcpy(name,e->name);
         return;
     }
+    else if (h->signature == SSDT_SIG)
+    {
+        kernel::string_stream ss(name);
+        ss.printf("SSDT:%.6s",h->oem_table_id);
+    }
     else
     {
-        memcpy(name,&signature,4);
+        memcpy(name,&h->signature,4);
         name[4] = '\0';
     }
 }
@@ -67,8 +72,8 @@ acpi_request(wapi::node* node, http::request* req, json::object* obj,
                 "    \"tables\" : [ \"RSDP\",");
     for (auto* h : kernel::acpi_sdts)
     {
-        char name[5];
-        get_acpi_table_name(h->signature,name);
+        char name[12];
+        get_acpi_table_name(h,name);
         rsp->printf(" \"%s\",",name);
     }
     rsp->ks.shrink();
@@ -420,8 +425,8 @@ sdt_node::handle_request(wapi::node* node, http::request* req,
     // GET /acpi/XXXX
     rsp->printf("{\r\n");
 
-    char name[5];
-    get_acpi_table_name(h->signature,name);
+    char name[12];
+    get_acpi_table_name(h,name);
     sdt_request(h,name,rsp);
     if (!strcmp(name,"FADT"))
         fadt_request(h,name,rsp);
@@ -444,8 +449,8 @@ kernel::init_acpi_wapi()
     acpi_node.register_child(&rsdp_node);
     for (auto* h : kernel::acpi_sdts)
     {
-        char name[5];
-        get_acpi_table_name(h->signature,name);
+        char name[12];
+        get_acpi_table_name(h,name);
         auto iter = acpi_sdt_nodes.emplace_back(h,name);
         acpi_node.register_child(&(*iter));
     }

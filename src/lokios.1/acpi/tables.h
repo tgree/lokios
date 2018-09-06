@@ -10,6 +10,8 @@ namespace kernel
 {
     struct e820_map;
 
+#define SSDT_SIG 0x54445353
+
     struct gen_addr
     {
         uint8_t     addr_space_id;
