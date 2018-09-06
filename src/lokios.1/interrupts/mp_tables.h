@@ -1,12 +1,12 @@
 #ifndef __KERNEL_INTERRUPTS_MP_TABLES_H
 #define __KERNEL_INTERRUPTS_MP_TABLES_H
 
-#include "hdr/kassert.h"
+#include "hdr/endian.h"
 #include <stdint.h>
 
 namespace kernel
 {
-#define MPFP_SIG 0x5F504D5F
+#define MPFP_SIG char_code("_MP_")
     struct mpfp_struct
     {
         uint32_t    signature;
