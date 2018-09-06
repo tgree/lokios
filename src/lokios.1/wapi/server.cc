@@ -106,6 +106,7 @@ catch (wapi::not_found_exception)
 {
     response.printf("HTTP/1.1 404 Not Found\r\n"
                     "Content-Length: 15\r\n"
+                    "\r\n"
                     "404 Not Found\r\n");
     response.send_error(s);
     s->close_send();
