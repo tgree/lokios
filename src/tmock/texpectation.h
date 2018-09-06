@@ -112,8 +112,8 @@ namespace tmock
         struct { \
             size_t nargs; \
             tmock::targ call_args[VA_NARGS(__VA_ARGS__)]; \
-        } c = {VA_NARGS(__VA_ARGS__), {VA_APPLY(_MOCK_ARG,__VA_ARGS__)}}; \
-        tmock::_mock_call(fname,(tmock::call*)&c); \
+        } __c__ = {VA_NARGS(__VA_ARGS__), {VA_APPLY(_MOCK_ARG,__VA_ARGS__)}}; \
+        tmock::_mock_call(fname,(tmock::call*)&__c__); \
     })
 
 #endif /* __TMOCK_EXPECTATION_H */
