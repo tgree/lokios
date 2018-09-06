@@ -8,6 +8,7 @@
 using kernel::console::printf;
 
 kernel::vector<const kernel::sdt_header*> kernel::acpi_sdts;
+kernel::rsdp_table* kernel::acpi_rsdp;
 
 static kernel::rsdp_table*
 rsdp_search(dma_addr64 _base, size_t len)
@@ -64,14 +65,12 @@ kernel::find_acpi_table(uint32_t signature)
 void
 kernel::init_acpi_tables(const e820_map* m)
 {
-    rsdp_table* rsdp = NULL;
-
     // Start with the BIOS EBDA area.
-    if (rsdp == NULL)
-        rsdp = rsdp_search(phys_read<uint16_t>(0x40E),1024);
+    if (acpi_rsdp == NULL)
+        acpi_rsdp = rsdp_search(phys_read<uint16_t>(0x40E),1024);
 
     // Now try any E820 regions.
-    if (rsdp == NULL)
+    if (acpi_rsdp == NULL)
     {
         kernel::vector<kernel::e820_entry> e820_entries;
         get_e820_map(m,e820_entries,~E820_TYPE_BAD_RAM_MASK);
@@ -80,24 +79,24 @@ kernel::init_acpi_tables(const e820_map* m)
             if (e.base >= 0x00100000)
                 continue;
 
-            rsdp = rsdp_search(e.base,e.len);
-            if (rsdp)
+            acpi_rsdp = rsdp_search(e.base,e.len);
+            if (acpi_rsdp)
                 break;
         }
     }
 
     // Hopefully we found it.
-    kassert(rsdp != NULL);
+    kassert(acpi_rsdp != NULL);
 
     // Checksum the legacy table.
-    printf("Found RSDP at 0x%016lX\n",(uint64_t)rsdp);
-    kassert(checksum<uint8_t>(rsdp,sizeof(*rsdp)) == 0);
-    kassert(rsdp->revision == 0 || rsdp->revision == 2);
+    printf("Found RSDP at 0x%016lX\n",(uint64_t)acpi_rsdp);
+    kassert(checksum<uint8_t>(acpi_rsdp,sizeof(*acpi_rsdp)) == 0);
+    kassert(acpi_rsdp->revision == 0 || acpi_rsdp->revision == 2);
 
     // Try using the extended table.
-    if (rsdp->revision == 2)
+    if (acpi_rsdp->revision == 2)
     {
-        const rsdp_table_2* rsdp2 = (const rsdp_table_2*)rsdp;
+        const rsdp_table_2* rsdp2 = (const rsdp_table_2*)acpi_rsdp;
         kassert(checksum<uint8_t>(rsdp2,sizeof(*rsdp2)) == 0);
         if (rsdp2->xsdt_base)
         {
@@ -107,5 +106,5 @@ kernel::init_acpi_tables(const e820_map* m)
     }
 
     // Fall back to using the legacy table.
-    parse_acpi_sdts(rsdp->rsdt_base);
+    parse_acpi_sdts(acpi_rsdp->rsdt_base);
 }

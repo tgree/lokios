@@ -250,6 +250,7 @@ namespace kernel
     };
 
     extern vector<const sdt_header*> acpi_sdts;
+    extern rsdp_table* acpi_rsdp;
 
     const sdt_header* find_acpi_table(uint32_t signature);
     void init_acpi_tables(const e820_map* m);
