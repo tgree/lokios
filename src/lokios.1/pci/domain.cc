@@ -16,12 +16,14 @@ pci_domain_request(wapi::node* node, http::request* req, json::object* obj,
     {
         rsp->printf("\r\n        { "
                     "\"slot\" : \"%02X:%u.%u\", "
-                    "\"vendor_id\" : \"%04X\", "
-                    "\"device_id\" : \"%04X\", "
+                    "\"ht\" : \"0x%02X\", "
+                    "\"vendor_id\" : \"0x%04X\", "
+                    "\"device_id\" : \"0x%04X\", "
                     "\"driver\" : \"%s\" "
                     "},",
                     pd.bus,(pd.devfn >> 3),(pd.devfn & 7),
-                    pd.config_read_16(0),pd.config_read_16(2),pd.owner->name);
+                    pd.config_read_8(14),pd.config_read_16(0),
+                    pd.config_read_16(2),pd.owner->name);
     }
     rsp->ks.shrink();
     rsp->printf("\r\n    ]\r\n}\r\n");
