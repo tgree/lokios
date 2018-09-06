@@ -444,6 +444,7 @@ virtio_net::dev::handle_cq_completion(uint16_t index)
 
             // Create the interface.
             intf = new virtio_net::interface(this);
+            net::register_interface(intf);
             intf->notify_activated();
             intf->notify_link_up(10000,true);
 
