@@ -20,6 +20,12 @@ kernel::qemu_platform::_exit_guest(int status)
 void
 kernel::qemu_platform::_reboot()
 {
-    // Not much we can do here.
-    _exit_guest(-1);
+    // QEMU supports the 0xCF9 register defined in the PIIX3 spec:
+    //
+    //  https://lists.gnu.org/archive/html/qemu-devel/2013-01/msg02324.html
+    //
+    // It doesn't seem to be documented anywhere in the QEMU man pages though.
+    // I'm using the same sequence that the ACPI tables in my MBA say to use
+    // and it seems to work fine under QEMU as well.
+    outb(0x06,0xCF9);
 }
