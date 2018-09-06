@@ -54,3 +54,13 @@ wapi::node::find_child(const char* name, size_t len)
     }
     return NULL;
 }
+
+void
+wapi::node::deregister()
+{
+    if (parent)
+    {
+        link.unlink();
+        parent = NULL;
+    }
+}

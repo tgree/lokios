@@ -35,6 +35,8 @@ namespace wapi
         void        register_child(wapi::node* c);
         wapi::node* find_child(const char* name, size_t len);
 
+        void        deregister();
+
         node(wapi::delegate handler, uint64_t method_mask,
              const char* fmt, ...);
     };
