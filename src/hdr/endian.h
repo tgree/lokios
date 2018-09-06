@@ -105,4 +105,60 @@ KASSERT(sizeof(le_uint64_t) == sizeof(uint64_t));
 KASSERT(sizeof(le_uint32_t) == sizeof(uint32_t));
 KASSERT(sizeof(le_uint16_t) == sizeof(uint16_t));
 
+// Convert a sequence of bytes into an appropriately-sized unsigned integer
+// type.  This handles the endian conversion if necessary.
+constexpr uint16_t char_code(char a, char b)
+{
+    return from_big_endian<uint16_t>(((uint16_t)a << 8) |
+                                     ((uint16_t)b << 0));
+}
+
+constexpr uint32_t char_code(char a, char b, char c, char d)
+{
+    return from_big_endian<uint32_t>((uint32_t)((uint32_t)a << 24) |
+                                               ((uint32_t)b << 16) |
+                                               ((uint32_t)c <<  8) |
+                                               ((uint32_t)d <<  0));
+}
+
+constexpr uint64_t char_code(char a, char b, char c, char d, char e, char f,
+                             char g, char h)
+{
+    return from_big_endian<uint64_t>(((uint64_t)a << 56) |
+                                     ((uint64_t)b << 48) |
+                                     ((uint64_t)c << 40) |
+                                     ((uint64_t)d << 32) |
+                                     ((uint64_t)e << 24) |
+                                     ((uint64_t)f << 16) |
+                                     ((uint64_t)g <<  8) |
+                                     ((uint64_t)h <<  0));
+}
+
+// Convert a string into an appropriately-sized unsigned integer type.  This
+// also handles endian conversion if necessary.
+constexpr uint16_t char_code(const char (&s)[3])
+{
+    return char_code(s[0],s[1]);
+}
+
+constexpr uint32_t char_code(const char (&s)[5])
+{
+    return char_code(s[0],s[1],s[2],s[3]);
+}
+
+constexpr uint64_t char_code(const char (&s)[9])
+{
+    return char_code(s[0],s[1],s[2],s[3],s[4],s[5],s[6],s[7]);
+}
+
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+KASSERT(char_code("01")       == 0x3130);
+KASSERT(char_code("0123")     == 0x33323130);
+KASSERT(char_code("01234567") == 0x3736353433323130);
+#else
+KASSERT(char_code("01")       == 0x3031);
+KASSERT(char_code("0123")     == 0x30313233);
+KASSERT(char_code("01234567") == 0x3031323334353637);
+#endif
+
 #endif /* __LOKIOS_ENDIAN_H */
