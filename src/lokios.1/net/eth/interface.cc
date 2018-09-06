@@ -172,13 +172,23 @@ eth::interface::handle_wapi_request(wapi::node* node, http::request* req,
     json::object* obj, http::response* rsp)
 {
     rsp->printf("{\r\n"
-                "    \"type\"   : \"ethernet\",\r\n"
-                "    \"mac\"    : \"%02X:%02X:%02X:%02X:%02X:%02X\",\r\n"
-                "    \"ip\"     : \"%u.%u.%u.%u\",\r\n"
-                "    \"tx_mtu\" : \"%u\",\r\n"
-                "    \"rx_mtu\" : \"%u\",",
+                "    \"type\"        : \"ethernet\",\r\n"
+                "    \"mac\"         : \"%02X:%02X:%02X:%02X:%02X:%02X\",\r\n"
+                "    \"ip\"          : \"%u.%u.%u.%u\",\r\n"
+                "    \"subnet_mask\" : \"%u.%u.%u.%u\",\r\n"
+                "    \"gateway_ip\"  : \"%u.%u.%u.%u\",\r\n"
+                "    \"dns_ip\"      : \"%u.%u.%u.%u\",\r\n"
+                "    \"tx_mtu\"      : \"%u\",\r\n"
+                "    \"rx_mtu\"      : \"%u\",",
                 hw_mac[0],hw_mac[1],hw_mac[2],hw_mac[3],hw_mac[4],hw_mac[5],
-                ip_addr[0],ip_addr[1],ip_addr[2],ip_addr[3],tx_mtu,rx_mtu);
+                ip_addr[0],ip_addr[1],ip_addr[2],ip_addr[3],
+                dhcpc->subnet_mask[0],dhcpc->subnet_mask[1],
+                dhcpc->subnet_mask[2],dhcpc->subnet_mask[3],
+                dhcpc->gw_addr[0],dhcpc->gw_addr[1],
+                dhcpc->gw_addr[2],dhcpc->gw_addr[3],
+                dhcpc->dns_addr[0],dhcpc->dns_addr[1],
+                dhcpc->dns_addr[2],dhcpc->dns_addr[3],
+                tx_mtu,rx_mtu);
     add_driver_wapi_info(rsp);
     rsp->ks.shrink();
     rsp->printf("\r\n}\r\n");
