@@ -12,6 +12,102 @@ using kernel::console::printf;
 kernel::obj_list<kernel::pci::domain> kernel::pci::domains;
 static kernel::klist<kernel::pci::driver> drivers;
 
+static void
+pci_dev_request(wapi::node* node, http::request* req, json::object* obj,
+    http::response* rsp)
+{
+    auto* pd = container_of(node,kernel::pci::dev,wapi_node);
+    uint8_t ht = pd->config_read_8(14);
+    rsp->printf("{\r\n"
+                "    \"driver\"                : \"%s\",\r\n"
+                "    \"slot\"                  : \"%02X:%u.%u\",\r\n"
+                "    \"vendor_id\"             : \"0x%04X\",\r\n"
+                "    \"device_id\"             : \"0x%04X\",\r\n"
+                "    \"command\"               : \"0x%04X\",\r\n"
+                "    \"status\"                : \"0x%04X\",\r\n"
+                "    \"revision_id\"           : \"0x%02X\",\r\n"
+                "    \"class_code\"            : \"0x%06X\",\r\n"
+                "    \"cacheline_size\"        : \"0x%02X\",\r\n"
+                "    \"latency_timer\"         : \"0x%02X\",\r\n"
+                "    \"header_type\"           : \"0x%02X\",\r\n"
+                "    \"bist\"                  : \"0x%02X\",\r\n",
+                pd->owner->name,pd->bus,(pd->devfn >> 3),(pd->devfn & 7),
+                pd->config_read_16(0),pd->config_read_16(2),
+                pd->config_read_16(4),pd->config_read_16(6),
+                pd->config_read_8(8),(pd->config_read_32(8) >> 8),
+                pd->config_read_8(12),pd->config_read_8(13),
+                ht,pd->config_read_8(15));
+    switch (ht & 0x7F)
+    {
+        case 0x00:
+            // Device.
+            rsp->printf("    \"bars\"                  : [ "
+                        "\"0x%08X\", \"0x%08X\", \"0x%08X\", \"0x%08X\", "
+                        "\"0x%08X\", \"0x%08X\" ]\r\n"
+                        "    \"cardbus_cis_ptr\"       : \"0x%08X\",\r\n"
+                        "    \"subsystem_vendor_id\"   : \"0x%04X\",\r\n"
+                        "    \"subsystem_id\"          : \"0x%04X\",\r\n"
+                        "    \"expansion_rom_bar\"     : \"0x%08X\",\r\n"
+                        "    \"capabilities_ptr\"      : \"0x%02X\",\r\n"
+                        "    \"interrupt_line\"        : \"0x%02X\",\r\n"
+                        "    \"interrupt_pin\"         : \"0x%02X\",\r\n"
+                        "    \"min_gnt\"               : \"0x%02X\",\r\n"
+                        "    \"max_lat\"               : \"0x%02X\"\r\n",
+                        pd->config_read_32(16),pd->config_read_32(20),
+                        pd->config_read_32(24),pd->config_read_32(28),
+                        pd->config_read_32(32),pd->config_read_32(36),
+                        pd->config_read_32(40),pd->config_read_16(44),
+                        pd->config_read_16(46),pd->config_read_32(48),
+                        pd->config_read_8(52),pd->config_read_8(60),
+                        pd->config_read_8(61),pd->config_read_8(62),
+                        pd->config_read_8(63));
+        break;
+
+        case 0x01:
+            // PCI-to-PCI bridge.
+            rsp->printf("    \"bars\"                  : [ "
+                        "\"0x%08X\", \"0x%08X\" ]\r\n"
+                        "    \"primary_bus_num\"       : \"0x%02X\",\r\n"
+                        "    \"secondary_bus_num\"     : \"0x%02X\",\r\n"
+                        "    \"subordinate_bus_num\"   : \"0x%02X\",\r\n"
+                        "    \"secondary_lat_timer\"   : \"0x%02X\",\r\n"
+                        "    \"io_base\"               : \"0x%02X\",\r\n"
+                        "    \"io_limit\"              : \"0x%02X\",\r\n"
+                        "    \"secondary_status\"      : \"0x%04X\",\r\n"
+                        "    \"memory_base\"           : \"0x%04X\",\r\n"
+                        "    \"memory_limit\"          : \"0x%04X\",\r\n"
+                        "    \"prefetch_memory_base\"  : \"0x%04X\",\r\n"
+                        "    \"prefetch_memory_limit\" : \"0x%04X\",\r\n"
+                        "    \"prefetch_base_upper\"   : \"0x%08X\",\r\n"
+                        "    \"prefetch_limit_upper\"  : \"0x%08X\",\r\n"
+                        "    \"io_base_upper\"         : \"0x%04X\",\r\n"
+                        "    \"io_limit_upper\"        : \"0x%04X\",\r\n"
+                        "    \"capability_ptr\"        : \"0x%02X\",\r\n"
+                        "    \"expansion_rom_bar\"     : \"0x%08X\",\r\n"
+                        "    \"interrupt_line\"        : \"0x%02X\",\r\n"
+                        "    \"interrupt_pin\"         : \"0x%02X\",\r\n"
+                        "    \"bridge_control\"        : \"0x%04X\"\r\n",
+                        pd->config_read_32(16),pd->config_read_32(20),
+                        pd->config_read_8(24),pd->config_read_8(25),
+                        pd->config_read_8(26),pd->config_read_8(27),
+                        pd->config_read_8(28),pd->config_read_8(29),
+                        pd->config_read_16(30),pd->config_read_16(32),
+                        pd->config_read_16(34),pd->config_read_16(36),
+                        pd->config_read_16(38),pd->config_read_32(40),
+                        pd->config_read_32(44),pd->config_read_16(48),
+                        pd->config_read_16(50),pd->config_read_8(52),
+                        pd->config_read_32(56),pd->config_read_8(60),
+                        pd->config_read_8(61),pd->config_read_16(62));
+        break;
+
+        default:
+            rsp->printf("    \"more_stuff\" : \"header-type-0x%02X\"\r\n",
+                        (ht & 0x7F));
+        break;
+    }
+    rsp->printf("}\r\n");
+}
+
 kernel::pci::driver::driver(const char* name):
     name(name)
 {
@@ -23,6 +119,8 @@ kernel::pci::dev::dev(pci::domain* domain, uint8_t bus, uint8_t devfn):
     bus(bus),
     devfn(devfn),
     owner(NULL),
+    wapi_node(func_delegate(pci_dev_request),METHOD_GET_MASK,"%02X:%u.%u",
+              bus,(devfn >> 3),(devfn & 7)),
     msix_nvecs(0),
     msix_table(NULL)
 {
@@ -33,6 +131,8 @@ kernel::pci::dev::dev(const dev* pd, const pci::driver* owner):
     bus(pd->bus),
     devfn(pd->devfn),
     owner(owner),
+    wapi_node(func_delegate(pci_dev_request),METHOD_GET_MASK,"%02X:%u.%u",
+              bus,(devfn >> 3),(devfn & 7)),
     msix_nvecs(pd->msix_nvecs),
     msix_table(pd->msix_table)
 {
@@ -194,6 +294,7 @@ kernel::pci::init_pci()
                     auto* pdp = driver->claim(&pd);
                     d.devices.push_back(&pdp->domain_link);
                     driver->devices.push_back(&pdp->driver_link);
+                    d.wapi_node.register_child(&pdp->wapi_node);
                 }
             }
         }

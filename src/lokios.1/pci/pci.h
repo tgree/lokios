@@ -80,6 +80,7 @@ namespace kernel::pci
         const uint8_t       bus;
         const uint8_t       devfn;
         const pci::driver*  owner;
+        wapi::node          wapi_node;
 
         size_t              msix_nvecs;
         msix_entry*         msix_table;
