@@ -16,3 +16,10 @@ kernel::qemu_platform::_exit_guest(int status)
     // pretty good for scripting.
     outb(status,0x501);
 }
+
+void
+kernel::qemu_platform::_reboot_guest()
+{
+    // Not much we can do here.
+    _exit_guest(-1);
+}
