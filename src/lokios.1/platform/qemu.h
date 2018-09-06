@@ -3,7 +3,7 @@
 
 #include "platform.h"
 
-#define QEMU_BRAND_SIGNATURE    0x554D4551
+#define QEMU_BRAND_SIGNATURE char_code("QEMU")
 
 namespace kernel
 {
