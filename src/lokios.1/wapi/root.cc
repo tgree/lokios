@@ -47,7 +47,11 @@ root_request(wapi::node* node, http::request* req, json::object* obj,
     http::response* rsp)
 {
     if (req->method == http::METHOD_POST)
+    {
+        if (!obj)
+            throw wapi::bad_request_exception();
         root_post(*obj,rsp);
+    }
     else
         root_get(rsp);
 }
