@@ -1,6 +1,8 @@
 #include "wapi.h"
+#include "kern/console.h"
 
 using kernel::_kassert;
+using kernel::console::printf;
 
 wapi::node*
 wapi::find_node_for_path(const char* path)
@@ -39,6 +41,11 @@ wapi::node::node(wapi::delegate handler, uint64_t method_mask,
 void
 wapi::node::register_child(wapi::node* c)
 {
+    if (find_child(c->name,c->name.strlen()))
+    {
+        printf("WAPI node '%s' already registered under '%s'\n",
+               c->name.c_str(),name.c_str());
+    }
     kassert(find_child(c->name,c->name.strlen()) == NULL);
     children.push_back(&c->link);
     c->parent = this;
