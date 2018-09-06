@@ -3,7 +3,7 @@
 
 #include "mode32.h"
 
-#define ELF_HEADER_SIG 0x464C457F
+#define ELF_HEADER_SIG char_code("\x7F""ELF")
 
 int process_elf_image(image_stream* is, void* sector0, uintptr_t* image_end);
 
