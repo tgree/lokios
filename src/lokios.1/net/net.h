@@ -103,6 +103,13 @@ namespace net
         // Constructor.
         observer();
     };
+
+    extern kernel::kdlist<interface> interfaces;
+
+    void register_interface(interface* intf);
+    void deregister_interface(interface* intf);
+
+    void init_net();
 }
 
 #endif /* __KERNEL_NET_NET_H */

@@ -25,6 +25,9 @@ namespace net
 
     struct interface
     {
+        // Nodes.
+        kernel::kdlink      link;
+
         // The netX id number.
         const size_t        id;
 
