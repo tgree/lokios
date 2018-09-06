@@ -247,4 +247,3 @@ net::interface::handle_rx_ipv4_udp_frame(net::rx_page* p)
     (*ufh)(this,p);
     return 0;
 }
-
