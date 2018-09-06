@@ -91,6 +91,16 @@ size_t strnlen(const char* s, size_t maxlen)
 }
 
 extern "C"
+char* strcpy(char* dst, const char* src)
+{
+    char* d = dst;
+    while (*src)
+        *dst++ = *src++;
+    *dst = '\0';
+    return d;
+}
+
+extern "C"
 void* memcpy(void* dest, const void* src, size_t n)
 {
     const char* s = (const char*)src;
