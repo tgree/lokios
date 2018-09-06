@@ -1219,3 +1219,12 @@ bcm57762::interface::post_rx_pages(kernel::klist<net::rx_page>& pages)
 {
     dev->post_rx_pages(pages);
 }
+
+void
+bcm57762::interface::add_driver_wapi_info(http::response* rsp)
+{
+    rsp->printf("\r\n"
+                "    \"driver\" : \"bcm57762\",\r\n"
+                "    \"pci\"    : \"%04X/%02X:%u.%u\",",
+                dev->domain->id,dev->bus,(dev->devfn >> 3),(dev->devfn & 7));
+}

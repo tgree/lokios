@@ -185,6 +185,8 @@ namespace bcm57762
         virtual void    post_tx_frame(net::tx_op* op);
         virtual void    post_rx_pages(kernel::klist<net::rx_page>& pages);
 
+        virtual void    add_driver_wapi_info(http::response* rsp);
+
         interface(bcm57762::dev* vdev);
         virtual ~interface();
     };
