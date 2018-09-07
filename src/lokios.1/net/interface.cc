@@ -125,7 +125,6 @@ net::interface::tcp_delete(tcp::socket* s)
 {
     kassert(s->state == tcp::socket::TCP_CLOSED);
 
-    s->dbg("deleting socket\n");
     if (s->local_port >= FIRST_EPHEMERAL_PORT)
         tcp_ephemeral_ports.emplace_back(s->local_port);
     tcp_sockets.erase_value(s);
