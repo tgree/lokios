@@ -54,6 +54,12 @@ namespace tmock
     {
         assert_equiv((const char*)s,(const char*)expected,file,line);
     }
+    inline void assert_equiv(char* s, const char* expected,
+                             const char* file = __builtin_FILE(),
+                             size_t line = __builtin_LINE())
+    {
+        assert_equiv((const char*)s,(const char*)expected,file,line);
+    }
     void assert_equiv(uint16_t v, uint16_t expected,
                       const char* file = __builtin_FILE(),
                       size_t line = __builtin_LINE());
