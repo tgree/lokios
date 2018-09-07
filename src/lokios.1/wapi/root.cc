@@ -51,6 +51,9 @@ root_post(json::object& obj, http::response* rsp)
             throw wapi::bad_request_exception();
     }
 
+    // We must override the send_comp_delegate field last.  If we throw an
+    // exception early, the core wapi code needs to continue to handle any
+    // completions.
     switch (action)
     {
         case ACTION_NONE:
