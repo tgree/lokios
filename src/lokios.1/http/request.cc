@@ -140,7 +140,7 @@ http::request::read_more_header(const char* start, size_t rem)
         if (n)
         {
             rem_content_length = to_u64(n->v);
-            state              = PARSING_BODY;
+            state              = (rem_content_length ? PARSING_BODY : DONE);
         }
         else
             state = DONE;
