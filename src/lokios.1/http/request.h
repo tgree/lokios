@@ -29,6 +29,13 @@ namespace http
         // Check if we are done.
         inline bool is_done() const {return state == DONE;}
 
+        // Check if we should keep the socket alive.
+        inline bool should_keepalive() const
+        {
+            auto* e = headers.find_node("Connection");
+            return (e ? !strcmp(e->v,"keep-alive") : version >= 0x11);
+        }
+
         // Reset the request so it can be reused.
         void    reset();
 
