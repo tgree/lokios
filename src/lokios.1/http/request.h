@@ -9,6 +9,7 @@ namespace http
 {
     struct header_invalid_exception : public http::exception {};
     struct unrecognized_method_exception : public http::exception {};
+    struct missing_content_type_exception : public http::exception {};
 
     struct request
     {
@@ -34,6 +35,17 @@ namespace http
         {
             auto* e = headers.find_node("Connection");
             return (e ? !strcmp(e->v,"keep-alive") : version >= 0x11);
+        }
+
+        // Check if this is a JSON request.
+        inline bool is_json_request() const try
+        {
+            return !(method == METHOD_GET || body.empty() ||
+                     strcmp(headers["Content-Type"],"application/json"));
+        }
+        catch (const hash::no_such_key_exception&)
+        {
+            throw missing_content_type_exception();
         }
 
         // Reset the request so it can be reused.
