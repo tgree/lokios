@@ -21,31 +21,31 @@ to_u64(const char* p)
 }
 
 size_t
-http::request::parse(const char* start, size_t rem)
+http::request::parse(const char* p, size_t rem)
 {
     size_t len;
-    size_t total = 0;
+    const char* begin = p;
     while (rem && !is_done())
     {
         switch (state)
         {
             case PARSING_HEADER:
-                len    = read_more_header(start,rem);
-                start += len;
-                rem   -= len;
+                len  = read_more_header(p,rem);
+                p   += len;
+                rem -= len;
             break;
 
             case PARSING_BODY:
-                len    = read_more_body(start,rem);
-                start += len;
-                rem   -= len;
+                len  = read_more_body(p,rem);
+                p   += len;
+                rem -= len;
             break;
 
             case DONE:
             break;
         }
     }
-    return total;
+    return p - begin;
 }
 
 void
