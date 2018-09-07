@@ -14,9 +14,6 @@ namespace http
 {
     struct response
     {
-        // If you have a non-json response, change the content_type field.
-        const char* content_type = "application/json";
-
         // This is your response body.
         kernel::string  ks;
 
@@ -36,7 +33,6 @@ namespace http
         void headerf(const char* fmt, ...);
 
         tcp::send_op* send(tcp::socket* s);
-        tcp::send_op* send_error(tcp::socket* s);
 
         static void send_noop_cb(tcp::send_op*) {}
     };

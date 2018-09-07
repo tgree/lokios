@@ -97,6 +97,11 @@ wapi_connection::socket_readable(tcp::socket* s) try
         throw wapi::bad_request_exception();
     }
 
+    response.headerf("HTTP/1.1 200 OK\r\n"
+                     "Content-Type: application/json\r\n"
+                     "Content-Length: %zu\r\n"
+                     "\r\n",
+                     response.ks.strlen());
     response.send(s)->cookie = s;
 
     if (!request.should_keepalive())
@@ -104,28 +109,28 @@ wapi_connection::socket_readable(tcp::socket* s) try
 }
 catch (wapi::not_found_exception)
 {
-    response.printf("HTTP/1.1 404 Not Found\r\n"
-                    "Content-Length: 15\r\n"
-                    "\r\n"
-                    "404 Not Found\r\n");
-    response.send_error(s)->cookie = s;
+    response.headerf("HTTP/1.1 404 Not Found\r\n"
+                     "Content-Length: 15\r\n"
+                     "\r\n"
+                     "404 Not Found\r\n");
+    response.send(s)->cookie = s;
     if (!request.should_keepalive())
         s->close_send();
 }
 catch (wapi::bad_request_exception)
 {
-    response.printf("HTTP/1.1 400 Bad Request\r\n"
-                    "Content-Length: 0\r\n"
-                    "\r\n");
-    response.send_error(s)->cookie = s;
+    response.headerf("HTTP/1.1 400 Bad Request\r\n"
+                     "Content-Length: 0\r\n"
+                     "\r\n");
+    response.send(s)->cookie = s;
     if (!request.should_keepalive())
         s->close_send();
 }
 catch (wapi::method_not_allowed_exception& e)
 {
-    response.printf("HTTP/1.1 405 Method Not Allowed\r\n"
-                    "Content-Length: 0\r\n"
-                    "Allow: ");
+    response.headerf("HTTP/1.1 405 Method Not Allowed\r\n"
+                     "Content-Length: 0\r\n"
+                     "Allow: ");
     uint64_t methods = e.method_mask;
     for (size_t i=0; i<http::NUM_METHODS; ++i)
     {
@@ -133,13 +138,13 @@ catch (wapi::method_not_allowed_exception& e)
         methods      >>= 1;
         if (supported)
         {
-            response.printf("%s",http::get_method_name((http::method)i));
+            response.headerf("%s",http::get_method_name((http::method)i));
             if (methods)
-                response.printf(", ");
+                response.headerf(", ");
         }
     }
-    response.printf("\r\n\r\n");
-    response.send_error(s)->cookie = s;
+    response.headerf("\r\n\r\n");
+    response.send(s)->cookie = s;
     if (!request.should_keepalive())
         s->close_send();
 }
