@@ -14,6 +14,7 @@ struct wapi_connection : public tcp::socket_observer
 
     virtual void    socket_established(tcp::socket* s);
     virtual void    socket_readable(tcp::socket* s);
+            void    response_send_complete(tcp::send_op* sop);
     virtual void    socket_recv_closed(tcp::socket* s);
     virtual void    socket_closed(tcp::socket* s);
     virtual void    socket_reset(tcp::socket* s);
@@ -64,11 +65,14 @@ wapi_connection::socket_readable(tcp::socket* s) try
     if (!request.is_done())
         return;
 
+    response.send_comp_delegate = method_delegate(response_send_complete);
+
     auto* n = wapi::find_node_for_path(request.request_target);
     if (!n)
         throw wapi::not_found_exception();
     if (!(n->method_mask & (1<<request.method)))
         throw wapi::method_not_allowed_exception(n->method_mask);
+
     try
     {
         if (request.method == http::METHOD_GET ||
@@ -93,8 +97,10 @@ wapi_connection::socket_readable(tcp::socket* s) try
         throw wapi::bad_request_exception();
     }
 
-    response.send(s);
-    s->close_send();
+    response.send(s)->cookie = s;
+
+    if (!request.should_keepalive())
+        s->close_send();
 }
 catch (wapi::not_found_exception)
 {
@@ -102,16 +108,18 @@ catch (wapi::not_found_exception)
                     "Content-Length: 15\r\n"
                     "\r\n"
                     "404 Not Found\r\n");
-    response.send_error(s);
-    s->close_send();
+    response.send_error(s)->cookie = s;
+    if (!request.should_keepalive())
+        s->close_send();
 }
 catch (wapi::bad_request_exception)
 {
     response.printf("HTTP/1.1 400 Bad Request\r\n"
                     "Content-Length: 0\r\n"
                     "\r\n");
-    response.send_error(s);
-    s->close_send();
+    response.send_error(s)->cookie = s;
+    if (!request.should_keepalive())
+        s->close_send();
 }
 catch (wapi::method_not_allowed_exception& e)
 {
@@ -131,13 +139,27 @@ catch (wapi::method_not_allowed_exception& e)
         }
     }
     response.printf("\r\n\r\n");
-    response.send_error(s);
-    s->close_send();
+    response.send_error(s)->cookie = s;
+    if (!request.should_keepalive())
+        s->close_send();
+}
+
+void
+wapi_connection::response_send_complete(tcp::send_op* sop)
+{
+    request.reset();
+    response.reset();
+    
+    auto* s = (tcp::socket*)sop->cookie;
+    if (s->rx_avail_bytes)
+        socket_readable(s);
 }
 
 void
 wapi_connection::socket_recv_closed(tcp::socket* s)
 {
+    if (s->in_sendable_state())
+        s->close_send();
 }
 
 void
