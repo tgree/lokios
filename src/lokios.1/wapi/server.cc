@@ -64,12 +64,6 @@ wapi_connection::socket_readable(tcp::socket* s) try
     if (!request.is_done())
         return;
 
-    s->dbg("%s %s HTTP/%u.%u\n",
-           http::get_method_name(request.method),
-           request.request_target,
-           (request.version >> 4),
-           (request.version & 0xF));
-
     auto* n = wapi::find_node_for_path(request.request_target);
     if (!n)
         throw wapi::not_found_exception();
