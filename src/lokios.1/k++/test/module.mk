@@ -9,7 +9,8 @@ TESTS := char_stream_test \
 	 hash_test        \
 	 hash_table_test  \
 	 ring_test        \
-	 obj_list_test
+	 obj_list_test    \
+	 checksum_test
 
 char_stream_test.objs := \
 	$(MODULE_TBUILD_DIR)/char_stream_test.o \
@@ -63,3 +64,7 @@ obj_list_test.objs := \
     	$(MODULE_TBUILD_DIR)/obj_list_test.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fpage.o \
 	$(BUILD_TO_DIR)/lokios.1/kern/mock/fkassert.o
+
+checksum_test.objs := \
+    	$(MODULE_TBUILD_DIR)/checksum_test.o \
+	$(PARENT_TBUILD_DIR)/checksum.o
