@@ -100,7 +100,7 @@ namespace tmock
 
 #define TEXPECT(fname,...) \
     __attribute__((constructor))                    \
-    static void _tmock_static_expect ## __LINE__()  \
+    static void CAT(_tmock_static_expect,__LINE__)()  \
     {                                               \
         texpect(fname,__VA_ARGS__);                 \
     }
