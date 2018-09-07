@@ -18,6 +18,8 @@ struct wapi_connection : public tcp::socket_observer
     virtual void    socket_recv_closed(tcp::socket* s);
     virtual void    socket_closed(tcp::socket* s);
     virtual void    socket_reset(tcp::socket* s);
+
+    wapi_connection();
 };
 
 static kernel::slab connection_slab(sizeof(wapi_connection));
@@ -36,14 +38,21 @@ wapi_net_observer::intf_activated(net::interface* intf)
     intf->tcp_listen(TCP_LOKIOS_WAPI_PORT,4096,func_delegate(socket_accepted));
 }
 
+wapi_connection::wapi_connection()
+{
+    response.send_comp_delegate = method_delegate(response_send_complete);
+}
+
 void
 wapi_connection::socket_established(tcp::socket*)
 {
 }
 
 void
-wapi_connection::socket_readable(tcp::socket* s) try
+wapi_connection::socket_readable(tcp::socket* s)
 {
+    // If we already have a completed request, then defer until we've
+    // finished handling it.
     if (request.is_done())
         return;
 
@@ -56,94 +65,102 @@ wapi_connection::socket_readable(tcp::socket* s) try
             size_t n    = request.parse(start,p->client_len);
             s->skip(n);
         }
-    }
-    catch (http::exception)
-    {
-        throw wapi::bad_request_exception();
-    }
+        if (!request.is_done())
+            return;
 
-    if (!request.is_done())
-        return;
+        // Try to find a node to handle this request.
+        auto* n = wapi::find_node_for_path(request.request_target);
+        if (!n)
+            throw wapi::not_found_exception();
+        if (!(n->method_mask & (1<<request.method)))
+            throw wapi::method_not_allowed_exception(n->method_mask);
 
-    response.send_comp_delegate = method_delegate(response_send_complete);
-
-    auto* n = wapi::find_node_for_path(request.request_target);
-    if (!n)
-        throw wapi::not_found_exception();
-    if (!(n->method_mask & (1<<request.method)))
-        throw wapi::method_not_allowed_exception(n->method_mask);
-
-    try
-    {
-        if (request.method == http::METHOD_GET ||
-            request.body.empty() ||
-            strcmp(request.headers["Content-Type"],"application/json"))
-        {
-            n->handler(n,&request,NULL,&response);
-        }
-        else
+        // Handle it.
+        if (request.is_json_request())
         {
             json::object obj;
             json::parse_object(request.body.c_str(),&obj);
             n->handler(n,&request,&obj,&response);
         }
-    }
-    catch (json::exception)
-    {
-        throw wapi::bad_request_exception();
-    }
-    catch (hash::no_such_key_exception)
-    {
-        throw wapi::bad_request_exception();
-    }
+        else
+            n->handler(n,&request,NULL,&response);
 
-    response.headerf("HTTP/1.1 200 OK\r\n"
-                     "Content-Type: application/json\r\n"
-                     "Content-Length: %zu\r\n"
-                     "\r\n",
-                     response.ks.strlen());
-    response.send(s)->cookie = s;
-
-    if (!request.should_keepalive())
-        s->close_send();
-}
-catch (wapi::not_found_exception)
-{
-    response.headerf("HTTP/1.1 404 Not Found\r\n"
-                     "Content-Length: 15\r\n"
-                     "\r\n"
-                     "404 Not Found\r\n");
-    response.send(s)->cookie = s;
-    if (!request.should_keepalive())
-        s->close_send();
-}
-catch (wapi::bad_request_exception)
-{
-    response.headerf("HTTP/1.1 400 Bad Request\r\n"
-                     "Content-Length: 0\r\n"
-                     "\r\n");
-    response.send(s)->cookie = s;
-    if (!request.should_keepalive())
-        s->close_send();
-}
-catch (wapi::method_not_allowed_exception& e)
-{
-    response.headerf("HTTP/1.1 405 Method Not Allowed\r\n"
-                     "Content-Length: 0\r\n"
-                     "Allow: ");
-    uint64_t methods = e.method_mask;
-    for (size_t i=0; i<http::NUM_METHODS; ++i)
+        // Success path.
+        response.headerf("HTTP/1.1 200 OK\r\n"
+                         "Content-Type: application/json\r\n"
+                         "Content-Length: %zu\r\n"
+                         "\r\n",
+                         response.ks.strlen());
+    }
+    catch (const http::missing_content_type_exception&)
     {
-        bool supported = (methods & 1);
-        methods      >>= 1;
-        if (supported)
+        // This indicates that there was a request body but no Content-Type
+        // field to tell us how to interpret it.  Recoverable.
+        response.headerf("HTTP/1.1 400 Bad Request\r\n"
+                         "Content-Length: 0\r\n"
+                         "\r\n");
+    }
+    catch (const http::exception&)
+    {
+        // This indicates some error while trying to parse the request; i.e. it
+        // is malformed in some way.  We cannot recover the stream at this
+        // point so we force closure.
+        response.send_comp_delegate =
+            func_delegate(http::response::send_noop_cb);
+        response.headerf("HTTP/1.1 400 Bad Request\r\n"
+                         "Content-Length: 0\r\n"
+                         "\r\n");
+        response.send(s)->cookie = s;
+        s->close_send();
+        return;
+    }
+    catch (const json::exception&)
+    {
+        // We couldn't parse the JSON body.  The stream is recoverable even if
+        // the JSON is gibberish.
+        response.headerf("HTTP/1.1 400 Bad Request\r\n"
+                         "Content-Length: 0\r\n"
+                         "\r\n");
+    }
+    catch (const wapi::not_found_exception&)
+    {
+        // Node not found.  Recoverable.
+        response.headerf("HTTP/1.1 404 Not Found\r\n"
+                         "Content-Length: 15\r\n"
+                         "\r\n"
+                         "404 Not Found\r\n");
+    }
+    catch (const wapi::bad_request_exception&)
+    {
+        // Something was wrong at the wapi level.  Examples include setting the
+        // root '/' node json 'state' field to an unrecognized value or issuing
+        // a POST without an expected JSON body.  Recoverable.
+        response.headerf("HTTP/1.1 400 Bad Request\r\n"
+                         "Content-Length: 0\r\n"
+                         "\r\n");
+    }
+    catch (const wapi::method_not_allowed_exception& e)
+    {
+        // This node doesn't support the requested method.  Recoverable.
+        response.headerf("HTTP/1.1 405 Method Not Allowed\r\n"
+                         "Content-Length: 0\r\n"
+                         "Allow: ");
+        uint64_t methods = e.method_mask;
+        for (size_t i=0; i<http::NUM_METHODS; ++i)
         {
-            response.headerf("%s",http::get_method_name((http::method)i));
-            if (methods)
-                response.headerf(", ");
+            bool supported = (methods & 1);
+            methods      >>= 1;
+            if (supported)
+            {
+                response.headerf("%s",http::get_method_name((http::method)i));
+                if (methods)
+                    response.headerf(", ");
+            }
         }
+        response.headerf("\r\n\r\n");
     }
-    response.headerf("\r\n\r\n");
+
+    // Send the final response, be it a recoverable error or success.
     response.send(s)->cookie = s;
     if (!request.should_keepalive())
         s->close_send();
@@ -153,7 +170,7 @@ void
 wapi_connection::response_send_complete(tcp::send_op* sop)
 {
     request.reset();
-    response.reset();
+    response.reset(method_delegate(response_send_complete));
     
     auto* s = (tcp::socket*)sop->cookie;
     if (s->rx_avail_bytes)
