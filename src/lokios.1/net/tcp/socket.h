@@ -231,6 +231,7 @@ namespace tcp
         uint64_t    process_payload_synchronized(net::rx_page* p);
         void        process_options(parsed_options opts);
         void        dump_socket();
+        const char* get_state_name() const;
 
         // Emit log messages.
                 void                    vdbg(const char* fmt, va_list ap);

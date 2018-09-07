@@ -1011,6 +1011,29 @@ tcp::socket::dump_socket()
         (uint16_t)(rcv_wnd >> rcv_wnd_shift),rcv_wnd_shift);
 }
 
+#define STATE_CASE(s) case TCP_ ## s: return #s
+const char*
+tcp::socket::get_state_name() const
+{
+    switch (state)
+    {
+        STATE_CASE(CLOSED);
+        STATE_CASE(DRAIN_NIC_OPS);
+        STATE_CASE(SYN_SENT);
+        STATE_CASE(SYN_SENT_ACKED_WAIT_SYN);
+        STATE_CASE(SYN_SENT_SYN_RECVD_WAIT_ACK);
+        STATE_CASE(SYN_RECVD);
+        STATE_CASE(ESTABLISHED);
+        STATE_CASE(FIN_WAIT_1);
+        STATE_CASE(FIN_WAIT_2);
+        STATE_CASE(CLOSING);
+        STATE_CASE(TIME_WAIT);
+        STATE_CASE(CLOSE_WAIT);
+        STATE_CASE(LAST_ACK);
+    }
+    return "UNKNOWN";
+}
+
 void
 tcp::socket::vdbg(const char* fmt, va_list ap)
 {
