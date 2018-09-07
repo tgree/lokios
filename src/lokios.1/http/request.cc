@@ -20,6 +20,18 @@ to_u64(const char* p)
     return val;
 }
 
+void
+http::request::reset()
+{
+    state          = PARSING_HEADER;
+    version        = 0;
+    method         = http::METHOD_UNKNOWN;
+    request_target = NULL;
+    headers.clear();
+    header_table.clear();
+    body.clear();
+}
+
 size_t
 http::request::parse(const char* p, size_t rem)
 {

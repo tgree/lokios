@@ -29,6 +29,9 @@ namespace http
         // Check if we are done.
         inline bool is_done() const {return state == DONE;}
 
+        // Reset the request so it can be reused.
+        void    reset();
+
         // Used to feed more data into the parser.  Returns the number of
         // characters consumed.
         size_t  parse(const char* p, size_t len);
