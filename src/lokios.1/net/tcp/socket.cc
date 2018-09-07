@@ -576,7 +576,6 @@ tcp::socket::syn_send_op_cb(tcp::send_op* sop)
         case TCP_SYN_RECVD:
         case TCP_SYN_SENT_SYN_RECVD_WAIT_ACK:
             TRANSITION(TCP_ESTABLISHED);
-            dump_socket();
             observer->socket_established(this);
             if (rx_avail_bytes)
                 observer->socket_readable(this);
@@ -699,7 +698,6 @@ tcp::socket::handle_rx_ipv4_tcp_frame(net::rx_page* p) try
                 if (state == TCP_SYN_SENT_ACKED_WAIT_SYN)
                 {
                     TRANSITION(TCP_ESTABLISHED);
-                    dump_socket();
                     observer->socket_established(this);
                     if (rx_avail_bytes)
                         observer->socket_readable(this);
