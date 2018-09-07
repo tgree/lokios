@@ -30,6 +30,10 @@ namespace tcp
 
     // Packet handling.
     uint64_t handle_rx_ipv4_tcp_frame(net::interface* intf, net::rx_page* p);
+
+    // WAPI handling.
+    void handle_wapi_request(wapi::node* n, http::request* req,
+                             json::object* obj, http::response* rsp);
 }
 
 #endif /* __KERNEL_NET_TCP_TCP_H */

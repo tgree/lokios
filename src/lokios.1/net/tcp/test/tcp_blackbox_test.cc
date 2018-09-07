@@ -21,6 +21,7 @@
 
 using namespace tcp;
 
+TEXPECT("wapi::node::register_child");
 static net::finterface intf(LOCAL_IP);
 
 struct mock_listener

@@ -45,6 +45,7 @@ net::interface::interface(size_t tx_qlen, size_t rx_qlen, uint16_t tx_mtu,
         id(alloc_id()),
         wapi_node(method_delegate(handle_wapi_request),METHOD_GET_MASK,"net%u",
                   id),
+        tcp_node(func_delegate(tcp::handle_wapi_request),METHOD_GET_MASK,"tcp"),
         tx_qlen(tx_qlen),
         rx_qlen(rx_qlen),
         rx_posted_count(0),
@@ -56,6 +57,7 @@ net::interface::interface(size_t tx_qlen, size_t rx_qlen, uint16_t tx_mtu,
 {
     for (size_t i=FIRST_EPHEMERAL_PORT; i<65536; ++i)
         tcp_ephemeral_ports.emplace_back(i);
+    wapi_node.register_child(&tcp_node);
 }
 
 net::interface::~interface()

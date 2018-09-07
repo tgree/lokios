@@ -21,6 +21,7 @@ tcp_socket_test.objs := \
 	$(PARENT_TBUILD_DIR)/socket.o \
 	$(PARENT_TBUILD_DIR)/header.o \
 	$(PARENT_TBUILD_DIR)/tcp.o \
+	$(PARENT_TBUILD_DIR)/mock/mwapi.o \
 	$(BUILD_TO_DIR)/lokios.1/net/interface.o \
 	$(BUILD_TO_DIR)/lokios.1/net/mock/finterface.o \
 	$(BUILD_TO_DIR)/lokios.1/wapi/mock/mwapi.o \
@@ -37,6 +38,7 @@ tcp_pipe_test.objs := \
 	$(PARENT_TBUILD_DIR)/socket.o \
 	$(PARENT_TBUILD_DIR)/header.o \
 	$(PARENT_TBUILD_DIR)/tcp.o \
+	$(PARENT_TBUILD_DIR)/mock/mwapi.o \
 	$(BUILD_TO_DIR)/lokios.1/net/interface.o \
 	$(BUILD_TO_DIR)/lokios.1/net/mock/finterface.o \
 	$(BUILD_TO_DIR)/lokios.1/wapi/mock/mwapi.o \
@@ -53,6 +55,7 @@ tcp_self_connect_test.objs := \
 	$(PARENT_TBUILD_DIR)/socket.o \
 	$(PARENT_TBUILD_DIR)/header.o \
 	$(PARENT_TBUILD_DIR)/tcp.o \
+	$(PARENT_TBUILD_DIR)/mock/mwapi.o \
 	$(BUILD_TO_DIR)/lokios.1/net/interface.o \
 	$(BUILD_TO_DIR)/lokios.1/net/mock/finterface.o \
 	$(BUILD_TO_DIR)/lokios.1/wapi/mock/mwapi.o \
@@ -69,6 +72,7 @@ tcp_blackbox_test.objs := \
 	$(PARENT_TBUILD_DIR)/socket.o \
 	$(PARENT_TBUILD_DIR)/header.o \
 	$(PARENT_TBUILD_DIR)/tcp.o \
+	$(PARENT_TBUILD_DIR)/mock/mwapi.o \
 	$(BUILD_TO_DIR)/lokios.1/net/interface.o \
 	$(BUILD_TO_DIR)/lokios.1/net/mock/finterface.o \
 	$(BUILD_TO_DIR)/lokios.1/wapi/mock/mwapi.o \

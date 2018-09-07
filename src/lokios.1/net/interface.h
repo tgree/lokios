@@ -32,6 +32,7 @@ namespace net
         // The netX id number.
         const size_t        id;
         wapi::node          wapi_node;
+        wapi::node          tcp_node;
 
         // Size of the hardware transmit and receive queues.
         const size_t        tx_qlen;

@@ -95,7 +95,9 @@ struct fake_listener
     }
 };
 
+TEXPECT("wapi::node::register_child");
 static net::finterface intf0(LOCAL_IP0);
+TEXPECT("wapi::node::register_child");
 static net::finterface intf1(LOCAL_IP1);
 static net::fpipe intf_pipe(&intf0,&intf1);
 
