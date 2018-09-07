@@ -17,7 +17,7 @@ namespace http
             PARSING_HEADER,
             PARSING_BODY,
             DONE,
-        } state;
+        } state = PARSING_HEADER;
         uint16_t                                version = 0;
         http::method                            method = http::METHOD_UNKNOWN;
         const char*                             request_target = NULL;
