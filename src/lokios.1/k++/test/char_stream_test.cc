@@ -152,6 +152,13 @@ class tmock_test
     {
         test_random_string("Hello %c 1234",'T');
     }
+
+    TMOCK_TEST(test_ksprintf)
+    {
+        char c[15];
+        kernel::ksprintf(c,"hello %s %s","number","one");
+        tmock::assert_equiv(c,"hello number o");
+    }
 };
 
 TMOCK_MAIN();

@@ -79,6 +79,16 @@ namespace kernel
             va_end(ap);
         }
     };
+
+    template<size_t N>
+    char __PRINTF__(2,3) (&ksprintf(char (&dst)[N], const char* fmt, ...))[N]
+    {
+        va_list ap;
+        va_start(ap,fmt);
+        string_stream(dst).vprintf(fmt,ap);
+        va_end(ap);
+        return dst;
+    }
 }
 
 #endif /* __KERNEL_STRING_STREAM_H */
