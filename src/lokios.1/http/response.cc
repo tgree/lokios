@@ -2,6 +2,18 @@
 #include "net/tcp/socket.h"
 
 void
+http::response::reset(kernel::delegate<void(tcp::send_op*)> send_cb)
+{
+    content_type       = "application/json";
+    send_comp_delegate = send_cb;
+    alps[0].paddr      = 0;
+    alps[0].len        = 0;
+    alps[1].paddr      = 0;
+    alps[1].len        = 0;
+    ks.clear();
+}
+
+void
 http::response::printf(const char* fmt, ...)
 {
     va_list ap;

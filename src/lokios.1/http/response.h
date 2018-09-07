@@ -29,6 +29,9 @@ namespace http
         // Internal use.
         kernel::dma_alp alps[2] = {{0,0}, {0,0}};
 
+        void reset(kernel::delegate<void(tcp::send_op*)> send_cb =
+                   func_delegate(send_noop_cb));
+
         void printf(const char* fmt, ...);
         void headerf(const char* fmt, ...);
 
