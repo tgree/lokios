@@ -1,6 +1,7 @@
 import requests
 import time
 
+
 class Node(object):
     def __init__(self, ip, port):
         self.ip       = ip
