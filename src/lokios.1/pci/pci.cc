@@ -11,6 +11,8 @@ using kernel::console::printf;
 
 kernel::obj_list<kernel::pci::domain> kernel::pci::domains;
 static kernel::klist<kernel::pci::driver> drivers;
+static kernel::slab cfg_slab(MAX(sizeof(kernel::mem_config_accessor),
+                                 sizeof(kernel::io_config_accessor)));
 
 static void
 pci_dev_request(wapi::node* node, http::request* req, json::object* obj,
@@ -242,8 +244,9 @@ kernel::pci::init_pci()
         for (size_t i=0; i<nentries; ++i)
         {
             const mcfg_entry* e = &mcfgt->entries[i];
-            auto* mca = new mem_config_accessor(e->addr,e->start_bus_num,
-                                                e->end_bus_num);
+            auto* mca = cfg_slab.alloc<mem_config_accessor>(e->addr,
+                                                            e->start_bus_num,
+                                                            e->end_bus_num);
             auto iter = domains.begin();
             for (; iter != domains.end() && iter->id < e->domain; ++iter)
                 ;
@@ -254,8 +257,8 @@ kernel::pci::init_pci()
     // If we didn't find domain 0 yet, add it using the IO config accessor.
     if (domains.empty() || domains.front().id != 0)
     {
-        domains.emplace(domains.begin(),
-                        0,0,255,new io_config_accessor(0xCF8,0xCFC));
+        domains.emplace(domains.begin(),0,0,255,
+                        cfg_slab.alloc<io_config_accessor>(0xCF8,0xCFC));
     }
 
     // Probe all domains.
