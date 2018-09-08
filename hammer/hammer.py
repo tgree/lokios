@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import qemu
 import loki
+import jdict
 
 import argparse
 import sys
