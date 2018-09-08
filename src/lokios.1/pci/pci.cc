@@ -66,7 +66,7 @@ pci_dev_request(wapi::node* node, http::request* req, json::object* obj,
         case 0x01:
             // PCI-to-PCI bridge.
             rsp->printf("    \"bars\"                  : [ "
-                        "\"0x%08X\", \"0x%08X\" ]\r\n"
+                        "\"0x%08X\", \"0x%08X\" ],\r\n"
                         "    \"primary_bus_num\"       : \"0x%02X\",\r\n"
                         "    \"secondary_bus_num\"     : \"0x%02X\",\r\n"
                         "    \"subordinate_bus_num\"   : \"0x%02X\",\r\n"
