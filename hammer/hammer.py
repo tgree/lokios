@@ -2,6 +2,7 @@
 import qemu
 import loki
 import jdict
+import tests
 
 import argparse
 import sys
@@ -55,6 +56,7 @@ def run_hammer(n, timeout, live):
     print 'hammer: Connected to %s.' % n
 
     # Run tests here.
+    tests.run_tests(n)
 
     # Stop loki and return the expected guest exit code.
     if not live:
