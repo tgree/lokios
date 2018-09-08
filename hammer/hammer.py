@@ -44,7 +44,7 @@ def run_standalone(p, n):
     return p.proc.returncode
 
 
-def run_hammer(n, timeout):
+def run_hammer(n, timeout, live):
     # Try to connect to the qemu Loki instance.
     if not n.connect(timeout=timeout):
         print 'hammer: Failed to connect to %s, exiting.' % n
@@ -54,8 +54,9 @@ def run_hammer(n, timeout):
     # Run tests here.
 
     # Stop loki and return the expected guest exit code.
-    n.shutdown(11)
-    return 11
+    if not live:
+        n.shutdown(11)
+        return 11
 
 
 if __name__ == '__main__':
@@ -102,7 +103,7 @@ if __name__ == '__main__':
             timeout = 30
         else:
             timeout = 10
-        expected_code = run_hammer(n, timeout)
+        expected_code = run_hammer(n, timeout, rv.live)
         if not rv.live:
             p.proc.wait()
             assert p.proc.returncode == expected_code
