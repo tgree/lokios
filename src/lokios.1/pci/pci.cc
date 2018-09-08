@@ -138,7 +138,6 @@ kernel::pci::dev::dev(const dev* pd, const pci::driver* owner):
 {
 }
 
-
 uint8_t
 kernel::pci::dev::find_pci_capability(uint8_t cap_id)
 {
