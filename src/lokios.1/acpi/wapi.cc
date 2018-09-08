@@ -133,8 +133,8 @@ sdt_request(const kernel::sdt_header* h, const char* name, http::response* rsp)
                 "    \"name\"                 : \"%s\",\r\n"
                 "    \"revision\"             : \"0x%02X\",\r\n"
                 "    \"checksum\"             : \"0x%02X\",\r\n"
-                "    \"oem_id\"               : \"%c%c%c%c%c%c\",\r\n"
-                "    \"oem_table_id\"         : \"%c%c%c%c%c%c\",\r\n"
+                "    \"oem_id\"               : \"%.6s\",\r\n"
+                "    \"oem_table_id\"         : \"%.6s\",\r\n"
                 "    \"oem_revision\"         : \"0x%08X\",\r\n"
                 "    \"creator_id\"           : \"0x%08X\",\r\n"
                 "    \"creator_revision\"     : \"0x%08X\"",
@@ -147,18 +147,8 @@ sdt_request(const kernel::sdt_header* h, const char* name, http::response* rsp)
                 name,
                 h->revision,
                 h->checksum,
-                h->oem_id[0],
-                h->oem_id[1],
-                h->oem_id[2],
-                h->oem_id[3],
-                h->oem_id[4],
-                h->oem_id[5],
-                h->oem_table_id[0],
-                h->oem_table_id[1],
-                h->oem_table_id[2],
-                h->oem_table_id[3],
-                h->oem_table_id[4],
-                h->oem_table_id[5],
+                h->oem_id,
+                h->oem_table_id,
                 h->oem_revision,
                 h->creator_id,
                 h->creator_revision);
