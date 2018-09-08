@@ -47,7 +47,6 @@ struct fake_observer : public tcp::socket_observer
 
 static fake_observer fobserver;
 
-TEXPECT("wapi::node::register_child");
 static net::finterface intf0(LOCAL_IP0);
 static net::fpipe intf_pipe(&intf0,&intf0);
 
