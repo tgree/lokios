@@ -7,16 +7,12 @@
 make clean
 while true; do
     make -j || break
-    qemu-system-x86_64 -cpu qemu64,+popcnt -drive file=bin/lokios.elf.mbr,format=raw -nographic -device isa-debug-exit -smp 2 -acpitable sig=iTST,data=/dev/null -device virtio-net-pci,netdev=net0,disable-legacy=on,disable-modern=off,vectors=4 -netdev user,id=net0,hostfwd=tcp::12345-:12345 -object filter-dump,id=dump0,netdev=net0,file=net0dump.pcap -m 64M
-    if [ $? -ne 3 ]
-    then
+    if ! hammer/hammer.py; then
         echo "-----MBR integration test failure-----"
         break
     fi
 
-    qemu-system-x86_64 -cpu qemu64,+popcnt -nographic -device isa-debug-exit -smp 2 -acpitable sig=iTST,data=/dev/null -device virtio-net-pci,netdev=net0,disable-modern=off,vectors=4 -netdev user,id=net0,hostfwd=tcp::12345-:12345,tftp=bin/,bootfile=lokios.0 -object filter-dump,id=dump0,netdev=net0,file=net0dump.pcap -m 64M -boot n
-    if [ $? -ne 3 ]
-    then
+    if ! hammer/hammer.py --pxe; then
         echo "-----PXE integration test failure-----"
         break
     fi
