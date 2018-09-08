@@ -2,6 +2,8 @@
 #include "dev/cmos.h"
 #include "platform/platform.h"
 
+static int exit_code = 3;
+
 static void
 root_get(http::response* rsp)
 {
@@ -17,7 +19,7 @@ root_get(http::response* rsp)
 static void
 root_set_state_stopped(tcp::send_op*)
 {
-    kernel::exit_guest(1);
+    kernel::exit_guest(exit_code >> 1);
 }
 
 static void
@@ -45,6 +47,12 @@ root_post(json::object& obj, http::response* rsp)
             else if (!strcmp(n.v,"rebooting"))
                 action = ACTION_REBOOT;
             else if (strcmp(n.v,"running"))
+                throw wapi::bad_request_exception();
+        }
+        else if (!strcmp(n.k,"exit_code"))
+        {
+            exit_code = kernel::str_to<int>(n.v);
+            if (!(exit_code & 1))
                 throw wapi::bad_request_exception();
         }
         else
