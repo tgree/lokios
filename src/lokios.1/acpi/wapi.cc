@@ -55,8 +55,9 @@ struct sdt_node : public wapi::node
     const kernel::sdt_header* h;
     void handle_request(wapi::node* node, http::request* req, json::object* obj,
                         http::response* rsp);
-    inline sdt_node(const kernel::sdt_header* h, const char* name):
-        wapi::node(method_delegate(handle_request),METHOD_GET_MASK,
+    inline sdt_node(wapi::node* parent, const kernel::sdt_header* h,
+                    const char* name):
+        wapi::node(parent,method_delegate(handle_request),METHOD_GET_MASK,
                    "%s",name),
         h(h)
     {
@@ -430,19 +431,18 @@ sdt_node::handle_request(wapi::node* node, http::request* req,
 
 wapi::node kernel::acpi_node(func_delegate(acpi_request),METHOD_GET_MASK,
                              "acpi");
-static wapi::node rsdp_node(func_delegate(rsdp_request),METHOD_GET_MASK,"RSDP");
+static wapi::node rsdp_node(&kernel::acpi_node,func_delegate(rsdp_request),
+                            METHOD_GET_MASK,"RSDP");
 static kernel::obj_list<sdt_node> acpi_sdt_nodes;
 
 void
 kernel::init_acpi_wapi()
 {
-    acpi_node.register_child(&rsdp_node);
     for (auto* h : kernel::acpi_sdts)
     {
         char name[12];
         get_acpi_table_name(h,name);
-        auto iter = acpi_sdt_nodes.emplace_back(h,name);
-        acpi_node.register_child(&(*iter));
+        acpi_sdt_nodes.emplace_back(&acpi_node,h,name);
     }
 
     wapi::root_node.register_child(&kernel::acpi_node);
