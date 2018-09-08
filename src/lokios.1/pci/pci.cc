@@ -43,7 +43,7 @@ pci_dev_request(wapi::node* node, http::request* req, json::object* obj,
             // Device.
             rsp->printf("    \"bars\"                  : [ "
                         "\"0x%08X\", \"0x%08X\", \"0x%08X\", \"0x%08X\", "
-                        "\"0x%08X\", \"0x%08X\" ]\r\n"
+                        "\"0x%08X\", \"0x%08X\" ],\r\n"
                         "    \"cardbus_cis_ptr\"       : \"0x%08X\",\r\n"
                         "    \"subsystem_vendor_id\"   : \"0x%04X\",\r\n"
                         "    \"subsystem_id\"          : \"0x%04X\",\r\n"
