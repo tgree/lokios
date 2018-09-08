@@ -32,8 +32,9 @@ def test_pci_nodes(node):
     pci_root = node.get('/pci').jdict()
     domains  = [int(d, 16) for d in pci_root.domains]
     for d in domains:
-        domain_root = node.get('/pci/%04X' % d).jdict()
-        paths       = ['/pci/%04X' % d]
-        paths      += ['/pci/%04X/%s' % (d, dev.slot)
+        domain_path = '/pci/%04X' % d
+        domain_root = node.get(domain_path).jdict()
+        paths       = [domain_path, domain_path + '/cfg']
+        paths      += [domain_path + '/' + dev.slot
                        for dev in domain_root.devices]
         test_paths(node, paths)
