@@ -23,33 +23,31 @@ make -j5
 
 # Typical build/test cycle
 
-qemu comes preinstalled in the docker image, so you can just test your changes immediately from the command line.  This version of the qemu invocation sets up TCP forwarding on localhost ports 12345/6 into guest ports 12345/6.  This can be used to initiate a TCP connection from the docker container to the lokios kernel for testing purposes (say, by using the telnet tool to 12345 or issuing wapi operations on 12346):
+The easiest way to test your changes is by invoking the hammer.py script.  By default it will launch lokios.elf.mbr in a qemu process and then execute a batch of integration tests and finally exit back to the command line with a status code indicating success or failure.  You can also specify the --standalone option to omit running the integration tests and just leave the kernel running in that console instead - perfect for doing manual testing.  Finally, if you really care to invoke qemu by hand, it's recommended to use the hammer.py --command-line option to get a sane starting point and work from there.
 
 ```
-make -j && qemu-system-x86_64 -cpu qemu64,+popcnt -drive file=bin/lokios.elf.mbr,format=raw -smp 4 -nographic -device isa-debug-exit -device virtio-net-pci,netdev=net0,disable-legacy=on,disable-modern=off,vectors=4 -netdev user,id=net0,hostfwd=tcp::12345-:12345,hostfwd=tcp::12346-:12346 -object filter-dump,id=dump0,netdev=net0,file=net0dump.pcap -m 64M
+make -j && hammer/hammer.py --standalone
 ```
 
-To exit qemu: Type Ctrl-A X.  Or, if you are within tmux: Ctrl-A A X.
+To exit qemu in --standalone: Type Ctrl-A X.  Or, if you are within tmux: Ctrl-A A X.  Alternatively, you can always send a JSON command to set the '/' state to 'stopped'.
 
 # "Integration" tests
 
-By specifying an 'iTST' ACPI table entry when we invoke qemu, we can also tell the kernel to exit after initialization steps are complete.
+It used to be that you had to specify special ACPI tables and that the kernel would then run some built-in "integration" tests.  There are no longer any special ACPI tables and there are no longer any built-in tests; to run integration tests, invoke the hammer.py script:
 
 ```
-qemu-system-x86_64 -cpu qemu64,+popcnt -drive file=bin/lokios.elf.mbr,format=raw -nographic -device isa-debug-exit -smp 2 -acpitable sig=iTST,data=/dev/null -device virtio-net-pci,netdev=net0,disable-legacy=on,disable-modern=off,vectors=4 -netdev user,id=net0,hostfwd=tcp::12345-:12345 -object filter-dump,id=dump0,netdev=net0,file=net0dump.pcap -m 64M
+hammer/hammer.py
 ```
 
-An exit code of 3 indicates that the kernel successful ran and exited.  Any other exit code indicates a problem.  This functionality is used by the 'make_all' scripts found under the tools/ directory which can be used along with 'git rebase' to build each commit in a rebase and ensure that the kernel boots far enough for DHCP to work.
+This uses a standard exit code of 0 to indicate that all integration tests succeeded and a non-0 exit code if there were failures.  This functionality is used by the 'make_all' scripts found under the tools/ directory which can be used along with 'git rebase' to build each commit in a rebase and ensure that the kernel passes all unit and integration tests.
 
 # PXE booting inside QEMU
 
-qemu can also be used to test PXE-booting with qemu's built-in PXE server.  It is pretty slow to get link-up (10-20 seconds) though so it's not an ideal test environment.
+qemu can also be used to test PXE-booting with qemu's built-in PXE server.  It is pretty slow to get link-up (10-20 seconds) though so it's not an ideal test environment.  This is done by invoking hammer.py with the --pxe option:
 
 ```
-make -j && qemu-system-x86_64 -cpu qemu64,+popcnt -smp 4 -device isa-debug-exit -device virtio-net-pci,netdev=net0,disable-modern=off,vectors=4 -netdev user,id=net0,hostfwd=tcp::12345-:12345,tftp=bin/,bootfile=lokios.0 -object filter-dump,id=dump0,netdev=net0,file=net0dump.pcap -m 64M -boot n -nographic
+make -j && hammer/hammer.py --pxe
 ```
-
-You can also specify -curses instead of -nographic for the ugly ANSI VGA emulation.  Use Esc-1, Esc-2 and so on to switch consoles in this mode.
 
 # Preparing and booting from a USB key using Mac OS
 
