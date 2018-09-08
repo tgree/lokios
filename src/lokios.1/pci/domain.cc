@@ -35,8 +35,8 @@ kernel::pci::domain::domain(uint16_t id, uint8_t first_bus_num,
         first_bus_num(first_bus_num),
         last_bus_num(last_bus_num),
         cfg(cfg),
-        wapi_node(func_delegate(pci_domain_request),METHOD_GET_MASK,"%04X",id)
+        wapi_node(&kernel::pci::wapi_node,func_delegate(pci_domain_request),
+                  METHOD_GET_MASK,"%04X",id)
 {
     wapi_node.register_child(&cfg->wapi_node);
-    kernel::pci::wapi_node.register_child(&wapi_node);
 }
