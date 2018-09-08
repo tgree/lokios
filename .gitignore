@@ -8,8 +8,8 @@
 *.pcap
 *.out
 *.pyc
-build
-bin
-tests
+/build/
+/bin/
+/tests/
 timestamp.s
 tags
