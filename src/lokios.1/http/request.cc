@@ -2,24 +2,6 @@
 
 using kernel::_kassert;
 
-static uint64_t
-to_u64(const char* p)
-{
-    if (*p == '\0')
-        throw kernel::not_a_number_exception();
-
-    uint64_t val = 0;
-    while (*p)
-    {
-        if (!kisdigit(*p))
-            throw kernel::not_a_number_exception();
-        val *= 10;
-        val += *p - '0';
-        ++p;
-    }
-    return val;
-}
-
 void
 http::request::reset()
 {
@@ -151,7 +133,7 @@ http::request::read_more_header(const char* start, size_t rem)
         auto* n = headers.find_node("Content-Length");
         if (n)
         {
-            rem_content_length = to_u64(n->v);
+            rem_content_length = kernel::str_to<uint64_t>(n->v);
             state              = (rem_content_length ? PARSING_BODY : DONE);
         }
         else

@@ -2,13 +2,12 @@
 #define __KERNEL_KSTRING_H
 
 #include "k++/string_stream.h"
+#include "k++/strings.h"
 #include "mm/buddy_allocator.h"
 #include "hdr/chartype.h"
 
 namespace kernel
 {
-    struct not_a_number_exception {};
-
     class string : public string_stream
     {
         void grow(size_t n)
