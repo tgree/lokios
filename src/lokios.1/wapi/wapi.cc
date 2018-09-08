@@ -38,6 +38,20 @@ wapi::node::node(wapi::delegate handler, uint64_t method_mask,
     va_end(ap);
 }
 
+wapi::node::node(node* parent, wapi::delegate handler, uint64_t method_mask,
+    const char* fmt, ...):
+        parent(parent),
+        method_mask(method_mask),
+        handler(handler)
+{
+    va_list ap;
+    va_start(ap,fmt);
+    name.vprintf(fmt,ap);
+    va_end(ap);
+
+    parent->register_child(this);
+}
+
 void
 wapi::node::register_child(wapi::node* c)
 {

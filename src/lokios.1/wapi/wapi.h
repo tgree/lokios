@@ -39,6 +39,12 @@ namespace wapi
 
         node(wapi::delegate handler, uint64_t method_mask,
              const char* fmt, ...);
+
+        // Use with caution: the parent node must already have been initialized
+        // and this isn't necessarily guaranteed with cross-compilation unit
+        // globals!
+        node(node* parent, wapi::delegate handler, uint64_t method_mask,
+             const char* fmt, ...);
     };
 
     wapi::node* find_node_for_path(const char* path);

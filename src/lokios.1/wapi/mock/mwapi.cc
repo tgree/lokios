@@ -18,6 +18,16 @@ wapi::node::node(wapi::delegate handler, uint64_t method_mask,
     // in all of the k++ printf support.
 }
 
+wapi::node::node(wapi::node* parent, wapi::delegate handler,
+    uint64_t method_mask, const char* fmt, ...):
+        parent(parent),
+        method_mask(method_mask),
+        handler(handler)
+{
+    // Note: we don't fill in the name field since that would require pulling
+    // in all of the k++ printf support.
+}
+
 void
 wapi::node::register_child(wapi::node* c)
 {
