@@ -133,8 +133,15 @@ http::request::read_more_header(const char* start, size_t rem)
         auto* n = headers.find_node("Content-Length");
         if (n)
         {
-            rem_content_length = kernel::str_to<uint64_t>(n->v);
-            state              = (rem_content_length ? PARSING_BODY : DONE);
+            try
+            {
+                rem_content_length = kernel::str_to<uint64_t>(n->v);
+            }
+            catch (const kernel::not_a_number_exception&)
+            {
+                throw header_invalid_exception();
+            }
+            state = (rem_content_length ? PARSING_BODY : DONE);
         }
         else
             state = DONE;
