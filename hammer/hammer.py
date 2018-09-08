@@ -6,6 +6,8 @@ import argparse
 import sys
 import os
 
+import curses
+
 
 def spawn(image, port, command_line, pxe):
     # Spawn a qemu instance, letting it inherit all the file descriptors.
@@ -59,7 +61,7 @@ def run_hammer(n, timeout, live):
         return 11
 
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--standalone', action='store_true',
                         help="if set, start lokios but don't run tests")
@@ -110,3 +112,16 @@ if __name__ == '__main__':
         exit_code = 0
 
     sys.exit(exit_code)
+
+
+if __name__ == '__main__':
+    stdscr = curses.initscr()
+    curses.endwin()
+
+    try:
+        main()
+    finally:
+        curses.nocbreak()
+        stdscr.keypad(False)
+        curses.echo()
+        curses.endwin()
