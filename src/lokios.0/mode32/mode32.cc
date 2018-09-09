@@ -118,8 +118,10 @@ m32_entry(uint32_t flags)
     // Fetch the E820 entries.
     e820_io io;
     io.cookie = 0;
-    for (e820_iter(&io); io.cookie; e820_iter(&io))
+    do
     {
+        e820_iter(&io);
+
         m->entries[m->nentries++] = io.entry;
 
         assert(io.sig == 0x534D4150);
@@ -128,7 +130,7 @@ m32_entry(uint32_t flags)
                         io.entry.addr + io.entry.len - 1,io.entry.type);
         console::printf(" 0x%08X",io.entry.extended_attrs);
         console::printf("\n");
-    }
+    } while (io.cookie);
 
     // Initialize the kernel args.
     auto* kargs       = (kernel::kernel_args*)_kernel_params;
