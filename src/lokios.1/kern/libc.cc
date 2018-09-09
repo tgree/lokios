@@ -55,7 +55,7 @@ void* realloc(void* ptr, size_t size)
 
     // Allocate a new pointer.
     void* p = malloc(size);
-    memcpy(p,ptr,mc->len);
+    memcpy(p,ptr,MIN(size,mc->len));
     free(ptr);
     return p;
 }
