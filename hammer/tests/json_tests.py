@@ -19,6 +19,13 @@ def test_acpi_nodes(node):
 
 
 @integration_test.test
+def test_mm_nodes(node):
+    mm_root = node.get('/mm').jdict()
+    paths   = ['/mm/e820']
+    test_paths(node, paths)
+
+
+@integration_test.test
 def test_net_nodes(node):
     net_root   = node.get('/net').jdict()
     interfaces = [intf.name for intf in net_root.interfaces]

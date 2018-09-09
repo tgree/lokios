@@ -11,6 +11,7 @@ using kernel::console::printf;
 dma_addr64 kernel::zero_page_dma;
 dma_addr64 kernel::trash_page_dma;
 static uintptr_t top_addr;
+static const kernel::e820_map* e820_map;
 
 void
 kernel::preinit_mm(const e820_map* m, dma_addr64 bitmap_base)
@@ -23,9 +24,10 @@ kernel::preinit_mm(const e820_map* m, dma_addr64 bitmap_base)
     // Pre-initialize the page list.
     page_preinit(m,top_addr,bitmap_base);
     
-    // Set up the zero/trash pages.
+    // Set up the zero/trash pages and save the e820 map for wapi.
     zero_page_dma  = virt_to_phys(page_zalloc());
     trash_page_dma = virt_to_phys(page_zalloc());
+    ::e820_map     = m;
 }
 
 void
@@ -155,6 +157,29 @@ mm_request(wapi::node* node, http::request* req, json::object* obj,
                 kernel::kernel_task->pt.page_count);
 }
 
+void
+e820_request(wapi::node* node, http::request* req, json::object* obj,
+    http::response* rsp)
+{
+    // Get /mm/e820
+    char buf[22];
+    rsp->printf("{\r\n"
+                "    \"entries\" : [ ");
+    for (size_t i=0; i<::e820_map->nentries; ++i)
+    {
+        auto* e = &::e820_map->entries[i];
+        rsp->printf("\r\n        { \"base\" : \"0x%016lX\", "
+                    "\"len\" : \"0x%016lX\", \"attrs\" : \"0x%08X\", "
+                    "\"type\" : \"%s\" },",
+                    e->base,e->len,e->extended_attrs,
+                    kernel::get_e820_type_string(e->type,buf));
+    }
+    rsp->ks.shrink();
+    rsp->printf("\r\n        ]\r\n}\r\n");
+}
+
 static wapi::global_node mm_wapi_node(&wapi::root_node,
                                        func_delegate(mm_request),
                                        METHOD_GET_MASK,"mm");
+static wapi::node e820_wapi_node(&mm_wapi_node,func_delegate(e820_request),
+                                 METHOD_GET_MASK,"e820");
