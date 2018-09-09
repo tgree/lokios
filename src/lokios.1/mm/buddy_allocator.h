@@ -254,7 +254,7 @@ namespace kernel
     template<size_t Order>
     struct buddy_block
     {
-        static constexpr const size_t len = ((uint64_t)PAGE_SIZE << Order);
+        static constexpr const size_t len = buddy_len_for_order(Order);
         void* const addr;
         buddy_block():addr(buddy_alloc(Order)) {}
         ~buddy_block() {buddy_free(addr,Order);}
