@@ -60,6 +60,8 @@ namespace kernel
                 region_add(c,region{e->base,e->base + e->len - 1});
         }
     }
+
+    const char* get_e820_type_string(e820_type t, char (&buf)[22]);
 }
 
 inline bool operator<(const kernel::e820_entry& l,
