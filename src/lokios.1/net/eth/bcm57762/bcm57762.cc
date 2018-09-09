@@ -77,7 +77,7 @@ bcm57762::dev::dev(const kernel::pci::dev* pd, const bcm57762::driver* owner):
 
     // Map everything.
     regs = (registers*)map_bar(0,sizeof(registers));
-    mem  = (mem_block*)kernel::buddy_alloc(kernel::ulog2(sizeof(mem_block)));
+    mem  = (mem_block*)kernel::buddy_alloc_by_len(sizeof(mem_block));
     memset(mem->rx_page_table,0,sizeof(mem->rx_page_table));
 
     // Reset.
