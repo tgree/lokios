@@ -144,9 +144,8 @@ catch (const wapi::not_found_exception&)
 {
     // Node not found.  Recoverable.
     response.headerf("HTTP/1.1 404 Not Found\r\n"
-                     "Content-Length: 15\r\n"
-                     "\r\n"
-                     "404 Not Found\r\n");
+                     "Content-Length: 0\r\n"
+                     "\r\n");
 }
 catch (const wapi::bad_request_exception&)
 {
