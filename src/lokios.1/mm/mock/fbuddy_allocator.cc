@@ -8,7 +8,7 @@ size_t buddy_free_count;
 static std::unordered_map<dma_addr64,size_t>* order_map;
 
 dma_addr64
-kernel::buddy_palloc(size_t order)
+kernel::buddy_palloc_by_order(size_t order)
 {
     if (!order_map)
         order_map = new std::unordered_map<dma_addr64,size_t>();
@@ -23,7 +23,7 @@ kernel::buddy_palloc(size_t order)
 }
 
 void
-kernel::buddy_pfree(dma_addr64 d, size_t order)
+kernel::buddy_pfree_by_order(dma_addr64 d, size_t order)
 {
     kassert(((uintptr_t)d & ((1<<(order+12))-1)) == 0);
     auto iter = order_map->find(d);

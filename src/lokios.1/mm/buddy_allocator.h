@@ -188,8 +188,8 @@ namespace kernel
     };
 
     // Buddy physical allocators.
-    dma_addr64 buddy_palloc(size_t order);
-    void buddy_pfree(dma_addr64 d, size_t order);
+    dma_addr64 buddy_palloc_by_order(size_t order);
+    void buddy_pfree_by_order(dma_addr64 d, size_t order);
     void buddy_ppopulate(dma_addr64 d, size_t order);
 
     // Buddy virtual allocators.
@@ -219,27 +219,27 @@ namespace kernel
     KASSERT(buddy_len_for_order(0) == 4096);
     KASSERT(buddy_len_for_order(1) == 8192);
     KASSERT(buddy_len_for_order(2) == 16384);
-    inline void* buddy_alloc(size_t order)
+    inline void* buddy_alloc_by_order(size_t order)
     {
-        return kernel::phys_to_virt(buddy_palloc(order));
+        return kernel::phys_to_virt(buddy_palloc_by_order(order));
     }
     inline void* buddy_alloc_by_len(size_t len)
     {
-        return buddy_alloc(buddy_order_for_len(len));
+        return buddy_alloc_by_order(buddy_order_for_len(len));
     }
-    inline void* buddy_zalloc(size_t order)
+    inline void* buddy_zalloc_by_order(size_t order)
     {
-        void* p = buddy_alloc(order);
+        void* p = buddy_alloc_by_order(order);
         memset(p,0,1ULL<<(order+12));
         return p;
     }
-    inline void buddy_free(void* p, size_t order)
+    inline void buddy_free_by_order(void* p, size_t order)
     {
-        buddy_pfree(virt_to_phys(p),order);
+        buddy_pfree_by_order(virt_to_phys(p),order);
     }
     inline void buddy_free_by_len(void* p, size_t len)
     {
-        buddy_free(p,buddy_order_for_len(len));
+        buddy_free_by_order(p,buddy_order_for_len(len));
     }
     inline void buddy_populate(void* p, size_t order)
     {
@@ -256,8 +256,8 @@ namespace kernel
     {
         static constexpr const size_t len = buddy_len_for_order(Order);
         void* const addr;
-        buddy_block():addr(buddy_alloc(Order)) {}
-        ~buddy_block() {buddy_free(addr,Order);}
+        buddy_block():addr(buddy_alloc_by_order(Order)) {}
+        ~buddy_block() {buddy_free_by_order(addr,Order);}
     };
 }
 

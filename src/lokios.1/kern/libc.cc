@@ -27,7 +27,7 @@ void* malloc(size_t n) noexcept
 {
     n           += sizeof(malloc_chunk);
     size_t order = kernel::buddy_order_for_len(n);
-    auto* mc     = (malloc_chunk*)kernel::buddy_alloc(order);
+    auto* mc     = (malloc_chunk*)kernel::buddy_alloc_by_order(order);
     mc->sig      = MALLOC_ALLOC_SIG;
     mc->order    = order;
     mc->len      = n;
@@ -77,7 +77,7 @@ void free(void* p) noexcept
     auto* mc = container_of(p,malloc_chunk,data);
     kernel::kassert(mc->sig == MALLOC_ALLOC_SIG);
     mc->sig = MALLOC_FREE_SIG;
-    kernel::buddy_free(mc,mc->order);
+    kernel::buddy_free_by_order(mc,mc->order);
 }
 
 extern "C"

@@ -6,7 +6,7 @@ static kernel::spinlock                                 buddy_pages_lock;
 static kernel::deferred_global<kernel::buddy_allocator> buddy_pages;
 
 dma_addr64
-kernel::buddy_palloc(size_t order)
+kernel::buddy_palloc_by_order(size_t order)
 {
     with (buddy_pages_lock)
     {
@@ -15,7 +15,7 @@ kernel::buddy_palloc(size_t order)
 }
 
 void
-kernel::buddy_pfree(dma_addr64 d, size_t order)
+kernel::buddy_pfree_by_order(dma_addr64 d, size_t order)
 {
     kassert(((uintptr_t)d & ((1<<(order+12))-1)) == 0);
     with (buddy_pages_lock)
