@@ -21,7 +21,7 @@ kernel::vmmap(void* _vaddr, size_t len)
         {
             try
             {
-                paddr = virt_to_phys(buddy_alloc(18));
+                paddr = virt_to_phys(buddy_alloc_by_len(512*512*PAGE_SIZE));
                 npfns = 512*512;
             }
             catch (buddy_allocator_oom_exception&)
@@ -32,7 +32,7 @@ kernel::vmmap(void* _vaddr, size_t len)
         {
             try
             {
-                paddr = virt_to_phys(buddy_alloc(9));
+                paddr = virt_to_phys(buddy_alloc_by_len(512*PAGE_SIZE));
                 npfns = 512;
             }
             catch (buddy_allocator_oom_exception&)
@@ -41,7 +41,7 @@ kernel::vmmap(void* _vaddr, size_t len)
         }
         if (paddr == -1UL)
         {
-            paddr = virt_to_phys(buddy_alloc(0));
+            paddr = virt_to_phys(buddy_alloc_by_len(PAGE_SIZE));
             npfns = 1;
         }
         mmap((void*)vaddr,paddr,PAGE_SIZE*npfns,PAGE_FLAGS_DATA);
