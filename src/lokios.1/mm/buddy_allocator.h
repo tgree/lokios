@@ -86,7 +86,7 @@ namespace kernel
             return toggle_inuse_ppfn_bit(addr/PAGE_SIZE,order);
         }
 
-        inline void free_page(bpage* bp, size_t order)
+        inline void free_pages(bpage* bp, size_t order)
         {
             kassert(order <= params.M);
 
@@ -107,7 +107,7 @@ namespace kernel
 
             first->link.unlink();
             nfree_pages -= (2ULL<<order);
-            free_page(first,order+1);
+            free_pages(first,order+1);
         }
 
         inline void free_pages(dma_addr64 addr, size_t order)
@@ -116,7 +116,7 @@ namespace kernel
             kassert((addr & ((1ULL<<order)-1)) == 0);
 
             bpage* bp = new(phys_to_virt(addr)) bpage;
-            free_page(bp,order);
+            free_pages(bp,order);
         }
 
         inline dma_addr64 alloc_pages(size_t order)
