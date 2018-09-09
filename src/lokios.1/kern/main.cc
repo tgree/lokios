@@ -41,7 +41,6 @@ kernel_main(kernel::wqe* wqe)
     // Initialize the CPU and interrupts.
     kernel::init_ap_cpus();
     kernel::pci::init_pci();
-    net::init_net();
 
     // Banner.
     printf("Loki is rad\n");

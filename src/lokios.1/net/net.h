@@ -106,12 +106,10 @@ namespace net
     };
 
     extern kernel::kdlist<interface> interfaces;
-    extern wapi::node wapi_node;
+    extern wapi::global_node wapi_node;
 
     void register_interface(interface* intf);
     void deregister_interface(interface* intf);
-
-    void init_net();
 }
 
 #endif /* __KERNEL_NET_NET_H */

@@ -38,10 +38,5 @@ net_request(wapi::node* node, http::request* req, json::object* obj,
     rsp->printf("\r\n    ]\r\n}\r\n");
 }
 
-wapi::node net::wapi_node(func_delegate(net_request),METHOD_GET_MASK,"net");
-
-void
-net::init_net()
-{
-    wapi::root_node.register_child(&net::wapi_node);
-}
+wapi::global_node net::wapi_node(&wapi::root_node,func_delegate(net_request),
+                                 METHOD_GET_MASK,"net");
