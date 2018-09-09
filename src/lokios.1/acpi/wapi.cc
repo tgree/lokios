@@ -429,8 +429,9 @@ sdt_node::handle_request(wapi::node* node, http::request* req,
     rsp->printf("\r\n}\r\n");
 }
 
-wapi::node kernel::acpi_node(func_delegate(acpi_request),METHOD_GET_MASK,
-                             "acpi");
+wapi::global_node kernel::acpi_node(&wapi::root_node,
+                                    func_delegate(acpi_request),METHOD_GET_MASK,
+                                    "acpi");
 static wapi::node rsdp_node(&kernel::acpi_node,func_delegate(rsdp_request),
                             METHOD_GET_MASK,"RSDP");
 static kernel::obj_list<sdt_node> acpi_sdt_nodes;
@@ -444,6 +445,4 @@ kernel::init_acpi_wapi()
         get_acpi_table_name(h,name);
         acpi_sdt_nodes.emplace_back(&acpi_node,h,name);
     }
-
-    wapi::root_node.register_child(&kernel::acpi_node);
 }

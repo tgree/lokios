@@ -6,7 +6,7 @@
 
 namespace kernel
 {
-    extern wapi::node acpi_node;
+    extern wapi::global_node acpi_node;
 
     void init_acpi_wapi();
 }
