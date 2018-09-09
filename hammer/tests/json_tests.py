@@ -30,7 +30,10 @@ def test_net_nodes(node):
     net_root   = node.get('/net').jdict()
     interfaces = [intf.name for intf in net_root.interfaces]
     for intf in interfaces:
-        paths = ['/net/%s' % intf, '/net/%s/tcp' % intf]
+        intf_path = '/net/%s' % intf
+        paths = [intf_path,
+                 intf_path + '/arp',
+                 intf_path + '/tcp']
         test_paths(node, paths)
 
 

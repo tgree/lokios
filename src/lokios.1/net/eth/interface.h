@@ -33,8 +33,9 @@ namespace eth
         // DHCP client service.
         dhcp::client*       dhcpc;
 
-        // ARP service.
+        // ARP service and wapi node.
         arp::service<eth::net_traits,ipv4::net_traits>* arpc_ipv4;
+        wapi::node          arp_node;
 
         // For sending frames.
         virtual size_t  format_ll_reply(net::rx_page* p, void* ll_hdr,
@@ -57,6 +58,10 @@ namespace eth
 
         // Helpers.
         virtual void    dump_arp_table();
+                void    handle_arp_wapi_request(wapi::node* node,
+                                                http::request* req,
+                                                json::object* obj,
+                                                http::response* rsp);
         virtual void    handle_wapi_request(wapi::node* node,
                                             http::request* req,
                                             json::object* obj,

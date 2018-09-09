@@ -23,7 +23,9 @@ eth::interface::interface(const eth::addr& hw_mac, size_t tx_qlen,
     size_t rx_qlen, uint16_t tx_mtu, uint16_t rx_mtu):
         net::interface(tx_qlen,rx_qlen,tx_mtu,rx_mtu),
         hw_mac(hw_mac),
-        phy(NULL)
+        phy(NULL),
+        arp_node(&wapi_node,method_delegate(handle_arp_wapi_request),
+                 METHOD_GET_MASK,"arp")
 {
     intf_dbg("creating interface with MAC %02X:%02X:%02X:%02X:%02X:%02X\n",
              hw_mac[0],hw_mac[1],hw_mac[2],hw_mac[3],hw_mac[4],hw_mac[5]);
@@ -155,6 +157,23 @@ eth::interface::dump_arp_table()
                      e.v[0],e.v[1],e.v[2],e.v[3],e.v[4],e.v[5]);
         }
     }
+}
+
+void
+eth::interface::handle_arp_wapi_request(wapi::node* node, http::request* req,
+    json::object* obj, http::response* rsp)
+{
+    rsp->printf("{\r\n"
+                "    \"entries\" : { ");
+    for (auto& n : arpc_ipv4->arp_entries)
+    {
+        rsp->printf("\r\n        "
+                    "\"%u.%u.%u.%u\" : \"%02X:%02X:%02X:%02X:%02X:%02X\",",
+                    n.k[0],n.k[1],n.k[2],n.k[3],
+                    n.v[0],n.v[1],n.v[2],n.v[3],n.v[4],n.v[5]);
+    }
+    rsp->ks.shrink();
+    rsp->printf("\r\n        }\r\n}\r\n");
 }
 
 void

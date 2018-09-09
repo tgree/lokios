@@ -8,7 +8,8 @@ eth::interface::interface(const eth::addr& hw_mac, size_t tx_qlen,
     size_t rx_qlen, uint16_t tx_mtu, uint16_t rx_mtu):
         net::interface(tx_qlen,rx_qlen,tx_mtu,rx_mtu),
         hw_mac(hw_mac),
-        phy(NULL)
+        phy(NULL),
+        arp_node(method_delegate(handle_arp_wapi_request),METHOD_GET_MASK,"arp")
 {
     dhcpc = new dhcp::client(this);
     arpc_ipv4 = new arp::service<eth::net_traits,ipv4::net_traits>(this);
@@ -59,6 +60,13 @@ void
 eth::interface::dump_arp_table()
 {
     mock("eth::interface::dump_arp_table");
+}
+
+void
+eth::interface::handle_arp_wapi_request(wapi::node* node, http::request* req,
+    json::object* obj, http::response* rsp)
+{
+    mock("eth::interface::handle_arp_wapi_request",node,req,obj,rsp);
 }
 
 void
