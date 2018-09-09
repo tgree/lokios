@@ -68,6 +68,7 @@ namespace kernel
         const size_t                    first_ppfn;
         const size_t                    last_ppfn;
         size_t                          nfree_pages;
+        size_t                          total_pages;
 
         inline bool toggle_inuse_ppfn_bit(size_t ppfn, size_t order)
         {
@@ -84,6 +85,21 @@ namespace kernel
         inline bool toggle_inuse_paddr_bit(dma_addr64 addr, size_t order)
         {
             return toggle_inuse_ppfn_bit(addr/PAGE_SIZE,order);
+        }
+
+        inline void populate_pages(bpage* bp, size_t order)
+        {
+            total_pages += (1ULL<<order);
+            free_pages(bp,order);
+        }
+
+        inline void populate_pages(dma_addr64 addr, size_t order)
+        {
+            kassert(order <= params.M);
+            kassert((addr & ((1ULL<<order)-1)) == 0);
+
+            bpage* bp = new(phys_to_virt(addr)) bpage;
+            populate_pages(bp,order);
         }
 
         inline void free_pages(bpage* bp, size_t order)
@@ -163,7 +179,8 @@ namespace kernel
             virt_base((bpage*)phys_to_virt_maybe_0(params.B)),
             first_ppfn(dma_base/PAGE_SIZE),
             last_ppfn((dma_base + len - 1)/PAGE_SIZE),
-            nfree_pages(0)
+            nfree_pages(0),
+            total_pages(0)
         {
             kassert(params.M <= BUDDY_ALLOCATOR_MAX_ORDER);
             memset(inuse_bitmask,0xFF,params.get_inuse_bitmask_size());
@@ -173,6 +190,7 @@ namespace kernel
     // Buddy physical allocators.
     dma_addr64 buddy_palloc(size_t order);
     void buddy_pfree(dma_addr64 d, size_t order);
+    void buddy_ppopulate(dma_addr64 d, size_t order);
 
     // Buddy virtual allocators.
     constexpr size_t buddy_order_for_len(size_t len)
@@ -208,8 +226,13 @@ namespace kernel
     {
         buddy_pfree(virt_to_phys(p),order);
     }
+    inline void buddy_populate(void* p, size_t order)
+    {
+        buddy_ppopulate(virt_to_phys(p),order);
+    }
 
     size_t buddy_count_free();
+    size_t buddy_count_total();
 
     size_t buddy_init(dma_addr64 dma_base, size_t len, dma_addr64 bitmap_base);
 

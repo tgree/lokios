@@ -24,10 +24,26 @@ kernel::buddy_pfree(dma_addr64 d, size_t order)
     }
 }
 
+void
+kernel::buddy_ppopulate(dma_addr64 d, size_t order)
+{
+    kassert(((uintptr_t)d & ((1<<(order+12))-1)) == 0);
+    with (buddy_pages_lock)
+    {
+        buddy_pages->populate_pages(d,order);
+    }
+}
+
 size_t
 kernel::buddy_count_free()
 {
     return buddy_pages->nfree_pages;
+}
+
+size_t
+kernel::buddy_count_total()
+{
+    return buddy_pages->total_pages;
 }
 
 size_t

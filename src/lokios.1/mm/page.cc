@@ -70,7 +70,7 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr,
             continue;
 
         for (uint64_t pfn = begin_pfn; pfn != end_pfn; ++pfn)
-            buddy_free(phys_to_virt(pfn*PAGE_SIZE),0);
+            buddy_populate(phys_to_virt(pfn*PAGE_SIZE),0);
     }
 }
 
@@ -123,7 +123,7 @@ kernel::page_init(const e820_map* m, uint64_t top_addr)
                 kernel_task->pt.map_4k_page((void*)vaddr,paddr,PAGE_FLAGS_DATA);
                 npfns = 1;
             }
-            buddy_free(phys_to_virt(paddr),ulog2(npfns));
+            buddy_populate(phys_to_virt(paddr),ulog2(npfns));
 
             pfn      += npfns;
             rem_pfns -= npfns;
