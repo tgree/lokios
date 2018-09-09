@@ -240,11 +240,12 @@ _a20_enable_int15h:
 e820_iter:
 .code32
     push    %ebx
+    push    %edi
 
     call    _mode_switch_real_and_write_dot_code16_after_this_line
 .code16
 
-    mov     8(%esp), %edi
+    mov     12(%esp), %edi
     mov     $0x0000E820, %eax
     mov     4(%edi), %ebx
     mov     $24, %ecx
@@ -253,7 +254,7 @@ e820_iter:
     movl    $1, 20(%edi)
     int     $0x15
 
-    mov     8(%esp), %edi
+    mov     12(%esp), %edi
     mov     %eax, 0(%edi)
     mov     %ebx, 4(%edi)
     jnc     .L_E820_no_carry
@@ -266,6 +267,7 @@ e820_iter:
     call    _mode_switch_protected_and_write_dot_code32_after_this_line
 .code32
 
+    pop     %edi
     pop     %ebx
 
     ret
