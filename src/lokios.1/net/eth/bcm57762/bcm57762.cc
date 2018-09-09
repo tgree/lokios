@@ -86,7 +86,7 @@ bcm57762::dev::dev(const kernel::pci::dev* pd, const bcm57762::driver* owner):
 
 bcm57762::dev::~dev()
 {
-    kernel::buddy_free(mem,kernel::ulog2(sizeof(mem_block)));
+    kernel::buddy_free_by_len(mem,sizeof(mem_block));
 }
 
 void
