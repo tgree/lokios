@@ -109,8 +109,8 @@ namespace hash
             kernel::kassert(kernel::is_pow2(n));
             kernel::kassert(n >= PAGE_SIZE/sizeof(bins[0]));
 
-            size_t order = kernel::ulog2(n*sizeof(bins[0])) - 12;
-            auto* b      = (typeof(bins))kernel::buddy_alloc(order);
+            size_t len = n*sizeof(bins[0]);
+            auto* b    = (typeof(bins))kernel::buddy_alloc_by_len(len);
             return new(b) kernel::kdlist<node>[n];
         }
 
@@ -122,8 +122,7 @@ namespace hash
             for (size_t i=0; i<n; ++i)
                 b[i].~kdlist();
 
-            size_t order = kernel::ulog2(n*sizeof(bins[0])) - 12;
-            kernel::buddy_free(b,order);
+            kernel::buddy_free_by_len(b,n*sizeof(bins[0]));
         }
 
         static void bin_transfer(typeof(bins) old_bins, size_t old_nbins,
