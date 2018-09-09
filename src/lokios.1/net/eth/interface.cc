@@ -168,8 +168,8 @@ eth::interface::handle_wapi_request(wapi::node* node, http::request* req,
                 "    \"subnet_mask\" : \"%u.%u.%u.%u\",\r\n"
                 "    \"gateway_ip\"  : \"%u.%u.%u.%u\",\r\n"
                 "    \"dns_ip\"      : \"%u.%u.%u.%u\",\r\n"
-                "    \"tx_mtu\"      : \"%u\",\r\n"
-                "    \"rx_mtu\"      : \"%u\",",
+                "    \"tx_mtu\"      : %u,\r\n"
+                "    \"rx_mtu\"      : %u,\r\n",
                 hw_mac[0],hw_mac[1],hw_mac[2],hw_mac[3],hw_mac[4],hw_mac[5],
                 ip_addr[0],ip_addr[1],ip_addr[2],ip_addr[3],
                 dhcpc->subnet_mask[0],dhcpc->subnet_mask[1],
