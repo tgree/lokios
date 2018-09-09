@@ -10,13 +10,13 @@ using kernel::console::printf;
 void*
 kernel::page_alloc()
 {
-    return buddy_alloc(0);
+    return buddy_alloc_by_len(PAGE_SIZE);
 }
 
 void
 kernel::page_free(void* p)
 {
-    buddy_free(p,0);
+    buddy_free_by_len(p,PAGE_SIZE);
 }
 
 size_t
