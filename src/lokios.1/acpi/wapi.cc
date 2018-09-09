@@ -326,7 +326,7 @@ mcfg_request(const kernel::sdt_header* _h, const char* name,
     size_t entries_len = h->hdr.length - sizeof(*h);
     size_t nentries    = entries_len/sizeof(kernel::mcfg_entry);
     rsp->printf(",\r\n"
-                "    \"entries\" : [");
+                "    \"entries\" : [ ");
     for (size_t i=0; i<nentries; ++i)
     {
         auto* e = &h->entries[i];
