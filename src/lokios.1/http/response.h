@@ -29,8 +29,8 @@ namespace http
         void reset(kernel::delegate<void(tcp::send_op*)> send_cb =
                    func_delegate(send_noop_cb));
 
-        void printf(const char* fmt, ...);
-        void headerf(const char* fmt, ...);
+        void printf(const char* fmt, ...) __PRINTF__(2,3);
+        void headerf(const char* fmt, ...) __PRINTF__(2,3);
 
         tcp::send_op* send(tcp::socket* s);
 
