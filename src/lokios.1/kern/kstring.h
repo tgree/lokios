@@ -6,6 +6,8 @@
 #include "mm/buddy_allocator.h"
 #include "hdr/chartype.h"
 
+#define MIN_KSTRING_CAPACITY    4096UL
+
 namespace kernel
 {
     class string : public string_stream
@@ -13,8 +15,7 @@ namespace kernel
         void grow(size_t n)
         {
             size_t new_strsize = strlen() + n + 1;
-            size_t new_len = (new_strsize < PAGE_SIZE ? PAGE_SIZE :
-                              ceil_pow2(new_strsize));
+            size_t new_len = ceil_pow2(MAX(MIN_KSTRING_CAPACITY,new_strsize));
 
             if (len)
             {
@@ -121,7 +122,8 @@ namespace kernel
         {
         }
         inline string(const char* fmt, ...):
-            string_stream((char*)buddy_alloc_by_len(PAGE_SIZE),PAGE_SIZE)
+            string_stream((char*)buddy_alloc_by_len(MIN_KSTRING_CAPACITY),
+                          MIN_KSTRING_CAPACITY)
         {
             va_list ap;
             va_start(ap,fmt);
