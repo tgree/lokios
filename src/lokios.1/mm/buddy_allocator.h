@@ -216,6 +216,10 @@ namespace kernel
     {
         return kernel::phys_to_virt(buddy_palloc(order));
     }
+    inline void* buddy_alloc_by_len(size_t len)
+    {
+        return buddy_alloc(buddy_order_for_len(len));
+    }
     inline void* buddy_zalloc(size_t order)
     {
         void* p = buddy_alloc(order);
@@ -225,6 +229,10 @@ namespace kernel
     inline void buddy_free(void* p, size_t order)
     {
         buddy_pfree(virt_to_phys(p),order);
+    }
+    inline void buddy_free_by_len(void* p, size_t len)
+    {
+        buddy_free(p,buddy_order_for_len(len));
     }
     inline void buddy_populate(void* p, size_t order)
     {
