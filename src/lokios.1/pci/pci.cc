@@ -54,7 +54,7 @@ pci_dev_request(wapi::node* node, http::request* req, json::object* obj,
                         "    \"interrupt_line\"        : \"0x%02X\",\r\n"
                         "    \"interrupt_pin\"         : \"0x%02X\",\r\n"
                         "    \"min_gnt\"               : \"0x%02X\",\r\n"
-                        "    \"max_lat\"               : \"0x%02X\"\r\n",
+                        "    \"max_lat\"               : \"0x%02X\"",
                         pd->config_read_32(16),pd->config_read_32(20),
                         pd->config_read_32(24),pd->config_read_32(28),
                         pd->config_read_32(32),pd->config_read_32(36),
@@ -63,6 +63,23 @@ pci_dev_request(wapi::node* node, http::request* req, json::object* obj,
                         pd->config_read_8(52),pd->config_read_8(60),
                         pd->config_read_8(61),pd->config_read_8(62),
                         pd->config_read_8(63));
+            if (pd->msix_nvecs)
+            {
+                rsp->printf(",\r\n    \"msix\"             : [ ");
+                for (size_t i=0; i<pd->msix_nvecs; ++i)
+                {
+                    rsp->printf("\r\n        { \"addr\" : \"0x%08X%08X\", "
+                                "\"data\" : \"0x%08X\", "
+                                "\"vector_control\" : \"0x%08X\" },",
+                                pd->msix_table[i].msg_addr_high,
+                                pd->msix_table[i].msg_addr_low,
+                                pd->msix_table[i].msg_data,
+                                pd->msix_table[i].vector_control);
+                }
+                rsp->ks.shrink();
+                rsp->printf("\r\n        ]");
+            }
+            rsp->printf("\r\n");
         break;
 
         case 0x01:
