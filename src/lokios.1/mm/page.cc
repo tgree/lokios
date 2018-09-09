@@ -20,6 +20,12 @@ kernel::page_free(void* p)
 }
 
 size_t
+kernel::page_count_total()
+{
+    return buddy_count_total();
+}
+
+size_t
 kernel::page_count_free()
 {
     return buddy_count_free();

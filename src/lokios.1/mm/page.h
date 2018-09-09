@@ -28,6 +28,8 @@ namespace kernel
         return p;
     }
     void page_free(void*);
+
+    size_t page_count_total();
     size_t page_count_free();
 
     struct page_allocator
