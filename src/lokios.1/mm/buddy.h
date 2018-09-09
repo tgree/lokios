@@ -5,6 +5,9 @@
 #include "kern/cxx_exception.h"
 #include <string.h>
 
+#define BUDDY_PAGE_SIZE_LOG2    12U
+#define BUDDY_PAGE_SIZE         (1UL << BUDDY_PAGE_SIZE_LOG2)
+
 namespace kernel
 {
     struct buddy_oom_exception : public kernel::message_exception
@@ -16,30 +19,30 @@ namespace kernel
     // Buddy helpers.
     constexpr size_t buddy_order_for_len(size_t len)
     {
-        if (len <= 4096)
+        if (len <= BUDDY_PAGE_SIZE)
             return 0;
-        return ulog2(ceil_pow2(len)) - 12;
+        return ulog2(ceil_pow2(len)) - BUDDY_PAGE_SIZE_LOG2;
     }
     constexpr size_t buddy_len_for_order(size_t order)
     {
-        return (4096 << order);
+        return (BUDDY_PAGE_SIZE << order);
     }
-    KASSERT(buddy_order_for_len(10)    == 0);
-    KASSERT(buddy_order_for_len(4095)  == 0);
-    KASSERT(buddy_order_for_len(4096)  == 0);
-    KASSERT(buddy_order_for_len(4097)  == 1);
-    KASSERT(buddy_order_for_len(8191)  == 1);
-    KASSERT(buddy_order_for_len(8192)  == 1);
-    KASSERT(buddy_order_for_len(8193)  == 2);
-    KASSERT(buddy_order_for_len(16383) == 2);
-    KASSERT(buddy_order_for_len(16384) == 2);
-    KASSERT(buddy_order_for_len(16385) == 3);
-    KASSERT(buddy_order_for_len(32767) == 3);
-    KASSERT(buddy_order_for_len(32768) == 3);
-    KASSERT(buddy_order_for_len(32769) == 4);
-    KASSERT(buddy_len_for_order(0) == 4096);
-    KASSERT(buddy_len_for_order(1) == 8192);
-    KASSERT(buddy_len_for_order(2) == 16384);
+    KASSERT(buddy_order_for_len(0*BUDDY_PAGE_SIZE+1)  == 0);
+    KASSERT(buddy_order_for_len(1*BUDDY_PAGE_SIZE-1)  == 0);
+    KASSERT(buddy_order_for_len(1*BUDDY_PAGE_SIZE)    == 0);
+    KASSERT(buddy_order_for_len(1*BUDDY_PAGE_SIZE+1)  == 1);
+    KASSERT(buddy_order_for_len(2*BUDDY_PAGE_SIZE-1)  == 1);
+    KASSERT(buddy_order_for_len(2*BUDDY_PAGE_SIZE)    == 1);
+    KASSERT(buddy_order_for_len(2*BUDDY_PAGE_SIZE+1)  == 2);
+    KASSERT(buddy_order_for_len(4*BUDDY_PAGE_SIZE-1)  == 2);
+    KASSERT(buddy_order_for_len(4*BUDDY_PAGE_SIZE)    == 2);
+    KASSERT(buddy_order_for_len(4*BUDDY_PAGE_SIZE+1)  == 3);
+    KASSERT(buddy_order_for_len(8*BUDDY_PAGE_SIZE-1)  == 3);
+    KASSERT(buddy_order_for_len(8*BUDDY_PAGE_SIZE)    == 3);
+    KASSERT(buddy_order_for_len(8*BUDDY_PAGE_SIZE+1)  == 4);
+    KASSERT(buddy_len_for_order(0) == BUDDY_PAGE_SIZE*1);
+    KASSERT(buddy_len_for_order(1) == BUDDY_PAGE_SIZE*2);
+    KASSERT(buddy_len_for_order(2) == BUDDY_PAGE_SIZE*4);
 
     // Buddy physical allocators - everything boils down to these.
     dma_addr64 buddy_palloc_by_order(size_t order);
@@ -58,7 +61,7 @@ namespace kernel
     inline void* buddy_zalloc_by_order(size_t order)
     {
         void* p = buddy_alloc_by_order(order);
-        memset(p,0,1ULL<<(order+12));
+        memset(p,0,1ULL<<(order+BUDDY_PAGE_SIZE_LOG2));
         return p;
     }
     inline void buddy_free_by_order(void* p, size_t order)

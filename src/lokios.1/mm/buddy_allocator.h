@@ -10,8 +10,11 @@
 
 namespace kernel
 {
+    template<size_t BPAGE_SIZE_LOG2>
     struct buddy_allocator_params
     {
+        static constexpr const size_t bpage_size_log2 = BPAGE_SIZE_LOG2;
+        static constexpr const size_t bpage_size      = (1ULL<<bpage_size_log2);
         const size_t        L;
         const size_t        k;
         const dma_addr64    B;
@@ -32,31 +35,35 @@ namespace kernel
 
         constexpr size_t index_for_paddr(dma_addr64 a, size_t order) const
         {
-            return index_for_ppfn(a/PAGE_SIZE,order);
+            return index_for_ppfn(a >> bpage_size_log2,order);
         }
 
         constexpr buddy_allocator_params(dma_addr64 dma_base, size_t len):
             L(ceil_pow2(len)),
             k(ulog2(L)),
             B(round_down_to_nearest_multiple(dma_base,L)),
-            Bppfn(B/PAGE_SIZE),
+            Bppfn(B >> bpage_size_log2),
             E(round_up_to_nearest_multiple(dma_base+len,L)),
-            M(k - 12 + (E == (B + 2*L)))
+            M(k - bpage_size_log2 + (E == (B + 2*L)))
         {
         }
     };
 
-    template<typename OOMException>
+    template<size_t BPAGE_SIZE_LOG2, typename OOMException>
     struct buddy_allocator
     {
+        static constexpr const size_t bpage_size_log2 = BPAGE_SIZE_LOG2;
+        static constexpr const size_t bpage_size      = (1ULL<<bpage_size_log2);
+        KASSERT(bpage_size > sizeof(kernel::kdlink));
+
         struct bpage
         {
             kernel::kdlink  link;
-            char            data[4076];
+            char            data[bpage_size - sizeof(kernel::kdlink)];
         };
-        KASSERT(sizeof(bpage) == PAGE_SIZE);
+        KASSERT(sizeof(bpage) == bpage_size);
 
-        const buddy_allocator_params    params;
+        const buddy_allocator_params<bpage_size_log2> params;
         uint8_t* const                  inuse_bitmask;
         bpage*                          virt_base;
         kernel::kdlist_leaks<bpage>     order_list[BUDDY_ALLOCATOR_MAX_ORDER];
@@ -79,7 +86,7 @@ namespace kernel
 
         inline bool toggle_inuse_paddr_bit(dma_addr64 addr, size_t order)
         {
-            return toggle_inuse_ppfn_bit(addr/PAGE_SIZE,order);
+            return toggle_inuse_ppfn_bit(addr/bpage_size,order);
         }
 
         inline void populate_pages(bpage* bp, size_t order)
@@ -101,7 +108,7 @@ namespace kernel
         {
             kassert(order <= params.M);
 
-            size_t ppfn = virt_to_phys(bp)/PAGE_SIZE;
+            size_t ppfn = virt_to_phys(bp)/bpage_size;
             kassert(first_ppfn <= ppfn);
             kassert(ppfn <= last_ppfn);
 
@@ -110,7 +117,8 @@ namespace kernel
             if (!toggle_inuse_ppfn_bit(ppfn,order))
                 return;
 
-            bpage* bp2    = (bpage*)((uintptr_t)bp ^ (1ULL << (order+12)));
+            bpage* bp2    = (bpage*)((uintptr_t)bp ^
+                                     (1ULL << (order+bpage_size_log2)));
             bpage* first  = MIN(bp,bp2);
             bpage* second = MAX(bp,bp2);
             second->link.unlink();
@@ -156,7 +164,7 @@ namespace kernel
                 // return false.
                 paddr             = alloc_pages(order+1);
                 nfree_pages      += (2ULL<<order);
-                dma_addr64 bpaddr = (paddr ^ (1ULL << (order+12)));
+                dma_addr64 bpaddr = (paddr ^ (1ULL << (order+bpage_size_log2)));
                 bpage* bbp        = new(phys_to_virt(bpaddr)) bpage;
                 order_list[order].push_front(&bbp->link);
                 kassert(!toggle_inuse_paddr_bit(paddr,order));
@@ -172,8 +180,8 @@ namespace kernel
             params(dma_base,len),
             inuse_bitmask((uint8_t*)inuse_bitmask),
             virt_base((bpage*)phys_to_virt_maybe_0(params.B)),
-            first_ppfn(dma_base/PAGE_SIZE),
-            last_ppfn((dma_base + len - 1)/PAGE_SIZE),
+            first_ppfn(dma_base/bpage_size),
+            last_ppfn((dma_base + len - 1)/bpage_size),
             nfree_pages(0),
             total_pages(0)
         {

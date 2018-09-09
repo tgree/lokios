@@ -64,19 +64,20 @@ kernel::page_preinit(const e820_map* m, uint64_t top_addr,
     size_t bitmap_len = buddy_init(0,last_dma,bitmap_base);
 
     // Remove all pages below the end of the buddy bitmap.
-    dma_addr64 bitmap_end = round_up_pow2(bitmap_base+bitmap_len,PAGE_SIZE);
+    dma_addr64 bitmap_end = round_up_pow2(bitmap_base+bitmap_len,
+                                          BUDDY_PAGE_SIZE);
     region_remove(usable_regions,0,bitmap_end);
 
     // Add all remaining pages to the buddy allocator.
     for (auto& r : usable_regions)
     {
-        uint64_t begin_pfn = ceil_div(r.first,PAGE_SIZE);
-        uint64_t end_pfn   = floor_div(r.last+1,PAGE_SIZE);
+        uint64_t begin_pfn = ceil_div(r.first,BUDDY_PAGE_SIZE);
+        uint64_t end_pfn   = floor_div(r.last+1,BUDDY_PAGE_SIZE);
         if (begin_pfn > end_pfn)
             continue;
 
         for (uint64_t pfn = begin_pfn; pfn != end_pfn; ++pfn)
-            buddy_populate(phys_to_virt(pfn*PAGE_SIZE),0);
+            buddy_populate(phys_to_virt(pfn*BUDDY_PAGE_SIZE),0);
     }
 }
 
@@ -98,10 +99,12 @@ kernel::page_init(const e820_map* m, uint64_t top_addr)
     // Now we are going to map all of the remaining free RAM into the
     // 0xFFFF800000000000 area.
     bool gp = (get_current_cpu()->flags & CPU_FLAG_PAGESIZE_1G);
+    size_t huge_pfns = HPAGE_SIZE/BUDDY_PAGE_SIZE;
+    size_t giga_pfns = GPAGE_SIZE/BUDDY_PAGE_SIZE;
     for (auto& r : free_regions)
     {
-        uint64_t begin_pfn = ceil_div(r.first,PAGE_SIZE);
-        uint64_t end_pfn   = floor_div(r.last+1,PAGE_SIZE);
+        uint64_t begin_pfn = ceil_div(r.first,BUDDY_PAGE_SIZE);
+        uint64_t end_pfn   = floor_div(r.last+1,BUDDY_PAGE_SIZE);
         if (begin_pfn > end_pfn)
             continue;
 
@@ -109,24 +112,30 @@ kernel::page_init(const e820_map* m, uint64_t top_addr)
         uint64_t rem_pfns  = end_pfn - begin_pfn;
         for (uint64_t pfn = begin_pfn; rem_pfns;)
         {
-            uint64_t paddr    = pfn*PAGE_SIZE;
+            uint64_t paddr    = pfn*BUDDY_PAGE_SIZE;
             uint64_t vaddr    = 0xFFFF800000000000UL | paddr;
             kassert((paddr & 0xFFFF800000000000UL) == 0);
 
             size_t npfns;
-            if (gp && !(paddr & GPAGE_OFFSET_MASK) && rem_pfns >= 512*512)
+            if (gp && !(paddr & GPAGE_OFFSET_MASK) && rem_pfns >= giga_pfns)
             {
                 kernel_task->pt.map_1g_page((void*)vaddr,paddr,PAGE_FLAGS_DATA);
-                npfns = 512*512;
+                npfns = giga_pfns;
             }
-            else if (!(paddr & HPAGE_OFFSET_MASK) && rem_pfns >= 512)
+            else if (!(paddr & HPAGE_OFFSET_MASK) && rem_pfns >= huge_pfns)
             {
                 kernel_task->pt.map_2m_page((void*)vaddr,paddr,PAGE_FLAGS_DATA);
-                npfns = 512;
+                npfns = huge_pfns;
             }
             else
             {
-                kernel_task->pt.map_4k_page((void*)vaddr,paddr,PAGE_FLAGS_DATA);
+                KASSERT(BUDDY_PAGE_SIZE >= PAGE_SIZE);
+                for (size_t i=0; i<BUDDY_PAGE_SIZE/PAGE_SIZE; ++i)
+                {
+                    kernel_task->pt.map_4k_page((char*)vaddr + i*PAGE_SIZE,
+                                                paddr + i*PAGE_SIZE,
+                                                PAGE_FLAGS_DATA);
+                }
                 npfns = 1;
             }
             buddy_populate(phys_to_virt(paddr),ulog2(npfns));
