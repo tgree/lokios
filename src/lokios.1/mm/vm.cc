@@ -54,5 +54,6 @@ kernel::vmmap(void* _vaddr, size_t len)
 void
 kernel::vmunmap(void* vaddr, size_t len)
 {
+    // TODO: Ummmm.. this isn't freeing any of the buddy pages.
     munmap(vaddr,len);
 }
