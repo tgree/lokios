@@ -22,7 +22,7 @@ KASSERT(offsetof(malloc_chunk,data) % 16 == 0);
 extern "C"
 void* malloc(size_t n) noexcept
 {
-    n           += sizeof(size_t);
+    n           += sizeof(malloc_chunk);
     size_t order = kernel::buddy_order_for_len(n);
     auto* mc     = (malloc_chunk*)kernel::buddy_alloc(order);
     mc->len      = n;
