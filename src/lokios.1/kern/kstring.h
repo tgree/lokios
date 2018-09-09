@@ -12,25 +12,24 @@ namespace kernel
     {
         void grow(size_t n)
         {
+            size_t new_strsize = strlen() + n + 1;
+            size_t new_len = (new_strsize < PAGE_SIZE ? PAGE_SIZE :
+                              ceil_pow2(new_strsize));
+
             if (len)
             {
-                size_t old_order = buddy_order_for_len(len);
-                size_t new_order = buddy_order_for_len(strlen() + n + 1);
-                char* p          = (char*)buddy_alloc(new_order);
+                char* p = (char*)buddy_alloc_by_len(new_len);
                 kassert(p);
                 memcpy(p,base,strlen()+1);
-                buddy_free(base,old_order);
+                buddy_free_by_len(base,len);
 
                 pos  = p + (pos - base);
                 base = p;
-                len  = (PAGE_SIZE << new_order);
             }
             else
-            {
-                size_t order = buddy_order_for_len(n + 1);
-                base = pos = (char*)buddy_alloc(order);
-                len = (PAGE_SIZE << order);
-            }
+                base = pos = (char*)buddy_alloc_by_len(new_len);
+
+            len = new_len;
         }
 
         virtual void _putc(char c)
@@ -122,7 +121,7 @@ namespace kernel
         {
         }
         inline string(const char* fmt, ...):
-            string_stream((char*)buddy_alloc(0),PAGE_SIZE)
+            string_stream((char*)buddy_alloc_by_len(PAGE_SIZE),PAGE_SIZE)
         {
             va_list ap;
             va_start(ap,fmt);
@@ -132,10 +131,7 @@ namespace kernel
         inline ~string()
         {
             if (len)
-            {
-                size_t order = buddy_order_for_len(len);
-                buddy_free(base,order);
-            }
+                buddy_free_by_len(base,len);
         }
 
         friend class ::tmock_test;
