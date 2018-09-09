@@ -1,4 +1,5 @@
-#include "../buddy_allocator.h"
+#include "../buddy.h"
+#include "mm/page.h"
 #include <stdlib.h>
 #include <unordered_map>
 

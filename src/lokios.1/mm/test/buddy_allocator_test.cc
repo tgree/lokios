@@ -1,9 +1,11 @@
 #include "../buddy_allocator.h"
+#include "../buddy.h"
 #include <tmock/tmock.h>
 
 using kernel::_kassert;
-using kernel::buddy_allocator;
 using kernel::buddy_allocator_params;
+
+typedef kernel::buddy_allocator<kernel::buddy_oom_exception> buddy_allocator;
 
 class tmock_test
 {
@@ -234,9 +236,9 @@ class tmock_test
         try
         {
             ba.alloc_pages(0);
-            tmock::abort("didn't throw buddy_allocator_oom_exception");
+            tmock::abort("didn't throw buddy_oom_exception");
         }
-        catch (kernel::buddy_allocator_oom_exception&)
+        catch (kernel::buddy_oom_exception&)
         {
         }
     }

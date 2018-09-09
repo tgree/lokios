@@ -1,6 +1,6 @@
 #include "vm.h"
 #include "page.h"
-#include "buddy_allocator.h"
+#include "buddy.h"
 #include "kern/cpu.h"
 
 void
@@ -24,7 +24,7 @@ kernel::vmmap(void* _vaddr, size_t len)
                 paddr = virt_to_phys(buddy_alloc_by_len(512*512*PAGE_SIZE));
                 npfns = 512*512;
             }
-            catch (buddy_allocator_oom_exception&)
+            catch (buddy_oom_exception&)
             {
             }
         }
@@ -35,7 +35,7 @@ kernel::vmmap(void* _vaddr, size_t len)
                 paddr = virt_to_phys(buddy_alloc_by_len(512*PAGE_SIZE));
                 npfns = 512;
             }
-            catch (buddy_allocator_oom_exception&)
+            catch (buddy_oom_exception&)
             {
             }
         }

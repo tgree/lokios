@@ -12,7 +12,7 @@ dhcpc_test.objs := \
 	$(BUILD_TO_DIR)/lokios.1/k++/mock/frandom.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fmm.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fpage.o \
-	$(BUILD_TO_DIR)/lokios.1/mm/mock/fbuddy_allocator.o \
+	$(BUILD_TO_DIR)/lokios.1/mm/mock/fbuddy.o \
 	$(BUILD_TO_DIR)/lokios.1/kern/mock/fkassert.o \
 	$(BUILD_TO_DIR)/lokios.1/kern/mock/fconsole.o \
 	$(BUILD_TO_DIR)/lokios.1/kern/mock/fschedule.o

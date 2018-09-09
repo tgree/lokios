@@ -3,7 +3,7 @@
 
 #include "k++/string_stream.h"
 #include "k++/strings.h"
-#include "mm/buddy_allocator.h"
+#include "mm/buddy.h"
 #include "hdr/chartype.h"
 
 #define MIN_KSTRING_CAPACITY    4096UL

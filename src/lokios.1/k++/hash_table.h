@@ -4,7 +4,7 @@
 #include "hash.h"
 #include "klist.h"
 #include "mm/page.h"
-#include "mm/buddy_allocator.h"
+#include "mm/buddy.h"
 #include "mm/slab.h"
 
 namespace hash
@@ -153,7 +153,7 @@ namespace hash
                 bin_transfer(old_bins,nbins/2,bins,nbins);
                 free_bins(old_bins,nbins/2);
             }
-            catch (kernel::buddy_allocator_oom_exception&)
+            catch (kernel::buddy_oom_exception&)
             {
             }
         }
@@ -172,7 +172,7 @@ namespace hash
                 bin_transfer(old_bins,nbins*2,bins,nbins);
                 free_bins(old_bins,nbins*2);
             }
-            catch (kernel::buddy_allocator_oom_exception&)
+            catch (kernel::buddy_oom_exception&)
             {
             }
         }

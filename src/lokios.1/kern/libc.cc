@@ -2,7 +2,7 @@
 #include "console.h"
 #include "kassert.h"
 #include "mm/page.h"
-#include "mm/buddy_allocator.h"
+#include "mm/buddy.h"
 #include "mm/mm.h"
 #include <stddef.h>
 #include <unistd.h>

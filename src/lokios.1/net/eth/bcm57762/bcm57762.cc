@@ -39,7 +39,6 @@
 #include "../phy/phy.h"
 #include "kern/console.h"
 #include "kern/cpu.h"
-#include "mm/buddy_allocator.h"
 #include <stdlib.h>
 
 #define dev_dbg(fmt,...) \

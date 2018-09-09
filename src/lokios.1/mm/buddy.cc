@@ -1,9 +1,11 @@
+#include "buddy.h"
 #include "buddy_allocator.h"
 #include "kern/spinlock.h"
 #include "k++/deferred_init.h"
 
-static kernel::spinlock                                 buddy_pages_lock;
-static kernel::deferred_global<kernel::buddy_allocator> buddy_pages;
+static kernel::spinlock buddy_pages_lock;
+static kernel::deferred_global<
+    kernel::buddy_allocator<kernel::buddy_oom_exception>> buddy_pages;
 
 dma_addr64
 kernel::buddy_palloc_by_order(size_t order)

@@ -1,5 +1,5 @@
 #include "page.h"
-#include "buddy_allocator.h"
+#include "buddy.h"
 #include "kern/task.h"
 #include "kern/cpu.h"
 #include "kern/console.h"

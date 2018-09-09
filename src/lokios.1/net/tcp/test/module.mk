@@ -30,7 +30,7 @@ tcp_socket_test.objs := \
 	$(BUILD_TO_DIR)/lokios.1/kern/mock/fconsole.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fpage.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fmm.o \
-	$(BUILD_TO_DIR)/lokios.1/mm/mock/fbuddy_allocator.o \
+	$(BUILD_TO_DIR)/lokios.1/mm/mock/fbuddy.o \
 	$(BUILD_TO_DIR)/lokios.1/k++/mock/frandom.o
 
 tcp_pipe_test.objs := \
@@ -47,7 +47,7 @@ tcp_pipe_test.objs := \
 	$(BUILD_TO_DIR)/lokios.1/kern/mock/fconsole.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fpage.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fmm.o \
-	$(BUILD_TO_DIR)/lokios.1/mm/mock/fbuddy_allocator.o \
+	$(BUILD_TO_DIR)/lokios.1/mm/mock/fbuddy.o \
 	$(BUILD_TO_DIR)/lokios.1/k++/mock/frandom.o
 
 tcp_self_connect_test.objs := \
@@ -64,7 +64,7 @@ tcp_self_connect_test.objs := \
 	$(BUILD_TO_DIR)/lokios.1/kern/mock/fconsole.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fpage.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fmm.o \
-	$(BUILD_TO_DIR)/lokios.1/mm/mock/fbuddy_allocator.o \
+	$(BUILD_TO_DIR)/lokios.1/mm/mock/fbuddy.o \
 	$(BUILD_TO_DIR)/lokios.1/k++/mock/frandom.o
 
 tcp_blackbox_test.objs := \
@@ -81,6 +81,6 @@ tcp_blackbox_test.objs := \
 	$(BUILD_TO_DIR)/lokios.1/kern/mock/fconsole.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fpage.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fmm.o \
-	$(BUILD_TO_DIR)/lokios.1/mm/mock/fbuddy_allocator.o \
+	$(BUILD_TO_DIR)/lokios.1/mm/mock/fbuddy.o \
 	$(BUILD_TO_DIR)/lokios.1/k++/mock/frandom.o
 
