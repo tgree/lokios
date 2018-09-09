@@ -165,7 +165,6 @@ namespace kernel::pci
         kernel::wqe* alloc_msix_vector(size_t vec,
                                        kernel::work_handler handler);
         void enable_msix_vector(size_t vec);
-        void dump_msix_table();
 
         dev(pci::domain* domain, uint8_t bus, uint8_t devfn);
         dev(const dev* pd, const pci::driver* owner);

@@ -234,20 +234,6 @@ kernel::pci::dev::enable_msix_vector(size_t vec)
 }
 
 void
-kernel::pci::dev::dump_msix_table()
-{
-    for (size_t i=0; i<msix_nvecs; ++i)
-    {
-        printf("msix %zu: 0x%08X%08X 0x%08X 0x%08X\n",
-               i,
-               msix_table[i].msg_addr_high,
-               msix_table[i].msg_addr_low,
-               msix_table[i].msg_data,
-               msix_table[i].vector_control);
-    }
-}
-
-void
 kernel::pci::init_pci()
 {
     // Parse and MCFG entries first.
