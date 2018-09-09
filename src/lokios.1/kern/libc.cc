@@ -10,11 +10,14 @@
 
 FILE* stderr;
 
+#define MALLOC_ALLOC_SIG    char_code("MALA")
+#define MALLOC_FREE_SIG     char_code("MALF")
 struct malloc_chunk
 {
-    size_t  len;
-    size_t  order;
-    char    data[];
+    uint32_t    sig;
+    uint32_t    order;
+    size_t      len;
+    char        data[];
 };
 KASSERT(sizeof(malloc_chunk) == 16);
 KASSERT(offsetof(malloc_chunk,data) % 16 == 0);
@@ -25,8 +28,9 @@ void* malloc(size_t n) noexcept
     n           += sizeof(malloc_chunk);
     size_t order = kernel::buddy_order_for_len(n);
     auto* mc     = (malloc_chunk*)kernel::buddy_alloc(order);
-    mc->len      = n;
+    mc->sig      = MALLOC_ALLOC_SIG;
     mc->order    = order;
+    mc->len      = n;
     return mc->data;
 }
 
@@ -44,8 +48,12 @@ void* realloc(void* ptr, size_t size)
         return NULL;
     }
 
-    // If we already have enough room, return the original pointer.
-    auto* mc         = container_of(ptr,malloc_chunk,data);
+    // Find the chunk header.
+    auto* mc = container_of(ptr,malloc_chunk,data);
+    kernel::kassert(mc->sig == MALLOC_ALLOC_SIG);
+
+    // If the new order is the same as the old, we're done.  Otherwise we need
+    // to grow or shrink the block.
     size_t new_order = kernel::buddy_order_for_len(size);
     if (new_order == mc->order)
     {
@@ -67,6 +75,8 @@ void free(void* p) noexcept
         return;
 
     auto* mc = container_of(p,malloc_chunk,data);
+    kernel::kassert(mc->sig == MALLOC_ALLOC_SIG);
+    mc->sig = MALLOC_FREE_SIG;
     kernel::buddy_free(mc,mc->order);
 }
 
