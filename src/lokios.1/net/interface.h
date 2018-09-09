@@ -133,7 +133,6 @@ namespace net
                 uint64_t    handle_rx_ipv4_udp_frame(net::rx_page* p);
 
         // Helpers.
-        virtual void    dump_arp_table() = 0;
         virtual void    handle_wapi_request(wapi::node* node,
                                             http::request* req,
                                             json::object* obj,

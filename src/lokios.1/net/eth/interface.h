@@ -57,7 +57,6 @@ namespace eth
                 void    handle_rx_arp_frame(net::rx_page* p);
 
         // Helpers.
-        virtual void    dump_arp_table();
                 void    handle_arp_wapi_request(wapi::node* node,
                                                 http::request* req,
                                                 json::object* obj,

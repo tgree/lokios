@@ -15,7 +15,6 @@ namespace net
         virtual size_t  format_arp_broadcast(void* arp_payload);
         virtual void    post_tx_frame(net::tx_op* op);
         virtual void    post_rx_pages(kernel::klist<net::rx_page>& pages);
-        virtual void    dump_arp_table();
         virtual void    handle_wapi_request(wapi::node* node,
                                             http::request* req,
                                             json::object* obj,

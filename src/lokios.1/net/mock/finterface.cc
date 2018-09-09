@@ -47,12 +47,6 @@ net::finterface::post_rx_pages(kernel::klist<net::rx_page>& pages)
     posted_pages.append(pages);
 }
 
-void
-net::finterface::dump_arp_table()
-{
-    kernel::panic("dump_arp_table not supported");
-}
-
 net::tx_op*
 net::finterface::pop_tx_op()
 {
