@@ -4,6 +4,7 @@
 #include "kern/task.h"
 #include "kern/cpu.h"
 #include "kern/tlb.h"
+#include "wapi/wapi.h"
 
 using kernel::console::printf;
 
@@ -138,3 +139,22 @@ kernel::xlate(const void* v)
 {
     return kernel_task->pt.xlate(v);
 }
+
+void
+mm_request(wapi::node* node, http::request* req, json::object* obj,
+    http::response* rsp)
+{
+    // GET /mm
+    rsp->printf("{\r\n"
+                "    \"bootloader_top_addr\" : \"0x%08lX\",\r\n"
+                "    \"total_pages\"         : %zu,\r\n"
+                "    \"free_pages\"          : %zu,\r\n"
+                "    \"page_table_pages\"    : %zu\r\n"
+                "}\r\n",
+                top_addr,kernel::page_count_total(),kernel::page_count_free(),
+                kernel::kernel_task->pt.page_count);
+}
+
+static wapi::global_node mm_wapi_node(&wapi::root_node,
+                                       func_delegate(mm_request),
+                                       METHOD_GET_MASK,"mm");
