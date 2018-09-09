@@ -18,6 +18,7 @@
 #include "interrupts/pic.h"
 #include "interrupts/ioapic.h"
 #include "interrupts/lapic.h"
+#include "wapi/wapi.h"
 #include "k++/random.h"
 #include <stddef.h>
 
@@ -86,7 +87,7 @@ init_bsp()
 
     // Initialize globals.
     init_globals();
-
+    
     // Initialize the platform.
     kernel::init_platform();
 
@@ -129,6 +130,7 @@ init_bsp_stage2()
     kernel::init_ioapics();
     kernel::init_lapic();
     kernel::init_irq_routing();
+    wapi::link_gnodes();
 
     // Init local CPU stuff.
     kernel::init_lapic_cpu_interrupts();

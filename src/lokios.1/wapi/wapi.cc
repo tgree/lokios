@@ -4,6 +4,15 @@
 using kernel::_kassert;
 using kernel::console::printf;
 
+static kernel::klist_leaks<wapi::global_node> gnodes;
+
+void
+wapi::link_gnodes()
+{
+    for (auto& gn : klist_elems(gnodes,glink))
+        gn.parent->register_child(&gn);
+}
+
 wapi::node*
 wapi::find_node_for_path(const char* path)
 {
@@ -52,6 +61,13 @@ wapi::node::node(node* parent, wapi::delegate handler, uint64_t method_mask,
     parent->register_child(this);
 }
 
+wapi::node::node(node* parent, wapi::delegate handler, uint64_t method_mask):
+    parent(parent),
+    method_mask(method_mask),
+    handler(handler)
+{
+}
+
 void
 wapi::node::register_child(wapi::node* c)
 {
@@ -84,4 +100,16 @@ wapi::node::deregister()
         link.unlink();
         parent = NULL;
     }
+}
+
+wapi::global_node::global_node(wapi::node* parent, wapi::delegate handler,
+    uint64_t method_mask, const char* fmt, ...):
+        wapi::node(parent,handler,method_mask)
+{
+    va_list ap;
+    va_start(ap,fmt);
+    name.vprintf(fmt,ap);
+    va_end(ap);
+
+    gnodes.push_back(&glink);
 }

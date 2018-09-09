@@ -45,11 +45,24 @@ namespace wapi
         // globals!
         node(node* parent, wapi::delegate handler, uint64_t method_mask,
              const char* fmt, ...);
+
+    protected:
+        // Records the parent but doesn't link us up.  For use by global_node.
+        node(node* parent, wapi::delegate handler, uint64_t method_mask);
+    };
+
+    struct global_node : public node
+    {
+        kernel::klink   glink;
+
+        global_node(node* parent, wapi::delegate handler, uint64_t method_mask,
+                    const char* fmt, ...);
     };
 
     extern wapi::node root_node;
 
     wapi::node* find_node_for_path(const char* path);
+    void link_gnodes();
 }
 
 #endif /* __KERNEL_WAPI_WAPI_H */
