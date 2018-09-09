@@ -173,7 +173,7 @@ namespace kernel::pci
     };
 
     extern obj_list<pci::domain> domains;
-    extern wapi::node wapi_node;
+    extern wapi::global_node wapi_node;
 
     void init_pci();
 }

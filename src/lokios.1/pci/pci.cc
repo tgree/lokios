@@ -301,9 +301,6 @@ kernel::pci::init_pci()
             }
         }
     }
-
-    // Register WAPI nodes.
-    wapi::root_node.register_child(&kernel::pci::wapi_node);
 }
 
 static void
@@ -319,5 +316,6 @@ pci_request(wapi::node* node, http::request* req, json::object* obj,
     rsp->printf(" ]\r\n}\r\n");
 }
 
-wapi::node kernel::pci::wapi_node(func_delegate(pci_request),METHOD_GET_MASK,
-                                  "pci");
+wapi::global_node kernel::pci::wapi_node(&wapi::root_node,
+                                         func_delegate(pci_request),
+                                         METHOD_GET_MASK,"pci");
