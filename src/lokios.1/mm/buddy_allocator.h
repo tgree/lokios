@@ -199,6 +199,10 @@ namespace kernel
             return 0;
         return ulog2(ceil_pow2(len)) - 12;
     }
+    constexpr size_t buddy_len_for_order(size_t order)
+    {
+        return (4096 << order);
+    }
     KASSERT(buddy_order_for_len(10)    == 0);
     KASSERT(buddy_order_for_len(4095)  == 0);
     KASSERT(buddy_order_for_len(4096)  == 0);
@@ -212,6 +216,9 @@ namespace kernel
     KASSERT(buddy_order_for_len(32767) == 3);
     KASSERT(buddy_order_for_len(32768) == 3);
     KASSERT(buddy_order_for_len(32769) == 4);
+    KASSERT(buddy_len_for_order(0) == 4096);
+    KASSERT(buddy_len_for_order(1) == 8192);
+    KASSERT(buddy_len_for_order(2) == 16384);
     inline void* buddy_alloc(size_t order)
     {
         return kernel::phys_to_virt(buddy_palloc(order));
