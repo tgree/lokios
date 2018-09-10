@@ -31,6 +31,7 @@ net::interface::interface(size_t tx_qlen, size_t rx_qlen, uint16_t tx_mtu,
         ip_addr{0,0,0,0},
         tx_mtu(tx_mtu),
         rx_mtu(rx_mtu),
+        tcp_ephemeral_ports_mem(NUM_EPHEMERAL_PORTS*sizeof(uint16_t)),
         tcp_ephemeral_ports((uint16_t*)tcp_ephemeral_ports_mem.addr,
                             tcp_ephemeral_ports_mem.len/sizeof(uint16_t))
 {

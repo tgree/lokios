@@ -82,13 +82,19 @@ namespace kernel
 
     size_t buddy_init(dma_addr64 dma_base, size_t len, dma_addr64 bitmap_base);
 
-    template<size_t Order>
     struct buddy_block
     {
-        static constexpr const size_t len = buddy_len_for_order(Order);
+        const size_t len;
         void* const addr;
-        buddy_block():addr(buddy_alloc_by_order(Order)) {}
-        ~buddy_block() {buddy_free_by_order(addr,Order);}
+        buddy_block(size_t len):
+            len(ceil_pow2(len)),
+            addr(buddy_alloc_by_len(len))
+        {
+        }
+        ~buddy_block()
+        {
+            buddy_free_by_len(addr,len);
+        }
     };
 }
 
