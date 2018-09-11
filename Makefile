@@ -1,4 +1,4 @@
-MODULES      := tmock libsupc++ lokios.1 lokios.0 hdr
+MODULES      := tmock libsupc++ lokios.1 lokios.0 vmbios hdr
 ALL_TESTS    :=
 
 TESTS_DIR    := tests
@@ -94,10 +94,21 @@ $(BIN_DIR)/lokios.1.elf: $(BUILD_O_DIR)/lokios.1/lokios.1.elf
 	@cp $^ $@
 	@strip -S $@
 
-$(BIN_DIR)/lokios.1: $(BIN_DIR)/lokios.1.elf
+$(BIN_DIR)/lokios.1: $(BIN_DIR)/lokios.1.elf $(BIN_DIR)/vmbios
 	@echo Generating $@...
 	@mkdir -p $(@D)
 	@objcopy -O binary -S $(BIN_DIR)/lokios.1.elf $(BIN_DIR)/lokios.1
+
+$(BIN_DIR)/vmbios.elf: $(BUILD_O_DIR)/vmbios/vmbios.elf
+	@echo Copying $@...
+	@mkdir -p $(@D)
+	@cp $^ $@
+	@strip -S $@
+
+$(BIN_DIR)/vmbios: $(BIN_DIR)/vmbios.elf
+	@echo Generating $@...
+	@mkdir -p $(@D)
+	@objcopy -O binary -S $(BIN_DIR)/vmbios.elf $(BIN_DIR)/vmbios
 
 $(BIN_DIR)/lokios.mbr: $(BIN_DIR)/lokios.0 $(BIN_DIR)/lokios.1
 	@echo Generating $@...
