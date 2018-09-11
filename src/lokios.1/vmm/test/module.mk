@@ -1,6 +1,7 @@
 TESTS := \
     	ram_device_test \
-	vm_test
+	vm_test         \
+	ia32_cpu_test
 
 ram_device_test.objs := \
     	$(MODULE_TBUILD_DIR)/ram_device_test.o \
@@ -17,3 +18,6 @@ vm_test.objs := \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fmm.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fpage.o \
 	$(BUILD_TO_DIR)/lokios.1/mm/mock/fbuddy.o
+
+ia32_cpu_test.objs := \
+    	$(MODULE_TBUILD_DIR)/ia32_cpu_test.o
