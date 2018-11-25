@@ -20,7 +20,7 @@ $(MODULE_BUILD_DIR)/lokios.1.elf: \
     $(MODULE_SRC_DIR)/lokios.1.ld \
     $(MODULE_MK)
 	@echo Linking $@...
-	@ld -melf_x86_64 -Map=$(LDM) -T $(LDLD) $(LOKIOS_1_DRIVERS:%=--require-defined=%_driver) $(LOKIOS_1_CONSTRUCTORS:%=--require-defined=%) -o $@ \
+	ld -melf_x86_64 -Map=$(LDM) -T $(LDLD) $(LOKIOS_1_DRIVERS:%=--require-defined=%_driver) $(LOKIOS_1_CONSTRUCTORS:%=--require-defined=%) -o $@ \
 	    	$(CRTBEGIN_OBJ) \
 		$(LOKIOS_1_OBJ) \
 		-\(             \

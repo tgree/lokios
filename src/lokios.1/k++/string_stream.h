@@ -31,6 +31,7 @@ namespace kernel
         inline operator const char*() const {return c_str();}
         inline size_t strlen() const {return pos-base;}
         inline size_t avail() const {return len ? base+len-pos-1 : 0;}
+        inline size_t capacity() const {return len;}
         inline bool empty() const {return strlen() == 0;}
 
         inline void shrink()
@@ -51,6 +52,10 @@ namespace kernel
         {
             if (len)
                 *pos = '\0';
+        }
+        inline string_stream(char* base, size_t len, char* pos):
+            base(base),pos(pos),len(len)
+        {
         }
 
         template<size_t N>

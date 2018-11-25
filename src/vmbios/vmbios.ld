@@ -15,7 +15,7 @@ SECTIONS
     {
         *vmb_entry.a:*(.text)
         FILL(0x00);
-        . = 0xFFFF;
+        . = ALIGN(4096)-1;
         BYTE(0x00);
     }
 }

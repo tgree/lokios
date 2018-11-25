@@ -11,9 +11,9 @@ extern uint8_t _tbss_size[];
 
 struct thread_mem
 {
-    uint8_t         guard1[4096];
-    uint8_t         stack[16384];
-    uint8_t         guard2[4096];
+    //uint8_t         guard1[4096];
+    uint8_t         stack[16384+4096+4096];
+    //uint8_t         guard2[4096];
     uint8_t         tls[2048];
     kernel::klink   link;
 };

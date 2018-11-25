@@ -12,10 +12,16 @@
 
 using kernel::console::printf;
 
+struct frame
+{
+    uintptr_t   pc;
+    uintptr_t   cfa;
+};
+
 struct unwind_state
 {
-    uintptr_t*  pos;
-    uintptr_t   pcs[16];
+    frame*  pos;
+    frame   frames[16];
 };
 
 extern uint8_t _virt_addr[];
@@ -30,9 +36,12 @@ unwind_one(_Unwind_Context* context, void* data)
     if (!ip_before_insn)
         --pc;
 
-    auto* us   = (unwind_state*)data;
-    *us->pos++ = pc;
-    if (us->pos == us->pcs + NELEMS(us->pcs))
+    auto* us     = (unwind_state*)data;
+    us->pos->pc  = pc;
+    us->pos->cfa = _Unwind_GetCFA(context);
+    ++us->pos;
+
+    if (us->pos == us->frames + NELEMS(us->frames))
         return _URC_END_OF_STACK;
 
     return _URC_NO_REASON;
@@ -45,16 +54,17 @@ kernel::backtrace(const char* header)
         printf("%s:\n",header);
 
     unwind_state us;
-    us.pos = us.pcs;
+    us.pos = us.frames;
     _Unwind_Backtrace(unwind_one,&us);
 
     us.pos--;
-    while (us.pos > us.pcs)
+    while (us.pos > us.frames)
     {
-        uintptr_t pc = *us.pos--;
+        auto* f = us.pos--;
         try
         {
-            kernel::sym_info si = kernel::get_sym_info((void*)pc);
+            printf("  getsyminfo: 0x%016lX\n",f->pc);
+            kernel::sym_info si = kernel::get_sym_info((void*)f->pc);
             if (si.addr == (uintptr_t)kernel::panic ||
                 si.addr == (uintptr_t)::abort)
             {
@@ -75,16 +85,21 @@ kernel::backtrace(const char* header)
             // really do have a symbol longer than 4K.
             int status;
             char buf[4096];
+            printf("  gotsyminfo: 0x%016lX %s &buf = %p frame = 0x%016lX\n",
+                   (uintptr_t)si.addr,si.name,&buf[0],f->cfa);
             size_t n = sizeof(buf);
             abi::__cxa_demangle(si.name,buf,&n,&status);
             if (!status)
-                printf("  0x%016lX  %s+%zu/%zu\n",pc,buf,si.offset,si.size);
+                printf("  0x%016lX  %s+%zu/%zu\n",f->pc,buf,si.offset,si.size);
             else
-                printf("  0x%016lX  %s+%zu/%zu\n",pc,si.name,si.offset,si.size);
+            {
+                printf("  0x%016lX  %s+%zu/%zu\n",
+                       f->pc,si.name,si.offset,si.size);
+            }
         }
         catch (kernel::symbol_not_found_exception&)
         {
-            printf("  0x%016lX\n",pc);
+            printf("  0x%016lX\n",f->pc);
         }
     }
 }

@@ -128,7 +128,7 @@ clean:
 $(BUILD_O_DIR)/%.o: $(SRC_DIR)/%.cc | headers
 	@echo Compiling kern object $(SRC_DIR)/$*.cc...
 	@mkdir -p $(dir $@)
-	@$(CXX) -MMD -MP -MF $(BUILD_O_DIR)/$*.d -c $(KERN_CXXFLAGS) $(SRC_DIR)/$*.cc -o $@
+	$(CXX) -MMD -MP -MF $(BUILD_O_DIR)/$*.d -c $(KERN_CXXFLAGS) $(SRC_DIR)/$*.cc -o $@
 
 $(BUILD_TO_DIR)/%.o: $(SRC_DIR)/%.cc | headers
 	@echo Compiling test object $(SRC_DIR)/$*.cc...

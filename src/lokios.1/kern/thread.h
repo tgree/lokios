@@ -78,9 +78,9 @@ namespace kernel
 
     struct thread
     {
-        uint8_t     guard1[4096];
-        uint8_t     stack[16384];
-        uint8_t     guard2[4096];
+        //uint8_t     guard1[4096];
+        uint8_t     stack[16384+4096+4096];
+        //uint8_t     guard2[4096];
         uint8_t     tls[2048];
         tls_tcb     tcb;
         uint8_t     unmapped_but_free_if_we_need_it[4096];

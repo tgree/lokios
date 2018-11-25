@@ -312,7 +312,7 @@ pci_request(wapi::node* node, http::request* req, json::object* obj,
 {
     // GET /pci
     rsp->printf("{\r\n"
-                "    \"domains\" : [");
+                "    \"domains\" : [ ");
     for (auto& d : kernel::pci::domains)
         rsp->printf(" \"0x%04X\",",d.id);
     rsp->ks.shrink();

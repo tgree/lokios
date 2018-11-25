@@ -124,6 +124,14 @@ wapi_connection::handle_request() try
                      "\r\n",
                      response.ks.strlen());
 }
+catch (const hash::no_such_key_exception&)
+{
+    // Someone threw an exception trying to access a hash tabley key.  We'll
+    // unconditionally catch this and assume it was a bad header field.
+    response.headerf("HTTP/1.1 400 Bad Request\r\n"
+                     "Content-Length: 0\r\n"
+                     "\r\n");
+}
 catch (const http::missing_content_type_exception&)
 {
     // This indicates that there was a request body but no Content-Type

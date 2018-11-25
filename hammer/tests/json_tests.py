@@ -8,7 +8,7 @@ def test_paths(node, paths):
 
 @integration_test.test
 def test_fixed_json_nodes(node):
-    test_paths(node, ['/', '/acpi', '/mm', '/net', '/pci'])
+    test_paths(node, ['/', '/acpi', '/mm', '/net', '/pci', '/vmm'])
 
 
 @integration_test.test

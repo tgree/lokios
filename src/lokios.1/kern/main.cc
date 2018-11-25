@@ -8,6 +8,7 @@
 #include "pci/pci.h"
 #include "platform/platform.h"
 #include "net/net.h"
+#include "vmm/vmm.h"
 #include <typeinfo>
 
 #define MEM_INFO_TICKS  9999
@@ -75,4 +76,7 @@ kernel_main(kernel::wqe* wqe)
     // Set up a repeating ticker.
     mem_info_wqe.fn = kernel_ticker;
     kernel::cpu::schedule_timer(&mem_info_wqe,MEM_INFO_TICKS);
+
+    // Start the virtual machine monitor.
+    vmm::init_vmm();
 }

@@ -117,9 +117,25 @@ namespace kernel
             return val;
         }
 
+        void* steal()
+        {
+            void* rc = base;
+            base     = NULL;
+            len      = 0;
+            clear();
+            return rc;
+        }
+
         inline string():
             string_stream(NULL,0)
         {
+        }
+        inline string(string&& other):
+            string_stream(other.base,other.len,other.pos)
+        {
+            other.base = NULL;
+            other.len  = 0;
+            other.clear();
         }
         inline string(const char* fmt, ...):
             string_stream((char*)buddy_alloc_by_len(MIN_KSTRING_CAPACITY),
